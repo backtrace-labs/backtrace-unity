@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{74DDC6C2-70CE-45A8-AD99-4335769E7E09}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Backtrace.Unity</RootNamespace>
+    <AssemblyName>Backtrace.Unity</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEditor">
+      <HintPath>..\..\..\..\..\..\..\..\Program Files\Unity\Hub\Editor\2017.4.13f1\Editor\Data\Managed\UnityEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\..\..\..\Program Files\Unity\Hub\Editor\2017.4.13f1\Editor\Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BacktraceClient.cs" />
+    <Compile Include="BacktraceDatabase.cs" />
+    <Compile Include="Common\MiniDumpExceptionInformation.cs" />
+    <Compile Include="Common\MinidumpHelper.cs" />
+    <Compile Include="Common\StackFrameHelper.cs" />
+    <Compile Include="Common\SystemHelper.cs" />
+    <Compile Include="Extensions\DictionaryExtensions.cs" />
+    <Compile Include="Extensions\ExceptionExtensions.cs" />
+    <Compile Include="Extensions\GuidExtensions.cs" />
+    <Compile Include="Extensions\ThreadExtensions.cs" />
+    <Compile Include="Interfaces\Database\IBacktraceDatabaseRecordWriter.cs" />
+    <Compile Include="Interfaces\IBacktraceAPI.cs" />
+    <Compile Include="Interfaces\IBacktraceClient.cs" />
+    <Compile Include="Interfaces\IBacktraceDatabase.cs" />
+    <Compile Include="Interfaces\IBacktraceDatabaseContext.cs" />
+    <Compile Include="Interfaces\IBacktraceDatabaseFileContext.cs" />
+    <Compile Include="Model\BacktraceClientConfiguration.cs" />
+    <Compile Include="Model\BacktraceCredentials.cs" />
+    <Compile Include="Model\BacktraceData.cs" />
+    <Compile Include="Model\BacktraceReport.cs" />
+    <Compile Include="Model\BacktraceResult.cs" />
+    <Compile Include="Model\BacktraceStackFrame.cs" />
+    <Compile Include="Model\BacktraceStackTrace.cs" />
+    <Compile Include="Model\Database\BacktraceDatabaseRecord.cs" />
+    <Compile Include="Model\Database\BacktraceDatabaseRecordWriter.cs" />
+    <Compile Include="Model\Database\BacktraceDatabaseSettings.cs" />
+    <Compile Include="Model\JsonData\Annotations.cs" />
+    <Compile Include="Model\JsonData\ApplicationDependencies.cs" />
+    <Compile Include="Model\JsonData\BacktraceAttributes.cs" />
+    <Compile Include="Model\JsonData\EnvironmentVariables.cs" />
+    <Compile Include="Model\JsonData\SourceCodeData.cs" />
+    <Compile Include="Model\JsonData\ThreadData.cs" />
+    <Compile Include="Model\JsonData\ThreadInformation.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\BacktraceApi.cs" />
+    <Compile Include="Services\BacktraceDatabaseContext.cs" />
+    <Compile Include="Services\BacktraceDatabaseFileContext.cs" />
+    <Compile Include="Services\ReportLimitWatcher.cs" />
+    <Compile Include="Types\BacktraceResultStatus.cs" />
+    <Compile Include="Types\MinidumpException.cs" />
+    <Compile Include="Types\MinidumpOption.cs" />
+    <Compile Include="Types\RetryBehavior.cs" />
+    <Compile Include="Types\RetryOrder.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

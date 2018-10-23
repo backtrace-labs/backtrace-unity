@@ -1,0 +1,1 @@
+# Backtrace Unity support
