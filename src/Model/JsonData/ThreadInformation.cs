@@ -1,5 +1,5 @@
 ﻿using Backtrace.Unity.Extensions;
-using Backtrace.Unity.Model;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -13,14 +13,16 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Thread Name
         /// </summary>
+        [JsonProperty(PropertyName = "name")]
         public string Name { get; private set; }
 
         /// <summary>
         /// Denotes whether a thread is a faulting thread 
         /// </summary>
+        [JsonProperty(PropertyName = "fault")]
         public bool Fault { get; private set; }
 
-
+        [JsonProperty(PropertyName = "stack")]
         internal IEnumerable<BacktraceStackFrame> Stack = new List<BacktraceStackFrame>();
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -9,50 +10,59 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Function where exception occurs
         /// </summary>
-        public string FunctionName { get; set; }
+        [JsonProperty(PropertyName = "funcName")]
+        public string FunctionName;
 
         /// <summary>
         /// Line number in source code where exception occurs
         /// </summary>
-        public int Line { get; set; }
+        [JsonProperty(PropertyName = "line")]
+        public int Line;
 
         /// <summary>
         /// IL Offset
         /// </summary>
-        public int? Il { get; set; }
+        [JsonProperty(PropertyName = "il")]
+        public int? Il;
 
         /// <summary>
         /// PBD Unique identifier
         /// </summary>
-        public int? MemberInfo { get; set; }
+        [JsonProperty(PropertyName = "metadata_token")]
+        public int? MemberInfo;
 
 
         /// <summary>
         /// Full path to source code where exception occurs
         /// </summary>
-        public string SourceCodeFullPath { get; set; }
+        [JsonIgnore]
+        public string SourceCodeFullPath;
 
         /// <summary>
         /// Column number in source code where exception occurs
         /// </summary>
-        public int Column { get; set; }
+        [JsonProperty(PropertyName = "column")]
+        public int Column;
 
         /// <summary>
         /// Address of the stack frame
         /// </summary>
-        public int? ILOffset { get; set; }
+        [JsonProperty(PropertyName = "address")]
+        public int? ILOffset;
 
         /// <summary>
         /// Source code file name where exception occurs
         /// </summary>
-        public string SourceCode { get; set; }
+        [JsonProperty(PropertyName = "sourceCode")]
+        public string SourceCode;
 
         /// <summary>
         /// Library name where exception occurs
         /// </summary>
-        public string Library { get; set; }
+        [JsonProperty(PropertyName = "library")]
+        public string Library;
 
-        internal Assembly FrameAssembly { get; set; }
+        internal Assembly FrameAssembly;
 
         public BacktraceStackFrame()
         { }

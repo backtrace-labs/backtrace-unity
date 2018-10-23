@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -12,6 +13,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// All listed dependencies with version
         /// </summary>
+        [JsonProperty(PropertyName = "dependencies")]
         public Dictionary<string, string> AvailableDependencies = new Dictionary<string, string>();
 
         /// <summary>

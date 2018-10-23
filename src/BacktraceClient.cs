@@ -4,7 +4,9 @@ using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Backtrace.Unity
 {
@@ -37,7 +39,7 @@ namespace Backtrace.Unity
             get
             {
                 return BacktraceApi.OnServerError;
-}
+            }
 
             set
             {
@@ -164,23 +166,41 @@ namespace Backtrace.Unity
         /// Send a report to Backtrace API
         /// </summary>
         /// <param name="report">Report to send</param>
-        public virtual BacktraceResult Send(BacktraceReport report)
+        public virtual IEnumerator Send(BacktraceReport report)
         {
             var record = Database.Add(report, Attributes, MiniDumpType);
             //create a JSON payload instance
             var data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
             //valid user custom events
             data = BeforeSend?.Invoke(data) ?? data;
-            var result = BacktraceApi.Send(data);
-            record?.Dispose();
-            if (result?.Status == BacktraceResultStatus.Ok)
+            yield return BacktraceApi.Send(data, (BacktraceResult result) =>
             {
-                Database.Delete(record);
+                record?.Dispose();
+                if (result?.Status == BacktraceResultStatus.Ok)
+                {
+                    Database.Delete(record);
+                }
+                //check if there is more errors to send
+                //handle inner exception
+                //HandleInnerException(report, (BacktraceResult innerResult) =>
+                //{
+                //    result.InnerExceptionResult = innerResult;
+                //});
+            });
+        }
+
+        public void HandleUnhandledExceptions()
+        {
+            Application.logMessageReceived += HandleException;
+        }
+
+        private void HandleException(string condition, string stackTrace, LogType type)
+        {
+            if (type == LogType.Exception)
+            {
+                throw new NotImplementedException();
+                var exception = new Exception();
             }
-            //check if there is more errors to send
-            //handle inner exception
-            result.InnerExceptionResult = HandleInnerException(report);
-            return result;
         }
 
         /// <summary>
@@ -188,16 +208,16 @@ namespace Backtrace.Unity
         /// if inner exception exists, client should send report twice - one with current exception, one with inner exception
         /// </summary>
         /// <param name="report">current report</param>
-        private BacktraceResult HandleInnerException(BacktraceReport report)
-        {
-            //we have to create a copy of an inner exception report
-            //to have the same calling assembly property
-            var innerExceptionReport = report.CreateInnerReport();
-            if (innerExceptionReport == null)
-            {
-                return null;
-            }
-            return Send(innerExceptionReport);
-        }
+        //private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
+        //{
+        ////we have to create a copy of an inner exception report
+        ////to have the same calling assembly property
+        //var innerExceptionReport = report.CreateInnerReport();
+        //if (innerExceptionReport == null)
+        //{
+        //    yield return null;
+        //}
+        //yield return Send(innerExceptionReport, callback);
+        //}
     }
 }

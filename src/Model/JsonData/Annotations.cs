@@ -1,34 +1,32 @@
-﻿using Assets.Plugins.src.Backtrace.Unity.Common;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 namespace Backtrace.Unity.Model.JsonData
 {
     /// <summary>
     /// Get report annotations - environment variables and application dependencies
     /// </summary>
-    [Serializable]
     public class Annotations
     {
 
         /// <summary>
         /// Get system environment variables
         /// </summary>
-        [JsonProperty("EnvironmentVariables")]
+        [JsonProperty(PropertyName = "Environment Variables")]
         public Dictionary<string, string> EnvironmentVariables;
 
         /// <summary>
         /// Get application dependencies
         /// </summary>
-        public Dictionary<string, string> Dependencies => appDependencies.AvailableDependencies;
+        [JsonProperty(PropertyName = "Dependencies")]
+        public Dictionary<string, string> Dependencies;
 
         /// <summary>
         /// Get built-in complex attributes
         /// </summary>
+        [JsonExtensionData]
         public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
 
         /// <summary>
@@ -52,6 +50,7 @@ namespace Backtrace.Unity.Model.JsonData
             environment = new EnvironmentVariables();
             ComplexAttributes = complexAttributes;
             EnvironmentVariables = environment.Variables;
+            Dependencies = appDependencies.AvailableDependencies;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Backtrace.Unity.Model;
 using System;
+using System.Collections;
 
 namespace Backtrace.Unity.Interfaces
 {
@@ -12,7 +13,7 @@ namespace Backtrace.Unity.Interfaces
         /// Send a Backtrace report to Backtrace API
         /// </summary>
         /// <param name="data">Library diagnostic data</param>
-        BacktraceResult Send(BacktraceData data);
+        IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null);
 
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
