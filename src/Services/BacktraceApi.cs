@@ -1,5 +1,4 @@
-﻿using Backtrace.Unity.Common;
-using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Newtonsoft.Json;
 using System;
@@ -50,7 +49,7 @@ namespace Backtrace.Unity.Services
             {
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
-            _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}";
+            _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}&_mod_sync=1";
             Debug.Log("server url : " + _serverurl);
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
@@ -95,102 +94,33 @@ namespace Backtrace.Unity.Services
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
         {
-            var requestId = Guid.NewGuid();
-            var formData = new List<IMultipartFormSection>
+            var request = new UnityWebRequest(_serverurl, "POST");
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            yield return request.SendWebRequest();
+
+            _result = request.responseCode == 200
+                   ? new BacktraceResult()
+                   : BacktraceResult.OnError(report, new Exception(request.error));
+            Debug.Log("CODE: " + request.responseCode);
+            StringBuilder sb = new StringBuilder();
+            var responseHeaders = request.GetResponseHeaders();
+            if (responseHeaders != null)
             {
-                new MultipartFormDataSection("upload_file.json", json, "application/json")
-            };
-            byte[] boundary = UnityWebRequest.GenerateBoundary();
-            string boundaryString = Encoding.ASCII.GetString(boundary);
-            Debug.Log("Generated boundary " + boundaryString);
-
-            using (var www = UnityWebRequest.Post(_serverurl, formData, boundary))
-            {
-                www.method = "POST";
-                www.uploadHandler = (UploadHandler)new UploadHandlerRaw(boundary);
-                www.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-                www.SetRequestHeader("Content-Type", FormDataHelper.GetContentTypeWithBoundary(requestId));
-                var response = www.responseCode;
-                yield return www.SendWebRequest();
-                _result = www.isNetworkError || www.isHttpError
-                    ? BacktraceResult.OnError(report, new Exception(www.error))
-                    : new BacktraceResult();
-
-                StringBuilder sb = new StringBuilder();
-                var responseHeaders = www.GetResponseHeaders();
-                if (responseHeaders != null)
+                foreach (KeyValuePair<string, string> dict in request.GetResponseHeaders())
                 {
-                    foreach (System.Collections.Generic.KeyValuePair<string, string> dict in www.GetResponseHeaders())
-                    {
-                        sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
-                    }
-
-                    // Print Headers
-                    Debug.Log("RESPONSE: " + sb.ToString());
+                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
                 }
-                else
-                {
-                    Debug.Log("RESPONSE IS EMPTY");
-                }
-                callback?.Invoke(_result);
+                Debug.Log("RESPONSE: " + sb.ToString());
             }
-
+            else
+            {
+                Debug.Log("RESPONSE IS EMPTY");
+            }
+            callback?.Invoke(_result);
         }
-
-
-        //private BacktraceResult Send(Guid requestId, string json, List<string> attachments, BacktraceReport report)
-        //{
-        //    var formData = FormDataHelper.GetFormData(json, attachments, requestId);
-        //    string contentType = FormDataHelper.GetContentTypeWithBoundary(requestId);
-        //    var request = WebRequest.Create(_serverurl) as HttpWebRequest;
-
-        //    //Set up the request properties.
-        //    request.Method = "POST";
-        //    request.ContentType = contentType;
-        //    request.ContentLength = formData.Length;
-        //    try
-        //    {
-        //        using (Stream requestStream = request.GetRequestStream())
-        //        {
-        //            requestStream.Write(formData, 0, formData.Length);
-        //            requestStream.Close();
-        //        }
-        //        return ReadServerResponse(request, report);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        OnServerError?.Invoke(exception);
-        //        return BacktraceResult.OnError(report, exception);
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Handle server respond for synchronous request
-        ///// </summary>
-        ///// <param name="request">Current HttpWebRequest</param>
-        //private BacktraceResult ReadServerResponse(HttpWebRequest request, BacktraceReport report)
-        //{
-        //    using (WebResponse webResponse = request.GetResponse() as HttpWebResponse)
-        //    {
-        //        StreamReader responseReader = new StreamReader(webResponse.GetResponseStream());
-        //        string fullResponse = responseReader.ReadToEnd();
-        //        var response = JsonConvert.DeserializeObject<BacktraceResult>(fullResponse);
-        //        response.BacktraceReport = report;
-        //        OnServerResponse?.Invoke(response);
-        //        return response;
-        //    }
-        //}
-        //#endregion
-        ///// <summary>
-        ///// Get serialization settings
-        ///// </summary>
-        ///// <returns></returns>
-        //private JsonSerializerSettings JsonSerializerSettings { get; } = new JsonSerializerSettings
-        //{
-        //    NullValueHandling = NullValueHandling.Ignore,
-        //    DefaultValueHandling = DefaultValueHandling.Ignore
-        //};
-
 
         public void SetClientRateLimitEvent(Action<BacktraceReport> onClientReportLimitReached)
         {
