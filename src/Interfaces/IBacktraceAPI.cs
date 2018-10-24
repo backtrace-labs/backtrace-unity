@@ -7,7 +7,7 @@ namespace Backtrace.Unity.Interfaces
     /// <summary>
     /// Backtrace API sender interface
     /// </summary>
-    public interface IBacktraceApi : IDisposable
+    public interface IBacktraceApi
     {
         /// <summary>
         /// Send a Backtrace report to Backtrace API
@@ -24,11 +24,6 @@ namespace Backtrace.Unity.Interfaces
         /// Set an event executed when server return information after sending data to API
         /// </summary>
         Action<BacktraceResult> OnServerResponse { get; set; }
-
-        /// <summary>
-        /// Set custom request method to prepare HTTP request to Backtrace API
-        /// </summary>
-        Func<string, string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
         void SetClientRateLimitEvent(Action<BacktraceReport> onClientReportLimitReached);
 

@@ -14,12 +14,12 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Current report
         /// </summary>
-        public BacktraceReport BacktraceReport { get; set; }
+        public BacktraceReport BacktraceReport;
 
         /// <summary>
         /// Inner exception Backtrace status
         /// </summary>
-        public BacktraceResult InnerExceptionResult { get; set; } = null;
+        public BacktraceResult InnerExceptionResult;
 
         private string _message;
         /// <summary>

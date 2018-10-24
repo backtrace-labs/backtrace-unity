@@ -50,7 +50,6 @@ namespace Backtrace.Unity.Services
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
             _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}&_mod_sync=1";
-            Debug.Log("server url : " + _serverurl);
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
 
@@ -67,44 +66,48 @@ namespace Backtrace.Unity.Services
             {
                 yield return BacktraceResult.OnLimitReached(data.Report);
             }
-
             var json = JsonConvert.SerializeObject(data);
-            Debug.Log(json);
-            yield return Send(json, data.Attachments, data.Report, (BacktraceResult result) =>
-            {
-                Debug.Log("Hello from callback method");
-                callback?.Invoke(result);
-            });
-
-            //var jsop = JsonUtility.ToJson(data);
-            //var annotationsFromNewtonsoft = JsonConvert.SerializeObject(data.Annotations);
-            //var annotations = JsonUtility.ToJson(data.Annotations);
-
-            // execute user custom request handler
-            //if (RequestHandler != null)
-            //{
-            //    return RequestHandler?.Invoke(_serverurl, FormDataHelper.GetContentTypeWithBoundary(Guid.NewGuid()), data);
-            //}
-            ////set submission data
-            //string json = JsonConvert.SerializeObject(data);
-            //return Send(Guid.NewGuid(), json, data.Report?.AttachmentPaths ?? new List<string>(), data.Report);
+            yield return Send(json, data.Attachments, data.Report, callback);
         }
 
-        private BacktraceResult _result;
+        private readonly BacktraceResult _result;
+
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
         {
-            var request = new UnityWebRequest(_serverurl, "POST");
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
-            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
-            yield return request.SendWebRequest();
+            using (var request = new UnityWebRequest(_serverurl, "POST"))
+            {
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+                request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+                request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+                yield return request.SendWebRequest();
+                yield return HandleResult(request, report, callback);
+            }
+        }
 
-            _result = request.responseCode == 200
-                   ? new BacktraceResult()
-                   : BacktraceResult.OnError(report, new Exception(request.error));
-            Debug.Log("CODE: " + request.responseCode);
+        private IEnumerable HandleResult(UnityWebRequest request, BacktraceReport report, Action<BacktraceResult> callback)
+        {
+            BacktraceResult result;
+            if (request.responseCode == 200)
+            {
+                result = new BacktraceResult();
+                OnServerResponse?.Invoke(result);
+            }
+            else
+            {
+                PrintLog(request);
+                var exception = new Exception(request.error);
+                result = BacktraceResult.OnError(report, exception);
+                OnServerError?.Invoke(exception);
+            }
+            callback?.Invoke(result);
+            yield return result;
+        }
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        private void PrintLog(UnityWebRequest request)
+        {
             StringBuilder sb = new StringBuilder();
             var responseHeaders = request.GetResponseHeaders();
             if (responseHeaders != null)
@@ -115,11 +118,6 @@ namespace Backtrace.Unity.Services
                 }
                 Debug.Log("RESPONSE: " + sb.ToString());
             }
-            else
-            {
-                Debug.Log("RESPONSE IS EMPTY");
-            }
-            callback?.Invoke(_result);
         }
 
         public void SetClientRateLimitEvent(Action<BacktraceReport> onClientReportLimitReached)
@@ -130,11 +128,6 @@ namespace Backtrace.Unity.Services
         public void SetClientRateLimit(uint rateLimit)
         {
             reportLimitWatcher.SetClientReportLimit(rateLimit);
-        }
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
         }
     }
 }

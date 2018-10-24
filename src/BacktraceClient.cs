@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -15,22 +14,6 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient
     {
-
-        /// <summary>
-        /// Custom request handler for HTTP call to server
-        /// </summary>
-        public Func<string, string, BacktraceData, BacktraceResult> RequestHandler
-        {
-            get
-            {
-                return BacktraceApi.RequestHandler;
-            }
-
-            set
-            {
-                BacktraceApi.RequestHandler = value;
-            }
-        }
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
         /// </summary>
@@ -127,22 +110,6 @@ namespace Backtrace.Unity
         public BacktraceClient(
             BacktraceCredentials backtraceCredentials,
             Dictionary<string, object> attributes = null,
-            BacktraceDatabaseSettings databaseSettings = null,
-            uint reportPerMin = 3)
-            : this(backtraceCredentials, attributes, new BacktraceDatabase(databaseSettings),
-                  reportPerMin)
-        { }
-
-        /// <summary>
-        /// Initialize new client instance with BacktraceCredentials
-        /// </summary>
-        /// <param name="backtraceCredentials">Backtrace credentials to access Backtrace API</param>
-        /// <param name="attributes">Additional information about current application</param>
-        /// <param name="databaseSettings">Backtrace database settings</param>
-        /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
-        public BacktraceClient(
-            BacktraceCredentials backtraceCredentials,
-            Dictionary<string, object> attributes = null,
             IBacktraceDatabase database = null,
             uint reportPerMin = 3)
         {
@@ -166,7 +133,7 @@ namespace Backtrace.Unity
         /// Send a report to Backtrace API
         /// </summary>
         /// <param name="report">Report to send</param>
-        public virtual IEnumerator Send(BacktraceReport report)
+        public virtual IEnumerator Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
             var record = Database.Add(report, Attributes, MiniDumpType);
             //create a JSON payload instance
@@ -182,11 +149,13 @@ namespace Backtrace.Unity
                 }
                 //check if there is more errors to send
                 //handle inner exception
-                //HandleInnerException(report, (BacktraceResult innerResult) =>
-                //{
-                //    result.InnerExceptionResult = innerResult;
-                //});
+                HandleInnerException(report, (BacktraceResult innerResult) =>
+                {
+                    result.InnerExceptionResult = innerResult;
+                });
+                sendCallback?.Invoke(result);
             });
+            
         }
 
         public void HandleUnhandledExceptions()
@@ -208,16 +177,16 @@ namespace Backtrace.Unity
         /// if inner exception exists, client should send report twice - one with current exception, one with inner exception
         /// </summary>
         /// <param name="report">current report</param>
-        //private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
-        //{
-        ////we have to create a copy of an inner exception report
-        ////to have the same calling assembly property
-        //var innerExceptionReport = report.CreateInnerReport();
-        //if (innerExceptionReport == null)
-        //{
-        //    yield return null;
-        //}
-        //yield return Send(innerExceptionReport, callback);
-        //}
+        private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
+        {
+            //we have to create a copy of an inner exception report
+            //to have the same calling assembly property
+            var innerExceptionReport = report.CreateInnerReport();
+            if (innerExceptionReport == null)
+            {
+                yield return null;
+            }
+            yield return Send(innerExceptionReport, callback);
+        }
     }
 }
