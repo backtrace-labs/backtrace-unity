@@ -394,7 +394,7 @@ namespace Backtrace.Unity
                 if (disposing)
                 {
 #if !NET35
-                    BacktraceApi?.Dispose();
+                    //BacktraceApi?.Dispose();
                     //_timer?.Dispose();
 #endif
                 }

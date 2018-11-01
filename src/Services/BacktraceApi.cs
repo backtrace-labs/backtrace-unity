@@ -8,7 +8,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Services
 {
@@ -31,7 +30,7 @@ namespace Backtrace.Unity.Services
         /// Event triggered when server respond to diagnostic data
         /// </summary>
         public Action<BacktraceResult> OnServerResponse { get; set; }
-
+        
         internal readonly ReportLimitWatcher reportLimitWatcher;
 
         /// <summary>
@@ -82,7 +81,22 @@ namespace Backtrace.Unity.Services
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                 request.SetRequestHeader("Content-Type", "application/json");
                 yield return request.SendWebRequest();
-                yield return HandleResult(request, report, callback);
+                BacktraceResult result;
+                if (request.responseCode == 200)
+                {
+                    result = new BacktraceResult();
+                    OnServerResponse?.Invoke(result);
+                }
+                else
+                {
+                    PrintLog(request);
+                    var exception = new Exception(request.error);
+                    result = BacktraceResult.OnError(report, exception);
+                    OnServerError?.Invoke(exception);
+                }
+                callback?.Invoke(result);
+                yield return result;
+                //yield return HandleResult(request, report, callback);
             }
         }
 
