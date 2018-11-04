@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using Backtrace.Newtonsoft;
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -67,13 +67,13 @@ namespace Backtrace.Unity.Model
         public BacktraceStackFrame()
         { }
 
-        public BacktraceStackFrame(StackFrame frame, bool generatedByException, bool reflectionMethodName = true)
+        public BacktraceStackFrame(StackFrame frame, bool generatedByException)
         {
             if (frame == null || frame.GetMethod() == null)
             {
                 return;
             }
-            FunctionName = GetMethodName(frame, reflectionMethodName);
+            FunctionName = GetMethodName(frame);
             Line = frame.GetFileLineNumber();
             Il = frame.GetILOffset();
             ILOffset = Il;
@@ -100,14 +100,10 @@ namespace Backtrace.Unity.Model
         /// Generate valid name for current stack frame.
         /// </summary>
         /// <returns>Valid method name in stack trace</returns>
-        private string GetMethodName(StackFrame frame, bool reflectionMethodName)
+        private string GetMethodName(StackFrame frame)
         {
             var method = frame.GetMethod();
             string methodName = method.Name;
-            if (!reflectionMethodName)
-            {
-                return methodName;
-            }
             return methodName;
         }
     }

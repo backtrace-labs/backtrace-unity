@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using Backtrace.Newtonsoft;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

@@ -1,5 +1,6 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -12,8 +13,16 @@ namespace Backtrace.Unity
     /// <summary>
     /// Base Backtrace .NET Client 
     /// </summary>
-    public class BacktraceClient
+    public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
+        public BacktraceClientConfiguration Configuration;
+
+        /// <summary>
+        /// Backtrace database instance that allows to manage minidump files 
+        /// </summary>
+        public IBacktraceDatabase Database;
+
+        private IBacktraceApi _backtraceApi;
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
         /// </summary>
@@ -77,12 +86,7 @@ namespace Backtrace.Unity
         /// </summary>
         public readonly Dictionary<string, object> Attributes;
 
-        /// <summary>
-        /// Backtrace database instance that allows to manage minidump files 
-        /// </summary>
-        public IBacktraceDatabase Database;
 
-        private IBacktraceApi _backtraceApi;
         /// <summary>
         /// Instance of BacktraceApi that allows to send data to Backtrace API
         /// </summary>
@@ -100,24 +104,19 @@ namespace Backtrace.Unity
             }
         }
 
-        /// <summary>
-        /// Initialize new client instance with BacktraceCredentials
-        /// </summary>
-        /// <param name="backtraceCredentials">Backtrace credentials to access Backtrace API</param>
-        /// <param name="attributes">Additional information about current application</param>
-        /// <param name="databaseSettings">Backtrace database settings</param>
-        /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
-        public BacktraceClient(
-            BacktraceCredentials backtraceCredentials,
-            Dictionary<string, object> attributes = null,
-            IBacktraceDatabase database = null,
-            uint reportPerMin = 3)
+        private void Awake()
         {
-            Attributes = attributes ?? new Dictionary<string, object>();
-            BacktraceApi = new BacktraceApi(backtraceCredentials, reportPerMin);
-            Database = database ?? new BacktraceDatabase();
+            Database = GetComponent<BacktraceDatabase>();
+            if (Configuration == null || !Configuration.IsValid())
+            {
+                Debug.Log("Configuration doesn't exists or provided serverurl/token are invalid");
+                return;
+            }
+            BacktraceApi = new BacktraceApi(
+                new BacktraceCredentials(Configuration.ServerUrl, Configuration.Token),
+                (uint)Configuration.ReportPerMin
+                );
             Database.SetApi(BacktraceApi);
-            Database.Start();
         }
 
         /// <summary>
@@ -133,14 +132,21 @@ namespace Backtrace.Unity
         /// Send a report to Backtrace API
         /// </summary>
         /// <param name="report">Report to send</param>
-        public virtual IEnumerator Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
+        public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            var record = Database.Add(report, Attributes, MiniDumpType);
+            var record = Database?.Add(report, Attributes, MiniDumpType);
             //create a JSON payload instance
             var data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
             //valid user custom events
             data = BeforeSend?.Invoke(data) ?? data;
-            yield return BacktraceApi.Send(data, (BacktraceResult result) =>
+
+            if (BacktraceApi == null)
+            {
+                Debug.Log("Backtrace API not exisits. Please validate client token or server url!");
+                return;
+            }
+
+            StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
             {
                 record?.Dispose();
                 if (result?.Status == BacktraceResultStatus.Ok)
@@ -154,8 +160,7 @@ namespace Backtrace.Unity
                     result.InnerExceptionResult = innerResult;
                 });
                 sendCallback?.Invoke(result);
-            });
-            
+            }));
         }
 
         public void HandleUnhandledExceptions()
@@ -167,8 +172,9 @@ namespace Backtrace.Unity
         {
             if (type == LogType.Exception)
             {
-                throw new NotImplementedException();
-                var exception = new Exception();
+                var exception = new BacktraceUnhandledException(condition, stackTrace);
+                var report = new BacktraceReport(exception);
+                Send(report);
             }
         }
 
@@ -186,7 +192,7 @@ namespace Backtrace.Unity
             {
                 yield return null;
             }
-            yield return Send(innerExceptionReport, callback);
+            Send(innerExceptionReport, callback);
         }
     }
 }

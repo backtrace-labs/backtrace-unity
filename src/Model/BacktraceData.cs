@@ -1,5 +1,5 @@
 ﻿using Backtrace.Unity.Model.JsonData;
-using Newtonsoft.Json;
+using Backtrace.Newtonsoft;
 using System;
 using System.Collections.Generic;
 using System.Linq;

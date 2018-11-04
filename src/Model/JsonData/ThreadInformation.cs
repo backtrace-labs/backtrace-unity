@@ -1,5 +1,5 @@
 ﻿using Backtrace.Unity.Extensions;
-using Newtonsoft.Json;
+using Backtrace.Newtonsoft;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -31,6 +31,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// <param name="threadName">Thread name</param>
         /// <param name="fault">Denotes whether a thread is a faulting thread - in most cases main thread</param>
         /// <param name="stack">Exception stack information</param>
+        [JsonConstructor()]
         public ThreadInformation(string threadName, bool fault, IEnumerable<BacktraceStackFrame> stack)
         {
             Stack = stack ?? new List<BacktraceStackFrame>();

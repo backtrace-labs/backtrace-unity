@@ -1,9 +1,11 @@
-﻿using Backtrace.Unity.Interfaces.Database;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Unity.Interfaces.Database;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Text;
+using UnityEngine;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Model.Database
@@ -16,56 +18,67 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Id
         /// </summary>
+        [JsonProperty]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Check if current record is in use
         /// </summary>
+        [JsonIgnore]
         internal bool Locked { get; set; } = false;
 
         /// <summary>
         /// Path to json stored all information about current record
         /// </summary>
+        [JsonProperty(PropertyName = "recordName")]
         internal string RecordPath { get; set; }
 
         /// <summary>
         /// Path to a diagnostic data json
         /// </summary>
+        [JsonProperty(PropertyName = "dataPath")]
         internal string DiagnosticDataPath { get; set; }
 
         /// <summary>
         /// Path to minidump file
         /// </summary>
+        [JsonProperty(PropertyName = "minidumpPath")]
         internal string MiniDumpPath { get; set; }
 
         /// <summary>
         /// Path to Backtrace Report json
         /// </summary>
+        [JsonProperty(PropertyName = "reportPath")]
         internal string ReportPath { get; set; }
 
         /// <summary>
         /// Total size of record
         /// </summary>
+        [JsonProperty(PropertyName = "size")]
         internal long Size { get; set; }
 
         /// <summary>
         /// Stored record
         /// </summary>
+        [JsonIgnore]
         internal virtual BacktraceData Record { get; set; }
 
         /// <summary>
         /// Path to database directory
         /// </summary>
+        [JsonIgnore]
         private readonly string _path = string.Empty;
 
         /// <summary>
         /// Record writer
         /// </summary>
+        [JsonIgnore]
         internal IBacktraceDatabaseRecordWriter RecordWriter;
 
         /// <summary>
         /// Get valid BacktraceData from current record
         /// </summary>
+        [JsonIgnore]
         public virtual BacktraceData BacktraceData
         {
             get
@@ -90,18 +103,14 @@ namespace Backtrace.Unity.Model.Database
                     //deserialize data - if deserialize fails, we receive invalid entry
                     try
                     {
-                        throw new NotImplementedException();
-                        //var diagnosticData = JsonConvert.DeserializeObject<BacktraceData>(diagnosticDataJson);
-                        //var report = JsonConvert.DeserializeObject<BacktraceReport>(reportJson);
-
-
+                        var diagnosticData = BacktraceDataConverter.DeserializeObject<BacktraceData>(diagnosticDataJson);
+                        var report = BacktraceDataConverter.DeserializeObject<BacktraceReport>(reportJson);
                         //add report to diagnostic data
                         //we don't store report with diagnostic data in the same json
                         //because we have easier way to serialize and deserialize data
                         //and no problem/condition with serialization when BacktraceApi want to send diagnostic data to API
-
-                        //diagnosticData.Report = report;
-                        //return diagnosticData;
+                        diagnosticData.Report = report;
+                        return diagnosticData;
                     }
                     catch (SerializationException)
                     {
@@ -114,6 +123,7 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Constructor for serialization purpose
         /// </summary>
+        [JsonConstructor]
         internal BacktraceDatabaseRecord()
         {
             RecordPath = $"{Id}-record.json";
@@ -142,7 +152,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 DiagnosticDataPath = Save(Record, $"{Id}-attachment");
                 ReportPath = Save(Record.Report, $"{Id}-report");
-                
+
                 // get minidump information
                 MiniDumpPath = Record.Report?.MinidumpFile ?? string.Empty;
                 Size += MiniDumpPath == string.Empty ? 0 : new FileInfo(MiniDumpPath).Length;
@@ -150,25 +160,24 @@ namespace Backtrace.Unity.Model.Database
                 //save record
                 RecordPath = Path.Combine(_path, $"{Id}-record.json");
                 //check current record size
-                throw new NotImplementedException();
-                //var json = JsonConvert.SerializeObject(this);
-                //byte[] file = Encoding.UTF8.GetBytes(json);
-                ////add record size
-                //Size += file.Length;
-                ////save it again with actual record size
-                //RecordWriter.Write(this, $"{Id}-record");
-                //return true;
+                var json = BacktraceDataConverter.SerializeObject(this);
+                byte[] file = Encoding.UTF8.GetBytes(json);
+                //add record size
+                Size += file.Length;
+                //save it again with actual record size
+                RecordWriter.Write(this, $"{Id}-record");
+                return true;
             }
             catch (IOException io)
             {
-                Trace.WriteLine($"Received {nameof(IOException)} while saving data to database.");
-                Debug.WriteLine($"Message {io.Message}");
+                Debug.Log($"Received {nameof(IOException)} while saving data to database.");
+                Debug.Log($"Message {io.Message}");
                 return false;
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Received {nameof(Exception)} while saving data to database.");
-                Debug.WriteLine($"Message {ex.Message}");
+                Debug.Log($"Received {nameof(Exception)} while saving data to database.");
+                Debug.Log($"Message {ex.Message}");
                 return false;
             }
         }
@@ -185,11 +194,10 @@ namespace Backtrace.Unity.Model.Database
             {
                 return string.Empty;
             }
-            throw new NotImplementedException();
-            //var json = JsonConvert.SerializeObject(data);
-            //byte[] file = Encoding.UTF8.GetBytes(json);
-            //Size += file.Length;
-            //return RecordWriter.Write(file, prefix);
+            var json = BacktraceDataConverter.SerializeObject(data);
+            byte[] file = Encoding.UTF8.GetBytes(json);
+            Size += file.Length;
+            return RecordWriter.Write(file, prefix);
         }
 
         /// <summary>
@@ -227,11 +235,11 @@ namespace Backtrace.Unity.Model.Database
             }
             catch (IOException e)
             {
-                Trace.WriteLine($"File {path} is in use. Message: {e.Message}");
+                Debug.Log($"File {path} is in use. Message: {e.Message}");
             }
             catch (Exception e)
             {
-                Trace.WriteLine($"Cannot delete file: {path}. Message: {e.Message}");
+                Debug.Log($"Cannot delete file: {path}. Message: {e.Message}");
             }
         }
 
@@ -247,8 +255,7 @@ namespace Backtrace.Unity.Model.Database
                 var json = streamReader.ReadToEnd();
                 try
                 {
-                    throw new NotImplementedException();
-                    //return JsonConvert.DeserializeObject<BacktraceDatabaseRecord>(json);
+                    return BacktraceDataConverter.DeserializeObject<BacktraceDatabaseRecord>(json);
                 }
                 catch (SerializationException)
                 {

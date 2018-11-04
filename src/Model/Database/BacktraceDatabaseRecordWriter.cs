@@ -1,5 +1,5 @@
-﻿using Backtrace.Unity.Interfaces.Database;
-using System;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Unity.Interfaces.Database;
 using System.IO;
 using System.Text;
 
@@ -48,8 +48,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 return string.Empty;
             }
-            throw new NotImplementedException();
-            //return JsonConvert.SerializeObject(data);
+            return BacktraceDataConverter.SerializeObject(data);
         }
 
         /// <summary>

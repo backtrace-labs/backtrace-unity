@@ -1,6 +1,6 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Newtonsoft.Json;
+using Backtrace.Newtonsoft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -48,7 +48,7 @@ namespace Backtrace.Unity.Services
             {
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
-            _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}&_mod_sync=1";
+            _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}";
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
 
@@ -65,12 +65,9 @@ namespace Backtrace.Unity.Services
             {
                 yield return BacktraceResult.OnLimitReached(data.Report);
             }
-            var json = JsonConvert.SerializeObject(data);
+            var json = BacktraceDataConverter.SerializeObject(data);
             yield return Send(json, data.Attachments, data.Report, callback);
         }
-
-        private readonly BacktraceResult _result;
-
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
         {
@@ -96,7 +93,7 @@ namespace Backtrace.Unity.Services
                 }
                 callback?.Invoke(result);
                 yield return result;
-                //yield return HandleResult(request, report, callback);
+                yield return HandleResult(request, report, callback);
             }
         }
 
