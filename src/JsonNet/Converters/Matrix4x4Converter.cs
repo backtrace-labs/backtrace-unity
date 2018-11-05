@@ -74,7 +74,7 @@ namespace Backtrace.Newtonsoft.Converters
             if (reader.TokenType == JsonToken.Null)
                 return new Matrix4x4();
 
-            var obj = JObject.Load(reader);
+            var obj = BacktraceJObject.Load(reader);
             return new Matrix4x4
             {
                 m00 = (float) obj["m00"],

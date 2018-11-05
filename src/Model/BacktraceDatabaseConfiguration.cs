@@ -1,7 +1,6 @@
 ﻿using Backtrace.Unity.Types;
 using System;
 using System.IO;
-using UnityEditor;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model
@@ -28,7 +27,7 @@ namespace Backtrace.Unity.Model
                 Debug.Log(Application.dataPath);
                 databasePathCopy = Path.GetFullPath(Path.Combine(Application.dataPath, databasePathCopy));
             }
-            Enabled =  Directory.Exists(databasePathCopy);
+            Enabled = Directory.Exists(databasePathCopy);
             return Enabled;
         }
 

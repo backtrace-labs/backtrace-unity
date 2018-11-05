@@ -41,7 +41,7 @@ namespace Backtrace.Newtonsoft.Linq.JsonPath
                         value = value.Next;
                     }
 
-                    JProperty e = value as JProperty;
+                    BacktraceJProperty e = value as BacktraceJProperty;
                     if (e != null)
                     {
                         if (e.Name == Name)
@@ -57,7 +57,7 @@ namespace Backtrace.Newtonsoft.Linq.JsonPath
                         }
                     }
 
-                    container = value as JContainer;
+                    container = value as BacktraceJContainer;
                 }
             }
         }

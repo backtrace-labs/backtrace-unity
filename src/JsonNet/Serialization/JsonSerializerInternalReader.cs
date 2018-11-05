@@ -588,7 +588,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
             if (reader.TokenType == JsonToken.StartObject)
             {
-                JObject current = (JObject)reader.CurrentToken;
+                BacktraceJObject current = (BacktraceJObject)reader.CurrentToken;
 
                 JToken refToken = current[JsonTypeReflector.RefPropertyName];
                 if (refToken != null)

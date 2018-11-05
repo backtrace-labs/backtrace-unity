@@ -36,7 +36,7 @@ namespace Backtrace.Newtonsoft.Linq
     /// Represents a JSON constructor.
     /// </summary>
     [Preserve]
-    public class JConstructor : JContainer
+    public class JConstructor : BacktraceJContainer
     {
         private string _name;
         private readonly List<JToken> _values = new List<JToken>();

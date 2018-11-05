@@ -44,7 +44,7 @@ namespace Backtrace.Newtonsoft.Schema
         private readonly JsonSchemaResolver _resolver;
         private readonly IDictionary<string, JsonSchema> _documentSchemas;
         private JsonSchema _currentSchema;
-        private JObject _rootSchema;
+        private BacktraceJObject _rootSchema;
 
         public JsonSchemaBuilder(JsonSchemaResolver resolver)
         {
@@ -79,7 +79,7 @@ namespace Backtrace.Newtonsoft.Schema
         {
             JToken schemaToken = JToken.ReadFrom(reader);
 
-            _rootSchema = schemaToken as JObject;
+            _rootSchema = schemaToken as BacktraceJObject;
 
             JsonSchema schema = BuildSchema(schemaToken);
 
@@ -209,7 +209,7 @@ namespace Backtrace.Newtonsoft.Schema
 
         private JsonSchema BuildSchema(JToken token)
         {
-            JObject schemaObject = token as JObject;
+            BacktraceJObject schemaObject = token as BacktraceJObject;
             if (schemaObject == null)
             {
                 throw JsonException.Create(token, token.Path, "Expected object while parsing schema object, got {0}.".FormatWith(CultureInfo.InvariantCulture, token.Type));
@@ -244,7 +244,7 @@ namespace Backtrace.Newtonsoft.Schema
             return Pop();
         }
 
-        private void ProcessSchemaProperties(JObject schemaObject)
+        private void ProcessSchemaProperties(BacktraceJObject schemaObject)
         {
             foreach (KeyValuePair<string, JToken> property in schemaObject)
             {
@@ -415,7 +415,7 @@ namespace Backtrace.Newtonsoft.Schema
                 throw JsonException.Create(token, token.Path, "Expected Object token while parsing schema properties, got {0}.".FormatWith(CultureInfo.InvariantCulture, token.Type));
             }
 
-            foreach (JProperty propertyToken in token)
+            foreach (BacktraceJProperty propertyToken in token)
             {
                 if (properties.ContainsKey(propertyToken.Name))
                 {

@@ -40,7 +40,7 @@ namespace Backtrace.Newtonsoft.Linq
     ///   <code lang="cs" source="..\Src\Newtonsoft.Json.Tests\Documentation\LinqToJsonTests.cs" region="LinqToJsonCreateParseArray" title="Parsing a JSON Array from Text" />
     /// </example>
     [Preserve]
-    public class JArray : JContainer, IList<JToken>
+    public class JArray : BacktraceJContainer, IList<JToken>
     {
         private readonly List<JToken> _values = new List<JToken>();
 

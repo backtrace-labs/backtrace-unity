@@ -40,7 +40,7 @@ namespace Backtrace.Newtonsoft.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var obj = JObject.Load(reader);
+            var obj = BacktraceJObject.Load(reader);
             var props = obj.Properties().ToList();
 
             var result = new Quaternion();

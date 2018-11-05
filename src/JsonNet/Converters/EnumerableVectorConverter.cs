@@ -72,7 +72,7 @@ namespace Backtrace.Newtonsoft.Converters
 
             var result = new List<T>();
 
-            var obj = JObject.Load(reader);
+            var obj = BacktraceJObject.Load(reader);
 
             for (var i = 0; i < obj.Count; i++)
                 result.Add(BacktraceDataConverter.DeserializeObject<T>(obj[i].ToString()));

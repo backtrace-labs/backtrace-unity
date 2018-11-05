@@ -36,8 +36,8 @@ namespace Backtrace.Newtonsoft.Linq
     [Preserve]
     public class JTokenWriter : JsonWriter
     {
-        private JContainer _token;
-        private JContainer _parent;
+        private BacktraceJContainer _token;
+        private BacktraceJContainer _parent;
         // used when writer is writing single value and the value has no containing parent
         private JValue _value;
         private JToken _current;
@@ -68,10 +68,10 @@ namespace Backtrace.Newtonsoft.Linq
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JTokenWriter"/> class writing to the given <see cref="JContainer"/>.
+        /// Initializes a new instance of the <see cref="JTokenWriter"/> class writing to the given <see cref="BacktraceJContainer"/>.
         /// </summary>
         /// <param name="container">The container being written to.</param>
-        public JTokenWriter(JContainer container)
+        public JTokenWriter(BacktraceJContainer container)
         {
             ValidationUtils.ArgumentNotNull(container, nameof(container));
 
@@ -108,10 +108,10 @@ namespace Backtrace.Newtonsoft.Linq
         {
             base.WriteStartObject();
 
-            AddParent(new JObject());
+            AddParent(new BacktraceJObject());
         }
 
-        private void AddParent(JContainer container)
+        private void AddParent(BacktraceJContainer container)
         {
             if (_parent == null)
             {
@@ -173,7 +173,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <param name="name">The name of the property.</param>
         public override void WritePropertyName(string name)
         {
-            JObject o = _parent as JObject;
+            BacktraceJObject o = _parent as BacktraceJObject;
             if (o != null)
             {
                 // avoid duplicate property name exception
@@ -181,7 +181,7 @@ namespace Backtrace.Newtonsoft.Linq
                 o.Remove(name);
             }
 
-            AddParent(new JProperty(name));
+            AddParent(new BacktraceJProperty(name));
 
             // don't set state until after in case of an error
             // incorrect state will cause issues if writer is disposed when closing open properties
@@ -510,7 +510,7 @@ namespace Backtrace.Newtonsoft.Linq
 
                     if (_token == null && _value == null)
                     {
-                        _token = value as JContainer;
+                        _token = value as BacktraceJContainer;
                         _value = value as JValue;
                     }
                 }

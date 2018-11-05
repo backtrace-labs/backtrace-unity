@@ -59,7 +59,7 @@ namespace Backtrace.Newtonsoft.Linq
     {
         private static JTokenEqualityComparer _equalityComparer;
 
-        private JContainer _parent;
+        private BacktraceJContainer _parent;
         private JToken _previous;
         private JToken _next;
         private object _annotations;
@@ -98,7 +98,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// Gets or sets the parent.
         /// </summary>
         /// <value>The parent.</value>
-        public JContainer Parent
+        public BacktraceJContainer Parent
         {
             [DebuggerStepThrough]
             get { return _parent; }
@@ -113,7 +113,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             get
             {
-                JContainer parent = Parent;
+                BacktraceJContainer parent = Parent;
                 if (parent == null)
                 {
                     return this;
@@ -195,7 +195,7 @@ namespace Backtrace.Newtonsoft.Linq
                     switch (current.Type)
                     {
                         case JTokenType.Property:
-                            JProperty property = (JProperty)current;
+                            BacktraceJProperty property = (BacktraceJProperty)current;
                             positions.Add(new JsonPosition(JsonContainerType.Object) { PropertyName = property.Name });
                             break;
                         case JTokenType.Array:
@@ -451,9 +451,9 @@ namespace Backtrace.Newtonsoft.Linq
                 throw new ArgumentNullException(nameof(value));
             }
 
-            if (value is JProperty)
+            if (value is BacktraceJProperty)
             {
-                value = ((JProperty)value).Value;
+                value = ((BacktraceJProperty)value).Value;
             }
 
             JValue v = value as JValue;
@@ -465,9 +465,9 @@ namespace Backtrace.Newtonsoft.Linq
         {
             ValidationUtils.ArgumentNotNull(token, nameof(token));
 
-            if (token is JProperty)
+            if (token is BacktraceJProperty)
             {
-                token = ((JProperty)token).Value;
+                token = ((BacktraceJProperty)token).Value;
             }
 
             return token.Type.ToString();
@@ -1873,13 +1873,13 @@ namespace Backtrace.Newtonsoft.Linq
             switch (reader.TokenType)
             {
                 case JsonToken.StartObject:
-                    return JObject.Load(reader, settings);
+                    return BacktraceJObject.Load(reader, settings);
                 case JsonToken.StartArray:
                     return JArray.Load(reader, settings);
                 case JsonToken.StartConstructor:
                     return JConstructor.Load(reader, settings);
                 case JsonToken.PropertyName:
-                    return JProperty.Load(reader, settings);
+                    return BacktraceJProperty.Load(reader, settings);
                 case JsonToken.String:
                 case JsonToken.Integer:
                 case JsonToken.Float:

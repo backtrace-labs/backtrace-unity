@@ -142,7 +142,7 @@ namespace Backtrace.Newtonsoft.Converters
 
             if (reader.TokenType != JsonToken.Null)
             {
-                var jo = JObject.Load(reader);
+                var jo = BacktraceJObject.Load(reader);
                 result.x = jo["x"].Value<float>();
                 result.y = jo["y"].Value<float>();
             }
@@ -156,7 +156,7 @@ namespace Backtrace.Newtonsoft.Converters
 
             if (reader.TokenType != JsonToken.Null)
             {
-                var jo = JObject.Load(reader);
+                var jo = BacktraceJObject.Load(reader);
                 result.x = jo["x"].Value<float>();
                 result.y = jo["y"].Value<float>();
                 result.z = jo["z"].Value<float>();
@@ -171,7 +171,7 @@ namespace Backtrace.Newtonsoft.Converters
 
             if (reader.TokenType != JsonToken.Null)
             {
-                var jo = JObject.Load(reader);
+                var jo = BacktraceJObject.Load(reader);
                 result.x = jo["x"].Value<float>();
                 result.y = jo["y"].Value<float>();
                 result.z = jo["z"].Value<float>();

@@ -72,10 +72,10 @@ namespace Backtrace.Newtonsoft.Linq
         /// <summary>
         /// Returns a collection of tokens that contains the descendants of every token in the source collection.
         /// </summary>
-        /// <typeparam name="T">The type of the objects in source, constrained to <see cref="JContainer"/>.</typeparam>
+        /// <typeparam name="T">The type of the objects in source, constrained to <see cref="BacktraceJContainer"/>.</typeparam>
         /// <param name="source">An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the source collection.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the descendants of every token in the source collection.</returns>
-        public static IJEnumerable<JToken> Descendants<T>(this IEnumerable<T> source) where T : JContainer
+        public static IJEnumerable<JToken> Descendants<T>(this IEnumerable<T> source) where T : BacktraceJContainer
         {
             ValidationUtils.ArgumentNotNull(source, nameof(source));
 
@@ -85,10 +85,10 @@ namespace Backtrace.Newtonsoft.Linq
         /// <summary>
         /// Returns a collection of tokens that contains every token in the source collection, and the descendants of every token in the source collection.
         /// </summary>
-        /// <typeparam name="T">The type of the objects in source, constrained to <see cref="JContainer"/>.</typeparam>
+        /// <typeparam name="T">The type of the objects in source, constrained to <see cref="BacktraceJContainer"/>.</typeparam>
         /// <param name="source">An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the source collection.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains every token in the source collection, and the descendants of every token in the source collection.</returns>
-        public static IJEnumerable<JToken> DescendantsAndSelf<T>(this IEnumerable<T> source) where T : JContainer
+        public static IJEnumerable<JToken> DescendantsAndSelf<T>(this IEnumerable<T> source) where T : BacktraceJContainer
         {
             ValidationUtils.ArgumentNotNull(source, nameof(source));
 
@@ -98,9 +98,9 @@ namespace Backtrace.Newtonsoft.Linq
         /// <summary>
         /// Returns a collection of child properties of every object in the source collection.
         /// </summary>
-        /// <param name="source">An <see cref="IEnumerable{T}"/> of <see cref="JObject"/> that contains the source collection.</param>
-        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JProperty"/> that contains the properties of every object in the source collection.</returns>
-        public static IJEnumerable<JProperty> Properties(this IEnumerable<JObject> source)
+        /// <param name="source">An <see cref="IEnumerable{T}"/> of <see cref="BacktraceJObject"/> that contains the source collection.</param>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="BacktraceJProperty"/> that contains the properties of every object in the source collection.</returns>
+        public static IJEnumerable<BacktraceJProperty> Properties(this IEnumerable<BacktraceJObject> source)
         {
             ValidationUtils.ArgumentNotNull(source, nameof(source));
 

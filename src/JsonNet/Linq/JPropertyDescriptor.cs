@@ -31,7 +31,7 @@ using Backtrace.Newtonsoft.Shims;
 namespace Backtrace.Newtonsoft.Linq
 {
     /// <summary>
-    /// Represents a view of a <see cref="JProperty"/>.
+    /// Represents a view of a <see cref="BacktraceJProperty"/>.
     /// </summary>
     [Preserve]
     public class JPropertyDescriptor : PropertyDescriptor
@@ -45,9 +45,9 @@ namespace Backtrace.Newtonsoft.Linq
         {
         }
 
-        private static JObject CastInstance(object instance)
+        private static BacktraceJObject CastInstance(object instance)
         {
-            return (JObject)instance;
+            return (BacktraceJObject)instance;
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </returns>
         public override Type ComponentType
         {
-            get { return typeof(JObject); }
+            get { return typeof(BacktraceJObject); }
         }
 
         /// <summary>

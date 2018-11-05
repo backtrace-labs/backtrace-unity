@@ -52,7 +52,7 @@ namespace Backtrace.Newtonsoft.Linq
     /// Represents a token that can contain other tokens.
     /// </summary>
     [Preserve]
-    public abstract class JContainer : JToken, IList<JToken>
+    public abstract class BacktraceJContainer : JToken, IList<JToken>
 #if !(DOTNET || PORTABLE || PORTABLE40)
         , ITypedList, IBindingList
 #endif
@@ -107,11 +107,11 @@ namespace Backtrace.Newtonsoft.Linq
         private bool _busy;
 #endif
 
-        internal JContainer()
+        internal BacktraceJContainer()
         {
         }
 
-        internal JContainer(JContainer other)
+        internal BacktraceJContainer(BacktraceJContainer other)
             : this()
         {
             ValidationUtils.ArgumentNotNull(other, nameof(other));
@@ -210,7 +210,7 @@ namespace Backtrace.Newtonsoft.Linq
             get { return ChildrenTokens.Count > 0; }
         }
 
-        internal bool ContentsEqual(JContainer container)
+        internal bool ContentsEqual(BacktraceJContainer container)
         {
             if (container == this)
             {
@@ -318,7 +318,7 @@ namespace Backtrace.Newtonsoft.Linq
             foreach (JToken o in ChildrenTokens)
             {
                 yield return o;
-                JContainer c = o as JContainer;
+                BacktraceJContainer c = o as BacktraceJContainer;
                 if (c != null)
                 {
                     foreach (JToken d in c.Descendants())
@@ -763,11 +763,11 @@ namespace Backtrace.Newtonsoft.Linq
             ValidationUtils.ArgumentNotNull(r, nameof(r));
             IJsonLineInfo lineInfo = r as IJsonLineInfo;
 
-            JContainer parent = this;
+            BacktraceJContainer parent = this;
 
             do
             {
-                if ((parent as JProperty)?.Value != null)
+                if ((parent as BacktraceJProperty)?.Value != null)
                 {
                     if (parent == this)
                     {
@@ -798,7 +798,7 @@ namespace Backtrace.Newtonsoft.Linq
                         parent = parent.Parent;
                         break;
                     case JsonToken.StartObject:
-                        JObject o = new JObject();
+                        BacktraceJObject o = new BacktraceJObject();
                         o.SetLineInfo(lineInfo, settings);
                         parent.Add(o);
                         parent = o;
@@ -855,11 +855,11 @@ namespace Backtrace.Newtonsoft.Linq
                         break;
                     case JsonToken.PropertyName:
                         string propertyName = r.Value.ToString();
-                        JProperty property = new JProperty(propertyName);
+                        BacktraceJProperty property = new BacktraceJProperty(propertyName);
                         property.SetLineInfo(lineInfo, settings);
-                        JObject parentObject = (JObject)parent;
+                        BacktraceJObject parentObject = (BacktraceJObject)parent;
                         // handle multiple properties with the same name in JSON
-                        JProperty existingPropertyWithName = parentObject.Property(propertyName);
+                        BacktraceJProperty existingPropertyWithName = parentObject.Property(propertyName);
                         if (existingPropertyWithName == null)
                         {
                             parent.Add(property);
@@ -1151,7 +1151,7 @@ namespace Backtrace.Newtonsoft.Linq
 #endif
         #endregion
 
-        internal static void MergeEnumerableContent(JContainer target, IEnumerable content, JsonMergeSettings settings)
+        internal static void MergeEnumerableContent(BacktraceJContainer target, IEnumerable content, JsonMergeSettings settings)
         {
             switch (settings.MergeArrayHandling)
             {
@@ -1204,7 +1204,7 @@ namespace Backtrace.Newtonsoft.Linq
                         {
                             JToken sourceItem = target[i];
 
-                            JContainer existingContainer = sourceItem as JContainer;
+                            BacktraceJContainer existingContainer = sourceItem as BacktraceJContainer;
                             if (existingContainer != null)
                             {
                                 existingContainer.Merge(targetItem, settings);

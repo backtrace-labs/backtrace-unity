@@ -81,7 +81,7 @@ namespace Backtrace.Newtonsoft.Linq
                     return false;
                 }
 
-                JContainer container = _current as JContainer;
+                BacktraceJContainer container = _current as BacktraceJContainer;
                 if (container != null && _parent != container)
                 {
                     return ReadInto(container);
@@ -129,7 +129,7 @@ namespace Backtrace.Newtonsoft.Linq
             return false;
         }
 
-        private JsonToken? GetEndToken(JContainer c)
+        private JsonToken? GetEndToken(BacktraceJContainer c)
         {
             switch (c.Type)
             {
@@ -146,7 +146,7 @@ namespace Backtrace.Newtonsoft.Linq
             }
         }
 
-        private bool ReadInto(JContainer c)
+        private bool ReadInto(BacktraceJContainer c)
         {
             JToken firstChild = c.First;
             if (firstChild == null)
@@ -162,7 +162,7 @@ namespace Backtrace.Newtonsoft.Linq
             }
         }
 
-        private bool SetEnd(JContainer c)
+        private bool SetEnd(BacktraceJContainer c)
         {
             JsonToken? endToken = GetEndToken(c);
             if (endToken != null)
@@ -192,7 +192,7 @@ namespace Backtrace.Newtonsoft.Linq
                     SetToken(JsonToken.StartConstructor, ((JConstructor)token).Name);
                     break;
                 case JTokenType.Property:
-                    SetToken(JsonToken.PropertyName, ((JProperty)token).Name);
+                    SetToken(JsonToken.PropertyName, ((BacktraceJProperty)token).Name);
                     break;
                 case JTokenType.Comment:
                     SetToken(JsonToken.Comment, ((JValue)token).Value);

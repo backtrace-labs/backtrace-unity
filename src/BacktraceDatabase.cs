@@ -66,7 +66,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
-           
+
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
 
@@ -99,7 +99,8 @@ namespace Backtrace.Unity
 
         private void Start()
         {
-            if (!_enable) {
+            if (!_enable)
+            {
                 return;
             }
             if (DatabaseSettings.AutoSendMode)
@@ -193,21 +194,31 @@ namespace Backtrace.Unity
         /// </summary>
         public void Flush()
         {
-            if (BacktraceApi == null)
+            if (!_enable || !BacktraceDatabaseContext.Any())
             {
-                throw new ArgumentException("BacktraceApi is required if you want to use Flush method");
+                return;
             }
-            var record = BacktraceDatabaseContext?.FirstOrDefault();
-            while (record != null)
+            FlushRecord(BacktraceDatabaseContext.FirstOrDefault());
+        }
+
+        private void FlushRecord(BacktraceDatabaseRecord record)
+        {
+            if (record == null)
             {
-                var backtraceData = record.BacktraceData;
-                Delete(record);
-                record = BacktraceDatabaseContext.FirstOrDefault();
-                if (backtraceData != null)
+                return;
+            }
+            var backtraceData = record.BacktraceData;
+            Delete(record);
+            if (backtraceData == null)
+            {
+                return;
+            }
+            StartCoroutine(
+                BacktraceApi.Send(backtraceData, (BacktraceResult result) =>
                 {
-                    BacktraceApi.Send(backtraceData);
-                }
-            }
+                    record = BacktraceDatabaseContext.FirstOrDefault();
+                    FlushRecord(record);
+                }));
         }
 
         private void SendData(BacktraceDatabaseRecord record)
@@ -218,21 +229,24 @@ namespace Backtrace.Unity
             {
                 Delete(record);
             }
-            StartCoroutine(
-                 BacktraceApi.Send(backtraceData, (BacktraceResult sendResult) =>
-                 {
-                     if (sendResult.Status == BacktraceResultStatus.Ok)
+            else
+            {
+                StartCoroutine(
+                     BacktraceApi.Send(backtraceData, (BacktraceResult sendResult) =>
                      {
-                         Delete(record);
-                     }
-                     else
-                     {
-                         record.Dispose();
-                         BacktraceDatabaseContext.IncrementBatchRetry();
-                     }
-                     record = BacktraceDatabaseContext.FirstOrDefault();
-                     SendData(record);
-                 }));
+                         if (sendResult.Status == BacktraceResultStatus.Ok)
+                         {
+                             Delete(record);
+                         }
+                         else
+                         {
+                             record.Dispose();
+                             BacktraceDatabaseContext.IncrementBatchRetry();
+                         }
+                         record = BacktraceDatabaseContext.FirstOrDefault();
+                         SendData(record);
+                     }));
+            }
 
         }
 

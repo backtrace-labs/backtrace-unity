@@ -37,7 +37,7 @@ namespace Backtrace.Newtonsoft.Converters
             if (reader.TokenType == JsonToken.Null)
                 return new Color();
 
-            var obj = JObject.Load(reader);
+            var obj = BacktraceJObject.Load(reader);
 
             if (objectType == typeof(Color32))
                 return new Color32((byte)obj["r"], (byte)obj["g"], (byte)obj["b"], (byte)obj["a"]);

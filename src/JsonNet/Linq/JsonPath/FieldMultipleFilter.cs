@@ -19,7 +19,7 @@ namespace Backtrace.Newtonsoft.Linq.JsonPath
         {
             foreach (JToken t in current)
             {
-                JObject o = t as JObject;
+                BacktraceJObject o = t as BacktraceJObject;
                 if (o != null)
                 {
                     foreach (string name in Names)

@@ -117,7 +117,7 @@ namespace Backtrace.Newtonsoft.Linq
 
         private string GetKeyForItem(JToken item)
         {
-            return ((JProperty)item).Name;
+            return ((BacktraceJProperty)item).Name;
         }
 
         protected override void InsertItem(int index, JToken item)
@@ -272,8 +272,8 @@ namespace Backtrace.Newtonsoft.Linq
                     return false;
                 }
 
-                JProperty p1 = (JProperty)keyAndProperty.Value;
-                JProperty p2 = (JProperty)secondValue;
+                BacktraceJProperty p1 = (BacktraceJProperty)keyAndProperty.Value;
+                BacktraceJProperty p2 = (BacktraceJProperty)secondValue;
 
                 if (p1.Value == null)
                 {
