@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Model
         /// Name of the client that is sending this error report.
         /// </summary>
         [JsonProperty(PropertyName = "agent")]
-        public const string Agent = "backtrace-csharp";
+        public const string Agent = "backtrace-unity";
 
         /// <summary>
         /// Version of the C# library
