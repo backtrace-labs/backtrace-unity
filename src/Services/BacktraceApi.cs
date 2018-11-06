@@ -1,6 +1,6 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Backtrace.Newtonsoft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace Backtrace.Unity.Services
         /// Event triggered when server respond to diagnostic data
         /// </summary>
         public Action<BacktraceResult> OnServerResponse { get; set; }
-        
+
         internal readonly ReportLimitWatcher reportLimitWatcher;
 
         /// <summary>
@@ -38,6 +38,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly string _serverurl;
 
+        private BacktraceCredentials _credentials;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
@@ -48,6 +49,7 @@ namespace Backtrace.Unity.Services
             {
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
+            _credentials = credentials;
             _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}";
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
@@ -66,6 +68,7 @@ namespace Backtrace.Unity.Services
                 yield return BacktraceResult.OnLimitReached(data.Report);
             }
             var json = BacktraceDataConverter.SerializeObject(data);
+            Debug.Log(json);
             yield return Send(json, data.Attachments, data.Report, callback);
         }
 
@@ -78,11 +81,18 @@ namespace Backtrace.Unity.Services
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                 request.SetRequestHeader("Content-Type", "application/json");
                 yield return request.SendWebRequest();
+
                 BacktraceResult result;
                 if (request.responseCode == 200)
                 {
                     result = new BacktraceResult();
                     OnServerResponse?.Invoke(result);
+                    var response = BacktraceDataConverter.DeserializeObject<BacktraceResult>(request.downloadHandler.text);
+                    if(attachments != null && attachments.Count > 0)
+                    {
+                        var stack = new Stack<string>(attachments);
+                        yield return SendAttachment(response.Object, stack);
+                    }
                 }
                 else
                 {
@@ -93,42 +103,67 @@ namespace Backtrace.Unity.Services
                 }
                 callback?.Invoke(result);
                 yield return result;
-                yield return HandleResult(request, report, callback);
             }
-        }
-
-        private IEnumerable HandleResult(UnityWebRequest request, BacktraceReport report, Action<BacktraceResult> callback)
-        {
-            BacktraceResult result;
-            if (request.responseCode == 200)
-            {
-                result = new BacktraceResult();
-                OnServerResponse?.Invoke(result);
-            }
-            else
-            {
-                PrintLog(request);
-                var exception = new Exception(request.error);
-                result = BacktraceResult.OnError(report, exception);
-                OnServerError?.Invoke(exception);
-            }
-            callback?.Invoke(result);
-            yield return result;
         }
 
         [System.Diagnostics.Conditional("DEBUG")]
         private void PrintLog(UnityWebRequest request)
         {
-            StringBuilder sb = new StringBuilder();
-            var responseHeaders = request.GetResponseHeaders();
-            if (responseHeaders != null)
+            string responseText = Encoding.UTF8.GetString(request.downloadHandler.data);
+            Debug.Log($"Response text: {responseText}");
+        }
+
+        private IEnumerator SendAttachment(string objectId, Stack<string> attachments)
+        {
+            if (attachments != null && attachments.Count > 0)
             {
-                foreach (KeyValuePair<string, string> dict in request.GetResponseHeaders())
+                var attachment = attachments.Pop();
+                if (System.IO.File.Exists(attachment))
                 {
-                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
+                    string fileName = System.IO.Path.GetFileName(attachment);
+                    string serverUrl = GetAttachmentUploadUrl(objectId, fileName);
+                    using (var request = new UnityWebRequest(serverUrl, "POST"))
+                    {
+                        byte[] bodyRaw = System.IO.File.ReadAllBytes(attachment);
+                        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+                        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+                        request.SetRequestHeader("Content-Type", "application/json");
+                        yield return request.SendWebRequest();
+                    }
                 }
-                Debug.Log("RESPONSE: " + sb.ToString());
+                yield return SendAttachment(objectId, attachments);
             }
+        }
+
+        private string GetAttachmentUploadUrl(string objectId, string attachmentName)
+        {
+            return $"{_credentials.BacktraceHostUri.AbsoluteUri}/api/post?token={_credentials.Token}&object={objectId}&attachment_name={UrlEncode(attachmentName)}";
+
+        }
+
+        private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
+
+        public static string UrlEncode(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder();
+
+            foreach (char @char in value)
+            {
+                if (reservedCharacters.IndexOf(@char) == -1)
+                {
+                    sb.Append(@char);
+                }
+                else
+                {
+                    sb.AppendFormat("%{0:X2}", (int)@char);
+                }
+            }
+            return sb.ToString();
         }
 
         public void SetClientRateLimitEvent(Action<BacktraceReport> onClientReportLimitReached)

@@ -54,7 +54,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Maximum number of retries
         /// </summary>
-        public int RetryLimit;
+        public int RetryLimit = 3;
 
         /// <summary>
         /// Retry order

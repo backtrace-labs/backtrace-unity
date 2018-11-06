@@ -22,7 +22,7 @@ namespace Backtrace.Unity.Port.Editor
             CreateAsset<BacktraceDatabaseConfiguration>(DEFAULT_DATABASE_CONFIGURATION_NAME);
         }
 
-        public static void CreateAsset<T>(string fileName) where T : ScriptableObject
+        private static void CreateAsset<T>(string fileName) where T : ScriptableObject
         {
             T asset = ScriptableObject.CreateInstance<T>();
             string currentProjectPath = AssetDatabase.GetAssetPath(Selection.activeObject);

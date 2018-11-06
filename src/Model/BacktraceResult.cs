@@ -3,6 +3,7 @@ using Backtrace.Unity.Types;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Backtrace.Newtonsoft;
 
 namespace Backtrace.Unity.Model
 {
@@ -25,6 +26,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Message
         /// </summary>
+        [JsonProperty(PropertyName = "message")]
         public string Message
         {
             get
@@ -46,6 +48,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Created object id
         /// </summary>
+        [JsonProperty(PropertyName = "object")]
         public string Object
         {
             get
@@ -62,6 +65,7 @@ namespace Backtrace.Unity.Model
         /// Backtrace APi can return _rxid instead of ObjectId. 
         /// Use this setter to set _object field correctly for both answers
         /// </summary>
+        [JsonProperty(PropertyName = "_rxid")]
         public string RxId
         {
             set
