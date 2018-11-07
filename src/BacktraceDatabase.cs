@@ -60,7 +60,19 @@ namespace Backtrace.Unity
         private void Awake()
         {
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
-            _enable = Configuration?.Enabled ?? false;
+            if(Configuration == null)
+            {
+                return;
+            }
+            if (Configuration.CreateDatabase)
+            {
+                Directory.CreateDirectory(Configuration.DatabasePath);
+                _enable = Configuration.ValidDatabasePath();
+            }
+            else
+            {
+                _enable = Configuration.Enabled;
+            }
 
             if (!_enable)
             {

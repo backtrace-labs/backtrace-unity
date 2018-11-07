@@ -19,6 +19,8 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public bool AutoSendMode = true;
 
+        public bool CreateDatabase = false;
+
         public bool ValidDatabasePath()
         {
             if (string.IsNullOrEmpty(DatabasePath))

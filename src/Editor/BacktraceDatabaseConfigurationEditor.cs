@@ -11,6 +11,7 @@ namespace Backtrace.Unity.Port.Editor
     {
         public const string LABEL_PATH = "Backtrace database path";
         public const string LABEL_AUTO_SEND_MODE = "Automatically send";
+        public const string LABEL_CREATE_DATABASE_DIRECTORY = "Create database directory";
         public const string LABEL_MAX_REPORT_COUNT = "Maximum number of records";
         public const string LABEL_MAX_DATABASE_SIZE = "Maximum database size (mb)";
         public const string LABEL_RETRY_INTERVAL = "Retry interval";
@@ -30,6 +31,7 @@ namespace Backtrace.Unity.Port.Editor
                 EditorGUILayout.HelpBox("Please insert valid Backtrace database path!", MessageType.Error);
             }
             settings.AutoSendMode = EditorGUILayout.Toggle(LABEL_AUTO_SEND_MODE, settings.AutoSendMode);
+            settings.CreateDatabase = EditorGUILayout.Toggle(LABEL_CREATE_DATABASE_DIRECTORY, settings.CreateDatabase);
             settings.MaxRecordCount = EditorGUILayout.IntField(LABEL_MAX_REPORT_COUNT, settings.MaxRecordCount);
             if(settings.MaxRecordCount< 0)
             {
