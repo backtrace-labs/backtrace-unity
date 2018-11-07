@@ -56,7 +56,7 @@ namespace Backtrace.Unity.Model
         public Dictionary<string, object> Attributes;
 
         /// <summary>
-        /// Get current host environment variables and application dependencies
+        /// Get current host environment variables
         /// </summary>
         [JsonProperty(PropertyName = "annotations")]
         internal Annotations Annotations;
