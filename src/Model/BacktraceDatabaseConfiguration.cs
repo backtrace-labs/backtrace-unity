@@ -14,6 +14,11 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public string DatabasePath;
 
+        /// <summary>
+        /// Resend report when http client throw exception
+        /// </summary>
+        public bool AutoSendMode = true;
+
         public bool ValidDatabasePath()
         {
             if (string.IsNullOrEmpty(DatabasePath))
@@ -40,11 +45,6 @@ namespace Backtrace.Unity.Model
         /// Database size in MB
         /// </summary>
         public long MaxDatabaseSize;
-
-        /// <summary>
-        /// Resend report when http client throw exception
-        /// </summary>
-        public bool AutoSendMode = true;
 
         /// <summary>
         /// How much seconds library should wait before next retry.
