@@ -9,6 +9,7 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [assembly: InternalsVisibleTo("Backtrace.Tests")]
 namespace Backtrace.Unity.Model.JsonData
@@ -67,6 +68,22 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["guid"] = GenerateMachineId();
             //Base name of application generating the report
             Attributes["application"] = Application.productName;
+            Attributes["application.url"] = Application.absoluteURL;
+            Attributes["application.company.name"] = Application.companyName;
+            Attributes["application.data_path"] = Application.dataPath;
+            Attributes["application.id"] = Application.identifier;
+            Attributes["application.installer.name"] = Application.installerName;
+            Attributes["application.internet_reachability"] = Application.internetReachability.ToString();
+            Attributes["application.editor"] = Application.isEditor;
+            Attributes["application.focused"] = Application.isFocused;
+            Attributes["application.mobile"] = Application.isMobilePlatform;
+            Attributes["application.playing"] = Application.isPlaying;
+            Attributes["application.background"] = Application.runInBackground;
+            Attributes["application.sandboxType"] = Application.sandboxType.ToString();
+            Attributes["application.system.language"] = Application.systemLanguage.ToString();
+            Attributes["aplication.unity.version"] = Application.unityVersion;
+            Attributes["application.temporary_cache"] = Application.temporaryCachePath;
+
             //Base name of library generating the report
             Attributes["application.lib"] = callingAssembly.GetName().Name;
 
@@ -189,8 +206,20 @@ namespace Backtrace.Unity.Model.JsonData
                 return;
             }
             var exception = report.Exception;
-            Attributes["classifier"] = exception.GetType().FullName;
             Attributes["error.message"] = exception.Message;
+        }
+
+        internal void SetSceneInformation()
+        {
+            //The number of Scenes which have been added to the Build Settings. The Editor will contain Scenes that were open before entering playmode.
+            if (SceneManager.sceneCountInBuildSettings > 0)
+            {
+                Attributes["scene.count.build"] = SceneManager.sceneCountInBuildSettings;
+            }
+            Attributes["scene.count"] = SceneManager.sceneCount;
+            var activeScene = SceneManager.GetActiveScene();
+            Attributes["scene.active"] = activeScene.name;
+            Attributes["scene.active.loaded"] = activeScene.isLoaded;
         }
 
         /// <summary>
