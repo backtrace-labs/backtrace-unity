@@ -68,7 +68,6 @@ namespace Backtrace.Unity.Services
                 yield return BacktraceResult.OnLimitReached(data.Report);
             }
             var json = BacktraceDataConverter.SerializeObject(data);
-            Debug.Log(json);
             yield return Send(json, data.Attachments, data.Report, callback);
         }
 
