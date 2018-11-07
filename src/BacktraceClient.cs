@@ -112,6 +112,10 @@ namespace Backtrace.Unity
                 Debug.Log("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
+            if (Configuration.HandleUnhandledExceptions)
+            {
+                HandleUnhandledExceptions();
+            }
             BacktraceApi = new BacktraceApi(
                 new BacktraceCredentials(Configuration.ServerUrl, Configuration.Token),
                 (uint)Configuration.ReportPerMin
