@@ -35,7 +35,7 @@ namespace Backtrace.Unity.Model
                 databasePathCopy = Path.GetFullPath(Path.Combine(Application.dataPath, databasePathCopy));
             }
             Enabled = Directory.Exists(databasePathCopy);
-            return Enabled;
+            return true;
         }
 
         /// <summary>
