@@ -46,7 +46,7 @@ List of steps necessary to setup full Backtrace Unity integration.
 * Select `Backtrace Client` from insperctor search box,
 * `Backtrace Client` configuration window now waiting for configuration asset.
 ![Backtrace configuration window](./images/unity-basic-configuration.PNG)
-* Right click on empty space in Unity workspace and select from the menu box `Backtrace > Backtrace Client`. This option generate new empty asset file in your solution. You can drag and drop generated asset file into Backtrace Configuration window.
+* Right click on empty space in Unity workspace and select from the menu box `Backtrace > Configuration`. This option generate new empty asset file in your solution. You can drag and drop generated asset file into Backtrace Client configuration window.
 ![Backtrace menu dialog box](./images/dialog-box.PNG)
 * Provide valid Backtrace client configuration and start using library!
 ![Full Backtrace configuration](./images/client-setup.PNG)
@@ -70,12 +70,8 @@ tokens if the project name is available.
 ## Database support configuration
 Backtrace Unity integration allows to store on hard drive offline reports. `BacktraceDatabase` provide methods to save reports when you lost a connection. 
 
-To create `BacktraceDatabase` configuraiton:
-* Select scene object and add new component in inspector window,
-* Select `Backtrace Database` from insperctor search box,
-* `Backtrace Database` configuration window now waiting for configuration asset.
-* Right click on your project work space and select from Backtrace option in Menu `Backtrace Database`. This option will generate empty `Backtrace database` asset in current work space directory,
-* Drag and drop generated asseet into `Backtrace Database Window`,
+To setup `BacktraceDatabase` configuraiton:
+* Select `Enable Database` checkbox in `Backtrace Client` configuration window,
 * Provide valid Backtrace database configuration and store offline reports in your game!
 ![Full Backtrace database configuration](./images/database-setup.PNG)
 
