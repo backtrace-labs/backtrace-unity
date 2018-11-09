@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -15,7 +14,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public BacktraceClientConfiguration Configuration;
+        public BacktraceConfiguration Configuration;
 
         /// <summary>
         /// Backtrace database instance that allows to manage minidump files 
@@ -109,7 +108,7 @@ namespace Backtrace.Unity
             Database = GetComponent<BacktraceDatabase>();
             if (Configuration == null || !Configuration.IsValid())
             {
-                Debug.Log("Configuration doesn't exists or provided serverurl/token are invalid");
+                Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
             if (Configuration.HandleUnhandledExceptions)
@@ -117,10 +116,10 @@ namespace Backtrace.Unity
                 HandleUnhandledExceptions();
             }
             BacktraceApi = new BacktraceApi(
-                new BacktraceCredentials(Configuration.ServerUrl, Configuration.Token),
-                (uint)Configuration.ReportPerMin
-                );
-            Database.SetApi(BacktraceApi);
+                credentials: new BacktraceCredentials(Configuration.ServerUrl, Configuration.Token),
+                reportPerMin: Convert.ToUInt32(Configuration.ReportPerMin));
+
+            Database?.SetApi(BacktraceApi);
         }
 
         /// <summary>
@@ -146,7 +145,8 @@ namespace Backtrace.Unity
 
             if (BacktraceApi == null)
             {
-                Debug.Log("Backtrace API not exisits. Please validate client token or server url!");
+                record?.Dispose();
+                Debug.LogWarning("Backtrace API not exisits. Please validate client token or server url!");
                 return;
             }
 

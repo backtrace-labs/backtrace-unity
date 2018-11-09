@@ -81,7 +81,7 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.background"] = Application.runInBackground;
             Attributes["application.sandboxType"] = Application.sandboxType.ToString();
             Attributes["application.system.language"] = Application.systemLanguage.ToString();
-            Attributes["aplication.unity.version"] = Application.unityVersion;
+            Attributes["application.unity.version"] = Application.unityVersion;
             Attributes["application.temporary_cache"] = Application.temporaryCachePath;
 
             //Base name of library generating the report
@@ -221,7 +221,7 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["scene.active"] = activeScene.name;
             Attributes["scene.active.loaded"] = activeScene.isLoaded;
         }
-
+        
         /// <summary>
         /// Set attributes from current process
         /// </summary>

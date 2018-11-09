@@ -1,23 +1,33 @@
 ﻿using Backtrace.Unity.Model;
 using UnityEditor;
+using UnityEngine;
 
 namespace Backtrace.Unity.Port.Editor
 {
     [CustomEditor(typeof(BacktraceClient))]
-    public class BacktraceEditor : UnityEditor.Editor
+    public class BacktraceClientEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
             var component = (BacktraceClient)target;
             component.Configuration =
-                (BacktraceClientConfiguration)EditorGUILayout.ObjectField(
+                (BacktraceConfiguration)EditorGUILayout.ObjectField(
                     "Backtrace configuration",
                     component.Configuration,
-                    typeof(BacktraceClientConfiguration),
+                    typeof(BacktraceConfiguration),
                     false);
             if (component.Configuration != null)
             {
-                CreateEditor(component.Configuration).OnInspectorGUI();
+                BacktraceConfigurationEditor editor = (BacktraceConfigurationEditor)CreateEditor(component.Configuration);
+                editor.OnInspectorGUI();
+                if (component.Configuration.Enabled && component.gameObject.GetComponent<BacktraceDatabase>() == null)
+                {
+                    component.gameObject.AddComponent<BacktraceDatabase>();
+                }
+                else if (!component.Configuration.Enabled && component.gameObject.GetComponent<BacktraceDatabase>() != null)
+                {
+                    DestroyImmediate(component.gameObject.GetComponent<BacktraceDatabase>());
+                }
             }
         }
     }

@@ -14,11 +14,12 @@ namespace Backtrace.Unity
     /// <summary>
     /// Backtrace Database 
     /// </summary>
+    [RequireComponent(typeof(BacktraceClient))]
     public class BacktraceDatabase : MonoBehaviour, IBacktraceDatabase
     {
         private bool _timerBackgroundWork = false;
 
-        public BacktraceDatabaseConfiguration Configuration;
+        public BacktraceConfiguration Configuration;
 
         /// <summary>
         /// Database settings
@@ -59,20 +60,25 @@ namespace Backtrace.Unity
 
         private void Awake()
         {
-            DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
-            if(Configuration == null)
+            Configuration = GetComponent<BacktraceClient>().Configuration;
+            if (Configuration == null || !Configuration.IsValid())
             {
+                Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
+                _enable = false;
+                return;
+            }
+
+            DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
+            if (DatabaseSettings == null)
+            {
+                _enable = false;
                 return;
             }
             if (Configuration.CreateDatabase)
             {
                 Directory.CreateDirectory(Configuration.DatabasePath);
-                _enable = Configuration.ValidDatabasePath();
             }
-            else
-            {
-                _enable = Configuration.Enabled;
-            }
+            _enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
 
             if (!_enable)
             {
@@ -81,12 +87,6 @@ namespace Backtrace.Unity
 
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
-
-            if (Configuration == null || !Configuration.IsValid())
-            {
-                Debug.Log("Configuration doesn't exists or provided serverurl/token are invalid");
-                return;
-            }
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials(), Convert.ToUInt32(Configuration.ReportPerMin));
         }
 

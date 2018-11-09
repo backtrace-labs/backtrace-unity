@@ -8,16 +8,13 @@ namespace Backtrace.Unity.Model.Database
     /// </summary>
     public class BacktraceDatabaseSettings
     {
-        public BacktraceDatabaseSettings(string path)
+        public BacktraceDatabaseSettings(BacktraceConfiguration configuration)
         {
-            DatabasePath = path;
-        }
-        public BacktraceDatabaseSettings(BacktraceDatabaseConfiguration configuration)
-        {
-            if(configuration == null)
+            if (configuration == null)
             {
                 return;
             }
+
             DatabasePath = configuration.DatabasePath;
             MaxRecordCount = Convert.ToUInt32(configuration.MaxRecordCount);
             MaxDatabaseSize = configuration.MaxDatabaseSize;
@@ -51,7 +48,8 @@ namespace Backtrace.Unity.Model.Database
                 //convert megabyte to bytes
                 return _maxDatabaseSize * 1000 * 1000;
             }
-            set {
+            set
+            {
                 _maxDatabaseSize = value;
             }
         }

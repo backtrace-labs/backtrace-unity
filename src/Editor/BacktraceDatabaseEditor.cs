@@ -8,17 +8,7 @@ namespace Backtrace.Unity.Port.Editor
     {
         public override void OnInspectorGUI()
         {
-            var component = (BacktraceDatabase)target;
-            component.Configuration =
-                (BacktraceDatabaseConfiguration)EditorGUILayout.ObjectField(
-                    "Configuration",
-                    component.Configuration,
-                    typeof(BacktraceDatabaseConfiguration),
-                    false);
-            if (component.Configuration != null)
-            {
-                CreateEditor(component.Configuration).OnInspectorGUI();
-            }
+            EditorGUILayout.LabelField("You can configure the database in the BacktraceClient Component");
         }
     }
 

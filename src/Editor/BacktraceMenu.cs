@@ -7,19 +7,12 @@ namespace Backtrace.Unity.Port.Editor
 {
     public class BacktraceMenu : MonoBehaviour
     {
-        public const string DEFAULT_CLIENT_CONFIGURATION_NAME = "DEFAULT_CLIENT_CONFIGURATION_NAME.asset";
-        public const string DEFAULT_DATABASE_CONFIGURATION_NAME = "DEFAULT_DATABASE_CONFIGURATION_NAME.asset";
+        public const string DEFAULT_CLIENT_CONFIGURATION_NAME = "Backtrace Configuration.asset";
 
-        [MenuItem("Assets/Backtrace/Client Configuration", false, 1)]
+        [MenuItem("Assets/Backtrace/Configuration", false, 1)]
         public static void CreateClientConfigurationFile()
         {
-            CreateAsset<BacktraceClientConfiguration>(DEFAULT_CLIENT_CONFIGURATION_NAME);
-        }
-
-        [MenuItem("Assets/Backtrace/Database Configuration", false, 1)]
-        public static void CreateDatabaseConfigurationFile()
-        {
-            CreateAsset<BacktraceDatabaseConfiguration>(DEFAULT_DATABASE_CONFIGURATION_NAME);
+            CreateAsset<BacktraceConfiguration>(DEFAULT_CLIENT_CONFIGURATION_NAME);
         }
 
         private static void CreateAsset<T>(string fileName) where T : ScriptableObject
