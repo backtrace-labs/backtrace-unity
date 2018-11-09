@@ -71,7 +71,8 @@ namespace Backtrace.Unity.Model
             var executedAssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
             foreach (var frame in frames)
             {
-                if (frame.ToString().ToLower().Contains("backtrace-unity"))
+                string name = frame?.GetMethod()?.DeclaringType.ToString() ?? string.Empty;
+                if (name.ToLower().Contains("backtrace.unity"))
                 {
                     continue;
                 }
