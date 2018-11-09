@@ -131,6 +131,24 @@ namespace Backtrace.Unity
             BacktraceApi.SetClientRateLimit(reportPerMin);
         }
 
+        public void Send(string message, List<string> attachmentPaths = null, Dictionary<string,object> attributes = null)
+        {
+            var report = new BacktraceReport(
+                message: message,
+                attachmentPaths: attachmentPaths,
+                attributes: attributes);
+            Send(report);
+        }
+
+        public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string,object> attributes = null)
+        {
+            var report = new BacktraceReport(
+                exception: exception, 
+                attributes: attributes,
+                attachmentPaths: attachmentPaths);
+            Send(report);            
+        }
+
         /// <summary>
         /// Send a report to Backtrace API
         /// </summary>
