@@ -3,7 +3,6 @@ using Backtrace.Unity.Interfaces.Database;
 using System.IO;
 using System.Text;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Model.Database
 {
     /// <summary>
@@ -32,7 +31,7 @@ namespace Backtrace.Unity.Model.Database
             return Write(file, prefix);
         }
 
-        public virtual string Write(byte[] data, string prefix)
+        public string Write(byte[] data, string prefix)
         {
             string filename = $"{prefix}.json";
             string tempFilePath = Path.Combine(_destinationPath, $"temp_{filename}");
@@ -42,7 +41,7 @@ namespace Backtrace.Unity.Model.Database
             return destFilePath;
         }
 
-        public virtual string ToJsonFile(object data)
+        public string ToJsonFile(object data)
         {
             if (data == null)
             {
@@ -56,7 +55,7 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         /// <param name="sourcePath">Temporary file path</param>
         /// <param name="destinationPath">destination path</param>
-        public virtual void SaveValidRecord(string sourcePath, string destinationPath)
+        public void SaveValidRecord(string sourcePath, string destinationPath)
         {
             File.Move(sourcePath, destinationPath);
         }
@@ -66,7 +65,7 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         /// <param name="path">Path to temporary file</param>
         /// <param name="file">Current file</param>
-        public virtual void SaveTemporaryFile(string path, byte[] file)
+        public void SaveTemporaryFile(string path, byte[] file)
         {
             using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
             {

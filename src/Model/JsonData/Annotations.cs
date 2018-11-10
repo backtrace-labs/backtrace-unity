@@ -31,9 +31,8 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Create new instance of Annotations class
         /// </summary>
-        /// <param name="callingAssembly">Calling assembly</param>
         /// <param name="complexAttributes">Built-in complex attributes</param>
-        public Annotations(Assembly callingAssembly, Dictionary<string, object> complexAttributes)
+        public Annotations(Dictionary<string, object> complexAttributes)
         {
             environment = new EnvironmentVariables();
             ComplexAttributes = complexAttributes;

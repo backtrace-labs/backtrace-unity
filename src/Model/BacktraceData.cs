@@ -113,7 +113,7 @@ namespace Backtrace.Unity.Model
 
         private void SetThreadInformations()
         {
-            var threadData = new ThreadData(Report.CallingAssembly, Report.DiagnosticStack);
+            var threadData = new ThreadData(Report.DiagnosticStack);
             ThreadInformations = threadData.ThreadInformations;
             MainThread = threadData.MainThread;
             var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
@@ -124,16 +124,15 @@ namespace Backtrace.Unity.Model
         {
             var backtraceAttributes = new BacktraceAttributes(Report, clientAttributes);
             Attributes = backtraceAttributes.Attributes;
-            Annotations = new Annotations(Report.CallingAssembly, backtraceAttributes.ComplexAttributes);
+            Annotations = new Annotations(backtraceAttributes.ComplexAttributes);
         }
 
         private void SetReportInformation()
         {
-            AssemblyName CurrentAssembly = Assembly.GetExecutingAssembly().GetName();
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
-            LangVersion = typeof(string).Assembly.ImageRuntimeVersion;
-            AgentVersion = CurrentAssembly.Version.ToString();
+            LangVersion = "Mono/IL2CPP";
+            AgentVersion = "1.0.0";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

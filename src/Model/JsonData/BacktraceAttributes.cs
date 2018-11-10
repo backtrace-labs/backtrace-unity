@@ -3,15 +3,11 @@ using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[assembly: InternalsVisibleTo("Backtrace.Tests")]
 namespace Backtrace.Unity.Model.JsonData
 {
     /// <summary>
@@ -40,7 +36,6 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 ConvertAttributes(report, clientAttributes);
                 SetLibraryAttributes(report);
-                SetDebuggerAttributes(report.CallingAssembly);
                 SetExceptionAttributes(report);
             }
             //Environment attributes override user attributes            
@@ -51,10 +46,8 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Set library attributes
         /// </summary>
-        /// <param name="callingAssembly">Calling assembly</param>
         private void SetLibraryAttributes(BacktraceReport report)
         {
-            var callingAssembly = report.CallingAssembly;
             if (!string.IsNullOrEmpty(report.Fingerprint))
             {
                 Attributes["_mod_fingerprint"] = report.Fingerprint;
@@ -83,22 +76,6 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.system.language"] = Application.systemLanguage.ToString();
             Attributes["application.unity.version"] = Application.unityVersion;
             Attributes["application.temporary_cache"] = Application.temporaryCachePath;
-
-            //Base name of library generating the report
-            Attributes["application.lib"] = callingAssembly.GetName().Name;
-
-            Attributes["location"] = callingAssembly.Location;
-            try
-            {
-                //in case when calling assembly from file system is not available
-                Attributes["version"] = FileVersionInfo.GetVersionInfo(callingAssembly.Location)?.FileVersion;
-            }
-            catch (FileNotFoundException) { }
-            var culture = callingAssembly.GetName().CultureInfo.Name;
-            if (!string.IsNullOrEmpty(culture))
-            {
-                Attributes["culture"] = callingAssembly.GetName().CultureInfo.Name;
-            }
         }
 
         /// <summary>
@@ -128,38 +105,6 @@ namespace Backtrace.Unity.Model.JsonData
             string hex = macAddress.Replace(":", string.Empty);
             var value = Convert.ToInt64(hex, 16);
             return GuidExtensions.FromLong(value).ToString();
-        }
-
-        /// <summary>
-        /// Set debugger information
-        /// </summary>
-        /// <param name="callingAssembly">Calling assembly</param>
-        private void SetDebuggerAttributes(Assembly callingAssembly)
-        {
-            object[] attribs = callingAssembly.GetCustomAttributes(typeof(DebuggableAttribute), false);
-            // If the 'DebuggableAttribute' is not found then it is definitely an OPTIMIZED build
-            if (attribs == null || !attribs.Any())
-            {
-                Attributes["build.debug"] = false;
-                Attributes["build.jit"] = true;
-                Attributes["build.type"] = "Release";
-            }
-            // Just because the 'DebuggableAttribute' is found doesn't necessarily mean
-            // it's a DEBUG build; we have to check the JIT Optimization flag
-            // i.e. it could have the "generate PDB" checked but have JIT Optimization enabled
-            var debuggableAttribute = attribs[0] as DebuggableAttribute;
-            if (debuggableAttribute != null)
-            {
-                Attributes["build.debug"] = true;
-                Attributes["build.jit"] = !debuggableAttribute.IsJITOptimizerDisabled;
-                Attributes["build.type"] = debuggableAttribute.IsJITOptimizerDisabled
-                    ? "Debug" : "Release";
-                // check for Debug Output "full" or "pdb-only"
-                Attributes["build.output"] = (debuggableAttribute.DebuggingFlags &
-                    DebuggableAttribute.DebuggingModes.Default) !=
-                    DebuggableAttribute.DebuggingModes.None
-                    ? "Full" : "pdb-only";
-            }
         }
 
         /// <summary>
@@ -221,7 +166,7 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["scene.active"] = activeScene.name;
             Attributes["scene.active.loaded"] = activeScene.isLoaded;
         }
-        
+
         /// <summary>
         /// Set attributes from current process
         /// </summary>

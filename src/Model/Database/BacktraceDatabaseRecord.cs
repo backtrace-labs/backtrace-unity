@@ -2,12 +2,10 @@
 using Backtrace.Unity.Interfaces.Database;
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine;
 
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Model.Database
 {
     /// <summary>
@@ -61,7 +59,7 @@ namespace Backtrace.Unity.Model.Database
         /// Stored record
         /// </summary>
         [JsonIgnore]
-        internal virtual BacktraceData Record { get; set; }
+        internal BacktraceData Record { get; set; }
 
         /// <summary>
         /// Path to database directory
@@ -79,7 +77,7 @@ namespace Backtrace.Unity.Model.Database
         /// Get valid BacktraceData from current record
         /// </summary>
         [JsonIgnore]
-        public virtual BacktraceData BacktraceData
+        public BacktraceData BacktraceData
         {
             get
             {
@@ -204,7 +202,7 @@ namespace Backtrace.Unity.Model.Database
         /// Check if all necessary files declared on record exists
         /// </summary>
         /// <returns>True if record is valid</returns>
-        internal virtual bool Valid()
+        internal bool Valid()
         {
             return File.Exists(DiagnosticDataPath) && File.Exists(ReportPath);
         }
@@ -212,7 +210,7 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Delete all record files
         /// </summary>
-        internal virtual void Delete()
+        internal void Delete()
         {
             Delete(MiniDumpPath);
             Delete(ReportPath);
@@ -271,7 +269,7 @@ namespace Backtrace.Unity.Model.Database
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected void Dispose(bool disposing)
         {
             if (disposing)
             {

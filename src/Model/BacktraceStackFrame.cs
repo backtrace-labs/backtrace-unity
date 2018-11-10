@@ -1,7 +1,6 @@
 ﻿using Backtrace.Newtonsoft;
 using System;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -62,7 +61,6 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "library")]
         public string Library;
 
-        internal Assembly FrameAssembly;
 
         public BacktraceStackFrame()
         { }
@@ -79,9 +77,6 @@ namespace Backtrace.Unity.Model
             ILOffset = Il;
             SourceCodeFullPath = frame.GetFileName();
 
-            Debug.WriteLine("[BacktraceStackFrame]::BacktraceStackFrame - getting assembly");
-            FrameAssembly = frame.GetMethod().DeclaringType?.Assembly;
-            Library = FrameAssembly?.GetName()?.Name ?? "unknown";
             SourceCode = generatedByException
                     ? Guid.NewGuid().ToString()
                     : string.Empty;

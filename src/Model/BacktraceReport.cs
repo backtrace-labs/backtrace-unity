@@ -77,11 +77,6 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [JsonProperty(PropertyName = "minidumpFile")]
         internal string MinidumpFile { get; private set; }
-
-        /// <summary>
-        /// Get an assembly where report was created (or should be created)
-        /// </summary>
-        internal Assembly CallingAssembly { get; set; }
         
         /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
@@ -103,7 +98,6 @@ namespace Backtrace.Unity.Model
         /// Create new instance of Backtrace report to sending a report with application exception
         /// </summary>
         /// <param name="exception">Current exception</param>
-        /// <param name="callingAssembly">Calling assembly</param>
         /// <param name="attributes">Additional information about application state</param>
         /// <param name="attachmentPaths">Path to all report attachments</param>
         public BacktraceReport(
@@ -116,7 +110,7 @@ namespace Backtrace.Unity.Model
             Exception = exception;
             ExceptionTypeReport = exception != null;
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
-            SetCallingAssemblyInformation();
+            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -155,11 +149,10 @@ namespace Backtrace.Unity.Model
             return reportAttributes.Merge(attributes);
         }
 
-        internal void SetCallingAssemblyInformation()
+        internal void SetStacktraceInformation()
         {
             var stacktrace = new BacktraceStackTrace(Exception);
             DiagnosticStack = stacktrace.StackFrames;
-            CallingAssembly = stacktrace.CallingAssembly;
         }
         /// <summary>
         /// create a copy of BacktraceReport for inner exception object inside exception
@@ -175,7 +168,7 @@ namespace Backtrace.Unity.Model
             }
             var copy = (BacktraceReport)MemberwiseClone();
             copy.Exception = Exception.InnerException;
-            copy.SetCallingAssemblyInformation();
+            copy.SetStacktraceInformation();
             copy.Classifier = copy.Exception.GetType().Name;
             return copy;
         }

@@ -207,8 +207,6 @@ namespace Backtrace.Unity
         /// <param name="report">current report</param>
         private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
         {
-            //we have to create a copy of an inner exception report
-            //to have the same calling assembly property
             var innerExceptionReport = report.CreateInnerReport();
             if (innerExceptionReport == null)
             {
