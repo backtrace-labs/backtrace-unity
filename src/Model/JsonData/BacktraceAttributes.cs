@@ -174,55 +174,6 @@ namespace Backtrace.Unity.Model.JsonData
         {
             Attributes["gc.heap.used"] = GC.GetTotalMemory(false);
             Attributes["process.age"] = Math.Round(Time.realtimeSinceStartup);
-            var process = Process.GetCurrentProcess();
-            if (process.HasExited)
-            {
-                return;
-            }
-            try
-            {
-                Attributes["cpu.process.count"] = Process.GetProcesses().Count();
-
-                //Resident memory usage.
-                int pagedMemorySize = unchecked((int)(process.PagedMemorySize64 / 1024));
-                pagedMemorySize = pagedMemorySize == -1 ? int.MaxValue : pagedMemorySize;
-                if (pagedMemorySize > 0)
-                {
-                    Attributes["vm.rss.size"] = pagedMemorySize;
-                }
-
-                //Peak resident memory usage.
-                int peakPagedMemorySize = unchecked((int)(process.PeakPagedMemorySize64 / 1024));
-                peakPagedMemorySize = peakPagedMemorySize == -1 ? int.MaxValue : peakPagedMemorySize;
-                if (peakPagedMemorySize > 0)
-                {
-                    Attributes["vm.rss.peak"] = peakPagedMemorySize;
-                }
-
-                //Virtual memory usage
-                int virtualMemorySize = unchecked((int)(process.VirtualMemorySize64 / 1024));
-                virtualMemorySize = virtualMemorySize == -1 ? int.MaxValue : virtualMemorySize;
-                if (virtualMemorySize > 0)
-                {
-                    Attributes["vm.vma.size"] = virtualMemorySize;
-                }
-
-                //Peak virtual memory usage
-                int peakVirtualMemorySize = unchecked((int)(process.PeakVirtualMemorySize64 / 1024));
-                peakVirtualMemorySize = peakVirtualMemorySize == -1 ? int.MaxValue : peakVirtualMemorySize;
-                if (peakVirtualMemorySize > 0)
-                {
-                    Attributes["vm.vma.peak"] = peakVirtualMemorySize;
-                }
-            }
-            catch (PlatformNotSupportedException)
-            {
-                Trace.TraceWarning($"Cannot retrieve information about process memory - platform not supported");
-            }
-            catch (Exception exception)
-            {
-                Trace.TraceWarning($"Cannot retrieve information about process memory: ${exception.Message}");
-            }
         }
 
         private void SetGraphicCardInformation()
