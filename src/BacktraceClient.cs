@@ -173,7 +173,7 @@ namespace Backtrace.Unity
                 record?.Dispose();
                 if (result?.Status == BacktraceResultStatus.Ok)
                 {
-                    Database.Delete(record);
+                    Database?.Delete(record);
                 }
                 //check if there is more errors to send
                 //handle inner exception
