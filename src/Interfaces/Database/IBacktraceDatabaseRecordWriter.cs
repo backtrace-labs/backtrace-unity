@@ -1,5 +1,4 @@
-﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
-namespace Backtrace.Unity.Interfaces.Database
+﻿namespace Backtrace.Unity.Interfaces.Database
 {
     internal interface IBacktraceDatabaseRecordWriter
     {

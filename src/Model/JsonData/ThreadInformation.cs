@@ -1,7 +1,8 @@
 ﻿using Backtrace.Unity.Extensions;
-using Newtonsoft.Json;
+using Backtrace.Newtonsoft;
 using System.Collections.Generic;
 using System.Threading;
+using Backtrace.Newtonsoft.Linq;
 
 namespace Backtrace.Unity.Model.JsonData
 {
@@ -25,12 +26,29 @@ namespace Backtrace.Unity.Model.JsonData
         [JsonProperty(PropertyName = "stack")]
         internal IEnumerable<BacktraceStackFrame> Stack = new List<BacktraceStackFrame>();
 
+        public BacktraceJObject ToJson()
+        {
+            var threadInformation = new BacktraceJObject();
+            threadInformation["name"] = Name;
+            threadInformation["fault"] = Fault;
+            var stackFrames = new JArray();
+            foreach (var stack in Stack)
+            {
+                stackFrames.Add(stack.ToJson());
+            }
+            threadInformation["stack"] = stackFrames;
+
+            return threadInformation;
+                
+        }
+
         /// <summary>
         /// Create new instance of ThreadInformation
         /// </summary>
         /// <param name="threadName">Thread name</param>
         /// <param name="fault">Denotes whether a thread is a faulting thread - in most cases main thread</param>
         /// <param name="stack">Exception stack information</param>
+        [JsonConstructor()]
         public ThreadInformation(string threadName, bool fault, IEnumerable<BacktraceStackFrame> stack)
         {
             Stack = stack ?? new List<BacktraceStackFrame>();

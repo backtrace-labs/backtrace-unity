@@ -27,6 +27,13 @@ namespace Backtrace.Unity.Common
             return "multipart/form-data; boundary=" + GetBoundary(id);
         }
 
+        internal static string GetFileContentType(Guid boundary, string name)
+        {
+            return $"--{boundary}\r\nContent-Disposition: form-data;" +
+                $" name=\"{name}\"; filename=\"{name}\"\r\n" +
+                $"Content-Type: application/octet-stream\r\n\r\n";
+        }
+
         /// <summary>
         /// Get form data bytes
         /// </summary>

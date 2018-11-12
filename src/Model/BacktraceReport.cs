@@ -1,7 +1,8 @@
-﻿using Backtrace.Unity.Common;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Common;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -44,39 +45,85 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Get an report attributes
         /// </summary>
+        [JsonProperty(PropertyName = "attributes")]
         public Dictionary<string, object> Attributes { get; private set; }
 
         /// <summary>
         /// Get a custom client message
         /// </summary>
+        [JsonProperty(PropertyName = "message")]
         public string Message { get; private set; }
 
         /// <summary>
         /// Get a report exception
         /// </summary>
+        [JsonIgnore]
         public Exception Exception { get; private set; }
 
         /// <summary>
         /// Get all paths to attachments
         /// </summary>
+        [JsonProperty(PropertyName = "attachmentPaths")]
         public List<string> AttachmentPaths { get; set; }
 
         /// <summary>
         /// Current report exception stack
         /// </summary>
+        [JsonProperty(PropertyName = "diagnosticStack")]
         public List<BacktraceStackFrame> DiagnosticStack { get; set; }
 
         /// <summary>
         /// Get or set minidump attachment path
         /// </summary>
+        [JsonProperty(PropertyName = "minidumpFile")]
         internal string MinidumpFile { get; private set; }
 
-        /// <summary>
-        /// Get an assembly where report was created (or should be created)
-        /// </summary>
-        internal Assembly CallingAssembly { get; set; }
+        public string ToJson()
+        {
+            var reportStackTrace = new JArray();
+            foreach (var diagnosticFrame in DiagnosticStack)
+            {
+                reportStackTrace.Add(diagnosticFrame.ToJson());
+            }
 
-        internal readonly bool _reflectionMethodName;
+            var attributes = new BacktraceJObject();
+            foreach (var value in Attributes)
+            {
+                attributes[value.Key] = value.Value.ToString();
+            }
+
+            var report = new BacktraceJObject()
+            {
+                ["Fingerprint"] = Fingerprint,
+                ["Factor"] = Factor,
+                ["Uuid"] = Uuid.ToString(),
+                ["Timestamp"] = Timestamp,
+                ["ExceptionTypeReport"] = ExceptionTypeReport,
+                ["Classifier"] = Classifier,
+                ["message"] = Message,
+                ["minidumpFile"] = MinidumpFile,
+                ["attachmentPaths"] = new JArray(AttachmentPaths),
+                ["diagnosticStack"] = reportStackTrace,
+                ["attributes"] = attributes
+            };
+            return report.ToString();
+        }
+
+        public static BacktraceReport Deserialize(string json)
+        { 
+            var @object = BacktraceJObject.Parse(json);
+            return new BacktraceReport(string.Empty)
+            {
+                Fingerprint = @object.Value<string>("Fingerprint"),
+                Factor = @object.Value<string>("Factor"),
+                Uuid = @object.Value<Guid>("Uuid"),
+                Timestamp = @object.Value<long>("Timestamp"),
+                ExceptionTypeReport = @object.Value<bool>("ExceptionTypeReport"),
+                Classifier = @object.Value<string>("Classifier"),
+                Message = @object.Value<string>("message"),
+                MinidumpFile = @object.Value<string>("minidumpFile")                
+            };
+        }
 
         /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
@@ -84,12 +131,12 @@ namespace Backtrace.Unity.Model
         /// <param name="message">Custom client message</param>
         /// <param name="attributes">Additional information about application state</param>
         /// <param name="attachmentPaths">Path to all report attachments</param>
+        [JsonConstructor]
         public BacktraceReport(
             string message,
             Dictionary<string, object> attributes = null,
-            List<string> attachmentPaths = null,
-            bool reflectionMethodName = true)
-            : this(null as Exception, attributes, attachmentPaths, reflectionMethodName)
+            List<string> attachmentPaths = null)
+            : this(null as Exception, attributes, attachmentPaths)
         {
             Message = message;
         }
@@ -98,22 +145,19 @@ namespace Backtrace.Unity.Model
         /// Create new instance of Backtrace report to sending a report with application exception
         /// </summary>
         /// <param name="exception">Current exception</param>
-        /// <param name="callingAssembly">Calling assembly</param>
         /// <param name="attributes">Additional information about application state</param>
         /// <param name="attachmentPaths">Path to all report attachments</param>
         public BacktraceReport(
             Exception exception,
             Dictionary<string, object> attributes = null,
-            List<string> attachmentPaths = null,
-            bool reflectionMethodName = true)
+            List<string> attachmentPaths = null)
         {
             Attributes = attributes ?? new Dictionary<string, object>();
             AttachmentPaths = attachmentPaths ?? new List<string>();
             Exception = exception;
             ExceptionTypeReport = exception != null;
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
-            _reflectionMethodName = reflectionMethodName;
-            SetCallingAssemblyInformation();
+            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -152,11 +196,10 @@ namespace Backtrace.Unity.Model
             return reportAttributes.Merge(attributes);
         }
 
-        internal void SetCallingAssemblyInformation()
+        internal void SetStacktraceInformation()
         {
-            var stacktrace = new BacktraceStackTrace(Exception, _reflectionMethodName);
+            var stacktrace = new BacktraceStackTrace(Exception);
             DiagnosticStack = stacktrace.StackFrames;
-            CallingAssembly = stacktrace.CallingAssembly;
         }
         /// <summary>
         /// create a copy of BacktraceReport for inner exception object inside exception
@@ -172,7 +215,7 @@ namespace Backtrace.Unity.Model
             }
             var copy = (BacktraceReport)MemberwiseClone();
             copy.Exception = Exception.InnerException;
-            copy.SetCallingAssemblyInformation();
+            copy.SetStacktraceInformation();
             copy.Classifier = copy.Exception.GetType().Name;
             return copy;
         }

@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
 using System;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -56,32 +56,42 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "sourceCode")]
         public string SourceCode;
 
+        public BacktraceJObject ToJson()
+        {
+            var stackFrame = new BacktraceJObject();
+            stackFrame["funcName"] = FunctionName;
+            stackFrame["line"] = Line;
+            stackFrame["il"] = Il;
+            stackFrame["metadata_token"] = MemberInfo;
+            stackFrame["column"] = Column;
+            stackFrame["address"] = ILOffset;
+            
+            //todo: source code information
+
+            return stackFrame;
+        }
         /// <summary>
         /// Library name where exception occurs
         /// </summary>
         [JsonProperty(PropertyName = "library")]
         public string Library;
 
-        internal Assembly FrameAssembly;
 
         public BacktraceStackFrame()
         { }
 
-        public BacktraceStackFrame(StackFrame frame, bool generatedByException, bool reflectionMethodName = true)
+        public BacktraceStackFrame(StackFrame frame, bool generatedByException)
         {
             if (frame == null || frame.GetMethod() == null)
             {
                 return;
             }
-            FunctionName = GetMethodName(frame, reflectionMethodName);
+            FunctionName = GetMethodName(frame);
             Line = frame.GetFileLineNumber();
             Il = frame.GetILOffset();
             ILOffset = Il;
             SourceCodeFullPath = frame.GetFileName();
 
-            Debug.WriteLine("[BacktraceStackFrame]::BacktraceStackFrame - getting assembly");
-            FrameAssembly = frame.GetMethod().DeclaringType?.Assembly;
-            Library = FrameAssembly?.GetName()?.Name ?? "unknown";
             SourceCode = generatedByException
                     ? Guid.NewGuid().ToString()
                     : string.Empty;
@@ -96,18 +106,16 @@ namespace Backtrace.Unity.Model
             }
         }
 
+        
+
         /// <summary>
         /// Generate valid name for current stack frame.
         /// </summary>
         /// <returns>Valid method name in stack trace</returns>
-        private string GetMethodName(StackFrame frame, bool reflectionMethodName)
+        private string GetMethodName(StackFrame frame)
         {
             var method = frame.GetMethod();
             string methodName = method.Name;
-            if (!reflectionMethodName)
-            {
-                return methodName;
-            }
             return methodName;
         }
     }

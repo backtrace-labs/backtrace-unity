@@ -18,10 +18,5 @@ namespace Backtrace.Unity.Common
         {
             return new BacktraceReport(source);
         }
-
-        public static Assembly GetExceptionSourceAssembly(this Exception source)
-        {
-            return source?.TargetSite?.DeclaringType?.Assembly;
-        }
     }
 }
