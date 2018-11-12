@@ -1,4 +1,5 @@
 ﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
 using System;
 using System.Diagnostics;
 
@@ -55,6 +56,20 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "sourceCode")]
         public string SourceCode;
 
+        public BacktraceJObject ToJson()
+        {
+            var stackFrame = new BacktraceJObject();
+            stackFrame["funcName"] = FunctionName;
+            stackFrame["line"] = Line;
+            stackFrame["il"] = Il;
+            stackFrame["metadata_token"] = MemberInfo;
+            stackFrame["column"] = Column;
+            stackFrame["address"] = ILOffset;
+            
+            //todo: source code information
+
+            return stackFrame;
+        }
         /// <summary>
         /// Library name where exception occurs
         /// </summary>
@@ -90,6 +105,8 @@ namespace Backtrace.Unity.Model
                 //metadata token in some situations can throw Argument Exception. Plase check property definition to leran more about this behaviour
             }
         }
+
+        
 
         /// <summary>
         /// Generate valid name for current stack frame.

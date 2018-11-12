@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Extensions;
+﻿using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Extensions;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -32,6 +33,16 @@ namespace Backtrace.Unity.Model.JsonData
             ThreadInformations[generatedMainThreadId] = new ThreadInformation(current, exceptionStack, true);
             //set currentThreadId
             MainThread = generatedMainThreadId;
+        }
+
+        public BacktraceJObject ToJson()
+        {
+            var threadData = new BacktraceJObject();
+            foreach (var threadInfo in ThreadInformations)
+            {
+                threadData[threadInfo.Key] = threadInfo.Value.ToJson();
+            }
+            return threadData;
         }
     }
 }

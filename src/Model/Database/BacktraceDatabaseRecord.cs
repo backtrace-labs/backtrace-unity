@@ -1,4 +1,5 @@
 ﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
 using Backtrace.Unity.Interfaces.Database;
 using System;
 using System.IO;
@@ -118,6 +119,34 @@ namespace Backtrace.Unity.Model.Database
                 }
             }
         }
+
+        public string ToJson()
+        {
+            var record = new BacktraceJObject
+            {
+                ["Id"] = Id,
+                ["recordName"] = RecordPath,
+                ["dataPath"] = DiagnosticDataPath,
+                ["minidumpPath"] = MiniDumpPath,
+                ["reportPath"] = ReportPath,
+                ["size"] = Size
+            };
+            return record.ToString();
+        }
+
+        public static BacktraceDatabaseRecord Deserialize(string json)
+        {
+            var @object = BacktraceJObject.Parse(json);
+            return new BacktraceDatabaseRecord()
+            {
+                Id = Guid.Parse(@object.Value<string>("Id")),
+                RecordPath = @object.Value<string>("recordName"),
+                DiagnosticDataPath = @object.Value<string>("dataPath"),
+                MiniDumpPath = @object.Value<string>("minidumpPath"),
+                ReportPath = @object.Value<string>("reportPath"),
+                Size = @object.Value<long>("size"),
+            };
+        }
         /// <summary>
         /// Constructor for serialization purpose
         /// </summary>
@@ -148,8 +177,10 @@ namespace Backtrace.Unity.Model.Database
         {
             try
             {
-                DiagnosticDataPath = Save(Record, $"{Id}-attachment");
-                ReportPath = Save(Record.Report, $"{Id}-report");
+                var diagnosticDataJson = Record.ToJson();
+                DiagnosticDataPath = Save(diagnosticDataJson, $"{Id}-attachment");
+                var reportJson = Record.Report.ToJson();
+                ReportPath = Save(reportJson, $"{Id}-report");
 
                 // get minidump information
                 MiniDumpPath = Record.Report?.MinidumpFile ?? string.Empty;
@@ -158,7 +189,7 @@ namespace Backtrace.Unity.Model.Database
                 //save record
                 RecordPath = Path.Combine(_path, $"{Id}-record.json");
                 //check current record size
-                var json = BacktraceDataConverter.SerializeObject(this);
+                var json = ToJson();
                 byte[] file = Encoding.UTF8.GetBytes(json);
                 //add record size
                 Size += file.Length;
@@ -183,16 +214,15 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Save single file from database record
         /// </summary>
-        /// <param name="data">single file (json/dmp)</param>
+        /// <param name="json">single file (json/dmp)</param>
         /// <param name="prefix">file prefix</param>
         /// <returns>path to file</returns>
-        private string Save(object data, string prefix)
+        private string Save(string json, string prefix)
         {
-            if (data == null)
+            if (string.IsNullOrEmpty(json))
             {
                 return string.Empty;
             }
-            var json = BacktraceDataConverter.SerializeObject(data);
             byte[] file = Encoding.UTF8.GetBytes(json);
             Size += file.Length;
             return RecordWriter.Write(file, prefix);

@@ -1,8 +1,8 @@
 ﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
 using Backtrace.Unity.Common;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -77,7 +77,54 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [JsonProperty(PropertyName = "minidumpFile")]
         internal string MinidumpFile { get; private set; }
-        
+
+        public string ToJson()
+        {
+            var reportStackTrace = new JArray();
+            foreach (var diagnosticFrame in DiagnosticStack)
+            {
+                reportStackTrace.Add(diagnosticFrame.ToJson());
+            }
+
+            var attributes = new BacktraceJObject();
+            foreach (var value in Attributes)
+            {
+                attributes[value.Key] = value.Value.ToString();
+            }
+
+            var report = new BacktraceJObject()
+            {
+                ["Fingerprint"] = Fingerprint,
+                ["Factor"] = Factor,
+                ["Uuid"] = Uuid.ToString(),
+                ["Timestamp"] = Timestamp,
+                ["ExceptionTypeReport"] = ExceptionTypeReport,
+                ["Classifier"] = Classifier,
+                ["message"] = Message,
+                ["minidumpFile"] = MinidumpFile,
+                ["attachmentPaths"] = new JArray(AttachmentPaths),
+                ["diagnosticStack"] = reportStackTrace,
+                ["attributes"] = attributes
+            };
+            return report.ToString();
+        }
+
+        public static BacktraceReport Deserialize(string json)
+        { 
+            var @object = BacktraceJObject.Parse(json);
+            return new BacktraceReport(string.Empty)
+            {
+                Fingerprint = @object.Value<string>("Fingerprint"),
+                Factor = @object.Value<string>("Factor"),
+                Uuid = @object.Value<Guid>("Uuid"),
+                Timestamp = @object.Value<long>("Timestamp"),
+                ExceptionTypeReport = @object.Value<bool>("ExceptionTypeReport"),
+                Classifier = @object.Value<string>("Classifier"),
+                Message = @object.Value<string>("message"),
+                MinidumpFile = @object.Value<string>("minidumpFile")                
+            };
+        }
+
         /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>

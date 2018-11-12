@@ -61,14 +61,38 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
-            //check rate limiting
-            bool watcherValidation = reportLimitWatcher.WatchReport(data.Report);
-            if (!watcherValidation)
+            using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceDatabase", "backtraceresult-api.txt"), true))
             {
-                yield return BacktraceResult.OnLimitReached(data.Report);
+
+                outputFile.WriteLine($"Checking report limit watcher?");
+                //check rate limiting
+                bool watcherValidation = reportLimitWatcher.WatchReport(data.Report);
+                if (!watcherValidation)
+                {
+                    outputFile.WriteLine($"Limi reached");
+                    yield return BacktraceResult.OnLimitReached(data.Report);
+                }
+
+                outputFile.WriteLine($"Converting data to JSON file");
+                string json = string.Empty;
+                try
+                {
+                    json = data.ToJson();
+                    outputFile.WriteLine($"CONVERTED JSON: {json}");
+                }
+                catch (Exception e)
+                {
+                    outputFile.WriteLine("EXCEPTION");
+                    outputFile.WriteLine(e.ToString());
+                }
+                if (string.IsNullOrEmpty(json))
+                {
+                    yield return BacktraceResult.OnLimitReached(data.Report);
+                }
+
+                yield return Send(json, data.Attachments, data.Report, callback);
+               
             }
-            var json = BacktraceDataConverter.SerializeObject(data);
-            yield return Send(json, data.Attachments, data.Report, callback);
         }
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)

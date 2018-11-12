@@ -1,8 +1,8 @@
-﻿using Backtrace.Unity.Common;
+﻿using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.NetworkInformation;
 using UnityEngine;
@@ -43,6 +43,15 @@ namespace Backtrace.Unity.Model.JsonData
             SetProcessAttributes();
         }
 
+        public BacktraceJObject ToJson()
+        {
+            var attr = new BacktraceJObject();
+            foreach (var attribute in Attributes)
+            {
+                attr[attribute.Key] = attribute.Value.ToString();
+            }
+            return attr;
+        }
         /// <summary>
         /// Set library attributes
         /// </summary>

@@ -1,9 +1,9 @@
-﻿using Backtrace.Unity.Model.JsonData;
-using Backtrace.Newtonsoft;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -93,6 +93,11 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal BacktraceReport Report { get; set; }
 
+        private BacktraceAttributes _attributes = null;
+        private Annotations _annotations = null;
+        private ThreadData _threadData = null;
+
+
         /// <summary>
         /// Create instance of report data
         /// </summary>
@@ -111,20 +116,60 @@ namespace Backtrace.Unity.Model
             Attachments = Report.AttachmentPaths.Distinct().ToList();
         }
 
+        public string ToJson()
+        {
+            using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceDatabase", "backtraceresult-data.txt"), true))
+            {
+                outputFile.WriteLine("Creating json file");
+                var json = new BacktraceJObject
+                {
+                    ["uuid"] = Uuid,
+                    ["timestamp"] = Timestamp,
+                    ["lang"] = "csharp",
+                    ["langVersion"] = "Mono/Il2CPP",
+                    ["agent"] = "backtrace-unity",
+                    ["agentVersion"] = "1.0.0",
+                    ["mainThread"] = MainThread
+                };
+                outputFile.WriteLine("Converting attributes");
+                json["attributes"] = _attributes.ToJson();
+                outputFile.WriteLine("Converting annotations");
+                json["annotations"] = _annotations.ToJson();
+                outputFile.WriteLine("Serializing classifier");
+                JArray jArray = new JArray(Classifier);
+                json["classifiers"] = jArray;
+                outputFile.WriteLine("Converting threads");
+                json["threads"] = _threadData.ToJson();
+                outputFile.WriteLine("Converting all json attributes together");
+                try
+                {
+                    var jsonString = json.ToString();
+                    return jsonString;
+                }
+                catch(Exception e)
+                {
+                    outputFile.WriteLine("EXCEPTION");
+                    outputFile.WriteLine(e.ToString());
+                    return string.Empty;
+                }
+
+            }
+        }
+
         private void SetThreadInformations()
         {
-            var threadData = new ThreadData(Report.DiagnosticStack);
-            ThreadInformations = threadData.ThreadInformations;
-            MainThread = threadData.MainThread;
+            _threadData = new ThreadData(Report.DiagnosticStack);
+            ThreadInformations = _threadData.ThreadInformations;
+            MainThread = _threadData.MainThread;
             var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
             SourceCode = sourceCodeData.data.Any() ? sourceCodeData.data : null;
         }
 
         private void SetAttributes(Dictionary<string, object> clientAttributes)
         {
-            var backtraceAttributes = new BacktraceAttributes(Report, clientAttributes);
-            Attributes = backtraceAttributes.Attributes;
-            Annotations = new Annotations(backtraceAttributes.ComplexAttributes);
+            _attributes = new BacktraceAttributes(Report, clientAttributes);
+            Attributes = _attributes.Attributes;
+            _annotations = new Annotations(_attributes.ComplexAttributes);
         }
 
         private void SetReportInformation()
