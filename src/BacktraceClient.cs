@@ -163,45 +163,35 @@ namespace Backtrace.Unity
         /// <param name="report">Report to send</param>
         public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceLogs", "backtraceresult-client.txt"), true))
+            var record = Database?.Add(report, Attributes, MiniDumpType);
+            //create a JSON payload instance
+            var data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
+
+            //valid user custom events
+            data = BeforeSend?.Invoke(data) ?? data;
+
+            if (BacktraceApi == null)
             {
-                outputFile.WriteLine("Inside send method...");
-                outputFile.WriteLine($"Database exists? {Database != null}");
-                outputFile.WriteLine($"Before database add method");
-                var record = Database?.Add(report, Attributes, MiniDumpType);
-                outputFile.WriteLine($"After database add.. Creating BacktraceData if not exists");
-                //create a JSON payload instance
-                var data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
-                outputFile.WriteLine($"Backtrace data created successfully. Trying to invoke BeforeSend event...");
-
-                //valid user custom events
-                data = BeforeSend?.Invoke(data) ?? data;
-                outputFile.WriteLine($"Checking BacktraceApi ... {BacktraceApi != null}");
-
-                if (BacktraceApi == null)
-                {
-                    record?.Dispose();
-                    Debug.LogWarning("Backtrace API not exisits. Please validate client token or server url!");
-                    return;
-                }
-                outputFile.WriteLine($"Starting courutine");
-
-                StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
-                {
-                    record?.Dispose();
-                    if (result?.Status == BacktraceResultStatus.Ok)
-                    {
-                        Database?.Delete(record);
-                    }
-                    //check if there is more errors to send
-                    //handle inner exception
-                    HandleInnerException(report, (BacktraceResult innerResult) =>
-                        {
-                            result.InnerExceptionResult = innerResult;
-                        });
-                    sendCallback?.Invoke(result);
-                }));
+                record?.Dispose();
+                Debug.LogWarning("Backtrace API not exisits. Please validate client token or server url!");
+                return;
             }
+
+            StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
+            {
+                record?.Dispose();
+                if (result?.Status == BacktraceResultStatus.Ok)
+                {
+                    Database?.Delete(record);
+                }
+                //check if there is more errors to send
+                //handle inner exception
+                HandleInnerException(report, (BacktraceResult innerResult) =>
+                {
+                    result.InnerExceptionResult = innerResult;
+                });
+                sendCallback?.Invoke(result);
+            }));
         }
 
         public void HandleUnhandledExceptions()

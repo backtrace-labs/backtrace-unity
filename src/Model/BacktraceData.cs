@@ -122,36 +122,22 @@ namespace Backtrace.Unity.Model
 
         public string ToJson()
         {
-            try
+            var json = new BacktraceJObject
             {
-                var json = new BacktraceJObject
-                {
-                    ["uuid"] = Uuid,
-                    ["timestamp"] = Timestamp,
-                    ["lang"] = "csharp",
-                    ["langVersion"] = "Unity",
-                    ["agent"] = "backtrace-unity",
-                    ["agentVersion"] = "1.0.0",
-                    ["mainThread"] = MainThread,
-                    ["classifiers"] = new JArray(Classifier),
-                    ["attributes"] = _attributes.ToJson(),
-                    ["annotations"] = _annotations.ToJson(),
-                    ["threads"] = _threadData?.ToJson()
-                };
+                ["uuid"] = Uuid,
+                ["timestamp"] = Timestamp,
+                ["lang"] = "csharp",
+                ["langVersion"] = "Unity",
+                ["agent"] = "backtrace-unity",
+                ["agentVersion"] = "1.0.0",
+                ["mainThread"] = MainThread,
+                ["classifiers"] = new JArray(Classifier),
+                ["attributes"] = _attributes.ToJson(),
+                ["annotations"] = _annotations.ToJson(),
+                ["threads"] = _threadData?.ToJson()
+            };
 
-                return json.ToString();
-            }
-            catch (Exception e)
-            {
-
-                using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceLogs", "backtraceresult-data.txt"), true))
-                {
-                    outputFile.WriteLine("EXCEPTION");
-                    outputFile.WriteLine(e.ToString());
-                    return string.Empty;
-                }
-
-            }
+            return json.ToString();
         }
         public static BacktraceData Deserialize(string json)
         {
