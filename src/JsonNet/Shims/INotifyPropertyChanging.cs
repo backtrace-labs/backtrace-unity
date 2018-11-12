@@ -6,8 +6,10 @@ namespace System.ComponentModel
     [Preserve]
     public interface INotifyPropertyChanging
 	{
-		event PropertyChangingEventHandler PropertyChanging;
-	}
+#pragma warning disable CS0436 // Type conflicts with imported type
+        event PropertyChangingEventHandler PropertyChanging;
+#pragma warning restore CS0436 // Type conflicts with imported type
+    }
 }
 
 #endif

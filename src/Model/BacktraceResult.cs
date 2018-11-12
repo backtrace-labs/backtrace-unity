@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
 
 namespace Backtrace.Unity.Model
 {
@@ -115,6 +116,21 @@ namespace Backtrace.Unity.Model
                 return;
             }
             InnerExceptionResult.AddInnerResult(innerResult);
+        }
+
+        public static BacktraceResult FromJson(string json)
+        {
+            var @object = BacktraceJObject.Parse(json);
+
+            return new BacktraceResult()
+            {
+                Object = @object.Value<string>("object"),
+                Message = @object.Value<string>("message"),
+                RxId = @object.Value<string>("_rxid"),
+                Status = @object.Value<string>("response") == "ok" 
+                    ? BacktraceResultStatus.Ok
+                    : BacktraceResultStatus.ServerError
+            };
         }
     }
 }

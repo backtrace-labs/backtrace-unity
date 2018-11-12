@@ -3,6 +3,7 @@ using Backtrace.Newtonsoft.Linq;
 using Backtrace.Unity.Common;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Backtrace.Unity.Model
 {
@@ -110,18 +111,39 @@ namespace Backtrace.Unity.Model
         }
 
         public static BacktraceReport Deserialize(string json)
-        { 
+        {
             var @object = BacktraceJObject.Parse(json);
+            var attributesObject = @object["attributes"];
+            var attributes = new Dictionary<string, object>();
+            foreach (BacktraceJProperty keys in attributesObject)
+            {
+                attributes.Add(keys.Name, keys.Value.Value<string>());
+            }
+
+            var exceptionStack = @object["diagnosticStack"];
+            var resultStack = new List<BacktraceStackFrame>();
+            foreach (var stack in exceptionStack)
+            {
+                var deserializedStack = BacktraceStackFrame.FromJson(stack.ToString());
+                resultStack.Add(deserializedStack);
+            }
+            var attachmentJson = @object["attachmentPaths"];
+            var attachments = attachmentJson.Select(n => n.Value<string>()).ToList();
+
+
             return new BacktraceReport(string.Empty)
             {
                 Fingerprint = @object.Value<string>("Fingerprint"),
                 Factor = @object.Value<string>("Factor"),
-                Uuid = @object.Value<Guid>("Uuid"),
+                Uuid = new Guid(@object.Value<string>("Uuid")),
                 Timestamp = @object.Value<long>("Timestamp"),
                 ExceptionTypeReport = @object.Value<bool>("ExceptionTypeReport"),
                 Classifier = @object.Value<string>("Classifier"),
                 Message = @object.Value<string>("message"),
-                MinidumpFile = @object.Value<string>("minidumpFile")                
+                MinidumpFile = @object.Value<string>("minidumpFile"),
+                Attributes = attributes,
+                DiagnosticStack = resultStack,
+                AttachmentPaths = attachments
             };
         }
 

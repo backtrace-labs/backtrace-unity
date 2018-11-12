@@ -102,8 +102,8 @@ namespace Backtrace.Unity.Model.Database
                     //deserialize data - if deserialize fails, we receive invalid entry
                     try
                     {
-                        var diagnosticData = BacktraceDataConverter.DeserializeObject<BacktraceData>(diagnosticDataJson);
-                        var report = BacktraceDataConverter.DeserializeObject<BacktraceReport>(reportJson);
+                        var diagnosticData = BacktraceData.Deserialize(diagnosticDataJson);
+                        var report = BacktraceReport.Deserialize(reportJson);
                         //add report to diagnostic data
                         //we don't store report with diagnostic data in the same json
                         //because we have easier way to serialize and deserialize data
@@ -139,7 +139,7 @@ namespace Backtrace.Unity.Model.Database
             var @object = BacktraceJObject.Parse(json);
             return new BacktraceDatabaseRecord()
             {
-                Id = Guid.Parse(@object.Value<string>("Id")),
+                Id = new Guid(@object.Value<string>("Id")),
                 RecordPath = @object.Value<string>("recordName"),
                 DiagnosticDataPath = @object.Value<string>("dataPath"),
                 MiniDumpPath = @object.Value<string>("minidumpPath"),
@@ -194,7 +194,8 @@ namespace Backtrace.Unity.Model.Database
                 //add record size
                 Size += file.Length;
                 //save it again with actual record size
-                RecordWriter.Write(this, $"{Id}-record");
+                string recordJson = ToJson();
+                RecordWriter.Write(recordJson, $"{Id}-record");
                 return true;
             }
             catch (IOException io)
@@ -283,7 +284,7 @@ namespace Backtrace.Unity.Model.Database
                 var json = streamReader.ReadToEnd();
                 try
                 {
-                    return BacktraceDataConverter.DeserializeObject<BacktraceDatabaseRecord>(json);
+                    return Deserialize(json);
                 }
                 catch (SerializationException)
                 {

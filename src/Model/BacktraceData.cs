@@ -17,13 +17,13 @@ namespace Backtrace.Unity.Model
         /// server will reject request if uuid is already found
         /// </summary>
         [JsonProperty(PropertyName = "uuid")]
-        public Guid Uuid;
+        public Guid Uuid { get; set; }
 
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
         [JsonProperty(PropertyName = "timestamp")]
-        public long Timestamp;
+        public long Timestamp { get; set; }
 
         /// <summary>
         /// Name of programming language/environment this error comes from.
@@ -97,7 +97,11 @@ namespace Backtrace.Unity.Model
         private Annotations _annotations = null;
         private ThreadData _threadData = null;
 
-
+        /// <summary>
+        /// Empty constructor for serialization purpose
+        /// </summary>
+        public BacktraceData()
+        { }
         /// <summary>
         /// Create instance of report data
         /// </summary>
@@ -118,35 +122,29 @@ namespace Backtrace.Unity.Model
 
         public string ToJson()
         {
-            using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceDatabase", "backtraceresult-data.txt"), true))
+            try
             {
-                outputFile.WriteLine("Creating json file");
                 var json = new BacktraceJObject
                 {
                     ["uuid"] = Uuid,
                     ["timestamp"] = Timestamp,
                     ["lang"] = "csharp",
-                    ["langVersion"] = "Mono/Il2CPP",
+                    ["langVersion"] = "Unity",
                     ["agent"] = "backtrace-unity",
                     ["agentVersion"] = "1.0.0",
-                    ["mainThread"] = MainThread
+                    ["mainThread"] = MainThread,
+                    ["classifiers"] = new JArray(Classifier),
+                    ["attributes"] = _attributes.ToJson(),
+                    ["annotations"] = _annotations.ToJson(),
+                    ["threads"] = _threadData?.ToJson()
                 };
-                outputFile.WriteLine("Converting attributes");
-                json["attributes"] = _attributes.ToJson();
-                outputFile.WriteLine("Converting annotations");
-                json["annotations"] = _annotations.ToJson();
-                outputFile.WriteLine("Serializing classifier");
-                JArray jArray = new JArray(Classifier);
-                json["classifiers"] = jArray;
-                outputFile.WriteLine("Converting threads");
-                json["threads"] = _threadData.ToJson();
-                outputFile.WriteLine("Converting all json attributes together");
-                try
-                {
-                    var jsonString = json.ToString();
-                    return jsonString;
-                }
-                catch(Exception e)
+
+                return json.ToString();
+            }
+            catch (Exception e)
+            {
+
+                using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceLogs", "backtraceresult-data.txt"), true))
                 {
                     outputFile.WriteLine("EXCEPTION");
                     outputFile.WriteLine(e.ToString());
@@ -154,6 +152,24 @@ namespace Backtrace.Unity.Model
                 }
 
             }
+        }
+        public static BacktraceData Deserialize(string json)
+        {
+            var @object = BacktraceJObject.Parse(json);
+
+            var classfiers = @object["classifiers"]?
+                .Select(n => n.Value<string>()).ToArray() ?? null;
+
+            return new BacktraceData()
+            {
+                Uuid = new Guid(@object.Value<string>("uuid")),
+                Timestamp = @object.Value<long>("timestamp"),
+                MainThread = @object.Value<string>("mainThread"),
+                Classifier = classfiers,
+                _annotations = Annotations.Deserialize(@object["annotations"]),
+                _attributes = BacktraceAttributes.Deserialize(@object["attributes"]),
+                _threadData = ThreadData.DeserializeThreadInformation(@object["threads"])
+            };
         }
 
         private void SetThreadInformations()

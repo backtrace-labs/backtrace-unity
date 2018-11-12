@@ -123,6 +123,7 @@ namespace Backtrace.Unity
             LoadReports();
             // remove orphaned files
             RemoveOrphaned();
+            SendData(BacktraceDatabaseContext.FirstOrDefault());
         }
 
         /// <summary>
@@ -316,7 +317,14 @@ namespace Backtrace.Unity
                 var record = BacktraceDatabaseRecord.ReadFromFile(file);
                 if (!record.Valid())
                 {
-                    record.Delete();
+                    try
+                    {
+                        record.Delete();
+                    }
+                    catch(Exception)
+                    {
+                        Debug.LogWarning($"Cannot remove file from database. File name: {file.FullName}");
+                    }
                     continue;
                 }
                 BacktraceDatabaseContext.Add(record);

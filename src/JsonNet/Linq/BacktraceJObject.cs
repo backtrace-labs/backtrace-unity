@@ -56,7 +56,9 @@ namespace Backtrace.Newtonsoft.Linq
         , ICustomTypeDescriptor
 #endif
 #if !(NET20 || PORTABLE40 || PORTABLE)
+#pragma warning disable CS0436 // Type conflicts with imported type
         , INotifyPropertyChanging
+#pragma warning restore CS0436 // Type conflicts with imported type
 #endif
     {
         private readonly JPropertyKeyedCollection _properties = new JPropertyKeyedCollection();
@@ -76,10 +78,12 @@ namespace Backtrace.Newtonsoft.Linq
         public event PropertyChangedEventHandler PropertyChanged;
 
 #if !(NET20 || PORTABLE || PORTABLE40)
-        /// <summary>
-        /// Occurs when a property value is changing.
-        /// </summary>
+#pragma warning disable CS0436 // Type conflicts with imported type
+                              /// <summary>
+                              /// Occurs when a property value is changing.
+                              /// </summary>
         public event PropertyChangingEventHandler PropertyChanging;
+#pragma warning restore CS0436 // Type conflicts with imported type
 #endif
 
         /// <summary>
@@ -708,7 +712,11 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (PropertyChanging != null)
             {
+#pragma warning disable CS0436 // Type conflicts with imported type
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
                 PropertyChanging(this, new PropertyChangingEventArgs(propertyName));
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
+#pragma warning restore CS0436 // Type conflicts with imported type
             }
         }
 #endif

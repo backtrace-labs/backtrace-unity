@@ -37,7 +37,6 @@ using Backtrace.Newtonsoft.Shims;
 #if NET20
 using Backtrace.Newtonsoft.Utilities.LinqBridge;
 #else
-using System.Linq;
 
 #if !UNITY_WINRT || UNITY_EDITOR || (UNITY_WP8 && !UNITY_WP_8_1)
 using INotifyCollectionChanged = System.ComponentModel.INotifyCollectionChanged;
@@ -63,7 +62,9 @@ namespace Backtrace.Newtonsoft.Linq
     {
 #if !(DOTNET || PORTABLE40 || PORTABLE)
         internal ListChangedEventHandler _listChanged;
+#pragma warning disable CS0436 // Type conflicts with imported type
         internal AddingNewEventHandler _addingNew;
+#pragma warning restore CS0436 // Type conflicts with imported type
 
         /// <summary>
         /// Occurs when the list changes or an item in the list changes.
@@ -74,16 +75,18 @@ namespace Backtrace.Newtonsoft.Linq
             remove { _listChanged -= value; }
         }
 
+#pragma warning disable CS0436 // Type conflicts with imported type
         /// <summary>
         /// Occurs before an item is added to the collection.
         /// </summary>
         public event AddingNewEventHandler AddingNew
+#pragma warning restore CS0436 // Type conflicts with imported type
         {
             add { _addingNew += value; }
             remove { _addingNew -= value; }
         }
 #endif
-        #if !UNITY_WINRT || UNITY_EDITOR || (UNITY_WP8 &&  !UNITY_WP_8_1)
+#if !UNITY_WINRT || UNITY_EDITOR || (UNITY_WP8 && !UNITY_WP_8_1)
         internal NotifyCollectionChangedEventHandler _collectionChanged;
 
         /// <summary>
@@ -140,10 +143,11 @@ namespace Backtrace.Newtonsoft.Linq
         }
 
 #if !(DOTNET || PORTABLE40 || PORTABLE)
-        /// <summary>
-        /// Raises the <see cref="AddingNew"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="AddingNewEventArgs"/> instance containing the event data.</param>
+#pragma warning disable CS0436 // Type conflicts with imported type
+                              /// <summary>
+                              /// Raises the <see cref="AddingNew"/> event.
+                              /// </summary>
+                              /// <param name="e">The <see cref="AddingNewEventArgs"/> instance containing the event data.</param>
         protected virtual void OnAddingNew(AddingNewEventArgs e)
         {
             AddingNewEventHandler handler = _addingNew;
@@ -153,6 +157,7 @@ namespace Backtrace.Newtonsoft.Linq
             }
         }
 
+#pragma warning restore CS0436 // Type conflicts with imported type
         /// <summary>
         /// Raises the <see cref="ListChanged"/> event.
         /// </summary>
@@ -1066,7 +1071,9 @@ namespace Backtrace.Newtonsoft.Linq
 
         object IBindingList.AddNew()
         {
-            AddingNewEventArgs args = new AddingNewEventArgs();
+#pragma warning disable CS0436 // Type conflicts with imported type
+            var args = new AddingNewEventArgs();
+#pragma warning restore CS0436 // Type conflicts with imported type
             OnAddingNew(args);
 
             if (args.NewObject == null)

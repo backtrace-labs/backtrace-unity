@@ -1,5 +1,4 @@
-﻿using Backtrace.Newtonsoft;
-using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
 using System.Collections;
@@ -38,7 +37,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly string _serverurl;
 
-        private BacktraceCredentials _credentials;
+        private readonly BacktraceCredentials _credentials;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
@@ -61,38 +60,28 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
-            using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceDatabase", "backtraceresult-api.txt"), true))
+            //check rate limiting
+            bool watcherValidation = reportLimitWatcher.WatchReport(data.Report);
+            if (!watcherValidation)
             {
-
-                outputFile.WriteLine($"Checking report limit watcher?");
-                //check rate limiting
-                bool watcherValidation = reportLimitWatcher.WatchReport(data.Report);
-                if (!watcherValidation)
-                {
-                    outputFile.WriteLine($"Limi reached");
-                    yield return BacktraceResult.OnLimitReached(data.Report);
-                }
-
-                outputFile.WriteLine($"Converting data to JSON file");
-                string json = string.Empty;
-                try
-                {
-                    json = data.ToJson();
-                    outputFile.WriteLine($"CONVERTED JSON: {json}");
-                }
-                catch (Exception e)
-                {
-                    outputFile.WriteLine("EXCEPTION");
-                    outputFile.WriteLine(e.ToString());
-                }
-                if (string.IsNullOrEmpty(json))
-                {
-                    yield return BacktraceResult.OnLimitReached(data.Report);
-                }
-
-                yield return Send(json, data.Attachments, data.Report, callback);
-               
+                yield return BacktraceResult.OnLimitReached(data.Report);
             }
+            if(data == null)
+            {
+                yield return new BacktraceResult()
+                {
+                    Status = Types.BacktraceResultStatus.LimitReached
+                };
+            }
+            string json = data.ToJson();
+
+            if (string.IsNullOrEmpty(json))
+            {
+                yield return BacktraceResult.OnLimitReached(data.Report);
+            }
+
+            yield return Send(json, data.Attachments, data.Report, callback);
+
         }
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
@@ -110,8 +99,8 @@ namespace Backtrace.Unity.Services
                 {
                     result = new BacktraceResult();
                     OnServerResponse?.Invoke(result);
-                    var response = BacktraceDataConverter.DeserializeObject<BacktraceResult>(request.downloadHandler.text);
-                    if(attachments != null && attachments.Count > 0)
+                    var response = BacktraceResult.FromJson(request.downloadHandler.text);
+                    if (attachments != null && attachments.Count > 0)
                     {
                         var stack = new Stack<string>(attachments);
                         yield return SendAttachment(response.Object, stack);
@@ -166,7 +155,7 @@ namespace Backtrace.Unity.Services
 
         private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
 
-        public static string UrlEncode(string value)
+        private static string UrlEncode(string value)
         {
             if (string.IsNullOrEmpty(value))
             {

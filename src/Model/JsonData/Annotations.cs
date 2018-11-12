@@ -1,8 +1,6 @@
 ﻿using Backtrace.Newtonsoft;
 using Backtrace.Newtonsoft.Linq;
-using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model.JsonData
 {
@@ -16,14 +14,18 @@ namespace Backtrace.Unity.Model.JsonData
         /// Get system environment variables
         /// </summary>
         [JsonProperty(PropertyName = "Environment Variables")]
-        public Dictionary<string, string> EnvironmentVariables;
-        
+        public Dictionary<string, string> EnvironmentVariables { get; set; }
+
         /// <summary>
         /// Get built-in complex attributes
         /// </summary>
         [JsonExtensionData]
         public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
-        
+
+        public Annotations()
+        {
+
+        }
         /// <summary>
         /// Create new instance of Annotations class
         /// </summary>
@@ -45,9 +47,29 @@ namespace Backtrace.Unity.Model.JsonData
                 envVariables[envVariable.Key] = envVariable.Value?.ToString() ?? string.Empty;
             }
             annotations["Environment Variables"] = envVariables;
+            return annotations;
+        }
 
-            //todo: complex attributes
-
+        public static Annotations Deserialize(JToken token)
+        {
+            var annotations = new Annotations();
+            //get all environment variables and complex attributes
+            foreach (BacktraceJProperty annotation in token)
+            {
+                //parse all dictionaries of values
+                var values = new Dictionary<string, string>();
+                foreach (var annotationDictionary in annotation)
+                {
+                    foreach (BacktraceJProperty value in annotationDictionary)
+                    {
+                        values.Add(value.Name, value.Value.Value<string>());
+                    }
+                }
+                if (annotation.Name == "Environment Variables")
+                {
+                    annotations.EnvironmentVariables = values;
+                }
+            }
             return annotations;
         }
     }

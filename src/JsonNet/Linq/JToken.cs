@@ -716,7 +716,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ushort(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -732,7 +732,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator char(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -765,7 +765,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator sbyte(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -822,7 +822,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ushort? (JToken value)
         {
             if (value == null)
@@ -863,7 +863,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator sbyte? (JToken value)
         {
             if (value == null)
@@ -962,7 +962,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator uint? (JToken value)
         {
             if (value == null)
@@ -983,7 +983,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ulong? (JToken value)
         {
             if (value == null)
@@ -1063,7 +1063,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator uint(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -1079,7 +1079,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ulong(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -1291,10 +1291,10 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
-#pragma warning disable CS3021 // Type or member does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
+        
+#pragma warning disable CS3021 // Type or member does not need a  attribute because the assembly does not have a  attribute
         public static implicit operator JToken(sbyte value)
-#pragma warning restore CS3021 // Type or member does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
+#pragma warning restore CS3021 // Type or member does not need a  attribute because the assembly does not have a  attribute
         {
             return new JValue(value);
         }
@@ -1304,7 +1304,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(sbyte? value)
         {
             return new JValue(value);
@@ -1377,7 +1377,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(short value)
         {
             return new JValue(value);
@@ -1388,7 +1388,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ushort value)
         {
             return new JValue(value);
@@ -1459,7 +1459,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(short? value)
         {
             return new JValue(value);
@@ -1470,7 +1470,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ushort? value)
         {
             return new JValue(value);
@@ -1481,7 +1481,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(uint? value)
         {
             return new JValue(value);
@@ -1492,7 +1492,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ulong? value)
         {
             return new JValue(value);
@@ -1533,7 +1533,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(uint value)
         {
             return new JValue(value);
@@ -1544,7 +1544,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ulong value)
         {
             return new JValue(value);

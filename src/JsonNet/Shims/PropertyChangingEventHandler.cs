@@ -5,7 +5,9 @@ using Backtrace.Newtonsoft.Shims;
 namespace System.ComponentModel
 {
     [Preserve]
+#pragma warning disable CS0436 // Type conflicts with imported type
     public delegate void PropertyChangingEventHandler(Object sender, PropertyChangingEventArgs e);
+#pragma warning restore CS0436 // Type conflicts with imported type
 
 }
 

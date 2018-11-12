@@ -131,6 +131,10 @@ namespace Backtrace.Unity
             BacktraceApi.SetClientRateLimit(reportPerMin);
         }
 
+        /// <summary>
+        /// Send a report to Backtrace API
+        /// </summary>
+        /// <param name="report">Report to send</param>
         public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
         {
             var report = new BacktraceReport(
@@ -140,6 +144,10 @@ namespace Backtrace.Unity
             Send(report);
         }
 
+        /// <summary>
+        /// Send a report to Backtrace API
+        /// </summary>
+        /// <param name="report">Report to send</param>
         public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
         {
             var report = new BacktraceReport(
@@ -155,7 +163,7 @@ namespace Backtrace.Unity
         /// <param name="report">Report to send</param>
         public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceDatabase", "backtraceresult-client.txt"), true))
+            using (var outputFile = new System.IO.StreamWriter(System.IO.Path.Combine(@"C:\Users\konra\source\BacktraceLogs", "backtraceresult-client.txt"), true))
             {
                 outputFile.WriteLine("Inside send method...");
                 outputFile.WriteLine($"Database exists? {Database != null}");

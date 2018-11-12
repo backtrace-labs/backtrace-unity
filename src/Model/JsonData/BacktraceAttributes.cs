@@ -42,6 +42,20 @@ namespace Backtrace.Unity.Model.JsonData
             SetMachineAttributes();
             SetProcessAttributes();
         }
+        private BacktraceAttributes() { }
+
+        public static BacktraceAttributes Deserialize(JToken jToken)
+        {
+            var attributes = new Dictionary<string, object>();
+            foreach (BacktraceJProperty keys in jToken)
+            {
+                attributes.Add(keys.Name, keys.Value.Value<string>());
+            }
+            return new BacktraceAttributes()
+            {
+                Attributes = attributes
+            };
+        }
 
         public BacktraceJObject ToJson()
         {

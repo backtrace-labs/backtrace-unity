@@ -24,9 +24,8 @@ namespace Backtrace.Unity.Model.Database
             _destinationPath = path;
         }
 
-        public string Write(object data, string prefix)
-        {
-            var json = ToJsonFile(data);
+        public string Write(string json, string prefix)
+        {            
             byte[] file = Encoding.UTF8.GetBytes(json);
             return Write(file, prefix);
         }
@@ -39,15 +38,6 @@ namespace Backtrace.Unity.Model.Database
             string destFilePath = Path.Combine(_destinationPath, filename);
             SaveValidRecord(tempFilePath, destFilePath);
             return destFilePath;
-        }
-
-        public string ToJsonFile(object data)
-        {
-            if (data == null)
-            {
-                return string.Empty;
-            }
-            return BacktraceDataConverter.SerializeObject(data);
         }
 
         /// <summary>

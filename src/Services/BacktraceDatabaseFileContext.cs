@@ -1,9 +1,11 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model.Database;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace Backtrace.Unity.Services
 {
@@ -79,25 +81,35 @@ namespace Backtrace.Unity.Services
                 var file = files.ElementAt(fileIndex);
                 //check if file should be stored in database
                 //database only store data in json and files in dmp extension
-                if (file.Extension != ".dmp" && file.Extension != ".json")
+                try
                 {
-                    file.Delete();
-                    continue;
+                    if (file.Extension != ".dmp" && file.Extension != ".json")
+                    {
+                        file.Delete();
+                        continue;
+                    }
+                    //get id from file name
+                    //substring from position 0 to position from character '-' contains id
+                    var name = file.Name.LastIndexOf('-');
+                    // file can store invalid record because our regex don't match
+                    // in this case we remove invalid file
+                    if (name == -1)
+                    {
+                        file.Delete();
+                        continue;
+                    }
+                    var stringGuid = file.Name.Substring(0, name);
+                    if (!recordStringIds.Contains(stringGuid))
+                    {
+                        file.Delete();
+                    }
                 }
-                //get id from file name
-                //substring from position 0 to position from character '-' contains id
-                var name = file.Name.LastIndexOf('-');
-                // file can store invalid record because our regex don't match
-                // in this case we remove invalid file
-                if (name == -1)
+                catch (Exception e)
                 {
-                    file.Delete();
-                    continue;
-                }
-                var stringGuid = file.Name.Substring(0, name);
-                if (!recordStringIds.Contains(stringGuid))
-                {
-                    file.Delete();
+#if DEBUG
+                    Debug.Log(e.ToString());
+#endif
+                    Debug.LogWarning($"Cannot remove file in path: { file.FullName}");
                 }
             }
         }

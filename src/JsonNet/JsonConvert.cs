@@ -226,7 +226,6 @@ namespace Backtrace.Newtonsoft
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A JSON string representation of the <see cref="UInt16"/>.</returns>
-        [CLSCompliant(false)]
         public static string ToString(ushort value)
         {
             return value.ToString(null, CultureInfo.InvariantCulture);
@@ -237,7 +236,6 @@ namespace Backtrace.Newtonsoft
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A JSON string representation of the <see cref="UInt32"/>.</returns>
-        [CLSCompliant(false)]
         public static string ToString(uint value)
         {
             return value.ToString(null, CultureInfo.InvariantCulture);
@@ -258,7 +256,6 @@ namespace Backtrace.Newtonsoft
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A JSON string representation of the <see cref="UInt64"/>.</returns>
-        [CLSCompliant(false)]
         public static string ToString(ulong value)
         {
             return value.ToString(null, CultureInfo.InvariantCulture);
@@ -344,7 +341,6 @@ namespace Backtrace.Newtonsoft
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A JSON string representation of the <see cref="SByte"/>.</returns>
-        [CLSCompliant(false)]
         public static string ToString(sbyte value)
         {
             return value.ToString(null, CultureInfo.InvariantCulture);
@@ -1145,9 +1141,11 @@ namespace Backtrace.Newtonsoft
         /// <returns>The deserialized XNode</returns>
         public static XDocument DeserializeXNode(string value, string deserializeRootElementName, bool writeArrayAttribute)
         {
-            XmlNodeConverter converter = new XmlNodeConverter();
-            converter.DeserializeRootElementName = deserializeRootElementName;
-            converter.WriteArrayAttribute = writeArrayAttribute;
+            var converter = new XmlNodeConverter
+            {
+                DeserializeRootElementName = deserializeRootElementName,
+                WriteArrayAttribute = writeArrayAttribute
+            };
 
             return (XDocument)DeserializeObject(value, typeof(XDocument), converter);
         }
