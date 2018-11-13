@@ -26,7 +26,7 @@ namespace Backtrace.Unity
         /// </summary>
         private BacktraceDatabaseSettings DatabaseSettings { get; set; }
 
-        private float _lastConnection = 0;
+        private float _lastConnection;
         /// <summary>
         /// Backtrace Api instance. Use BacktraceApi to send data to Backtrace server
         /// </summary>
@@ -85,6 +85,8 @@ namespace Backtrace.Unity
                 return;
             }
 
+            _lastConnection = Time.time;
+
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials(), Convert.ToUInt32(Configuration.ReportPerMin));
@@ -98,6 +100,7 @@ namespace Backtrace.Unity
             }
             if (Time.time - _lastConnection > DatabaseSettings.RetryInterval)
             {
+                _lastConnection = Time.time;
                 if (!BacktraceDatabaseContext.Any() || _timerBackgroundWork)
                 {
                     return;
