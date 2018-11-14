@@ -197,11 +197,12 @@ namespace Backtrace.Unity
         public void HandleUnhandledExceptions()
         {
             Application.logMessageReceived += HandleException;
+            Application.logMessageReceivedThreaded += HandleException;
         }
 
         private void HandleException(string condition, string stackTrace, LogType type)
         {
-            if (type == LogType.Exception)
+            if (type == LogType.Exception || type == LogType.Error)
             {
                 var exception = new BacktraceUnhandledException(condition, stackTrace);
                 var report = new BacktraceReport(exception);
