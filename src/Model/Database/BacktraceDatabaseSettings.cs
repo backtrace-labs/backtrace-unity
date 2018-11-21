@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Types;
+using System;
 
 namespace Backtrace.Unity.Model.Database
 {
@@ -7,9 +8,20 @@ namespace Backtrace.Unity.Model.Database
     /// </summary>
     public class BacktraceDatabaseSettings
     {
-        public BacktraceDatabaseSettings(string path)
+        public BacktraceDatabaseSettings(BacktraceConfiguration configuration)
         {
-            DatabasePath = path;
+            if (configuration == null)
+            {
+                return;
+            }
+
+            DatabasePath = configuration.DatabasePath;
+            MaxRecordCount = Convert.ToUInt32(configuration.MaxRecordCount);
+            MaxDatabaseSize = configuration.MaxDatabaseSize;
+            AutoSendMode = configuration.AutoSendMode;
+            RetryInterval = Convert.ToUInt32(configuration.RetryInterval);
+            RetryLimit = Convert.ToUInt32(configuration.RetryLimit);
+            RetryOrder = configuration.RetryOrder;
         }
         /// <summary>
         /// Directory path where reports and minidumps are stored
@@ -36,7 +48,8 @@ namespace Backtrace.Unity.Model.Database
                 //convert megabyte to bytes
                 return _maxDatabaseSize * 1000 * 1000;
             }
-            set {
+            set
+            {
                 _maxDatabaseSize = value;
             }
         }

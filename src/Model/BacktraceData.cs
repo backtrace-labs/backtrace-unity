@@ -1,9 +1,9 @@
-﻿using Backtrace.Unity.Model.JsonData;
-using Newtonsoft.Json;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -17,13 +17,13 @@ namespace Backtrace.Unity.Model
         /// server will reject request if uuid is already found
         /// </summary>
         [JsonProperty(PropertyName = "uuid")]
-        public Guid Uuid;
+        public Guid Uuid { get; set; }
 
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
         [JsonProperty(PropertyName = "timestamp")]
-        public long Timestamp;
+        public long Timestamp { get; set; }
 
         /// <summary>
         /// Name of programming language/environment this error comes from.
@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Model
         /// Name of the client that is sending this error report.
         /// </summary>
         [JsonProperty(PropertyName = "agent")]
-        public const string Agent = "backtrace-csharp";
+        public const string Agent = "backtrace-unity";
 
         /// <summary>
         /// Version of the C# library
@@ -56,7 +56,7 @@ namespace Backtrace.Unity.Model
         public Dictionary<string, object> Attributes;
 
         /// <summary>
-        /// Get current host environment variables and application dependencies
+        /// Get current host environment variables
         /// </summary>
         [JsonProperty(PropertyName = "annotations")]
         internal Annotations Annotations;
@@ -79,8 +79,8 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "classifiers", NullValueHandling = NullValueHandling.Ignore)]
         public string[] Classifier;
 
-        [JsonProperty(PropertyName = "sourceCode", NullValueHandling = NullValueHandling.Ignore)]
-        internal Dictionary<string, SourceCodeData.SourceCode> SourceCode;
+        //[JsonProperty(PropertyName = "sourceCode", NullValueHandling = NullValueHandling.Ignore)]
+        //internal Dictionary<string, SourceCodeData.SourceCode> SourceCode;
 
         /// <summary>
         /// Get a path to report attachments
@@ -93,6 +93,15 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal BacktraceReport Report { get; set; }
 
+        private BacktraceAttributes _attributes = null;
+        private Annotations _annotations = null;
+        private ThreadData _threadData = null;
+
+        /// <summary>
+        /// Empty constructor for serialization purpose
+        /// </summary>
+        public BacktraceData()
+        { }
         /// <summary>
         /// Create instance of report data
         /// </summary>
@@ -111,29 +120,66 @@ namespace Backtrace.Unity.Model
             Attachments = Report.AttachmentPaths.Distinct().ToList();
         }
 
+        public string ToJson()
+        {
+            var json = new BacktraceJObject
+            {
+                ["uuid"] = Uuid,
+                ["timestamp"] = Timestamp,
+                ["lang"] = "csharp",
+                ["langVersion"] = "Unity",
+                ["agent"] = "backtrace-unity",
+                ["agentVersion"] = "1.0.0",
+                ["mainThread"] = MainThread,
+                ["classifiers"] = new JArray(Classifier),
+                ["attributes"] = _attributes.ToJson(),
+                ["annotations"] = _annotations.ToJson(),
+                ["threads"] = _threadData?.ToJson()
+            };
+
+            return json.ToString();
+        }
+        public static BacktraceData Deserialize(string json)
+        {
+            var @object = BacktraceJObject.Parse(json);
+
+            var classfiers = @object["classifiers"]?
+                .Select(n => n.Value<string>()).ToArray() ?? null;
+
+            return new BacktraceData()
+            {
+                Uuid = new Guid(@object.Value<string>("uuid")),
+                Timestamp = @object.Value<long>("timestamp"),
+                MainThread = @object.Value<string>("mainThread"),
+                Classifier = classfiers,
+                _annotations = Annotations.Deserialize(@object["annotations"]),
+                _attributes = BacktraceAttributes.Deserialize(@object["attributes"]),
+                _threadData = ThreadData.DeserializeThreadInformation(@object["threads"])
+            };
+        }
+
         private void SetThreadInformations()
         {
-            var threadData = new ThreadData(Report.CallingAssembly, Report.DiagnosticStack);
-            ThreadInformations = threadData.ThreadInformations;
-            MainThread = threadData.MainThread;
-            var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
-            SourceCode = sourceCodeData.data.Any() ? sourceCodeData.data : null;
+            _threadData = new ThreadData(Report.DiagnosticStack);
+            ThreadInformations = _threadData.ThreadInformations;
+            MainThread = _threadData.MainThread;
+            //var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
+            //SourceCode = sourceCodeData.data.Any() ? sourceCodeData.data : null;
         }
 
         private void SetAttributes(Dictionary<string, object> clientAttributes)
         {
-            var backtraceAttributes = new BacktraceAttributes(Report, clientAttributes);
-            Attributes = backtraceAttributes.Attributes;
-            Annotations = new Annotations(Report.CallingAssembly, backtraceAttributes.ComplexAttributes);
+            _attributes = new BacktraceAttributes(Report, clientAttributes);
+            Attributes = _attributes.Attributes;
+            _annotations = new Annotations(_attributes.ComplexAttributes);
         }
 
         private void SetReportInformation()
         {
-            AssemblyName CurrentAssembly = Assembly.GetExecutingAssembly().GetName();
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
-            LangVersion = typeof(string).Assembly.ImageRuntimeVersion;
-            AgentVersion = CurrentAssembly.Version.ToString();
+            LangVersion = "Mono/IL2CPP";
+            AgentVersion = "1.0.0";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

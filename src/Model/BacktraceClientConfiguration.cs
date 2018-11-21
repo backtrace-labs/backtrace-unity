@@ -1,34 +1,69 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
-    /// <summary>
-    /// All properties required by BacktraceClient in one place
-    /// </summary>
-    public class BacktraceClientConfiguration
+    [Serializable]
+    public class BacktraceClientConfiguration : ScriptableObject
     {
-        /// <summary>
-        /// Client credentials
-        /// </summary>
-        public readonly BacktraceCredentials Credentials;
+        public string ServerUrl;
+        public string Token;
+        public int ReportPerMin;
+        public bool HandleUnhandledExceptions = true;
 
-        /// <summary>
-        /// Client's attributes
-        /// </summary>
-        public Dictionary<string, object> ClientAttributes { get; set; } = new Dictionary<string, object>();
-
-        /// <summary>
-        /// Numbers of records sending per one minute
-        /// </summary>
-        public uint ReportPerMin { get; set; } = 3;
-
-        /// <summary>
-        /// Create new client settings with disabled database
-        /// </summary>
-        /// <param name="credentials">Backtrace server API credentials</param>
-        public BacktraceClientConfiguration(BacktraceCredentials credentials)
+        public void UpdateServerUrl()
         {
-            Credentials = credentials;
+            if (string.IsNullOrEmpty(ServerUrl))
+            {
+                return;
+            }
+            if (!ServerUrl.Contains(".sp.backtrace.io"))
+            {
+                ServerUrl += ".sp.backtrace.io";
+                Debug.Log("After change server URL: " + ServerUrl);
+            }
+            Uri serverUri;
+            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out serverUri);
+            if (result)
+            {
+                try
+                {
+                    //Parsed uri include http/https
+                    ServerUrl = new UriBuilder(ServerUrl) { Scheme = Uri.UriSchemeHttps, Port = 6098 }.Uri.ToString();
+                }
+                catch (Exception)
+                {
+                    Debug.Log("Invalid uri provided");
+                }
+            }
+        }
+
+        public bool ValidateServerUrl()
+        {
+            Uri serverUri;
+            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out serverUri);
+            try
+            {
+                new UriBuilder(ServerUrl) { Scheme = Uri.UriSchemeHttps, Port = 6098 }.Uri.ToString();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return result;
+        }
+        public bool IsValid()
+        {
+            return ValidateServerUrl() && ValidateToken();
+        }
+        public bool ValidateToken()
+        {
+            return !(string.IsNullOrEmpty(Token) || Token.Length != 64);
+        }
+
+        public BacktraceCredentials ToCredentials()
+        {
+            return new BacktraceCredentials(ServerUrl, Token);
         }
     }
 }

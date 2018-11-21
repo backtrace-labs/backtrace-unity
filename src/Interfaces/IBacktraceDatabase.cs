@@ -10,12 +10,12 @@ namespace Backtrace.Unity.Interfaces
     /// Backtrace Database Interface
     /// Before start: Be sure that used directory is empty!
     /// </summary>
-    public interface IBacktraceDatabase : IDisposable
+    public interface IBacktraceDatabase
     {
         /// <summary>
         /// Start all database tasks - data storage, timers, file loading
         /// </summary>
-        void Start();
+        //void Start();
 
         /// <summary>
         /// Send all reports stored in BacktraceDatabase and clean database

@@ -1,14 +1,11 @@
-﻿using Backtrace.Unity.Common;
-using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
-
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Services
@@ -40,6 +37,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly string _serverurl;
 
+        private readonly BacktraceCredentials _credentials;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
@@ -50,8 +48,8 @@ namespace Backtrace.Unity.Services
             {
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
+            _credentials = credentials;
             _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}";
-            Debug.Log("server url : " + _serverurl);
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
 
@@ -68,129 +66,117 @@ namespace Backtrace.Unity.Services
             {
                 yield return BacktraceResult.OnLimitReached(data.Report);
             }
-
-            var json = JsonConvert.SerializeObject(data);
-            Debug.Log(json);
-            yield return Send(json, data.Attachments, data.Report, (BacktraceResult result) =>
+            if(data == null)
             {
-                Debug.Log("Hello from callback method");
-                callback?.Invoke(result);
-            });
+                yield return new BacktraceResult()
+                {
+                    Status = Types.BacktraceResultStatus.LimitReached
+                };
+            }
+            string json = data.ToJson();
 
-            //var jsop = JsonUtility.ToJson(data);
-            //var annotationsFromNewtonsoft = JsonConvert.SerializeObject(data.Annotations);
-            //var annotations = JsonUtility.ToJson(data.Annotations);
+            if (string.IsNullOrEmpty(json))
+            {
+                yield return BacktraceResult.OnLimitReached(data.Report);
+            }
 
-            // execute user custom request handler
-            //if (RequestHandler != null)
-            //{
-            //    return RequestHandler?.Invoke(_serverurl, FormDataHelper.GetContentTypeWithBoundary(Guid.NewGuid()), data);
-            //}
-            ////set submission data
-            //string json = JsonConvert.SerializeObject(data);
-            //return Send(Guid.NewGuid(), json, data.Report?.AttachmentPaths ?? new List<string>(), data.Report);
+            yield return Send(json, data.Attachments, data.Report, callback);
+
         }
-
-        private BacktraceResult _result;
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
         {
-            var requestId = Guid.NewGuid();
-            var formData = new List<IMultipartFormSection>
+            using (var request = new UnityWebRequest(_serverurl, "POST"))
             {
-                new MultipartFormDataSection("upload_file.json", json, "application/json")
-            };
-            byte[] boundary = UnityWebRequest.GenerateBoundary();
-            string boundaryString = Encoding.ASCII.GetString(boundary);
-            Debug.Log("Generated boundary " + boundaryString);
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+                request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+                request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+                yield return request.SendWebRequest();
 
-            using (var www = UnityWebRequest.Post(_serverurl, formData, boundary))
-            {
-                www.method = "POST";
-                www.uploadHandler = (UploadHandler)new UploadHandlerRaw(boundary);
-                www.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-                www.SetRequestHeader("Content-Type", FormDataHelper.GetContentTypeWithBoundary(requestId));
-                var response = www.responseCode;
-                yield return www.SendWebRequest();
-                _result = www.isNetworkError || www.isHttpError
-                    ? BacktraceResult.OnError(report, new Exception(www.error))
-                    : new BacktraceResult();
-
-                StringBuilder sb = new StringBuilder();
-                var responseHeaders = www.GetResponseHeaders();
-                if (responseHeaders != null)
+                BacktraceResult result;
+                if (request.responseCode == 200)
                 {
-                    foreach (System.Collections.Generic.KeyValuePair<string, string> dict in www.GetResponseHeaders())
+                    result = new BacktraceResult();
+                    OnServerResponse?.Invoke(result);
+                    var response = BacktraceResult.FromJson(request.downloadHandler.text);
+                    if (attachments != null && attachments.Count > 0)
                     {
-                        sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
+                        var stack = new Stack<string>(attachments);
+                        yield return SendAttachment(response.Object, stack);
                     }
-
-                    // Print Headers
-                    Debug.Log("RESPONSE: " + sb.ToString());
                 }
                 else
                 {
-                    Debug.Log("RESPONSE IS EMPTY");
+                    PrintLog(request);
+                    var exception = new Exception(request.error);
+                    result = BacktraceResult.OnError(report, exception);
+                    OnServerError?.Invoke(exception);
                 }
-                callback?.Invoke(_result);
+                callback?.Invoke(result);
+                yield return result;
             }
+        }
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        private void PrintLog(UnityWebRequest request)
+        {
+            string responseText = Encoding.UTF8.GetString(request.downloadHandler.data);
+            Debug.Log($"Response text: {responseText}");
+        }
+
+        private IEnumerator SendAttachment(string objectId, Stack<string> attachments)
+        {
+            if (attachments != null && attachments.Count > 0)
+            {
+                var attachment = attachments.Pop();
+                if (System.IO.File.Exists(attachment))
+                {
+                    string fileName = System.IO.Path.GetFileName(attachment);
+                    string serverUrl = GetAttachmentUploadUrl(objectId, fileName);
+                    using (var request = new UnityWebRequest(serverUrl, "POST"))
+                    {
+                        byte[] bodyRaw = System.IO.File.ReadAllBytes(attachment);
+                        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+                        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+                        request.SetRequestHeader("Content-Type", "application/json");
+                        yield return request.SendWebRequest();
+                    }
+                }
+                yield return SendAttachment(objectId, attachments);
+            }
+        }
+
+        private string GetAttachmentUploadUrl(string objectId, string attachmentName)
+        {
+            return $"{_credentials.BacktraceHostUri.AbsoluteUri}/api/post?token={_credentials.Token}&object={objectId}&attachment_name={UrlEncode(attachmentName)}";
 
         }
 
+        private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
 
-        //private BacktraceResult Send(Guid requestId, string json, List<string> attachments, BacktraceReport report)
-        //{
-        //    var formData = FormDataHelper.GetFormData(json, attachments, requestId);
-        //    string contentType = FormDataHelper.GetContentTypeWithBoundary(requestId);
-        //    var request = WebRequest.Create(_serverurl) as HttpWebRequest;
+        private static string UrlEncode(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
 
-        //    //Set up the request properties.
-        //    request.Method = "POST";
-        //    request.ContentType = contentType;
-        //    request.ContentLength = formData.Length;
-        //    try
-        //    {
-        //        using (Stream requestStream = request.GetRequestStream())
-        //        {
-        //            requestStream.Write(formData, 0, formData.Length);
-        //            requestStream.Close();
-        //        }
-        //        return ReadServerResponse(request, report);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        OnServerError?.Invoke(exception);
-        //        return BacktraceResult.OnError(report, exception);
-        //    }
-        //}
+            var sb = new StringBuilder();
 
-        ///// <summary>
-        ///// Handle server respond for synchronous request
-        ///// </summary>
-        ///// <param name="request">Current HttpWebRequest</param>
-        //private BacktraceResult ReadServerResponse(HttpWebRequest request, BacktraceReport report)
-        //{
-        //    using (WebResponse webResponse = request.GetResponse() as HttpWebResponse)
-        //    {
-        //        StreamReader responseReader = new StreamReader(webResponse.GetResponseStream());
-        //        string fullResponse = responseReader.ReadToEnd();
-        //        var response = JsonConvert.DeserializeObject<BacktraceResult>(fullResponse);
-        //        response.BacktraceReport = report;
-        //        OnServerResponse?.Invoke(response);
-        //        return response;
-        //    }
-        //}
-        //#endregion
-        ///// <summary>
-        ///// Get serialization settings
-        ///// </summary>
-        ///// <returns></returns>
-        //private JsonSerializerSettings JsonSerializerSettings { get; } = new JsonSerializerSettings
-        //{
-        //    NullValueHandling = NullValueHandling.Ignore,
-        //    DefaultValueHandling = DefaultValueHandling.Ignore
-        //};
-
+            foreach (char @char in value)
+            {
+                if (reservedCharacters.IndexOf(@char) == -1)
+                {
+                    sb.Append(@char);
+                }
+                else
+                {
+                    sb.AppendFormat("%{0:X2}", (int)@char);
+                }
+            }
+            return sb.ToString();
+        }
 
         public void SetClientRateLimitEvent(Action<BacktraceReport> onClientReportLimitReached)
         {
@@ -200,11 +186,6 @@ namespace Backtrace.Unity.Services
         public void SetClientRateLimit(uint rateLimit)
         {
             reportLimitWatcher.SetClientReportLimit(rateLimit);
-        }
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
         }
     }
 }

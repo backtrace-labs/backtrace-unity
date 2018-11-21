@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -13,24 +12,16 @@ namespace Backtrace.Unity
     /// <summary>
     /// Base Backtrace .NET Client 
     /// </summary>
-    public class BacktraceClient
+    public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
+        public BacktraceConfiguration Configuration;
 
         /// <summary>
-        /// Custom request handler for HTTP call to server
+        /// Backtrace database instance that allows to manage minidump files 
         /// </summary>
-        public Func<string, string, BacktraceData, BacktraceResult> RequestHandler
-        {
-            get
-            {
-                return BacktraceApi.RequestHandler;
-            }
+        public IBacktraceDatabase Database;
 
-            set
-            {
-                BacktraceApi.RequestHandler = value;
-            }
-        }
+        private IBacktraceApi _backtraceApi;
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
         /// </summary>
@@ -94,12 +85,7 @@ namespace Backtrace.Unity
         /// </summary>
         public readonly Dictionary<string, object> Attributes;
 
-        /// <summary>
-        /// Backtrace database instance that allows to manage minidump files 
-        /// </summary>
-        public IBacktraceDatabase Database;
 
-        private IBacktraceApi _backtraceApi;
         /// <summary>
         /// Instance of BacktraceApi that allows to send data to Backtrace API
         /// </summary>
@@ -117,40 +103,23 @@ namespace Backtrace.Unity
             }
         }
 
-        /// <summary>
-        /// Initialize new client instance with BacktraceCredentials
-        /// </summary>
-        /// <param name="backtraceCredentials">Backtrace credentials to access Backtrace API</param>
-        /// <param name="attributes">Additional information about current application</param>
-        /// <param name="databaseSettings">Backtrace database settings</param>
-        /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
-        public BacktraceClient(
-            BacktraceCredentials backtraceCredentials,
-            Dictionary<string, object> attributes = null,
-            BacktraceDatabaseSettings databaseSettings = null,
-            uint reportPerMin = 3)
-            : this(backtraceCredentials, attributes, new BacktraceDatabase(databaseSettings),
-                  reportPerMin)
-        { }
-
-        /// <summary>
-        /// Initialize new client instance with BacktraceCredentials
-        /// </summary>
-        /// <param name="backtraceCredentials">Backtrace credentials to access Backtrace API</param>
-        /// <param name="attributes">Additional information about current application</param>
-        /// <param name="databaseSettings">Backtrace database settings</param>
-        /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
-        public BacktraceClient(
-            BacktraceCredentials backtraceCredentials,
-            Dictionary<string, object> attributes = null,
-            IBacktraceDatabase database = null,
-            uint reportPerMin = 3)
+        private void Awake()
         {
-            Attributes = attributes ?? new Dictionary<string, object>();
-            BacktraceApi = new BacktraceApi(backtraceCredentials, reportPerMin);
-            Database = database ?? new BacktraceDatabase();
-            Database.SetApi(BacktraceApi);
-            Database.Start();
+            Database = GetComponent<BacktraceDatabase>();
+            if (Configuration == null || !Configuration.IsValid())
+            {
+                Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
+                return;
+            }
+            if (Configuration.HandleUnhandledExceptions)
+            {
+                HandleUnhandledExceptions();
+            }
+            BacktraceApi = new BacktraceApi(
+                credentials: new BacktraceCredentials(Configuration.ServerUrl, Configuration.Token),
+                reportPerMin: Convert.ToUInt32(Configuration.ReportPerMin));
+
+            Database?.SetApi(BacktraceApi);
         }
 
         /// <summary>
@@ -166,40 +135,86 @@ namespace Backtrace.Unity
         /// Send a report to Backtrace API
         /// </summary>
         /// <param name="report">Report to send</param>
-        public virtual IEnumerator Send(BacktraceReport report)
+        public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
         {
-            var record = Database.Add(report, Attributes, MiniDumpType);
+            var report = new BacktraceReport(
+                message: message,
+                attachmentPaths: attachmentPaths,
+                attributes: attributes);
+            Send(report);
+        }
+
+        /// <summary>
+        /// Send a report to Backtrace API
+        /// </summary>
+        /// <param name="report">Report to send</param>
+        public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
+        {
+            var report = new BacktraceReport(
+                exception: exception,
+                attributes: attributes,
+                attachmentPaths: attachmentPaths);
+            Send(report);
+        }
+
+        /// <summary>
+        /// Send a report to Backtrace API
+        /// </summary>
+        /// <param name="report">Report to send</param>
+        public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
+        {
+            var record = Database?.Add(report, Attributes, MiniDumpType);
             //create a JSON payload instance
-            var data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
+            BacktraceData data = null;
+            try
+            {
+                data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
+
             //valid user custom events
             data = BeforeSend?.Invoke(data) ?? data;
-            yield return BacktraceApi.Send(data, (BacktraceResult result) =>
+
+            if (BacktraceApi == null)
+            {
+                record?.Dispose();
+                Debug.LogWarning("Backtrace API not exisits. Please validate client token or server url!");
+                return;
+            }
+
+            StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
             {
                 record?.Dispose();
                 if (result?.Status == BacktraceResultStatus.Ok)
                 {
-                    Database.Delete(record);
+                    Database?.Delete(record);
                 }
                 //check if there is more errors to send
                 //handle inner exception
-                //HandleInnerException(report, (BacktraceResult innerResult) =>
-                //{
-                //    result.InnerExceptionResult = innerResult;
-                //});
-            });
+                HandleInnerException(report, (BacktraceResult innerResult) =>
+                {
+                    result.InnerExceptionResult = innerResult;
+                });
+                sendCallback?.Invoke(result);
+            }));
         }
 
         public void HandleUnhandledExceptions()
         {
             Application.logMessageReceived += HandleException;
+            Application.logMessageReceivedThreaded += HandleException;
         }
 
         private void HandleException(string condition, string stackTrace, LogType type)
         {
-            if (type == LogType.Exception)
+            if (type == LogType.Exception || type == LogType.Error)
             {
-                throw new NotImplementedException();
-                var exception = new Exception();
+                var exception = new BacktraceUnhandledException(condition, stackTrace);
+                var report = new BacktraceReport(exception);
+                Send(report);
             }
         }
 
@@ -208,16 +223,14 @@ namespace Backtrace.Unity
         /// if inner exception exists, client should send report twice - one with current exception, one with inner exception
         /// </summary>
         /// <param name="report">current report</param>
-        //private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
-        //{
-        ////we have to create a copy of an inner exception report
-        ////to have the same calling assembly property
-        //var innerExceptionReport = report.CreateInnerReport();
-        //if (innerExceptionReport == null)
-        //{
-        //    yield return null;
-        //}
-        //yield return Send(innerExceptionReport, callback);
-        //}
+        private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
+        {
+            var innerExceptionReport = report.CreateInnerReport();
+            if (innerExceptionReport == null)
+            {
+                yield return null;
+            }
+            Send(innerExceptionReport, callback);
+        }
     }
 }
