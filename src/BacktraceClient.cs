@@ -165,7 +165,15 @@ namespace Backtrace.Unity
         {
             var record = Database?.Add(report, Attributes, MiniDumpType);
             //create a JSON payload instance
-            var data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
+            BacktraceData data = null;
+            try
+            {
+                data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
 
             //valid user custom events
             data = BeforeSend?.Invoke(data) ?? data;

@@ -36,11 +36,18 @@ namespace Backtrace.Unity.Model
             SetStacktraceInformation(frames, generateExceptionInformation);
             if (_exception != null)
             {
-               
-                var exceptionStackTrace = new StackTrace(_exception, true);
+                if (_exception is BacktraceUnhandledException)
+                {
+                    var current = _exception as BacktraceUnhandledException;
+                    StackFrames.InsertRange(0,current.StackFrames);
+                }
+                else
+                {
+                    var exceptionStackTrace = new StackTrace(_exception, true);
 
-                var exceptionFrames = exceptionStackTrace.GetFrames();
-                SetStacktraceInformation(exceptionFrames, true);
+                    var exceptionFrames = exceptionStackTrace.GetFrames();
+                    SetStacktraceInformation(exceptionFrames, true);
+                }
             }
         }
 

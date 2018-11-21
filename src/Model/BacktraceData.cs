@@ -79,8 +79,8 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "classifiers", NullValueHandling = NullValueHandling.Ignore)]
         public string[] Classifier;
 
-        [JsonProperty(PropertyName = "sourceCode", NullValueHandling = NullValueHandling.Ignore)]
-        internal Dictionary<string, SourceCodeData.SourceCode> SourceCode;
+        //[JsonProperty(PropertyName = "sourceCode", NullValueHandling = NullValueHandling.Ignore)]
+        //internal Dictionary<string, SourceCodeData.SourceCode> SourceCode;
 
         /// <summary>
         /// Get a path to report attachments
@@ -163,8 +163,8 @@ namespace Backtrace.Unity.Model
             _threadData = new ThreadData(Report.DiagnosticStack);
             ThreadInformations = _threadData.ThreadInformations;
             MainThread = _threadData.MainThread;
-            var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
-            SourceCode = sourceCodeData.data.Any() ? sourceCodeData.data : null;
+            //var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
+            //SourceCode = sourceCodeData.data.Any() ? sourceCodeData.data : null;
         }
 
         private void SetAttributes(Dictionary<string, object> clientAttributes)
