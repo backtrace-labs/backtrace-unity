@@ -1,9 +1,8 @@
-﻿using Backtrace.Unity.Interfaces.Database;
-using System;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Unity.Interfaces.Database;
 using System.IO;
 using System.Text;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Model.Database
 {
     /// <summary>
@@ -25,14 +24,13 @@ namespace Backtrace.Unity.Model.Database
             _destinationPath = path;
         }
 
-        public string Write(object data, string prefix)
-        {
-            var json = ToJsonFile(data);
+        public string Write(string json, string prefix)
+        {            
             byte[] file = Encoding.UTF8.GetBytes(json);
             return Write(file, prefix);
         }
 
-        public virtual string Write(byte[] data, string prefix)
+        public string Write(byte[] data, string prefix)
         {
             string filename = $"{prefix}.json";
             string tempFilePath = Path.Combine(_destinationPath, $"temp_{filename}");
@@ -42,22 +40,12 @@ namespace Backtrace.Unity.Model.Database
             return destFilePath;
         }
 
-        public virtual string ToJsonFile(object data)
-        {
-            if (data == null)
-            {
-                return string.Empty;
-            }
-            throw new NotImplementedException();
-            //return JsonConvert.SerializeObject(data);
-        }
-
         /// <summary>
         /// Save valid diagnostic data from temporary file
         /// </summary>
         /// <param name="sourcePath">Temporary file path</param>
         /// <param name="destinationPath">destination path</param>
-        public virtual void SaveValidRecord(string sourcePath, string destinationPath)
+        public void SaveValidRecord(string sourcePath, string destinationPath)
         {
             File.Move(sourcePath, destinationPath);
         }
@@ -67,7 +55,7 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         /// <param name="path">Path to temporary file</param>
         /// <param name="file">Current file</param>
-        public virtual void SaveTemporaryFile(string path, byte[] file)
+        public void SaveTemporaryFile(string path, byte[] file)
         {
             using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
             {

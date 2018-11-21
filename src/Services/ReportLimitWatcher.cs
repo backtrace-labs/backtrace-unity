@@ -1,9 +1,7 @@
 ﻿using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Backtrace.Tests")]
 namespace Backtrace.Unity.Services
 {
     /// <summary>

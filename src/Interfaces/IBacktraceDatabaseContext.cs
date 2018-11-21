@@ -3,7 +3,6 @@ using Backtrace.Unity.Model.Database;
 using System;
 using System.Collections.Generic;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Interfaces
 {
     internal interface IBacktraceDatabaseContext : IDisposable

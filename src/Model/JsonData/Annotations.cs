@@ -1,57 +1,76 @@
-﻿using Assets.Plugins.src.Backtrace.Unity.Common;
-using Newtonsoft.Json;
-using System;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using UnityEngine;
 
 namespace Backtrace.Unity.Model.JsonData
 {
     /// <summary>
-    /// Get report annotations - environment variables and application dependencies
+    /// Get report annotations - environment variables
     /// </summary>
-    [Serializable]
     public class Annotations
     {
 
         /// <summary>
         /// Get system environment variables
         /// </summary>
-        [JsonProperty("EnvironmentVariables")]
-        public Dictionary<string, string> EnvironmentVariables;
-
-        /// <summary>
-        /// Get application dependencies
-        /// </summary>
-        public Dictionary<string, string> Dependencies => appDependencies.AvailableDependencies;
+        [JsonProperty(PropertyName = "Environment Variables")]
+        public Dictionary<string, string> EnvironmentVariables { get; set; }
 
         /// <summary>
         /// Get built-in complex attributes
         /// </summary>
+        [JsonExtensionData]
         public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
 
-        /// <summary>
-        /// System environment variables
-        /// </summary>
-        private readonly EnvironmentVariables environment;
+        public Annotations()
+        {
 
-        /// <summary>
-        /// Executed application dependencies
-        /// </summary>
-        private readonly ApplicationDependencies appDependencies;
-
+        }
         /// <summary>
         /// Create new instance of Annotations class
         /// </summary>
-        /// <param name="callingAssembly">Calling assembly</param>
         /// <param name="complexAttributes">Built-in complex attributes</param>
-        public Annotations(Assembly callingAssembly, Dictionary<string, object> complexAttributes)
+        public Annotations(Dictionary<string, object> complexAttributes)
         {
-            appDependencies = new ApplicationDependencies(callingAssembly);
-            environment = new EnvironmentVariables();
+            var environment = new EnvironmentVariables();
             ComplexAttributes = complexAttributes;
             EnvironmentVariables = environment.Variables;
+        }
+
+        internal BacktraceJObject ToJson()
+        {
+            var annotations = new BacktraceJObject();
+            var envVariables = new BacktraceJObject();
+
+            foreach (var envVariable in EnvironmentVariables)
+            {
+                envVariables[envVariable.Key] = envVariable.Value?.ToString() ?? string.Empty;
+            }
+            annotations["Environment Variables"] = envVariables;
+            return annotations;
+        }
+
+        public static Annotations Deserialize(JToken token)
+        {
+            var annotations = new Annotations();
+            //get all environment variables and complex attributes
+            foreach (BacktraceJProperty annotation in token)
+            {
+                //parse all dictionaries of values
+                var values = new Dictionary<string, string>();
+                foreach (var annotationDictionary in annotation)
+                {
+                    foreach (BacktraceJProperty value in annotationDictionary)
+                    {
+                        values.Add(value.Name, value.Value.Value<string>());
+                    }
+                }
+                if (annotation.Name == "Environment Variables")
+                {
+                    annotations.EnvironmentVariables = values;
+                }
+            }
+            return annotations;
         }
     }
 }

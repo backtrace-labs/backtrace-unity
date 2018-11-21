@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
+using System;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -9,69 +10,118 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Function where exception occurs
         /// </summary>
-        public string FunctionName { get; set; }
+        [JsonProperty(PropertyName = "funcName")]
+        public string FunctionName;
 
         /// <summary>
         /// Line number in source code where exception occurs
         /// </summary>
-        public int Line { get; set; }
+        [JsonProperty(PropertyName = "line")]
+        public int Line;
 
         /// <summary>
         /// IL Offset
         /// </summary>
-        public int? Il { get; set; }
+        [JsonProperty(PropertyName = "il")]
+        public int? Il;
 
         /// <summary>
         /// PBD Unique identifier
         /// </summary>
-        public int? MemberInfo { get; set; }
+        [JsonProperty(PropertyName = "metadata_token")]
+        public int? MemberInfo;
 
 
         /// <summary>
         /// Full path to source code where exception occurs
         /// </summary>
-        public string SourceCodeFullPath { get; set; }
+        [JsonIgnore]
+        public string SourceCodeFullPath;
 
         /// <summary>
         /// Column number in source code where exception occurs
         /// </summary>
-        public int Column { get; set; }
+        [JsonProperty(PropertyName = "column")]
+        public int Column;
 
         /// <summary>
         /// Address of the stack frame
         /// </summary>
-        public int? ILOffset { get; set; }
+        [JsonProperty(PropertyName = "address")]
+        public int? ILOffset;
 
         /// <summary>
         /// Source code file name where exception occurs
         /// </summary>
-        public string SourceCode { get; set; }
+        [JsonProperty(PropertyName = "sourceCode")]
+        public string SourceCode;
 
+        public BacktraceJObject ToJson()
+        {
+            var stackFrame = new BacktraceJObject
+            {
+                ["funcName"] = FunctionName,
+                ["line"] = Line,
+                ["il"] = Il,
+                ["metadata_token"] = MemberInfo,
+                ["column"] = Column,
+                ["address"] = ILOffset
+            };
+
+            //todo: source code information
+
+            return stackFrame;
+        }
+        public static BacktraceStackFrame FromJson(string json)
+        {
+            var @object = BacktraceJObject.Parse(json);
+            return new BacktraceStackFrame()
+            {
+                FunctionName = @object.Value<string>("funcName"),
+                Line = @object.Value<int>("line"),
+                Il = @object.Value<int?>("il"),
+                MemberInfo = @object.Value<int?>("metadata_token"),
+                Column = @object.Value<int>("column"),
+                ILOffset = @object.Value<int?>("address"),
+                SourceCode = @object.Value<string>("sourceCode"),
+                Library = @object.Value<string>("library")
+            };
+        }
         /// <summary>
         /// Library name where exception occurs
         /// </summary>
-        public string Library { get; set; }
+        [JsonProperty(PropertyName = "library")]
+        public string Library;
 
-        internal Assembly FrameAssembly { get; set; }
+
+        internal static BacktraceStackFrame Deserialize(BacktraceJObject frame)
+        {
+            return new BacktraceStackFrame()
+            {
+                FunctionName = frame.Value<string>("funcName"),
+                Line = frame.Value<int>("line"),
+                Il = frame.Value<int?>("il"),
+                MemberInfo = frame.Value<int?>("metadata_token"),
+                Column = frame.Value<int>("column"),
+                ILOffset = frame.Value<int?>("address"),
+            };
+        }
 
         public BacktraceStackFrame()
         { }
 
-        public BacktraceStackFrame(StackFrame frame, bool generatedByException, bool reflectionMethodName = true)
+        public BacktraceStackFrame(StackFrame frame, bool generatedByException)
         {
             if (frame == null || frame.GetMethod() == null)
             {
                 return;
             }
-            FunctionName = GetMethodName(frame, reflectionMethodName);
+            FunctionName = GetMethodName(frame);
             Line = frame.GetFileLineNumber();
             Il = frame.GetILOffset();
             ILOffset = Il;
             SourceCodeFullPath = frame.GetFileName();
 
-            Debug.WriteLine("[BacktraceStackFrame]::BacktraceStackFrame - getting assembly");
-            FrameAssembly = frame.GetMethod().DeclaringType?.Assembly;
-            Library = FrameAssembly?.GetName()?.Name ?? "unknown";
             SourceCode = generatedByException
                     ? Guid.NewGuid().ToString()
                     : string.Empty;
@@ -86,18 +136,16 @@ namespace Backtrace.Unity.Model
             }
         }
 
+        
+
         /// <summary>
         /// Generate valid name for current stack frame.
         /// </summary>
         /// <returns>Valid method name in stack trace</returns>
-        private string GetMethodName(StackFrame frame, bool reflectionMethodName)
+        private string GetMethodName(StackFrame frame)
         {
             var method = frame.GetMethod();
             string methodName = method.Name;
-            if (!reflectionMethodName)
-            {
-                return methodName;
-            }
             return methodName;
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Backtrace.Newtonsoft;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -17,17 +18,20 @@ namespace Backtrace.Unity.Model.JsonData
             /// <summary>
             /// Line number in source code where exception occurs
             /// </summary>
+            [JsonProperty(PropertyName = "startLine")]
             public int StartLine { get; set; }
 
             /// <summary>
             /// Column number in source code where exception occurs
             /// </summary>
+            [JsonProperty(PropertyName = "startColumn")]
             public int StartColumn { get; set; }
 
             private string _sourceCodeFullPath { get; set; }
             /// <summary>
             /// Full path to source code where exception occurs
             /// </summary>
+            [JsonProperty(PropertyName = "path")]
             public string SourceCodeFullPath
             {
                 get

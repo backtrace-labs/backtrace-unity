@@ -1,16 +1,13 @@
-﻿using Backtrace.Unity.Common;
+﻿using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-[assembly: InternalsVisibleTo("Backtrace.Tests")]
 namespace Backtrace.Unity.Model.JsonData
 {
     /// <summary>
@@ -39,21 +36,41 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 ConvertAttributes(report, clientAttributes);
                 SetLibraryAttributes(report);
-                SetDebuggerAttributes(report.CallingAssembly);
                 SetExceptionAttributes(report);
             }
             //Environment attributes override user attributes            
             SetMachineAttributes();
             SetProcessAttributes();
         }
+        private BacktraceAttributes() { }
 
+        public static BacktraceAttributes Deserialize(JToken jToken)
+        {
+            var attributes = new Dictionary<string, object>();
+            foreach (BacktraceJProperty keys in jToken)
+            {
+                attributes.Add(keys.Name, keys.Value.Value<string>());
+            }
+            return new BacktraceAttributes()
+            {
+                Attributes = attributes
+            };
+        }
+
+        public BacktraceJObject ToJson()
+        {
+            var attr = new BacktraceJObject();
+            foreach (var attribute in Attributes)
+            {
+                attr[attribute.Key] = attribute.Value.ToString();
+            }
+            return attr;
+        }
         /// <summary>
         /// Set library attributes
         /// </summary>
-        /// <param name="callingAssembly">Calling assembly</param>
         private void SetLibraryAttributes(BacktraceReport report)
         {
-            var callingAssembly = report.CallingAssembly;
             if (!string.IsNullOrEmpty(report.Fingerprint))
             {
                 Attributes["_mod_fingerprint"] = report.Fingerprint;
@@ -67,21 +84,22 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["guid"] = GenerateMachineId();
             //Base name of application generating the report
             Attributes["application"] = Application.productName;
-            //Base name of library generating the report
-            Attributes["application.lib"] = callingAssembly.GetName().Name;
-
-            Attributes["location"] = callingAssembly.Location;
-            try
-            {
-                //in case when calling assembly from file system is not available
-                Attributes["version"] = FileVersionInfo.GetVersionInfo(callingAssembly.Location)?.FileVersion;
-            }
-            catch (FileNotFoundException) { }
-            var culture = callingAssembly.GetName().CultureInfo.Name;
-            if (!string.IsNullOrEmpty(culture))
-            {
-                Attributes["culture"] = callingAssembly.GetName().CultureInfo.Name;
-            }
+            Attributes["application.url"] = Application.absoluteURL;
+            Attributes["application.company.name"] = Application.companyName;
+            Attributes["application.data_path"] = Application.dataPath;
+            Attributes["application.id"] = Application.identifier;
+            Attributes["application.installer.name"] = Application.installerName;
+            Attributes["application.internet_reachability"] = Application.internetReachability.ToString();
+            Attributes["application.editor"] = Application.isEditor;
+            Attributes["application.focused"] = Application.isFocused;
+            Attributes["application.mobile"] = Application.isMobilePlatform;
+            Attributes["application.playing"] = Application.isPlaying;
+            Attributes["application.background"] = Application.runInBackground;
+            Attributes["application.sandboxType"] = Application.sandboxType.ToString();
+            Attributes["application.system.language"] = Application.systemLanguage.ToString();
+            Attributes["application.unity.version"] = Application.unityVersion;
+            Attributes["application.temporary_cache"] = Application.temporaryCachePath;
+            Attributes["applicaiton.debug"] = Debug.isDebugBuild;
         }
 
         /// <summary>
@@ -111,38 +129,6 @@ namespace Backtrace.Unity.Model.JsonData
             string hex = macAddress.Replace(":", string.Empty);
             var value = Convert.ToInt64(hex, 16);
             return GuidExtensions.FromLong(value).ToString();
-        }
-
-        /// <summary>
-        /// Set debugger information
-        /// </summary>
-        /// <param name="callingAssembly">Calling assembly</param>
-        private void SetDebuggerAttributes(Assembly callingAssembly)
-        {
-            object[] attribs = callingAssembly.GetCustomAttributes(typeof(DebuggableAttribute), false);
-            // If the 'DebuggableAttribute' is not found then it is definitely an OPTIMIZED build
-            if (attribs == null || !attribs.Any())
-            {
-                Attributes["build.debug"] = false;
-                Attributes["build.jit"] = true;
-                Attributes["build.type"] = "Release";
-            }
-            // Just because the 'DebuggableAttribute' is found doesn't necessarily mean
-            // it's a DEBUG build; we have to check the JIT Optimization flag
-            // i.e. it could have the "generate PDB" checked but have JIT Optimization enabled
-            var debuggableAttribute = attribs[0] as DebuggableAttribute;
-            if (debuggableAttribute != null)
-            {
-                Attributes["build.debug"] = true;
-                Attributes["build.jit"] = !debuggableAttribute.IsJITOptimizerDisabled;
-                Attributes["build.type"] = debuggableAttribute.IsJITOptimizerDisabled
-                    ? "Debug" : "Release";
-                // check for Debug Output "full" or "pdb-only"
-                Attributes["build.output"] = (debuggableAttribute.DebuggingFlags &
-                    DebuggableAttribute.DebuggingModes.Default) !=
-                    DebuggableAttribute.DebuggingModes.None
-                    ? "Full" : "pdb-only";
-            }
         }
 
         /// <summary>
@@ -189,8 +175,20 @@ namespace Backtrace.Unity.Model.JsonData
                 return;
             }
             var exception = report.Exception;
-            Attributes["classifier"] = exception.GetType().FullName;
             Attributes["error.message"] = exception.Message;
+        }
+
+        internal void SetSceneInformation()
+        {
+            //The number of Scenes which have been added to the Build Settings. The Editor will contain Scenes that were open before entering playmode.
+            if (SceneManager.sceneCountInBuildSettings > 0)
+            {
+                Attributes["scene.count.build"] = SceneManager.sceneCountInBuildSettings;
+            }
+            Attributes["scene.count"] = SceneManager.sceneCount;
+            var activeScene = SceneManager.GetActiveScene();
+            Attributes["scene.active"] = activeScene.name;
+            Attributes["scene.active.loaded"] = activeScene.isLoaded;
         }
 
         /// <summary>
@@ -200,55 +198,6 @@ namespace Backtrace.Unity.Model.JsonData
         {
             Attributes["gc.heap.used"] = GC.GetTotalMemory(false);
             Attributes["process.age"] = Math.Round(Time.realtimeSinceStartup);
-            var process = Process.GetCurrentProcess();
-            if (process.HasExited)
-            {
-                return;
-            }
-            try
-            {
-                Attributes["cpu.process.count"] = Process.GetProcesses().Count();
-
-                //Resident memory usage.
-                int pagedMemorySize = unchecked((int)(process.PagedMemorySize64 / 1024));
-                pagedMemorySize = pagedMemorySize == -1 ? int.MaxValue : pagedMemorySize;
-                if (pagedMemorySize > 0)
-                {
-                    Attributes["vm.rss.size"] = pagedMemorySize;
-                }
-
-                //Peak resident memory usage.
-                int peakPagedMemorySize = unchecked((int)(process.PeakPagedMemorySize64 / 1024));
-                peakPagedMemorySize = peakPagedMemorySize == -1 ? int.MaxValue : peakPagedMemorySize;
-                if (peakPagedMemorySize > 0)
-                {
-                    Attributes["vm.rss.peak"] = peakPagedMemorySize;
-                }
-
-                //Virtual memory usage
-                int virtualMemorySize = unchecked((int)(process.VirtualMemorySize64 / 1024));
-                virtualMemorySize = virtualMemorySize == -1 ? int.MaxValue : virtualMemorySize;
-                if (virtualMemorySize > 0)
-                {
-                    Attributes["vm.vma.size"] = virtualMemorySize;
-                }
-
-                //Peak virtual memory usage
-                int peakVirtualMemorySize = unchecked((int)(process.PeakVirtualMemorySize64 / 1024));
-                peakVirtualMemorySize = peakVirtualMemorySize == -1 ? int.MaxValue : peakVirtualMemorySize;
-                if (peakVirtualMemorySize > 0)
-                {
-                    Attributes["vm.vma.peak"] = peakVirtualMemorySize;
-                }
-            }
-            catch (PlatformNotSupportedException)
-            {
-                Trace.TraceWarning($"Cannot retrieve information about process memory - platform not supported");
-            }
-            catch (Exception exception)
-            {
-                Trace.TraceWarning($"Cannot retrieve information about process memory: ${exception.Message}");
-            }
         }
 
         private void SetGraphicCardInformation()
@@ -326,6 +275,10 @@ namespace Backtrace.Unity.Model.JsonData
 
             //The hostname of the crashing system.
             Attributes["hostname"] = Environment.MachineName;
+            if (SystemInfo.systemMemorySize != 0)
+            {
+                Attributes["vm.rss.size"] = SystemInfo.systemMemorySize * 1048576L;
+            }
         }
     }
 }

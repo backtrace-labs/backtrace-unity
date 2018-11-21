@@ -113,36 +113,5 @@ namespace Backtrace.Unity.Common
         {
             return Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE")?.ToLower();
         }
-
-        /// <summary>
-        /// Detect a system assemblies - assemblies that root namespace is "System" or "Microsoft
-        /// If assembly is null, method will return false
-        /// </summary>
-        /// <param name="assembly">Assembly to check</param>
-        /// <returns>True if assembly is from Microsoft of System</returns>
-        internal static bool SystemAssembly(Assembly assembly)
-        {
-            if (assembly == null)
-            {
-                return false;
-            }
-            var assemblyName = assembly.GetName().Name;
-            return SystemAssembly(assemblyName);
-        }
-        /// <summary>
-        /// Detect a system assemblies - assemblies that root namespace is "System" or "Microsoft
-        /// </summary>
-        /// <returns>True if assembly is from Microsoft of System</returns>
-        internal static bool SystemAssembly(string assemblyName)
-        {
-            if (string.IsNullOrEmpty(assemblyName))
-            {
-                return false;
-            }
-            return (assemblyName.StartsWith("Microsoft.")
-                || assemblyName.StartsWith("mscorlib")
-                || assemblyName.Equals("System")
-                || assemblyName.StartsWith("System."));
-        }
     }
 }

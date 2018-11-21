@@ -1,0 +1,51 @@
+﻿using System;
+using Backtrace.Newtonsoft.Shims;
+
+namespace Backtrace.Newtonsoft.Linq
+{
+    /// <summary>
+    /// Specifies the settings used when loading JSON.
+    /// </summary>
+    [Preserve]
+    public class JsonLoadSettings
+    {
+        private CommentHandling _commentHandling;
+        private LineInfoHandling _lineInfoHandling;
+
+        /// <summary>
+        /// Gets or sets how JSON comments are handled when loading JSON.
+        /// </summary>
+        /// <value>The JSON comment handling.</value>
+        public CommentHandling CommentHandling
+        {
+            get { return _commentHandling; }
+            set
+            {
+                if (value < CommentHandling.Ignore || value > CommentHandling.Load)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _commentHandling = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets how JSON line info is handled when loading JSON.
+        /// </summary>
+        /// <value>The JSON line info handling.</value>
+        public LineInfoHandling LineInfoHandling
+        {
+            get { return _lineInfoHandling; }
+            set
+            {
+                if (value < LineInfoHandling.Ignore || value > LineInfoHandling.Load)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _lineInfoHandling = value;
+            }
+        }
+    }
+}

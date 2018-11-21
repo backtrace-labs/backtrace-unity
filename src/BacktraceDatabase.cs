@@ -2,20 +2,31 @@
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
+using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
+using UnityEngine;
 
 namespace Backtrace.Unity
 {
     /// <summary>
     /// Backtrace Database 
     /// </summary>
-    public class BacktraceDatabase : IBacktraceDatabase
+    [RequireComponent(typeof(BacktraceClient))]
+    public class BacktraceDatabase : MonoBehaviour, IBacktraceDatabase
     {
+        private bool _timerBackgroundWork = false;
+
+        public BacktraceConfiguration Configuration;
+
+        /// <summary>
+        /// Database settings
+        /// </summary>
+        private BacktraceDatabaseSettings DatabaseSettings { get; set; }
+
+        private float _lastConnection;
         /// <summary>
         /// Backtrace Api instance. Use BacktraceApi to send data to Backtrace server
         /// </summary>
@@ -32,101 +43,91 @@ namespace Backtrace.Unity
         internal IBacktraceDatabaseFileContext BacktraceDatabaseFileContext { get; set; }
 
         /// <summary>
-        /// Database settings
-        /// </summary>
-        private BacktraceDatabaseSettings DatabaseSettings { get; set; }
-
-        /// <summary>
         /// Database path
         /// </summary>
-        private string DatabasePath => DatabaseSettings.DatabasePath;
+        private string DatabasePath
+        {
+            get
+            {
+                return DatabaseSettings.DatabasePath;
+            }
+        }
 
-        private bool _timerBackgroundWork = false;
         /// <summary>
         /// Determine if BacktraceDatabase is enable and library can store reports
         /// </summary>
         private bool _enable = false;
 
-        //private readonly Timer _timer = new Timer();
-
-        /// <summary>
-        /// Create disabled instance of BacktraceDatabase
-        /// </summary>
-        /// <param name="databaseSettings"></param>
-        public BacktraceDatabase()
-        { }
-
-        /// <summary>
-        /// Create new Backtrace database instance
-        /// </summary>
-        /// <param name="path">Path to database directory</param>
-        public BacktraceDatabase(string path)
-            : this(new BacktraceDatabaseSettings(path))
-        { }
-
-        /// <summary>
-        /// Create Backtrace database instance
-        /// </summary>
-        /// <param name="databaseSettings">Backtrace database settings</param>
-        public BacktraceDatabase(BacktraceDatabaseSettings databaseSettings)
+        private void Awake()
         {
-            if (databaseSettings == null || string.IsNullOrEmpty(databaseSettings.DatabasePath))
+            Configuration = GetComponent<BacktraceClient>().Configuration;
+            if (Configuration == null || !Configuration.IsValid())
+            {
+                Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
+                _enable = false;
+                return;
+            }
+
+            DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
+            if (DatabaseSettings == null)
+            {
+                _enable = false;
+                return;
+            }
+            if (Configuration.CreateDatabase)
+            {
+                Directory.CreateDirectory(Configuration.DatabasePath);
+            }
+            _enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
+
+            if (!_enable)
             {
                 return;
             }
-            if (!Directory.Exists(databaseSettings.DatabasePath))
-            {
-                throw new ArgumentException("Databse path does not exists");
-            }
-            DatabaseSettings = databaseSettings;
-            //BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
-            //BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
+
+            _lastConnection = Time.time;
+
+            BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
+            BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
+            BacktraceApi = new BacktraceApi(Configuration.ToCredentials(), Convert.ToUInt32(Configuration.ReportPerMin));
         }
 
-        /// <summary>
-        /// Start database tasks
-        /// </summary>
-        public void Start()
+        private void Update()
         {
-            //throw new NotImplementedException();
-            ////database not exists
-            //if (DatabaseSettings == null)
-            //{
-            //    return;
-            //}
-            //if (BacktraceDatabaseContext?.Any() == true)
-            //{
-            //    _enable = true;
-            //    return;
-            //}
-            //// load reports from hard drive
-            //LoadReports();
-            //// remove orphaned files
-            //RemoveOrphaned();
-            //// setup database timer events
-            //if (DatabaseSettings.RetryBehavior == RetryBehavior.ByInterval
-            //    || DatabaseSettings.AutoSendMode)
-            //{
-            //    SetupTimer();
-            //}
-            ////Enable database
-            //_enable = true;
+            if (!_enable)
+            {
+                return;
+            }
+            if (Time.time - _lastConnection > DatabaseSettings.RetryInterval)
+            {
+                _lastConnection = Time.time;
+                if (!BacktraceDatabaseContext.Any() || _timerBackgroundWork)
+                {
+                    return;
+                }
+
+                _timerBackgroundWork = true;
+                SendData(BacktraceDatabaseContext.FirstOrDefault());
+                _timerBackgroundWork = false;
+            }
         }
 
-//        private void SetupTimer()
-//        {
-//            // timer require time in ms
-//            _timer.Interval = DatabaseSettings.RetryInterval * 1000;
-//            // don't stop timer work
-//            _timer.AutoReset = true;
-//#if NET35
-//            _timer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-//#else
-//            _timer.Elapsed += new ElapsedEventHandler(OnTimedEventAsync);
-//#endif
-//            _timer.Enabled = true;
-
-//        }
+        private void Start()
+        {
+            if (!_enable)
+            {
+                return;
+            }
+            if (DatabaseSettings.AutoSendMode)
+            {
+                _lastConnection = Time.time;
+            }
+            // load reports from hard drive
+            LoadReports();
+            // remove orphaned files
+            RemoveOrphaned();
+            SendData(BacktraceDatabaseContext.FirstOrDefault());
+        }
 
         /// <summary>
         /// Set BacktraceApi instance
@@ -209,64 +210,61 @@ namespace Backtrace.Unity
         /// </summary>
         public void Flush()
         {
-            if (BacktraceApi == null)
+            if (!_enable || !BacktraceDatabaseContext.Any())
             {
-                throw new ArgumentException("BacktraceApi is required if you want to use Flush method");
+                return;
             }
-            var record = BacktraceDatabaseContext?.FirstOrDefault();
-            while (record != null)
-            {
-                var backtraceData = record.BacktraceData;
-                Delete(record);
-                record = BacktraceDatabaseContext.FirstOrDefault();
-                if (backtraceData != null)
-                {
-                    BacktraceApi.Send(backtraceData);
-                }
-            }
+            FlushRecord(BacktraceDatabaseContext.FirstOrDefault());
         }
 
-        //private void OnTimedEvent(object source, ElapsedEventArgs e)
-        //{
-        //    if (!BacktraceDatabaseContext.Any() || _timerBackgroundWork)
-        //    {
-        //        return;
-        //    }
+        private void FlushRecord(BacktraceDatabaseRecord record)
+        {
+            if (record == null)
+            {
+                return;
+            }
+            var backtraceData = record.BacktraceData;
+            Delete(record);
+            if (backtraceData == null)
+            {
+                return;
+            }
+            StartCoroutine(
+                BacktraceApi.Send(backtraceData, (BacktraceResult result) =>
+                {
+                    record = BacktraceDatabaseContext.FirstOrDefault();
+                    FlushRecord(record);
+                }));
+        }
 
-        //    _timerBackgroundWork = true;
-        //    _timer.Stop();
-        //    //read first record (keep in mind LIFO and FIFO settings) from memory database
-        //    var record = BacktraceDatabaseContext.FirstOrDefault();
-        //    while (record != null)
-        //    {
-        //        var backtraceData = record.BacktraceData;
-        //        //meanwhile someone delete data from a disk
-        //        if (backtraceData == null || backtraceData.Report == null)
-        //        {
-        //            Delete(record);
-        //        }
-        //        else
-        //        {
-        //            //send record from database to API
-        //            var result = BacktraceApi.Send(backtraceData);
-        //            if (result.Status == BacktraceResultStatus.Ok)
-        //            {
-        //                Delete(record);
-        //            }
-        //            else
-        //            {
-        //                record.Dispose();
-        //                BacktraceDatabaseContext.IncrementBatchRetry();
-        //                break;
+        private void SendData(BacktraceDatabaseRecord record)
+        {
+            var backtraceData = record?.BacktraceData;
+            //meanwhile someone delete data from a disk
+            if (backtraceData == null || backtraceData.Report == null)
+            {
+                Delete(record);
+            }
+            else
+            {
+                StartCoroutine(
+                     BacktraceApi.Send(backtraceData, (BacktraceResult sendResult) =>
+                     {
+                         if (sendResult.Status == BacktraceResultStatus.Ok)
+                         {
+                             Delete(record);
+                         }
+                         else
+                         {
+                             record.Dispose();
+                             BacktraceDatabaseContext.IncrementBatchRetry();
+                         }
+                         record = BacktraceDatabaseContext.FirstOrDefault();
+                         SendData(record);
+                     }));
+            }
 
-        //            }
-        //        }
-        //        record = BacktraceDatabaseContext.FirstOrDefault();
-        //    }
-        //    _timerBackgroundWork = false;
-        //    _timer.Start();
-
-        //}
+        }
 
         /// <summary>
         /// Create new minidump file in database directory path. Minidump file name is a random Guid
@@ -322,7 +320,14 @@ namespace Backtrace.Unity
                 var record = BacktraceDatabaseRecord.ReadFromFile(file);
                 if (!record.Valid())
                 {
-                    record.Delete();
+                    try
+                    {
+                        record.Delete();
+                    }
+                    catch(Exception)
+                    {
+                        Debug.LogWarning($"Cannot remove file from database. File name: {file.FullName}");
+                    }
                     continue;
                 }
                 BacktraceDatabaseContext.Add(record);
@@ -351,15 +356,19 @@ namespace Backtrace.Unity
 
             //check database size. If database size == 0 then we ignore this condition
             //remove all records till database use enough space
-            if (DatabaseSettings.MaxDatabaseSize != 0)
+            if (DatabaseSettings.MaxDatabaseSize != 0 && BacktraceDatabaseContext.GetSize() > DatabaseSettings.MaxDatabaseSize)
             {
                 //if your database is entry or every record is locked
                 //deletePolicyRetry avoid infinity loop
                 int deletePolicyRetry = 5;
-                while (BacktraceDatabaseContext.GetSize() > DatabaseSettings.MaxDatabaseSize || deletePolicyRetry != 0)
+                while (BacktraceDatabaseContext.GetSize() > DatabaseSettings.MaxDatabaseSize)
                 {
                     BacktraceDatabaseContext.RemoveLastRecord();
                     deletePolicyRetry--;
+                    if (deletePolicyRetry != 0)
+                    {
+                        break;
+                    }
                 }
                 return deletePolicyRetry != 0;
             }
@@ -374,34 +383,6 @@ namespace Backtrace.Unity
             return BacktraceDatabaseFileContext.ValidFileConsistency();
         }
 
-
-        #region dispose
-        private bool _disposed = false; // To detect redundant calls
-
-        /// <summary>
-        /// Dispose
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-#if !NET35
-                    BacktraceApi?.Dispose();
-                    //_timer?.Dispose();
-#endif
-                }
-                _disposed = true;
-            }
-        }
-
         /// <summary>
         /// Get database size
         /// </summary>
@@ -410,11 +391,5 @@ namespace Backtrace.Unity
         {
             return BacktraceDatabaseContext.GetSize();
         }
-
-        ~BacktraceDatabase()
-        {
-            Dispose(false);
-        }
-        #endregion
     }
 }

@@ -1,6 +1,6 @@
-﻿using Assets.Plugins.src.Backtrace.Unity.Common;
-using System;
+﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Backtrace.Unity.Model.JsonData
@@ -13,7 +13,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// System environment values dictionary
         /// </summary>
-        public StringDictionary Variables = new StringDictionary();
+        public Dictionary<string, string> Variables = new Dictionary<string, string>();
 
         /// <summary>
         /// Create instance of EnvironmnetVariables class to get system environment variables

@@ -1,8 +1,7 @@
-﻿using Backtrace.Unity.Extensions;
+﻿using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
 
 namespace Backtrace.Unity.Model.JsonData
@@ -25,21 +24,9 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Create instance of ThreadData class to collect information about used threads
         /// </summary>
-        internal ThreadData(Assembly callingAssembly, IEnumerable<BacktraceStackFrame> exceptionStack)
+        internal ThreadData(IEnumerable<BacktraceStackFrame> exceptionStack)
         {
-            //get all available process threads
-            ProcessThreads();
 
-            //get stack trace and infomrations about current thread
-            GenerateCurrentThreadInformation(exceptionStack);
-        }
-
-        /// <summary>
-        /// Generate information for current thread
-        /// </summary>
-        /// <param name="exceptionStack">Current BacktraceReport exception stack</param>
-        private void GenerateCurrentThreadInformation(IEnumerable<BacktraceStackFrame> exceptionStack)
-        {
             var current = Thread.CurrentThread;
             //get current thread id
             string generatedMainThreadId = current.GenerateValidThreadName().ToLower();
@@ -48,37 +35,34 @@ namespace Backtrace.Unity.Model.JsonData
             //set currentThreadId
             MainThread = generatedMainThreadId;
         }
+        private ThreadData() { }
 
-        /// <summary>
-        /// Generate list of process thread 
-        /// </summary>
-        private void ProcessThreads()
+        public BacktraceJObject ToJson()
         {
-            ProcessThreadCollection currentThreads = null;
-            try
+            var threadData = new BacktraceJObject();
+            foreach (var threadInfo in ThreadInformations)
             {
-                currentThreads = Process.GetCurrentProcess().Threads;
-                if (currentThreads == null)
+                threadData[threadInfo.Key] = threadInfo.Value.ToJson();
+            }
+            return threadData;
+        }
+
+        internal static ThreadData DeserializeThreadInformation(JToken token)
+        {
+            var @thread = new ThreadData();
+            foreach (BacktraceJProperty threadData in token)
+            {
+                //parse all dictionaries of values
+                ThreadInformation values = null;
+                //threadInformation contain single thread json
+                foreach (var threadInformation in threadData)
                 {
-                    return;
+                    values = ThreadInformation.Deserialize(threadInformation);
                 }
+                thread.ThreadInformations.Add(threadData.Name, values);
+
             }
-            catch
-            {
-                //handle UWP
-                return;
-            }
-            foreach (ProcessThread thread in currentThreads)
-            {
-                if (thread == null)
-                {
-                    continue;
-                }
-                //you can't retrieve stack trace from processThread
-                //you can't retrieve thread name from processThread 
-                string threadId = thread.Id.ToString();
-                ThreadInformations.Add(Guid.NewGuid().ToString(), new ThreadInformation(threadId, false, null));
-            }
+            return thread;
         }
     }
 }

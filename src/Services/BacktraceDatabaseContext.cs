@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Services
 {
     /// <summary>
@@ -78,7 +77,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         /// <param name="backtraceData">Diagnostic data that should be stored in database</param>
         /// <returns>New instance of DatabaseRecordy</returns>
-        public virtual BacktraceDatabaseRecord Add(BacktraceData backtraceData)
+        public BacktraceDatabaseRecord Add(BacktraceData backtraceData)
         {
             if (backtraceData == null)
             {
@@ -134,7 +133,7 @@ namespace Backtrace.Unity.Services
         /// Delete existing record from database
         /// </summary>
         /// <param name="record">Database records to delete</param>
-        public virtual void Delete(BacktraceDatabaseRecord record)
+        public void Delete(BacktraceDatabaseRecord record)
         {
             if (record == null)
             {
@@ -247,7 +246,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Dispose
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
             TotalRecords = 0;
             BatchRetry.Clear();
