@@ -78,7 +78,6 @@ namespace Backtrace.Unity.Services
             }
             string json = data.ToJson();
             yield return Send(json, data.Attachments, data.Report, callback);
-
         }
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)

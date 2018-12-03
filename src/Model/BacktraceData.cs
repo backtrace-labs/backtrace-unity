@@ -67,6 +67,7 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "classifiers", NullValueHandling = NullValueHandling.Ignore)]
         public string[] Classifier;
 
+
         /// <summary>
         /// Get a path to report attachments
         /// </summary>
@@ -78,6 +79,15 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal BacktraceReport Report { get; set; }
 
+        private BacktraceAttributes _attributes = null;
+        private Annotations _annotations = null;
+        private ThreadData _threadData = null;
+
+        /// <summary>
+        /// Empty constructor for serialization purpose
+        /// </summary>
+        public BacktraceData()
+        { }
         /// <summary>
         /// Get built-in attributes
         /// </summary>
@@ -123,7 +133,7 @@ namespace Backtrace.Unity.Model
                 ["attributes"] = Attributes.ToJson(),
                 ["annotations"] = Annotation.ToJson(),
                 ["threads"] = ThreadData?.ToJson()
-            };
+            }
             return json.ToString();
         }
         public static BacktraceData Deserialize(string json)

@@ -331,7 +331,7 @@ namespace Backtrace.Unity
                     {
                         record.Delete();
                     }
-                    catch (Exception)
+                    catch(Exception)
                     {
                         Debug.LogWarning($"Cannot remove file from database. File name: {file.FullName}");
                     }
