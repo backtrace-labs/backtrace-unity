@@ -62,7 +62,18 @@ namespace Backtrace.Unity.Model.JsonData
             var attr = new BacktraceJObject();
             foreach (var attribute in Attributes)
             {
-                attr[attribute.Key] = attribute.Value.ToString();
+                if (attribute.Value != null && attribute.Value.GetType() == typeof(bool))
+                {
+                    attr[attribute.Key] = (bool)attribute.Value;
+                }
+                else if (attribute.Value != null && TypeHelper.IsNumeric(attribute.Value.GetType()))
+                {
+                    attr[attribute.Key] = Convert.ToInt64(attribute.Value);
+                }
+                else
+                {
+                    attr[attribute.Key] = attribute.Value.ToString();
+                }
             }
             return attr;
         }
@@ -169,13 +180,9 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 return;
             }
-            if (!report.ExceptionTypeReport)
-            {
-                Attributes["error.message"] = report.Message;
-                return;
-            }
-            var exception = report.Exception;
-            Attributes["error.message"] = exception.Message;
+            Attributes["error.message"] = report.ExceptionTypeReport
+                ? report.Exception.Message
+                : report.Message;
         }
 
         internal void SetSceneInformation()

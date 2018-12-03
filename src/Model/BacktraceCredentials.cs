@@ -17,12 +17,24 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Get a Uri to Backtrace servcie
         /// </summary>
-        public Uri BacktraceHostUri => _backtraceHostUri;
+        public Uri BacktraceHostUri
+        {
+            get
+            {
+                return _backtraceHostUri;
+            }
+        }
 
         /// <summary>
         /// Get an access token
         /// </summary>
-        internal string Token => Encoding.UTF8.GetString(_accessToken);
+        internal string Token
+        {
+            get
+            {
+                return Encoding.UTF8.GetString(_accessToken);
+            }
+        }
 
         /// <summary>
         /// Initialize Backtrace credencials

@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Model
         /// Backtrace server url
         /// </summary>
         public string ServerUrl;
-        
+
         /// <summary>
         /// Backtrace server API token
         /// </summary>
@@ -60,7 +60,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// How much seconds library should wait before next retry.
         /// </summary>
-        public int RetryInterval;
+        public int RetryInterval = 60;
 
         /// <summary>
         /// Maximum number of retries
@@ -72,8 +72,15 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public RetryOrder RetryOrder;
 
+        public string GetValidServerUrl()
+        {
+            return UpdateServerUrl(ServerUrl);
+        }
+
         public static string UpdateServerUrl(string value)
         {
+            //in case if user pass invalid string, copy value contain uri without method modifications
+            var copy = value;
             if (string.IsNullOrEmpty(value))
             {
                 return value;
@@ -83,36 +90,24 @@ namespace Backtrace.Unity.Model
                 value += ".sp.backtrace.io";
                 Debug.Log("After change server URL: " + value);
             }
-            Uri serverUri;
-            var result = Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out serverUri);
-            if (result)
+            if (!value.StartsWith("http"))
             {
-                try
-                {
-                    //Parsed uri include http/https
-                    value = new UriBuilder(value) { Scheme = Uri.UriSchemeHttps, Port = 6098 }.Uri.ToString();
-                }
-                catch (Exception)
-                {
-                    Debug.Log("Invalid uri provided");
-                }
+                value = $"https://{value}";
             }
-            return value;
+            string uriScheme = value.StartsWith("https://")
+                ? Uri.UriSchemeHttps
+                : Uri.UriSchemeHttp;
+
+            if (!Uri.IsWellFormedUriString(value, UriKind.Absolute))
+            {
+                return copy;
+            }
+            return new UriBuilder(value) { Scheme = uriScheme }.Uri.ToString();
         }
 
         public static bool ValidateServerUrl(string value)
         {
-            Uri serverUri;
-            var result = Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out serverUri);
-            try
-            {
-                new UriBuilder(value) { Scheme = Uri.UriSchemeHttps, Port = 6098 }.Uri.ToString();
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            return result;
+            return Uri.IsWellFormedUriString(UpdateServerUrl(value), UriKind.Absolute);
         }
 
         public bool IsValid()

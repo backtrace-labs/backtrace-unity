@@ -1,0 +1,14 @@
+{
+    "name": "tests",
+    "references": [
+        "Backtrace"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "WindowsStandalone64"
+    ],
+    "allowUnsafeCode": false
+}
