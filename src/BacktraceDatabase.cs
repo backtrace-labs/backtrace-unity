@@ -26,7 +26,7 @@ namespace Backtrace.Unity
         /// </summary>
         private BacktraceDatabaseSettings DatabaseSettings { get; set; }
 
-        private float _lastConnection = 0;
+        private float _lastConnection;
         /// <summary>
         /// Backtrace Api instance. Use BacktraceApi to send data to Backtrace server
         /// </summary>
@@ -56,48 +56,58 @@ namespace Backtrace.Unity
         /// <summary>
         /// Determine if BacktraceDatabase is enable and library can store reports
         /// </summary>
-        private bool _enable = false;
+        public bool Enable { get; private set; }
 
-        private void Awake()
+        public void Reload()
         {
-            Configuration = GetComponent<BacktraceClient>().Configuration;
+            if (Configuration == null)
+            {
+                Configuration = GetComponent<BacktraceClient>().Configuration;
+            }
             if (Configuration == null || !Configuration.IsValid())
             {
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
-                _enable = false;
+                Enable = false;
                 return;
             }
 
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
             if (DatabaseSettings == null)
             {
-                _enable = false;
+                Enable = false;
                 return;
             }
             if (Configuration.CreateDatabase)
             {
                 Directory.CreateDirectory(Configuration.DatabasePath);
             }
-            _enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
+            Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
 
-            if (!_enable)
+            if (!Enable)
             {
                 return;
             }
+
+            _lastConnection = Time.time;
 
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials(), Convert.ToUInt32(Configuration.ReportPerMin));
         }
+        private void Awake()
+        {
+            Reload();
+        }
 
         private void Update()
         {
-            if (!_enable)
+            if (!Enable)
             {
                 return;
             }
             if (Time.time - _lastConnection > DatabaseSettings.RetryInterval)
             {
+                _lastConnection = Time.time;
                 if (!BacktraceDatabaseContext.Any() || _timerBackgroundWork)
                 {
                     return;
@@ -111,7 +121,7 @@ namespace Backtrace.Unity
 
         private void Start()
         {
-            if (!_enable)
+            if (!Enable)
             {
                 return;
             }
@@ -123,6 +133,7 @@ namespace Backtrace.Unity
             LoadReports();
             // remove orphaned files
             RemoveOrphaned();
+            SendData(BacktraceDatabaseContext.FirstOrDefault());
         }
 
         /// <summary>
@@ -158,7 +169,7 @@ namespace Backtrace.Unity
         /// </summary>
         public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, object> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
         {
-            if (!_enable || backtraceReport == null)
+            if (!Enable || backtraceReport == null)
             {
                 return null;
             }
@@ -206,7 +217,7 @@ namespace Backtrace.Unity
         /// </summary>
         public void Flush()
         {
-            if (!_enable || !BacktraceDatabaseContext.Any())
+            if (!Enable || !BacktraceDatabaseContext.Any())
             {
                 return;
             }
@@ -316,7 +327,14 @@ namespace Backtrace.Unity
                 var record = BacktraceDatabaseRecord.ReadFromFile(file);
                 if (!record.Valid())
                 {
-                    record.Delete();
+                    try
+                    {
+                        record.Delete();
+                    }
+                    catch (Exception)
+                    {
+                        Debug.LogWarning($"Cannot remove file from database. File name: {file.FullName}");
+                    }
                     continue;
                 }
                 BacktraceDatabaseContext.Add(record);

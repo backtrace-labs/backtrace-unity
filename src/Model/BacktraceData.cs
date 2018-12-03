@@ -1,9 +1,9 @@
-﻿using Backtrace.Unity.Model.JsonData;
-using Backtrace.Newtonsoft;
+﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
@@ -17,13 +17,13 @@ namespace Backtrace.Unity.Model
         /// server will reject request if uuid is already found
         /// </summary>
         [JsonProperty(PropertyName = "uuid")]
-        public Guid Uuid;
+        public Guid Uuid { get; set; }
 
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
         [JsonProperty(PropertyName = "timestamp")]
-        public long Timestamp;
+        public long Timestamp { get; set; }
 
         /// <summary>
         /// Name of programming language/environment this error comes from.
@@ -50,18 +50,6 @@ namespace Backtrace.Unity.Model
         public string AgentVersion;
 
         /// <summary>
-        /// Get built-in attributes
-        /// </summary>
-        [JsonProperty(PropertyName = "attributes")]
-        public Dictionary<string, object> Attributes;
-
-        /// <summary>
-        /// Get current host environment variables
-        /// </summary>
-        [JsonProperty(PropertyName = "annotations")]
-        internal Annotations Annotations;
-
-        /// <summary>
         /// Application thread details
         /// </summary>
         [JsonProperty(PropertyName = "threads")]
@@ -79,9 +67,6 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "classifiers", NullValueHandling = NullValueHandling.Ignore)]
         public string[] Classifier;
 
-        [JsonProperty(PropertyName = "sourceCode", NullValueHandling = NullValueHandling.Ignore)]
-        internal Dictionary<string, SourceCodeData.SourceCode> SourceCode;
-
         /// <summary>
         /// Get a path to report attachments
         /// </summary>
@@ -93,6 +78,18 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal BacktraceReport Report { get; set; }
 
+        /// <summary>
+        /// Get built-in attributes
+        /// </summary>
+        public BacktraceAttributes Attributes = null;
+        public Annotations Annotation = null;
+        public ThreadData ThreadData = null;
+
+        /// <summary>
+        /// Empty constructor for serialization purpose
+        /// </summary>
+        public BacktraceData()
+        { }
         /// <summary>
         /// Create instance of report data
         /// </summary>
@@ -111,20 +108,54 @@ namespace Backtrace.Unity.Model
             Attachments = Report.AttachmentPaths.Distinct().ToList();
         }
 
+        public string ToJson()
+        {
+            var json = new BacktraceJObject
+            {
+                ["uuid"] = Uuid,
+                ["timestamp"] = Timestamp,
+                ["lang"] = "csharp",
+                ["langVersion"] = "Unity",
+                ["agent"] = "backtrace-unity",
+                ["agentVersion"] = "1.0.0",
+                ["mainThread"] = MainThread,
+                ["classifiers"] = new JArray(Classifier),
+                ["attributes"] = Attributes.ToJson(),
+                ["annotations"] = Annotation.ToJson(),
+                ["threads"] = ThreadData?.ToJson()
+            };
+            return json.ToString();
+        }
+        public static BacktraceData Deserialize(string json)
+        {
+            var @object = BacktraceJObject.Parse(json);
+
+            var classfiers = @object["classifiers"]?
+                .Select(n => n.Value<string>()).ToArray() ?? null;
+
+            return new BacktraceData()
+            {
+                Uuid = new Guid(@object.Value<string>("uuid")),
+                Timestamp = @object.Value<long>("timestamp"),
+                MainThread = @object.Value<string>("mainThread"),
+                Classifier = classfiers,
+                Annotation = Annotations.Deserialize(@object["annotations"]),
+                Attributes = BacktraceAttributes.Deserialize(@object["attributes"]),
+                ThreadData = ThreadData.DeserializeThreadInformation(@object["threads"])
+            };
+        }
+
         private void SetThreadInformations()
         {
-            var threadData = new ThreadData(Report.DiagnosticStack);
-            ThreadInformations = threadData.ThreadInformations;
-            MainThread = threadData.MainThread;
-            var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
-            SourceCode = sourceCodeData.data.Any() ? sourceCodeData.data : null;
+            ThreadData = new ThreadData(Report.DiagnosticStack);
+            ThreadInformations = ThreadData.ThreadInformations;
+            MainThread = ThreadData.MainThread;
         }
 
         private void SetAttributes(Dictionary<string, object> clientAttributes)
         {
-            var backtraceAttributes = new BacktraceAttributes(Report, clientAttributes);
-            Attributes = backtraceAttributes.Attributes;
-            Annotations = new Annotations(backtraceAttributes.ComplexAttributes);
+            Attributes = new BacktraceAttributes(Report, clientAttributes);
+            Annotation = new Annotations(Attributes.ComplexAttributes);
         }
 
         private void SetReportInformation()

@@ -1,8 +1,8 @@
-﻿using Backtrace.Unity.Common;
+﻿using Backtrace.Newtonsoft.Linq;
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.NetworkInformation;
 using UnityEngine;
@@ -42,7 +42,41 @@ namespace Backtrace.Unity.Model.JsonData
             SetMachineAttributes();
             SetProcessAttributes();
         }
+        private BacktraceAttributes() { }
 
+        public static BacktraceAttributes Deserialize(JToken jToken)
+        {
+            var attributes = new Dictionary<string, object>();
+            foreach (BacktraceJProperty keys in jToken)
+            {
+                attributes.Add(keys.Name, keys.Value.Value<string>());
+            }
+            return new BacktraceAttributes()
+            {
+                Attributes = attributes
+            };
+        }
+
+        public BacktraceJObject ToJson()
+        {
+            var attr = new BacktraceJObject();
+            foreach (var attribute in Attributes)
+            {
+                if (attribute.Value != null && attribute.Value.GetType() == typeof(bool))
+                {
+                    attr[attribute.Key] = (bool)attribute.Value;
+                }
+                else if (attribute.Value != null && TypeHelper.IsNumeric(attribute.Value.GetType()))
+                {
+                    attr[attribute.Key] = Convert.ToInt64(attribute.Value);
+                }
+                else
+                {
+                    attr[attribute.Key] = attribute.Value.ToString();
+                }
+            }
+            return attr;
+        }
         /// <summary>
         /// Set library attributes
         /// </summary>
@@ -76,6 +110,7 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.system.language"] = Application.systemLanguage.ToString();
             Attributes["application.unity.version"] = Application.unityVersion;
             Attributes["application.temporary_cache"] = Application.temporaryCachePath;
+            Attributes["applicaiton.debug"] = Debug.isDebugBuild;
         }
 
         /// <summary>
@@ -145,13 +180,9 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 return;
             }
-            if (!report.ExceptionTypeReport)
-            {
-                Attributes["error.message"] = report.Message;
-                return;
-            }
-            var exception = report.Exception;
-            Attributes["error.message"] = exception.Message;
+            Attributes["error.message"] = report.ExceptionTypeReport
+                ? report.Exception.Message
+                : report.Message;
         }
 
         internal void SetSceneInformation()
@@ -251,6 +282,10 @@ namespace Backtrace.Unity.Model.JsonData
 
             //The hostname of the crashing system.
             Attributes["hostname"] = Environment.MachineName;
+            if (SystemInfo.systemMemorySize != 0)
+            {
+                Attributes["vm.rss.size"] = SystemInfo.systemMemorySize * 1048576L;
+            }
         }
     }
 }

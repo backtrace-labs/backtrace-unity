@@ -1,4 +1,5 @@
 ﻿using Backtrace.Newtonsoft;
+using Backtrace.Newtonsoft.Linq;
 using System;
 using System.Diagnostics;
 
@@ -55,12 +56,56 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "sourceCode")]
         public string SourceCode;
 
+        public BacktraceJObject ToJson()
+        {
+            var stackFrame = new BacktraceJObject
+            {
+                ["funcName"] = FunctionName,
+                ["line"] = Line,
+                ["il"] = Il,
+                ["metadata_token"] = MemberInfo,
+                ["column"] = Column,
+                ["address"] = ILOffset
+            };
+
+            //todo: source code information
+
+            return stackFrame;
+        }
+        public static BacktraceStackFrame FromJson(string json)
+        {
+            var @object = BacktraceJObject.Parse(json);
+            return new BacktraceStackFrame()
+            {
+                FunctionName = @object.Value<string>("funcName"),
+                Line = @object.Value<int>("line"),
+                Il = @object.Value<int?>("il"),
+                MemberInfo = @object.Value<int?>("metadata_token"),
+                Column = @object.Value<int>("column"),
+                ILOffset = @object.Value<int?>("address"),
+                SourceCode = @object.Value<string>("sourceCode"),
+                Library = @object.Value<string>("library")
+            };
+        }
         /// <summary>
         /// Library name where exception occurs
         /// </summary>
         [JsonProperty(PropertyName = "library")]
         public string Library;
 
+
+        internal static BacktraceStackFrame Deserialize(BacktraceJObject frame)
+        {
+            return new BacktraceStackFrame()
+            {
+                FunctionName = frame.Value<string>("funcName"),
+                Line = frame.Value<int>("line"),
+                Il = frame.Value<int?>("il"),
+                MemberInfo = frame.Value<int?>("metadata_token"),
+                Column = frame.Value<int>("column"),
+                ILOffset = frame.Value<int?>("address"),
+            };
+        }
 
         public BacktraceStackFrame()
         { }
@@ -90,6 +135,8 @@ namespace Backtrace.Unity.Model
                 //metadata token in some situations can throw Argument Exception. Plase check property definition to leran more about this behaviour
             }
         }
+
+        
 
         /// <summary>
         /// Generate valid name for current stack frame.

@@ -913,7 +913,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="uint"/> value.
         /// </summary>
         /// <param name="value">The <see cref="uint"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(uint value)
         {
             InternalWriteValue(JsonToken.Integer);
@@ -932,7 +932,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="ulong"/> value.
         /// </summary>
         /// <param name="value">The <see cref="ulong"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(ulong value)
         {
             InternalWriteValue(JsonToken.Integer);
@@ -978,7 +978,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="ushort"/> value.
         /// </summary>
         /// <param name="value">The <see cref="ushort"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(ushort value)
         {
             InternalWriteValue(JsonToken.Integer);
@@ -1006,7 +1006,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="sbyte"/> value.
         /// </summary>
         /// <param name="value">The <see cref="sbyte"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(sbyte value)
         {
             InternalWriteValue(JsonToken.Integer);
@@ -1079,7 +1079,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="Nullable{UInt32}"/> value.
         /// </summary>
         /// <param name="value">The <see cref="Nullable{UInt32}"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(uint? value)
         {
             if (value == null)
@@ -1112,7 +1112,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="Nullable{UInt64}"/> value.
         /// </summary>
         /// <param name="value">The <see cref="Nullable{UInt64}"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(ulong? value)
         {
             if (value == null)
@@ -1193,7 +1193,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="Nullable{UInt16}"/> value.
         /// </summary>
         /// <param name="value">The <see cref="Nullable{UInt16}"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(ushort? value)
         {
             if (value == null)
@@ -1242,7 +1242,7 @@ namespace Backtrace.Newtonsoft
         /// Writes a <see cref="Nullable{SByte}"/> value.
         /// </summary>
         /// <param name="value">The <see cref="Nullable{SByte}"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public virtual void WriteValue(sbyte? value)
         {
             if (value == null)

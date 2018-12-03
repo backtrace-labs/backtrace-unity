@@ -9,7 +9,7 @@
 ```csharp
 
  //Read from manager BacktraceClient instance
-var backtraceClient = GameObject.Find("manager name").GetComponent<BacktraceClient>();
+var backtraceClient = GameObject.Find("_Manager").GetComponent<BacktraceClient>();
 try{
     //throw exception here
 }
@@ -20,80 +20,58 @@ catch(Exception exception){
 ```
 
 # Features Summary <a name="features-summary"></a>
-* Light-weight Unity client  that quickly submits crashed generated in Unity environment to your Backtrace dashboard
-  * Can include callstack, system metadata, custom metadata, custom attribues and file attachments if needed,
-* Supports a wide range of unity version and environments,
-* Supports .NET 4.5 Backend, IL2CPP and Mono environments,
-* Supports offline database for error report storage and re-submission in case of network outage,
-* Fully customizable and extendable event handlers,
-* Custom IDE integrations.
+* Light-weight Unity client that quickly submits crashed generated in Unity environment to your Backtrace dashboard
+  * Can include callstack, system metadata, custom metadata, custom attribues and file attachments if needed
+* Supports a wide range of unity version and environments
+* Supports .NET 4.5 Backend, IL2CPP and Mono environments
+* Supports offline database for error report storage and re-submission in case of network outage
+* Fully customizable and extendable event handlers
+* Custom IDE integrations
 
 # Prerequisites
 * Unity environment 2017.4.x 
-* .NET 4.5 scripting runtime version, 
-* Mono or IL2CPP scripting backend.
+* .NET 4.5 scripting runtime version 
+* Mono or IL2CPP scripting backend
 
 # Setup <a name="installation"></a>
 List of steps necessary to setup full Backtrace Unity integration.
 
 ## Installation guide
-* Download and unzip zip file with backtrace-unity support library,
-* Open your Unity project and paste unzipped library directory,
-* Your library is ready to use!
+* Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded from https://github.com/backtrace-labs/backtrace-unity/releases
+* Open your Unity project and ensure it is configured to build with .NET 4.5+ runtime and a mono or il2cpp backend.
+* Copy the unzipped folder to your project's asset folder in the Windows File Explorer. The Unity editor will refresh and the Backtrace Plugin should become available in the editor. 
 
-## Library configuration
-* Select scene object and add new component in inspector window,
-* Select `Backtrace Client` from insperctor search box,
-* `Backtrace Client` configuration window now waiting for configuration asset.
-![Backtrace configuration window](./images/unity-basic-configuration.PNG)
-* Right click on empty space in Unity workspace and select from the menu box `Backtrace > Configuration`. This option generate new empty asset file in your solution. You can drag and drop generated asset file into Backtrace Client configuration window.
+## Integrating into your project
+
+* Under the Assets Menu, there is now a Backtrace -> Configuration option. Choose that option (or Right click on empty space and select from the menu box) to have a Backtrace Configuration is generated in the Assets folder. You can drag and drop generated asset file into Backtrace Client configuration window.
 ![Backtrace menu dialog box](./images/dialog-box.PNG)
+* Next, select an object from the Scene Hierarchy to associate the Backtrace reporting client to. In the example below, we use the Manager object., Using the Inspector panel, click the Add Component button and search for the Backtrace Client object.
+* Within the Backtrace Client panel, there is a Backtrace Configuration field. Drag and drop the Backtrace Configuration from the Assets folder to that field. More fields will appear for you to fill in to configure the Backtrace Client and Offline Database options.
+![Backtrace configuration window](./images/unity-basic-configuration.PNG)
 * Provide valid Backtrace client configuration and start using library!
 ![Full Backtrace configuration](./images/client-setup.PNG)
 
-**Field overview**
-* *Server url*: the url to Backtrace server instance. The user can start
-typing only their instance name (for example "my-bt-server"), and the plugin will guess
-the rest of the server url (for example "https://my-bt-server.sp.backtrace.io"). 
+Watch this 1 minute silent video to see the Integration and Configuration in action. The first 20 seconds of the video shows the above Integrating steps, and the second part shows details of the below Client and Database Settings - https://player.vimeo.com/video/300051476
 
+## Backtrace Client and Offline Database Settings
 
-* *Token*: Token to the Backtrace project instance. This field requires
-that the provided string has exactly **64** characters. If the developer doesn't
-know or doesn't have the access token, the plugin allows the user to browse
-tokens if the project name is available.
+The following is a reference guide to the Backtrace Client fields:
 
-* *ReportsPerMinute*: Determine how many reports `Backtrace Unity` library should send per minute.
+* Server Address and Token: These fields are required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve these values for your instance is our docs at What is a submission URL and What is a submission token?  NOTE: the backtrace-unity plugin will attempt to autofill the Server Address field  for you based on your instance name (if you enter killerwhales and leave the field, it will autofill with https://killerwhales.sp.backtrace.io:6098) 
+* Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
+* Handle unhandle exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
+* Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure. 
+* Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start
+* Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
+* Auto Send Mode: When toggled on, the database will send automatically reports to Backtrace server based on the Retry Settings below. When toggled off, the developer will need to use the Flush method to attempt to send and clear. Recommend that this is toggled on.
+* Maximum number of records: This is one of two limits you can impose for controlling the growth of the offline store. This setting is the maximum number of stored reports in database. If value is equal to zero, then limit not exists, When the limit is reached, the database will remove the oldest entries.
+* Maximum database size: This is the second limit you can impose for controlling the growth of the offline store. This setting is the maximum database size in MB. If value is equal to zero, then size is unlimited, When the limit is reached, the database will remove the oldest entries.
+* Retry interval: If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries. 
+* Maximum retries: If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.
+* Retry order: This specifies in which order records are sent to the Backtrace server. 
 
-* *Handle unhandle exceptions*: Determine if library by default should handle unhandled exceptions. 
-
-
-## Database support configuration
-Backtrace Unity integration allows to store on hard drive offline reports. `BacktraceDatabase` provide methods to save reports when you lost a connection. 
-
-To setup `BacktraceDatabase` configuraiton:
-* Select `Enable Database` checkbox in `Backtrace Client` configuration window,
-* Provide valid Backtrace database configuration and store offline reports in your game!
-![Full Backtrace database configuration](./images/database-setup.PNG)
-
-
-
-
-**Field overview**
-* `BacktraceDatabase` can use diffrent *Server url* *Token* *Reports per minute* and *Handle unhandled exceptions* values. These values are necessary if user want to send an offline reports to any `Backtrace` server,
-* *Backtrace Database path*: Path to directory where Backtrace database will store reports. Be aware! `Backtrace database` will remove all existing files on database start,
-* *Automatically send*: Determine if database should send automatically reports to `Backtrace` server,
-* *Create database directory*: Determine if library should create offline database directory if provided path doesn't exists,
-* *Maximum number of records*: Maximum number of stored reports in database. If value is equal to zero, then limit not exists,
-* *Maximum database size*: Maximum database size in MB. If value is equal to zero, then size is unlimited,
-* *Retry interval*: How much seconds library should wait before next retry,
-* *Maximum retries*: Maximum number of retries,
-* *RetryOrder*: Record order in database.
-
-
-## Web debugger result:
-![Web debugger](./images/web-debugger.PNG)
-
-# Api overview
+# API Overview
+You can further configure your game to submit crashes by making further changes in the C# code for your game. 
 
 ## Basic configuration
 If you setup `Backtrace client` and `Backtrace database` configuration you can retrieve database and client instances by using `GameObject`. When you retrieve client instance you can start sending reports from try/catch blok in your game!
@@ -253,8 +231,15 @@ If you want to clear your database or remove all reports after send method you c
 ## ReportWatcher  <a name="architecture-ReportWatcher"></a>
 **`ReportWatcher`** is a class that validate send requests to the Backtrace endpoint. If `reportPerMin` is set in the `BacktraceClient` constructor call, `ReportWatcher` will drop error reports that go over the limit. `BacktraceClient` check rate limit before `BacktraceApi` generate diagnostic json. 
 
+# Investigating an Error in Backtrace
+Once errors are being reported to your Backtrace instance, you should see them in your Triage and Web Debugger view. See below for a screenshot of the Triage view with some Unity exceptions reported.
+![Backtrace search](https://downloads.intercomcdn.com/i/o/85088367/8579259bd9e72a9c5f429f27/Screen+Shot+2018-11-10+at+11.59.33+AM.png)
+
+The developer who is debugging the error may find it useful to view more details of Exception. They choose the 'View Latest Trace' action to see more details in the Backtrace Web Debugger. Below we can see a list of all attributes submitted with a report. (Note the yield signs are just an indicator that this value is not indexed in Backtrace). We can also see the call stack and details of the selected frame.
+![Backtrace web debugger](https://downloads.intercomcdn.com/i/o/85088529/3785366e044e4e69c4b23abd/Screen+Shot+2018-11-10+at+12.22.41+PM.png)
+
+Below we see more details above the Environment Variables from the Web Debugger to further assist with investigation.
+![Backtrace attributes](https://downloads.intercomcdn.com/i/o/85088535/c84ebd2b96f1d5423b36482d/Screen+Shot+2018-11-10+at+12.22.56+PM.png)
 
 # Nice to know
-* Backtrace Unity integration use JSON.NET library to create diagnostic JSON. JSON.NET Source code is available in `src` directory.
-
-
+* Backtrace Unity integration use JSON.NET library to create diagnostic JSON. JSON.NET Source code is available in `src` directory. JSON.NET was modified for Backtrace-plugin purpose.

@@ -51,10 +51,10 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// How much seconds library should wait before next retry.
         /// </summary>
-        public int RetryInterval;
+        public int RetryInterval = 60;
 
         /// <summary>
-        /// Maximum number of retries
+        /// Maximum number of retrie
         /// </summary>
         public int RetryLimit = 3;
 

@@ -1,5 +1,4 @@
-﻿using Backtrace.Newtonsoft;
-using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
 using System.Collections;
@@ -8,7 +7,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Services
 {
     /// <summary>
@@ -19,7 +17,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// User custom request method
         /// </summary>
-        public Func<string, string, BacktraceData, BacktraceResult> RequestHandler { get; set; } = null;
+        public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; } = null;
 
         /// <summary>
         /// Event triggered when server is unvailable
@@ -38,7 +36,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly string _serverurl;
 
-        private BacktraceCredentials _credentials;
+        private readonly BacktraceCredentials _credentials;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
@@ -67,8 +65,20 @@ namespace Backtrace.Unity.Services
             {
                 yield return BacktraceResult.OnLimitReached(data.Report);
             }
-            var json = BacktraceDataConverter.SerializeObject(data);
+            if (data == null)
+            {
+                yield return new BacktraceResult()
+                {
+                    Status = Types.BacktraceResultStatus.LimitReached
+                };
+            }
+            if(RequestHandler != null)
+            {
+                yield return RequestHandler.Invoke(_serverurl, data);
+            }
+            string json = data.ToJson();
             yield return Send(json, data.Attachments, data.Report, callback);
+
         }
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
@@ -86,8 +96,8 @@ namespace Backtrace.Unity.Services
                 {
                     result = new BacktraceResult();
                     OnServerResponse?.Invoke(result);
-                    var response = BacktraceDataConverter.DeserializeObject<BacktraceResult>(request.downloadHandler.text);
-                    if(attachments != null && attachments.Count > 0)
+                    var response = BacktraceResult.FromJson(request.downloadHandler.text);
+                    if (attachments != null && attachments.Count > 0)
                     {
                         var stack = new Stack<string>(attachments);
                         yield return SendAttachment(response.Object, stack);
@@ -142,7 +152,7 @@ namespace Backtrace.Unity.Services
 
         private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
 
-        public static string UrlEncode(string value)
+        private static string UrlEncode(string value)
         {
             if (string.IsNullOrEmpty(value))
             {
