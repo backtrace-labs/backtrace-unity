@@ -61,7 +61,7 @@ namespace Backtrace.Unity.Model
         /// How much seconds library should wait before next retry.
         /// </summary>
         public int RetryInterval = 60;
-
+        
         /// <summary>
         /// Maximum number of retries
         /// </summary>
@@ -81,15 +81,12 @@ namespace Backtrace.Unity.Model
         {
             //in case if user pass invalid string, copy value contain uri without method modifications
             var copy = value;
+
             if (string.IsNullOrEmpty(value))
             {
                 return value;
             }
-            if (!value.Contains(".sp.backtrace.io"))
-            {
-                value += ".sp.backtrace.io";
-                Debug.Log("After change server URL: " + value);
-            }
+          
             if (!value.StartsWith("http"))
             {
                 value = $"https://{value}";
@@ -112,7 +109,7 @@ namespace Backtrace.Unity.Model
 
         public bool IsValid()
         {
-            return ValidateServerUrl(ServerUrl) && ValidateToken(Token);
+            return ValidateServerUrl(ServerUrl);
         }
 
         public static bool ValidateToken(string value)
@@ -122,7 +119,7 @@ namespace Backtrace.Unity.Model
 
         public BacktraceCredentials ToCredentials()
         {
-            return new BacktraceCredentials(ServerUrl, Token);
+            return new BacktraceCredentials(ServerUrl);
         }
 
         public static bool ValidateDatabasePath(string value)

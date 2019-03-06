@@ -1526,6 +1526,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
+        
         public static implicit operator JToken(ulong value)
         {
             return new JValue(value);

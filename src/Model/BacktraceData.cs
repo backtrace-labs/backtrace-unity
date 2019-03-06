@@ -67,7 +67,6 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "classifiers", NullValueHandling = NullValueHandling.Ignore)]
         public string[] Classifier;
 
-
         /// <summary>
         /// Get a path to report attachments
         /// </summary>
@@ -78,16 +77,7 @@ namespace Backtrace.Unity.Model
         /// Current BacktraceReport
         /// </summary>
         internal BacktraceReport Report { get; set; }
-
-        private BacktraceAttributes _attributes = null;
-        private Annotations _annotations = null;
-        private ThreadData _threadData = null;
-
-        /// <summary>
-        /// Empty constructor for serialization purpose
-        /// </summary>
-        public BacktraceData()
-        { }
+      
         /// <summary>
         /// Get built-in attributes
         /// </summary>
@@ -127,13 +117,13 @@ namespace Backtrace.Unity.Model
                 ["lang"] = "csharp",
                 ["langVersion"] = "Unity",
                 ["agent"] = "backtrace-unity",
-                ["agentVersion"] = "1.0.0",
+                ["agentVersion"] = "1.1.0",
                 ["mainThread"] = MainThread,
                 ["classifiers"] = new JArray(Classifier),
                 ["attributes"] = Attributes.ToJson(),
                 ["annotations"] = Annotation.ToJson(),
                 ["threads"] = ThreadData?.ToJson()
-            }
+            };
             return json.ToString();
         }
         public static BacktraceData Deserialize(string json)
@@ -173,7 +163,7 @@ namespace Backtrace.Unity.Model
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             LangVersion = "Mono/IL2CPP";
-            AgentVersion = "1.0.0";
+            AgentVersion = "1.1.0";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

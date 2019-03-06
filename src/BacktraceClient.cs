@@ -15,7 +15,6 @@ namespace Backtrace.Unity
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
         public BacktraceConfiguration Configuration;
-
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -139,7 +138,7 @@ namespace Backtrace.Unity
                 HandleUnhandledExceptions();
             }
             BacktraceApi = new BacktraceApi(
-                credentials: new BacktraceCredentials(Configuration.GetValidServerUrl(), Configuration.Token),
+                credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
                 reportPerMin: Convert.ToUInt32(Configuration.ReportPerMin));
 
             Database?.SetApi(BacktraceApi);
@@ -156,7 +155,7 @@ namespace Backtrace.Unity
         /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
         public void SetClientReportLimit(uint reportPerMin)
         {
-            BacktraceApi.SetClientRateLimit(reportPerMin);
+            BacktraceApi?.SetClientRateLimit(reportPerMin);
         }
 
         /// <summary>
@@ -225,7 +224,6 @@ namespace Backtrace.Unity
         public void HandleUnhandledExceptions()
         {
             Application.logMessageReceived += HandleException;
-            Application.logMessageReceivedThreaded += HandleException;
         }
 
         private void HandleException(string condition, string stackTrace, LogType type)
@@ -263,7 +261,7 @@ namespace Backtrace.Unity
             var invalidConfiguration = BacktraceApi == null || !Enabled;
             if (invalidConfiguration)
             {
-                Debug.Log($"Cannot set method if configuration contain invalid url to Backtrace server or client is disabled");
+                Debug.LogWarning($"Cannot set method if configuration contain invalid url to Backtrace server or client is disabled");
             }
             return !invalidConfiguration;
         }

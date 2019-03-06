@@ -1,16 +1,14 @@
-﻿using System.IO;
+﻿#if UNITY_EDITOR
+using Backtrace.Unity.Model;
 using UnityEditor;
 using UnityEngine;
-using Backtrace.Unity.Model;
-using Backtrace.Unity.Types;
 
-namespace Backtrace.Unity.Port.Editor
+namespace Backtrace.Unity.Editor
 {
     [CustomEditor(typeof(BacktraceConfiguration))]
     public class BacktraceConfigurationEditor : UnityEditor.Editor
     {
         public const string LABEL_SERVER_URL = "Server Address";
-        public const string LABEL_TOKEN = "Token";
         public const string LABEL_REPORT_PER_MIN = "Reports per minute";
         public const string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
         public const string LABEL_ENABLE_DATABASE = "Enable Database";
@@ -36,14 +34,7 @@ namespace Backtrace.Unity.Port.Editor
                 EditorGUILayout.HelpBox("Please insert valid Backtrace server url!", MessageType.Error);
             }
 
-            SerializedProperty token = serializedObject.FindProperty("Token");
-            EditorGUILayout.PropertyField(token, new GUIContent(LABEL_TOKEN));
-            if (!BacktraceConfiguration.ValidateToken(token.stringValue))
-            {
-                EditorGUILayout.HelpBox("Token requires at least 64 characters!", MessageType.Warning);
-            }
-
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("ReportPerMin"),new GUIContent(LABEL_REPORT_PER_MIN));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("ReportPerMin"), new GUIContent(LABEL_REPORT_PER_MIN));
 
 
             SerializedProperty unhandledExceptions = serializedObject.FindProperty("HandleUnhandledExceptions");
@@ -92,3 +83,4 @@ namespace Backtrace.Unity.Port.Editor
     }
 
 }
+#endif

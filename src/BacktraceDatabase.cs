@@ -75,6 +75,7 @@ namespace Backtrace.Unity
             if (DatabaseSettings == null)
             {
                 Enable = false;
+
                 return;
             }
             if (Configuration.CreateDatabase)
@@ -122,7 +123,7 @@ namespace Backtrace.Unity
         private void Start()
         {
             if (!Enable)
-            {
+           {
                 return;
             }
             if (DatabaseSettings.AutoSendMode)

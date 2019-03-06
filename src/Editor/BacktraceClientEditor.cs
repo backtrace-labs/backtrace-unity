@@ -1,8 +1,9 @@
-﻿using Backtrace.Unity.Model;
+﻿#if UNITY_EDITOR
+using Backtrace.Unity.Model;
 using UnityEditor;
 using UnityEngine;
 
-namespace Backtrace.Unity.Port.Editor
+namespace Backtrace.Unity.Editor
 {
     [CustomEditor(typeof(BacktraceClient))]
     public class BacktraceClientEditor : UnityEditor.Editor
@@ -33,3 +34,5 @@ namespace Backtrace.Unity.Port.Editor
     }
 
 }
+
+#endif

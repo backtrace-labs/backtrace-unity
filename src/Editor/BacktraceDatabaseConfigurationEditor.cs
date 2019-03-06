@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿#if UNITY_EDITOR
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Types;
 
-namespace Backtrace.Unity.Port.Editor
+namespace Backtrace.Unity.Editor
 {
     [CustomEditor(typeof(BacktraceDatabaseConfiguration))]
     public class BacktraceDatabaseConfigurationEditor : BacktraceClientConfigurationEditor
@@ -56,3 +57,5 @@ namespace Backtrace.Unity.Port.Editor
     }
 
 }
+
+#endif

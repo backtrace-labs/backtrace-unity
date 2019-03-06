@@ -7,7 +7,6 @@ namespace Backtrace.Unity.Model
     public class BacktraceClientConfiguration : ScriptableObject
     {
         public string ServerUrl;
-        public string Token;
         public int ReportPerMin;
         public bool HandleUnhandledExceptions = true;
 
@@ -17,11 +16,7 @@ namespace Backtrace.Unity.Model
             {
                 return;
             }
-            if (!ServerUrl.Contains(".sp.backtrace.io"))
-            {
-                ServerUrl += ".sp.backtrace.io";
-                Debug.Log("After change server URL: " + ServerUrl);
-            }
+
             Uri serverUri;
             var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out serverUri);
             if (result)
@@ -33,13 +28,18 @@ namespace Backtrace.Unity.Model
                 }
                 catch (Exception)
                 {
-                    Debug.Log("Invalid uri provided");
+                    Debug.LogWarning("Invalid uri provided");
                 }
             }
         }
 
         public bool ValidateServerUrl()
         {
+            if (!ServerUrl.Contains(".sp.backtrace.io") && !ServerUrl.Contains("submit.backtrace.io"))
+            {
+                return false;
+            }
+
             Uri serverUri;
             var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out serverUri);
             try
@@ -52,18 +52,15 @@ namespace Backtrace.Unity.Model
             }
             return result;
         }
+        
         public bool IsValid()
         {
-            return ValidateServerUrl() && ValidateToken();
+            return ValidateServerUrl();
         }
-        public bool ValidateToken()
-        {
-            return !(string.IsNullOrEmpty(Token) || Token.Length != 64);
-        }
-
+      
         public BacktraceCredentials ToCredentials()
         {
-            return new BacktraceCredentials(ServerUrl, Token);
+            return new BacktraceCredentials(ServerUrl);
         }
     }
 }

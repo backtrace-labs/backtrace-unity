@@ -110,7 +110,7 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.system.language"] = Application.systemLanguage.ToString();
             Attributes["application.unity.version"] = Application.unityVersion;
             Attributes["application.temporary_cache"] = Application.temporaryCachePath;
-            Attributes["applicaiton.debug"] = Debug.isDebugBuild;
+            Attributes["application.debug"] = Debug.isDebugBuild;
         }
 
         /// <summary>

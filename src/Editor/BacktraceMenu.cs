@@ -1,9 +1,10 @@
-﻿using System.IO;
+﻿#if UNITY_EDITOR
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Backtrace.Unity.Model;
 
-namespace Backtrace.Unity.Port.Editor
+namespace Backtrace.Unity.Editor
 {
     public class BacktraceMenu : MonoBehaviour
     {
@@ -36,3 +37,5 @@ namespace Backtrace.Unity.Port.Editor
         }
     }
 }
+
+#endif

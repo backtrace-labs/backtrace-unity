@@ -48,7 +48,7 @@ namespace Backtrace.Unity.Services
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
             _credentials = credentials;
-            _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}";
+            _serverurl = credentials.GetSubmissionUrl().ToString();
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
 
@@ -89,7 +89,7 @@ namespace Backtrace.Unity.Services
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                 request.SetRequestHeader("Content-Type", "application/json");
                 yield return request.SendWebRequest();
-
+                
                 BacktraceResult result;
                 if (request.responseCode == 200)
                 {
@@ -159,7 +159,6 @@ namespace Backtrace.Unity.Services
             }
 
             var sb = new StringBuilder();
-
             foreach (char @char in value)
             {
                 if (reservedCharacters.IndexOf(@char) == -1)

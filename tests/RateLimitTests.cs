@@ -40,7 +40,7 @@ namespace Tests
             {
                 client.Send("test");
             }
-            Assert.IsTrue(maximumNumberOfRetries == 3);
+            Assert.AreEqual(5, maximumNumberOfRetries);
             yield return null;
         }
 
@@ -57,7 +57,7 @@ namespace Tests
             {
                 client.Send("test");
             }
-            Assert.IsTrue(maximumNumberOfRetries == 2);
+            Assert.AreEqual(2, maximumNumberOfRetries);
             yield return null;
         }
     }
