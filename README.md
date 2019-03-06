@@ -57,7 +57,7 @@ Watch this 1 minute silent video to see the Integration and Configuration in act
 
 The following is a reference guide to the Backtrace Client fields:
 
-* Server Address and Token: These fields are required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve these values for your instance is our docs at What is a submission URL and What is a submission token?  NOTE: the backtrace-unity plugin will attempt to autofill the Server Address field  for you based on your instance name (if you enter killerwhales and leave the field, it will autofill with https://killerwhales.sp.backtrace.io:6098) 
+* Server Address: This field is required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve this value for your instance is our docs at What is a submission URL and What is a submission token?  NOTE: the backtrace-unity plugin  will expect full url with token to your Backtrace instance,
 * Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
 * Handle unhandle exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 * Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure. 
