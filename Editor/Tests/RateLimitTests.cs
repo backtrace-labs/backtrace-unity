@@ -19,12 +19,11 @@ namespace Tests
             client = gameObject.AddComponent<BacktraceClient>();
             client.Configuration = new BacktraceConfiguration()
             {
-                ServerUrl = "https://test.sp.backtrace.io:6097/",
-                //backtrace configuration require 64 characters
-                Token = "1234123412341234123412341234123412341234123412341234123412341234"
+                ServerUrl = "https://submit.backtrace.io/test/1234123412341234123412341234123412341234123412341234123412341234/json"
             };
             client.SetClientReportLimit(3);
             gameObject.SetActive(true);
+            client.Refresh();
         }
 
         [UnityTest]

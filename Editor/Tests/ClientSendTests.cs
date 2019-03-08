@@ -21,11 +21,10 @@ namespace Tests
             client = gameObject.AddComponent<BacktraceClient>();
             client.Configuration = new BacktraceConfiguration()
             {
-                ServerUrl = "https://test.sp.backtrace.io:6097/",
-                //backtrace configuration require 64 characters
-                Token = "1234123412341234123412341234123412341234123412341234123412341234"
+                ServerUrl = "https://submit.backtrace.io/test/1234123412341234123412341234123412341234123412341234123412341234/json"
             };
             gameObject.SetActive(true);
+            client.Refresh();
         }
 
         [UnityTest]
@@ -50,7 +49,7 @@ namespace Tests
         public IEnumerator SendReport_MessageReport_ValidSend()
         {
             var trigger = false;
-            var clientMessage= "custom message";
+            var clientMessage = "custom message";
             client.RequestHandler = (string url, BacktraceData data) =>
             {
                 trigger = true;
