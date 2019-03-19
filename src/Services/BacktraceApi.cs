@@ -7,7 +7,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Backtrace.Unity.Services
 {
     /// <summary>
@@ -18,7 +17,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// User custom request method
         /// </summary>
-        public Func<string, string, BacktraceData, BacktraceResult> RequestHandler { get; set; } = null;
+        public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; } = null;
 
         /// <summary>
         /// Event triggered when server is unvailable
@@ -49,7 +48,7 @@ namespace Backtrace.Unity.Services
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
             _credentials = credentials;
-            _serverurl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}";
+            _serverurl = credentials.GetSubmissionUrl().ToString();
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
 
@@ -66,22 +65,19 @@ namespace Backtrace.Unity.Services
             {
                 yield return BacktraceResult.OnLimitReached(data.Report);
             }
-            if(data == null)
+            if (data == null)
             {
                 yield return new BacktraceResult()
                 {
                     Status = Types.BacktraceResultStatus.LimitReached
                 };
             }
-            string json = data.ToJson();
-
-            if (string.IsNullOrEmpty(json))
+            if(RequestHandler != null)
             {
-                yield return BacktraceResult.OnLimitReached(data.Report);
+                yield return RequestHandler.Invoke(_serverurl, data);
             }
-
+            string json = data.ToJson();
             yield return Send(json, data.Attachments, data.Report, callback);
-
         }
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
@@ -93,7 +89,7 @@ namespace Backtrace.Unity.Services
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                 request.SetRequestHeader("Content-Type", "application/json");
                 yield return request.SendWebRequest();
-
+                
                 BacktraceResult result;
                 if (request.responseCode == 200)
                 {
@@ -163,7 +159,6 @@ namespace Backtrace.Unity.Services
             }
 
             var sb = new StringBuilder();
-
             foreach (char @char in value)
             {
                 if (reservedCharacters.IndexOf(@char) == -1)

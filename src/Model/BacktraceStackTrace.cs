@@ -29,11 +29,6 @@ namespace Backtrace.Unity.Model
         private void Initialize()
         {
             bool generateExceptionInformation = _exception != null;
-            //initialize environment stack trace
-            var stackTrace = new StackTrace(true);
-            //reverse frame order
-            var frames = stackTrace.GetFrames();
-            SetStacktraceInformation(frames, generateExceptionInformation);
             if (_exception != null)
             {
                 if (_exception is BacktraceUnhandledException)
@@ -48,6 +43,14 @@ namespace Backtrace.Unity.Model
                     var exceptionFrames = exceptionStackTrace.GetFrames();
                     SetStacktraceInformation(exceptionFrames, true);
                 }
+            }
+            else
+            {
+                //initialize environment stack trace
+                var stackTrace = new StackTrace(true);
+                //reverse frame order
+                var frames = stackTrace.GetFrames();
+                SetStacktraceInformation(frames, generateExceptionInformation);
             }
         }
 

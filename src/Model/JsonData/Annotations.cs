@@ -37,7 +37,7 @@ namespace Backtrace.Unity.Model.JsonData
             EnvironmentVariables = environment.Variables;
         }
 
-        internal BacktraceJObject ToJson()
+        public BacktraceJObject ToJson()
         {
             var annotations = new BacktraceJObject();
             var envVariables = new BacktraceJObject();

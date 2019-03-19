@@ -15,6 +15,7 @@ namespace Backtrace.Unity
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
         public BacktraceConfiguration Configuration;
+        public bool Enabled { get; private set; }
 
         /// <summary>
         /// Backtrace database instance that allows to manage minidump files 
@@ -29,12 +30,27 @@ namespace Backtrace.Unity
         {
             get
             {
-                return BacktraceApi.OnServerError;
+                return BacktraceApi?.OnServerError;
             }
 
             set
             {
-                BacktraceApi.OnServerError = value;
+                if (ValidClientConfiguration())
+                {
+                    BacktraceApi.OnServerError = value;
+                }
+            }
+        }
+
+        public Func<string, BacktraceData, BacktraceResult> RequestHandler
+        {
+            get { return BacktraceApi?.RequestHandler; }
+            set
+            {
+                if (ValidClientConfiguration())
+                {
+                    BacktraceApi.RequestHandler = value;
+                }
             }
         }
 
@@ -45,19 +61,22 @@ namespace Backtrace.Unity
         {
             get
             {
-                return BacktraceApi.OnServerResponse;
+                return BacktraceApi?.OnServerResponse;
             }
 
             set
             {
-                BacktraceApi.OnServerResponse = value;
+                if (ValidClientConfiguration())
+                {
+                    BacktraceApi.OnServerResponse = value;
+                }
             }
         }
 
         /// <summary>
         /// Get or set minidump type
         /// </summary>
-        public MiniDumpType MiniDumpType { get; set; } = MiniDumpType.Normal;
+        public MiniDumpType MiniDumpType { get; set; } = MiniDumpType.None;
 
         /// <summary>
         /// Set event executed when client site report limit reached
@@ -66,7 +85,10 @@ namespace Backtrace.Unity
         {
             set
             {
-                BacktraceApi.SetClientRateLimitEvent(value);
+                if (ValidClientConfiguration())
+                {
+                    BacktraceApi.SetClientRateLimitEvent(value);
+                }
             }
         }
 
@@ -102,8 +124,7 @@ namespace Backtrace.Unity
                 Database?.SetApi(_backtraceApi);
             }
         }
-
-        private void Awake()
+        public void Refresh()
         {
             Database = GetComponent<BacktraceDatabase>();
             if (Configuration == null || !Configuration.IsValid())
@@ -111,15 +132,21 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
+            Enabled = true;
             if (Configuration.HandleUnhandledExceptions)
             {
                 HandleUnhandledExceptions();
             }
             BacktraceApi = new BacktraceApi(
-                credentials: new BacktraceCredentials(Configuration.ServerUrl, Configuration.Token),
+                credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
                 reportPerMin: Convert.ToUInt32(Configuration.ReportPerMin));
 
             Database?.SetApi(BacktraceApi);
+        }
+
+        private void Awake()
+        {
+            Refresh();
         }
 
         /// <summary>
@@ -128,7 +155,7 @@ namespace Backtrace.Unity
         /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
         public void SetClientReportLimit(uint reportPerMin)
         {
-            BacktraceApi.SetClientRateLimit(reportPerMin);
+            BacktraceApi?.SetClientRateLimit(reportPerMin);
         }
 
         /// <summary>
@@ -166,15 +193,7 @@ namespace Backtrace.Unity
             var record = Database?.Add(report, Attributes, MiniDumpType);
             //create a JSON payload instance
             BacktraceData data = null;
-            try
-            {
-                data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-
+            data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
             //valid user custom events
             data = BeforeSend?.Invoke(data) ?? data;
 
@@ -205,7 +224,6 @@ namespace Backtrace.Unity
         public void HandleUnhandledExceptions()
         {
             Application.logMessageReceived += HandleException;
-            Application.logMessageReceivedThreaded += HandleException;
         }
 
         private void HandleException(string condition, string stackTrace, LogType type)
@@ -213,6 +231,7 @@ namespace Backtrace.Unity
             if (type == LogType.Exception || type == LogType.Error)
             {
                 var exception = new BacktraceUnhandledException(condition, stackTrace);
+                OnUnhandledApplicationException?.Invoke(exception);
                 var report = new BacktraceReport(exception);
                 Send(report);
             }
@@ -231,6 +250,20 @@ namespace Backtrace.Unity
                 yield return null;
             }
             Send(innerExceptionReport, callback);
+        }
+
+        /// <summary>
+        /// Validate if current client configuration is valid 
+        /// </summary>
+        /// <returns>True if client allows to setup events, otherwise false</returns>
+        private bool ValidClientConfiguration()
+        {
+            var invalidConfiguration = BacktraceApi == null || !Enabled;
+            if (invalidConfiguration)
+            {
+                Debug.LogWarning($"Cannot set method if configuration contain invalid url to Backtrace server or client is disabled");
+            }
+            return !invalidConfiguration;
         }
     }
 }

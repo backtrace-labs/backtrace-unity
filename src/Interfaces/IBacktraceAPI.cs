@@ -28,5 +28,10 @@ namespace Backtrace.Unity.Interfaces
         void SetClientRateLimitEvent(Action<BacktraceReport> onClientReportLimitReached);
 
         void SetClientRateLimit(uint rateLimit);
+
+        /// <summary>
+        /// Setup custom request method
+        /// </summary>
+        Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
     }
 }

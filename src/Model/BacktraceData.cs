@@ -50,18 +50,6 @@ namespace Backtrace.Unity.Model
         public string AgentVersion;
 
         /// <summary>
-        /// Get built-in attributes
-        /// </summary>
-        [JsonProperty(PropertyName = "attributes")]
-        public Dictionary<string, object> Attributes;
-
-        /// <summary>
-        /// Get current host environment variables
-        /// </summary>
-        [JsonProperty(PropertyName = "annotations")]
-        internal Annotations Annotations;
-
-        /// <summary>
         /// Application thread details
         /// </summary>
         [JsonProperty(PropertyName = "threads")]
@@ -79,9 +67,6 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "classifiers", NullValueHandling = NullValueHandling.Ignore)]
         public string[] Classifier;
 
-        //[JsonProperty(PropertyName = "sourceCode", NullValueHandling = NullValueHandling.Ignore)]
-        //internal Dictionary<string, SourceCodeData.SourceCode> SourceCode;
-
         /// <summary>
         /// Get a path to report attachments
         /// </summary>
@@ -92,10 +77,13 @@ namespace Backtrace.Unity.Model
         /// Current BacktraceReport
         /// </summary>
         internal BacktraceReport Report { get; set; }
-
-        private BacktraceAttributes _attributes = null;
-        private Annotations _annotations = null;
-        private ThreadData _threadData = null;
+      
+        /// <summary>
+        /// Get built-in attributes
+        /// </summary>
+        public BacktraceAttributes Attributes = null;
+        public Annotations Annotation = null;
+        public ThreadData ThreadData = null;
 
         /// <summary>
         /// Empty constructor for serialization purpose
@@ -129,14 +117,13 @@ namespace Backtrace.Unity.Model
                 ["lang"] = "csharp",
                 ["langVersion"] = "Unity",
                 ["agent"] = "backtrace-unity",
-                ["agentVersion"] = "1.0.0",
+                ["agentVersion"] = "1.1.0",
                 ["mainThread"] = MainThread,
                 ["classifiers"] = new JArray(Classifier),
-                ["attributes"] = _attributes.ToJson(),
-                ["annotations"] = _annotations.ToJson(),
-                ["threads"] = _threadData?.ToJson()
+                ["attributes"] = Attributes.ToJson(),
+                ["annotations"] = Annotation.ToJson(),
+                ["threads"] = ThreadData?.ToJson()
             };
-
             return json.ToString();
         }
         public static BacktraceData Deserialize(string json)
@@ -152,26 +139,23 @@ namespace Backtrace.Unity.Model
                 Timestamp = @object.Value<long>("timestamp"),
                 MainThread = @object.Value<string>("mainThread"),
                 Classifier = classfiers,
-                _annotations = Annotations.Deserialize(@object["annotations"]),
-                _attributes = BacktraceAttributes.Deserialize(@object["attributes"]),
-                _threadData = ThreadData.DeserializeThreadInformation(@object["threads"])
+                Annotation = Annotations.Deserialize(@object["annotations"]),
+                Attributes = BacktraceAttributes.Deserialize(@object["attributes"]),
+                ThreadData = ThreadData.DeserializeThreadInformation(@object["threads"])
             };
         }
 
         private void SetThreadInformations()
         {
-            _threadData = new ThreadData(Report.DiagnosticStack);
-            ThreadInformations = _threadData.ThreadInformations;
-            MainThread = _threadData.MainThread;
-            //var sourceCodeData = new SourceCodeData(Report.DiagnosticStack);
-            //SourceCode = sourceCodeData.data.Any() ? sourceCodeData.data : null;
+            ThreadData = new ThreadData(Report.DiagnosticStack);
+            ThreadInformations = ThreadData.ThreadInformations;
+            MainThread = ThreadData.MainThread;
         }
 
         private void SetAttributes(Dictionary<string, object> clientAttributes)
         {
-            _attributes = new BacktraceAttributes(Report, clientAttributes);
-            Attributes = _attributes.Attributes;
-            _annotations = new Annotations(_attributes.ComplexAttributes);
+            Attributes = new BacktraceAttributes(Report, clientAttributes);
+            Annotation = new Annotations(Attributes.ComplexAttributes);
         }
 
         private void SetReportInformation()
@@ -179,7 +163,7 @@ namespace Backtrace.Unity.Model
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             LangVersion = "Mono/IL2CPP";
-            AgentVersion = "1.0.0";
+            AgentVersion = "1.1.0";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }
