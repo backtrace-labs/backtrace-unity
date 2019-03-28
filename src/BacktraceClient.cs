@@ -226,11 +226,12 @@ namespace Backtrace.Unity
             Application.logMessageReceived += HandleException;
         }
 
-        private void HandleException(string condition, string stackTrace, LogType type)
+        private void HandleException(string message, string stackTrace, LogType type)
         {
-            if (type == LogType.Exception || type == LogType.Error)
+            if ((type == LogType.Exception || type == LogType.Error )
+                && (!string.IsNullOrEmpty(message) && !message.StartsWith("[Backtrace]::")))
             {
-                var exception = new BacktraceUnhandledException(condition, stackTrace);
+                var exception = new BacktraceUnhandledException(message, stackTrace);
                 OnUnhandledApplicationException?.Invoke(exception);
                 var report = new BacktraceReport(exception);
                 Send(report);
