@@ -77,7 +77,7 @@ namespace Backtrace.Unity.Model
         /// Current BacktraceReport
         /// </summary>
         internal BacktraceReport Report { get; set; }
-      
+
         /// <summary>
         /// Get built-in attributes
         /// </summary>
@@ -117,7 +117,7 @@ namespace Backtrace.Unity.Model
                 ["lang"] = "csharp",
                 ["langVersion"] = "Unity",
                 ["agent"] = "backtrace-unity",
-                ["agentVersion"] = "1.1.0",
+                ["agentVersion"] = "1.1.1",
                 ["mainThread"] = MainThread,
                 ["classifiers"] = new JArray(Classifier),
                 ["attributes"] = Attributes.ToJson(),
@@ -163,7 +163,7 @@ namespace Backtrace.Unity.Model
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             LangVersion = "Mono/IL2CPP";
-            AgentVersion = "1.1.0";
+            AgentVersion = "1.1.1";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

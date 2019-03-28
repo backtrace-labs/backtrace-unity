@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -82,11 +83,6 @@ namespace Backtrace.Unity.Model.JsonData
         /// </summary>
         private void SetLibraryAttributes(BacktraceReport report)
         {
-            if (!string.IsNullOrEmpty(report.Fingerprint))
-            {
-                Attributes["_mod_fingerprint"] = report.Fingerprint;
-            }
-
             if (!string.IsNullOrEmpty(report.Factor))
             {
                 Attributes["_mod_factor"] = report.Factor;
