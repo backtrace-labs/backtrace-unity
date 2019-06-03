@@ -137,6 +137,15 @@ namespace Backtrace.Unity.Services
                         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                         request.SetRequestHeader("Content-Type", "application/json");
                         yield return request.SendWebRequest();
+
+                        if (request.responseCode == 200)
+                        {
+                            PrintLog(request);
+                        }
+                        else
+                        {
+                            PrintLog(request);
+                        }
                     }
                 }
                 yield return SendAttachment(objectId, attachments);
@@ -145,7 +154,9 @@ namespace Backtrace.Unity.Services
 
         private string GetAttachmentUploadUrl(string objectId, string attachmentName)
         {
-            return $"{_credentials.BacktraceHostUri.AbsoluteUri}/api/post?token={_credentials.Token}&object={objectId}&attachment_name={UrlEncode(attachmentName)}";
+            return _credentials == null || string.IsNullOrEmpty(_credentials.Token)
+                ? $"{_credentials.BacktraceHostUri.AbsoluteUri}?object={objectId}&attachment_name={UrlEncode(attachmentName)}"
+                : $"{_credentials.BacktraceHostUri.AbsoluteUri}/api/post?token={_credentials.Token}&object={objectId}&attachment_name={UrlEncode(attachmentName)}";
 
         }
 
