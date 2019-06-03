@@ -54,13 +54,5 @@ namespace Tests
             Assert.Throws<UriFormatException>(() => new BacktraceCredentials(host, "123"));
         }
 
-        [TestCase("https://backtrace.sp.backtrace.io")]
-        [TestCase("http://backtrace.sp.backtrace.io")]
-        [TestCase("https://totallynoValidSubmitUrl.submit.backtrace.io/")]
-        [Test(Author = "Konrad Dysput", Description = "Test invalid api url")]
-        public void ThrowInvalidArgumentException_FromInvalidHostName_ThrowException(string host)
-        {
-            Assert.Throws<ArgumentException>(() => new BacktraceCredentials(host));
-        }
     }
 }

@@ -46,13 +46,9 @@ namespace Tests
         [UnityTest]
         public IEnumerator TestCorrectDictionaryGeneration_ReplaceAttributes_TheSameDictionaryAttributes()
         {
-            var exception = new FileNotFoundException();
             var reportAttributeKey = "report_attr";
             var reportAttributeValue = $"{reportAttributeKey}-value";
-            var reportAttributes = new Dictionary<string, object>() { { reportAttributeKey, reportAttributeValue } };
-
             var clientAttributes = new Dictionary<string, object>() { { reportAttributeKey, $"{reportAttributeValue}-client" } };
-            var exceptionReport = new BacktraceReport(exception, reportAttributes);
             Assert.IsFalse(clientAttributes[reportAttributeKey] as string == reportAttributeValue);
             yield return null;
         }

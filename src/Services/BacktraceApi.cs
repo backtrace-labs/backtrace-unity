@@ -114,11 +114,11 @@ namespace Backtrace.Unity.Services
             }
         }
 
-        [System.Diagnostics.Conditional("DEBUG")]
         private void PrintLog(UnityWebRequest request)
         {
             string responseText = Encoding.UTF8.GetString(request.downloadHandler.data);
-            Debug.Log($"Response text: {responseText}");
+            Debug.LogError($"[Backtrace]::Reponse code: {request.responseCode}, Response text: {responseText}" +
+                $"\n Please check provided url to Backtrace service or learn more from our integration guide: https://help.backtrace.io/integration-guides/game-engines/unity-integration-guide");
         }
 
         private IEnumerator SendAttachment(string objectId, Stack<string> attachments)

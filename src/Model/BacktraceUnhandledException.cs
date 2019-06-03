@@ -51,7 +51,6 @@ namespace Backtrace.Unity.Model
 
         private void ConvertStackFrames()
         {
-            bool first = true;
             // frame format:
             // ClassName.MethodName () (at source/path/file.cs:fileLine)
             var frames = _stacktrace.Trim().Split('\n');
@@ -93,7 +92,9 @@ namespace Backtrace.Unity.Model
                     // -1 because we don't want additional ')' in the end of the string
                     int sourceStringLength = frameString.Length - sourceInformationStartIndex;
                     string sourceString =
-                        frameString.Trim().Substring(sourceInformationStartIndex, sourceStringLength);
+                        frameString
+                            .Trim()
+                            .Substring(sourceInformationStartIndex, sourceStringLength);
 
                     int lineNumberSeparator = sourceString.LastIndexOf(':') + 1;
                     int endLineNumberSeparator = sourceString.LastIndexOf(')') - lineNumberSeparator;
@@ -105,15 +106,23 @@ namespace Backtrace.Unity.Model
 
                     if (sourceString[0] == '(' && lineNumberSeparator != -1)
                     {
-                        //avoid "at"
-                        int atSeparator = 3;
-                        methodPath = sourceString.Substring(atSeparator, lineNumberSeparator - 1 - atSeparator)?.Trim() ?? string.Empty;
+                        //avoid "at" or '('
+                        int atSeparator = sourceString.StartsWith("(at")
+                            ? 3
+                            : 1;
+                        int endLine = lineNumberSeparator == 0
+                            ? sourceString.LastIndexOf(')') - atSeparator
+                            : lineNumberSeparator - 1 - atSeparator;
+                        methodPath = sourceString
+                            .Substring(atSeparator, endLine)
+                            ?.Trim() ?? string.Empty;
+
                     }
 
                 }
                 StackFrames.Add(new BacktraceStackFrame()
                 {
-                    
+
                     FunctionName = string.Join(".", routingParams),
                     Library = routingParams[0],
                     Line = fileLine,
