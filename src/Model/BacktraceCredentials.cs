@@ -33,7 +33,9 @@ namespace Backtrace.Unity.Model
         {
             get
             {
-                return Encoding.UTF8.GetString(_accessToken);
+                return _accessToken == null || _accessToken.Length == 0
+                    ? string.Empty
+                    : Encoding.UTF8.GetString(_accessToken);
             }
         }
 

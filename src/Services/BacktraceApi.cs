@@ -99,7 +99,7 @@ namespace Backtrace.Unity.Services
                     if (attachments != null && attachments.Count > 0)
                     {
                         var stack = new Stack<string>(attachments);
-                        yield return SendAttachment(response.Object, stack);
+                        yield return SendAttachment(response.RxId, stack);
                     }
                 }
                 else
@@ -121,7 +121,7 @@ namespace Backtrace.Unity.Services
                 $"\n Please check provided url to Backtrace service or learn more from our integration guide: https://help.backtrace.io/integration-guides/game-engines/unity-integration-guide");
         }
 
-        private IEnumerator SendAttachment(string objectId, Stack<string> attachments)
+        private IEnumerator SendAttachment(string rxId, Stack<string> attachments)
         {
             if (attachments != null && attachments.Count > 0)
             {
@@ -129,7 +129,7 @@ namespace Backtrace.Unity.Services
                 if (System.IO.File.Exists(attachment))
                 {
                     string fileName = System.IO.Path.GetFileName(attachment);
-                    string serverUrl = GetAttachmentUploadUrl(objectId, fileName);
+                    string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
                     using (var request = new UnityWebRequest(serverUrl, "POST"))
                     {
                         byte[] bodyRaw = System.IO.File.ReadAllBytes(attachment);
@@ -137,15 +137,26 @@ namespace Backtrace.Unity.Services
                         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                         request.SetRequestHeader("Content-Type", "application/json");
                         yield return request.SendWebRequest();
+
+                        if (request.responseCode == 200)
+                        {
+                            PrintLog(request);
+                        }
+                        else
+                        {
+                            PrintLog(request);
+                        }
                     }
                 }
-                yield return SendAttachment(objectId, attachments);
+                yield return SendAttachment(rxId, attachments);
             }
         }
 
-        private string GetAttachmentUploadUrl(string objectId, string attachmentName)
+        private string GetAttachmentUploadUrl(string rxId, string attachmentName)
         {
-            return $"{_credentials.BacktraceHostUri.AbsoluteUri}/api/post?token={_credentials.Token}&object={objectId}&attachment_name={UrlEncode(attachmentName)}";
+            return _credentials == null || string.IsNullOrEmpty(_credentials.Token)
+                ? $"{_credentials.BacktraceHostUri.AbsoluteUri}?object={rxId}&attachment_name={UrlEncode(attachmentName)}"
+                : $"{_credentials.BacktraceHostUri.AbsoluteUri}/api/post?token={_credentials.Token}&object={rxId}&attachment_name={UrlEncode(attachmentName)}";
 
         }
 
