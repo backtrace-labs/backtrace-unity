@@ -1,9 +1,18 @@
 {
-	"name": "Backtrace-unity",
-	"displayName": "Backtrace-Unity",
-	"version": "1.0.0",
-	"unity" : "2017.1",
-	"description": "Backtrace's integration with Unity games allows customers to capture and report handled and unhandled Unity exceptions to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.",
-	"keywords": ["Backtrace", "Error", "Diagnostic", "Tools", "Debug" ,"Bug" ,"Bugs" ,"StackTrace"],
-	"category": "Editor plugin + Script plugin"
+  "name": "Backtrace-unity",
+  "displayName": "Backtrace-Unity",
+  "version": "1.1.2",
+  "unity": "2017.1",
+  "description": "Backtrace's integration with Unity games allows customers to capture and report handled and unhandled Unity exceptions to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.",
+  "keywords": [
+    "Backtrace",
+    "Error",
+    "Diagnostic",
+    "Tools",
+    "Debug",
+    "Bug",
+    "Bugs",
+    "StackTrace"
+  ],
+  "category": "Editor plugin + Script plugin"
 }

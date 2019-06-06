@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 1.1.2 - 06.06.2019
+- Changed a way how Unity-plugin upload attachments to Backtrace via `submit.backtrace.io`
+
 ## Version 1.1.1 - 28.03.2019
 
 - Detailed log information when Unity plugin cannot send data to Backtrace,
