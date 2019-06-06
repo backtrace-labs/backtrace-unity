@@ -62,6 +62,8 @@ namespace Backtrace.Unity.Model
                 Status = BacktraceResultStatus.Ok;
             }
         }
+
+        private string _rxId;
         /// <summary>
         /// Backtrace APi can return _rxid instead of ObjectId. 
         /// Use this setter to set _object field correctly for both answers
@@ -69,9 +71,13 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "_rxid")]
         public string RxId
         {
+            get
+            {
+                return _rxId;
+            }
             set
             {
-                _object = value;
+                _rxId= value;
                 Status = BacktraceResultStatus.Ok;
             }
         }
