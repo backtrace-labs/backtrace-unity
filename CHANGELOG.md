@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 1.1.3 - 07.06.2019
+- Removed error log when unity-plugin receive status code: 200 on attachment upload.
+
 ## Version 1.1.2 - 06.06.2019
 - Changed a way how Unity-plugin upload attachments to Backtrace via `submit.backtrace.io`
 
