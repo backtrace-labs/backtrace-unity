@@ -12,6 +12,7 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_REPORT_PER_MIN = "Reports per minute";
         public const string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
         public const string LABEL_ENABLE_DATABASE = "Enable Database";
+        public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
 
         public const string LABEL_PATH = "Backtrace database path";
         public const string LABEL_AUTO_SEND_MODE = "Auto send mode";
@@ -36,9 +37,11 @@ namespace Backtrace.Unity.Editor
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("ReportPerMin"), new GUIContent(LABEL_REPORT_PER_MIN));
 
-
             SerializedProperty unhandledExceptions = serializedObject.FindProperty("HandleUnhandledExceptions");
             EditorGUILayout.PropertyField(unhandledExceptions, new GUIContent(LABEL_HANDLE_UNHANDLED_EXCEPTION));
+
+            SerializedProperty sslValidation = serializedObject.FindProperty("IgnoreSslValidation");
+            EditorGUILayout.PropertyField(sslValidation, new GUIContent(LABEL_IGNORE_SSL_VALIDATION));
 
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");
             EditorGUILayout.PropertyField(enabled, new GUIContent(LABEL_ENABLE_DATABASE));

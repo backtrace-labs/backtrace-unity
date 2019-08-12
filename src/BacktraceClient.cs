@@ -139,7 +139,8 @@ namespace Backtrace.Unity
             }
             BacktraceApi = new BacktraceApi(
                 credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
-                reportPerMin: Convert.ToUInt32(Configuration.ReportPerMin));
+                reportPerMin: Convert.ToUInt32(Configuration.ReportPerMin),
+                ignoreSslValidation: Configuration.IgnoreSslValidation);
 
             Database?.SetApi(BacktraceApi);
         }

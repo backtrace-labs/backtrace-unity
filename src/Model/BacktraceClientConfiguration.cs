@@ -9,6 +9,7 @@ namespace Backtrace.Unity.Model
         public string ServerUrl;
         public int ReportPerMin;
         public bool HandleUnhandledExceptions = true;
+        public bool IgnoreSslValidation = false;
 
         public void UpdateServerUrl()
         {
