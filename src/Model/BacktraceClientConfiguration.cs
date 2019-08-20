@@ -36,7 +36,7 @@ namespace Backtrace.Unity.Model
 
         public bool ValidateServerUrl()
         {
-            if (!ServerUrl.Contains(".sp.backtrace.io") && !ServerUrl.Contains("submit.backtrace.io"))
+            if (!ServerUrl.Contains("backtrace.io") && !ServerUrl.Contains("submit.backtrace.io"))
             {
                 return false;
             }

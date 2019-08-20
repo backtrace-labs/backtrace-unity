@@ -25,7 +25,7 @@ namespace Backtrace.Unity.Editor
             settings.UpdateServerUrl();
             if (!settings.ValidateServerUrl())
             {
-                EditorGUILayout.HelpBox("Please insert valid Backtrace server url!", MessageType.Error);
+                EditorGUILayout.HelpBox("Detected different pattern of url. Please make sure its a valid Backtrace url!", MessageType.Warning);
             }
             settings.ReportPerMin = EditorGUILayout.IntField(LABEL_REPORT_PER_MIN, settings.ReportPerMin);
             settings.HandleUnhandledExceptions = EditorGUILayout.Toggle(LABEL_HANDLE_UNHANDLED_EXCEPTION, settings.HandleUnhandledExceptions);

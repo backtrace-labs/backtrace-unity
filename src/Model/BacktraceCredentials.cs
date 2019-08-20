@@ -51,28 +51,13 @@ namespace Backtrace.Unity.Model
             }
 
             var uriBuilder = new UriBuilder(BacktraceHostUri);
-            if (_validUrl)
-            {
-                return uriBuilder.Uri;
-            }
-            if (string.IsNullOrEmpty(Token))
-            {
-                throw new ArgumentException(nameof(Token));
-            }
-
             if (!uriBuilder.Scheme.StartsWith("http"))
             {
                 uriBuilder.Scheme = $"https://{uriBuilder.Scheme}";
             }
-            if (!uriBuilder.Path.EndsWith("/") && !string.IsNullOrEmpty(uriBuilder.Path))
-            {
-                uriBuilder.Path += "/";
-            }
-            uriBuilder.Path = $"{uriBuilder.Path}post";
-            uriBuilder.Query = $"format=json&token={Token}";
             return uriBuilder.Uri;
         }
-        private readonly bool _validUrl = false;
+        //private readonly bool _validUrl = false;
 
         /// <summary>
         /// Initialize Backtrace credentials with Backtrace submit url. 
@@ -95,11 +80,11 @@ namespace Backtrace.Unity.Model
             {
                 hostToCheck = $"www.{hostToCheck}";
             }
-            _validUrl = hostToCheck.StartsWith("www.submit.backtrace.io") || hostToCheck.Contains("sp.backtrace.io");
-            if (!_validUrl)
-            {                
-                throw new ArgumentException(nameof(backtraceSubmitUrl));
-            }
+            //_validUrl = hostToCheck.StartsWith("www.submit.backtrace.io") || hostToCheck.Contains("backtrace.io");
+            //if (!_validUrl)
+            //{                
+            //    throw new ArgumentException(nameof(backtraceSubmitUrl));
+            //}
             _backtraceHostUri = backtraceSubmitUrl;
         }
 
