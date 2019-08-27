@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 1.1.4 - 27.08.2019
+- Added support for servies under proxy (removed backtrace.sp conditions)
+
 ## Version 1.1.3 - 07.06.2019
 - Removed error log when unity-plugin receive status code: 200 on attachment upload.
 

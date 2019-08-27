@@ -29,6 +29,11 @@ namespace Backtrace.Unity.Model
         public bool HandleUnhandledExceptions = true;
 
         /// <summary>
+        /// Determine if client should ignore ssl validation
+        /// </summary>
+        public bool IgnoreSslValidation = false;
+
+        /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         public string DatabasePath;

@@ -36,18 +36,21 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly string _serverurl;
 
+        private readonly bool _ignoreSslValidation;
+
         private readonly BacktraceCredentials _credentials;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
         /// <param name="credentials">API credentials</param>
-        public BacktraceApi(BacktraceCredentials credentials, uint reportPerMin = 3)
+        public BacktraceApi(BacktraceCredentials credentials, uint reportPerMin = 3, bool ignoreSslValidation = false)
         {
             if (credentials == null)
             {
                 throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             }
             _credentials = credentials;
+            _ignoreSslValidation = ignoreSslValidation;
             _serverurl = credentials.GetSubmissionUrl().ToString();
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
@@ -84,6 +87,10 @@ namespace Backtrace.Unity.Services
         {
             using (var request = new UnityWebRequest(_serverurl, "POST"))
             {
+                if (_ignoreSslValidation)
+                {
+                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
+                }
                 byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
                 request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
@@ -132,6 +139,10 @@ namespace Backtrace.Unity.Services
                     string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
                     using (var request = new UnityWebRequest(serverUrl, "POST"))
                     {
+                        if (_ignoreSslValidation)
+                        {
+                            request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
+                        }
                         byte[] bodyRaw = System.IO.File.ReadAllBytes(attachment);
                         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
