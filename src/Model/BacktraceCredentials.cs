@@ -57,7 +57,6 @@ namespace Backtrace.Unity.Model
             }
             return uriBuilder.Uri;
         }
-        //private readonly bool _validUrl = false;
 
         /// <summary>
         /// Initialize Backtrace credentials with Backtrace submit url. 
@@ -80,11 +79,6 @@ namespace Backtrace.Unity.Model
             {
                 hostToCheck = $"www.{hostToCheck}";
             }
-            //_validUrl = hostToCheck.StartsWith("www.submit.backtrace.io") || hostToCheck.Contains("backtrace.io");
-            //if (!_validUrl)
-            //{                
-            //    throw new ArgumentException(nameof(backtraceSubmitUrl));
-            //}
             _backtraceHostUri = backtraceSubmitUrl;
         }
 
