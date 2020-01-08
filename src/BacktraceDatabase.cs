@@ -70,6 +70,10 @@ namespace Backtrace.Unity
                 Enable = false;
                 return;
             }
+            if (Configuration.DestroyOnLoad == false)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
 
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
             if (DatabaseSettings == null)

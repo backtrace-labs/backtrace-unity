@@ -132,6 +132,9 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
+            if (Configuration.DestroyOnLoad == false) {
+                DontDestroyOnLoad(gameObject);
+            }
             Enabled = true;
             if (Configuration.HandleUnhandledExceptions)
             {

@@ -10,7 +10,8 @@ namespace Backtrace.Unity.Model
         public int ReportPerMin;
         public bool HandleUnhandledExceptions = true;
         public bool IgnoreSslValidation = false;
-
+        public bool DestroyOnLoad = true;
+        
         public void UpdateServerUrl()
         {
             if (string.IsNullOrEmpty(ServerUrl))
@@ -41,8 +42,7 @@ namespace Backtrace.Unity.Model
                 return false;
             }
 
-            Uri serverUri;
-            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out serverUri);
+            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out Uri serverUri);
             try
             {
                 new UriBuilder(ServerUrl) { Scheme = Uri.UriSchemeHttps, Port = 6098 }.Uri.ToString();

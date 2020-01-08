@@ -73,6 +73,11 @@ namespace Backtrace.Unity.Model
         public int RetryLimit = 3;
 
         /// <summary>
+        /// Don't destroy Backtrace instances on load.
+        /// </summary>
+        public bool DestroyOnLoad = true;
+
+        /// <summary>
         /// Retry order
         /// </summary>
         public RetryOrder RetryOrder;
