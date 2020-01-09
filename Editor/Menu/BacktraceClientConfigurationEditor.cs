@@ -16,6 +16,7 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_DONT_DESTROY_BACKTRACE_ON_SCENE_LOAD = "Don't destroy Backtrace client on scene load";
 
 
+
         private const string CONFIG_NAME = "backtrace_client_config";
 
         public override void OnInspectorGUI()
