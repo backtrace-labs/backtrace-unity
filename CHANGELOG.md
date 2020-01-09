@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 1.1.5 - 09.01.2019
+- Added support to DontDestroyOnLoad property. Right now users might use this property to store `BacktraceClient`/`BacktraceDatabase` instances between all game scenes.
+- Added more attributes to `BacktraceReport` object,
+- Added scene game objects information to `BacktraceReport` annotations.
+
 ## Version 1.1.4 - 27.08.2019
 - Added support for servies under proxy (removed backtrace.sp conditions)
 
