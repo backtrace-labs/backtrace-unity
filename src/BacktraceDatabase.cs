@@ -21,12 +21,33 @@ namespace Backtrace.Unity
 
         public BacktraceConfiguration Configuration;
 
+
+        /// <summary>
+        /// Backtrace database instance.
+        /// </summary>
+        private static BacktraceDatabase _instance;
+
+        /// <summary>
+        ///  Backtrace database instance accessor. Please use this property to access
+        ///  BacktraceDatabase instance from other scene. This property will return value only
+        ///  when you mark option "DestroyOnLoad" to false.
+        /// </summary>
+        public static BacktraceDatabase Instance
+        {
+            get
+            {
+                return _instance;
+            }
+        }
+
         /// <summary>
         /// Database settings
         /// </summary>
         private BacktraceDatabaseSettings DatabaseSettings { get; set; }
 
         private float _lastConnection;
+        
+
         /// <summary>
         /// Backtrace Api instance. Use BacktraceApi to send data to Backtrace server
         /// </summary>
@@ -70,10 +91,7 @@ namespace Backtrace.Unity
                 Enable = false;
                 return;
             }
-            if (Configuration.DestroyOnLoad == false)
-            {
-                DontDestroyOnLoad(gameObject);
-            }
+           
 
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
             if (DatabaseSettings == null)
@@ -86,10 +104,16 @@ namespace Backtrace.Unity
             {
                 Directory.CreateDirectory(Configuration.DatabasePath);
             }
+            if (Configuration.DestroyOnLoad == false)
+            {
+                DontDestroyOnLoad(gameObject);
+                _instance = this;
+            }
             Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
 
             if (!Enable)
             {
+               
                 return;
             }
 

@@ -18,6 +18,24 @@ namespace Backtrace.Unity
         public bool Enabled { get; private set; }
 
         /// <summary>
+        /// Backtrace client instance.
+        /// </summary>
+        private static BacktraceClient _instance;
+
+        /// <summary>
+        ///  Backtrace client instance accessor. Please use this property to access
+        ///  BacktraceClient instance from other scene. This property will return value only
+        ///  when you mark option "DestroyOnLoad" to false.
+        /// </summary>
+        public static BacktraceClient Instance
+        {
+            get
+            {
+                return _instance;
+            }
+        }
+
+        /// <summary>
         /// Backtrace database instance that allows to manage minidump files 
         /// </summary>
         public IBacktraceDatabase Database;
@@ -132,9 +150,7 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
-            if (Configuration.DestroyOnLoad == false) {
-                DontDestroyOnLoad(gameObject);
-            }
+            
             Enabled = true;
             if (Configuration.HandleUnhandledExceptions)
             {
@@ -146,6 +162,12 @@ namespace Backtrace.Unity
                 ignoreSslValidation: Configuration.IgnoreSslValidation);
 
             Database?.SetApi(BacktraceApi);
+
+            if (Configuration.DestroyOnLoad == false)
+            {
+                DontDestroyOnLoad(gameObject);
+                _instance = this;
+            }
         }
 
         private void Awake()

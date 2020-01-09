@@ -73,7 +73,7 @@ namespace Backtrace.Unity.Model
         public int RetryLimit = 3;
 
         /// <summary>
-        /// Don't destroy Backtrace instances on load.
+        /// Destroy Backtrace instances on new scene load.
         /// </summary>
         public bool DestroyOnLoad = true;
 
