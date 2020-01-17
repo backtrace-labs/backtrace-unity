@@ -65,9 +65,9 @@ namespace Backtrace.Unity.Model
                 ["il"] = Il,
                 ["metadata_token"] = MemberInfo,
                 ["column"] = Column,
-                ["address"] = ILOffset
+                ["address"] = ILOffset,
+                ["library"] = Library
             };
-
             //todo: source code information
 
             return stackFrame;
@@ -103,6 +103,7 @@ namespace Backtrace.Unity.Model
                 Il = frame.Value<int?>("il"),
                 MemberInfo = frame.Value<int?>("metadata_token"),
                 Column = frame.Value<int>("column"),
+                Library = frame.Value<string>("library"),
                 ILOffset = frame.Value<int?>("address"),
             };
         }
@@ -116,11 +117,13 @@ namespace Backtrace.Unity.Model
             {
                 return;
             }
+            SourceCodeFullPath = frame.GetFileName();
             FunctionName = GetMethodName(frame);
             Line = frame.GetFileLineNumber();
             Il = frame.GetILOffset();
             ILOffset = Il;
-            SourceCodeFullPath = frame.GetFileName();
+
+            Library = SourceCodeFullPath;
 
             SourceCode = generatedByException
                     ? Guid.NewGuid().ToString()
@@ -136,7 +139,7 @@ namespace Backtrace.Unity.Model
             }
         }
 
-        
+
 
         /// <summary>
         /// Generate valid name for current stack frame.

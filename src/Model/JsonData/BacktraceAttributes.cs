@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -42,6 +41,7 @@ namespace Backtrace.Unity.Model.JsonData
             //Environment attributes override user attributes            
             SetMachineAttributes();
             SetProcessAttributes();
+            SetSceneInformation();
         }
         private BacktraceAttributes() { }
 
@@ -91,6 +91,7 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["guid"] = GenerateMachineId();
             //Base name of application generating the report
             Attributes["application"] = Application.productName;
+            Attributes["application.version"] = Application.version;
             Attributes["application.url"] = Application.absoluteURL;
             Attributes["application.company.name"] = Application.companyName;
             Attributes["application.data_path"] = Application.dataPath;
@@ -190,8 +191,17 @@ namespace Backtrace.Unity.Model.JsonData
             }
             Attributes["scene.count"] = SceneManager.sceneCount;
             var activeScene = SceneManager.GetActiveScene();
+            if(activeScene == null)
+            {
+                return;
+            }
             Attributes["scene.active"] = activeScene.name;
-            Attributes["scene.active.loaded"] = activeScene.isLoaded;
+            Attributes["scene.buildIndex"] = activeScene.buildIndex;
+            Attributes["scene.handle"] = activeScene.handle;
+            Attributes["scene.isDirty"] = activeScene.isDirty;
+            Attributes["scene.isLoaded"] = activeScene.isLoaded;
+            Attributes["scene.name"] = activeScene.name;
+            Attributes["scene.path"] = activeScene.path;
         }
 
         /// <summary>

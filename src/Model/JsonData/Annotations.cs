@@ -1,6 +1,8 @@
 ﻿using Backtrace.Newtonsoft;
 using Backtrace.Newtonsoft.Linq;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Backtrace.Unity.Model.JsonData
 {
@@ -9,6 +11,7 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
+        private JToken _serializedAnnotations;
 
         /// <summary>
         /// Get system environment variables
@@ -37,8 +40,17 @@ namespace Backtrace.Unity.Model.JsonData
             EnvironmentVariables = environment.Variables;
         }
 
+        public void FromJson(JToken jtoken)
+        {
+            _serializedAnnotations = jtoken;
+        }
+
         public BacktraceJObject ToJson()
         {
+            if (_serializedAnnotations != null)
+            {
+                return _serializedAnnotations as BacktraceJObject;
+            }
             var annotations = new BacktraceJObject();
             var envVariables = new BacktraceJObject();
 
@@ -47,29 +59,45 @@ namespace Backtrace.Unity.Model.JsonData
                 envVariables[envVariable.Key] = envVariable.Value?.ToString() ?? string.Empty;
             }
             annotations["Environment Variables"] = envVariables;
+            var activeScene = SceneManager.GetActiveScene();
+            if (activeScene != null)
+            {
+                var gameObjects = new JArray();
+
+                var rootObjects = new List<GameObject>();
+                activeScene.GetRootGameObjects(rootObjects);
+                for (int i = 0; i < rootObjects.Count; ++i)
+                {
+                    // https://docs.unity3d.com/ScriptReference/GameObject.html
+                    // game object properties
+                    var gameObject = new BacktraceJObject()
+                    {
+                        ["name"] = rootObjects[i].name,
+                        ["isStatic"] = rootObjects[i].isStatic,
+                        ["layer"] = rootObjects[i].layer,
+                        ["tag"] = rootObjects[i].tag,
+                        ["transform.position"] = rootObjects[i].transform?.position.ToString() ?? "",
+                        ["transform.rotation"] = rootObjects[i].transform?.rotation.ToString() ?? "",
+                        ["tag"] = rootObjects[i].tag,
+                        ["tag"] = rootObjects[i].tag,
+                        ["activeInHierarchy"] = rootObjects[i].activeInHierarchy,
+                        ["activeSelf"] = rootObjects[i].activeSelf,
+                        ["hideFlags"] = (int)rootObjects[i].hideFlags,
+                        ["instanceId"] = rootObjects[i].GetInstanceID(),
+
+                    };
+                    gameObjects.Add(gameObject);
+                }
+                annotations["Game objects"] = gameObjects;
+            }
+
             return annotations;
         }
 
         public static Annotations Deserialize(JToken token)
-        {
+        {            
             var annotations = new Annotations();
-            //get all environment variables and complex attributes
-            foreach (BacktraceJProperty annotation in token)
-            {
-                //parse all dictionaries of values
-                var values = new Dictionary<string, string>();
-                foreach (var annotationDictionary in annotation)
-                {
-                    foreach (BacktraceJProperty value in annotationDictionary)
-                    {
-                        values.Add(value.Name, value.Value.Value<string>());
-                    }
-                }
-                if (annotation.Name == "Environment Variables")
-                {
-                    annotations.EnvironmentVariables = values;
-                }
-            }
+            annotations.FromJson(token);
             return annotations;
         }
     }
