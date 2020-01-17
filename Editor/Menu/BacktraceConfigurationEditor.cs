@@ -47,7 +47,6 @@ namespace Backtrace.Unity.Editor
             SerializedProperty destroyOnLoad = serializedObject.FindProperty("DestroyOnLoad");
             EditorGUILayout.PropertyField(destroyOnLoad, new GUIContent(LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
 
-
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");
             EditorGUILayout.PropertyField(enabled, new GUIContent(LABEL_ENABLE_DATABASE));
 

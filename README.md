@@ -1,6 +1,6 @@
 # Backtrace Unity support
 
-[Backtrace](http://backtrace.io/)'s integration with unity games allows customers to capture and report handled and unhandled untiy exceptions to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
+[Backtrace](http://backtrace.io/)'s integration with unity games allows customers to capture and report handled and unhandled Unity exceptions to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
 [Github Release]:(https://github.com/backtrace-labs/backtrace-labs/)
 
@@ -21,7 +21,7 @@ catch(Exception exception){
 
 # Features Summary <a name="features-summary"></a>
 * Light-weight Unity client that quickly submits crashed generated in Unity environment to your Backtrace dashboard
-  * Can include callstack, system metadata, custom metadata, custom attribues and file attachments if needed
+  * Can include callstack, system metadata, custom metadata, custom attributes and file attachments if needed
 * Supports a wide range of unity version and environments
 * Supports .NET 4.5 Backend, IL2CPP and Mono environments
 * Supports offline database for error report storage and re-submission in case of network outage
@@ -57,9 +57,9 @@ Watch this 1 minute silent video to see the Integration and Configuration in act
 
 The following is a reference guide to the Backtrace Client fields:
 
-* Server Address: This field is required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve this value for your instance is our docs at What is a submission URL and What is a submission token?  NOTE: the backtrace-unity plugin  will expect full url with token to your Backtrace instance,
+* Server Address: This field is required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve this value for your instance is our docs at What is a submission URL and What is a submission token?  NOTE: the backtrace-unity plugin  will expect full URL with token to your Backtrace instance,
 * Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
-* Handle unhandle exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
+* Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 * Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure. 
 * Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start
 * Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
@@ -74,7 +74,7 @@ The following is a reference guide to the Backtrace Client fields:
 You can further configure your game to submit crashes by making further changes in the C# code for your game. 
 
 ## Basic configuration
-If you setup `Backtrace client` and `Backtrace database` configuration you can retrieve database and client instances by using `GameObject`. When you retrieve client instance you can start sending reports from try/catch blok in your game!
+If you setup `Backtrace client` and `Backtrace database` configuration you can retrieve database and client instances by using `GameObject`. When you retrieve client instance you can start sending reports from try/catch block in your game!
 
 ```csharp
 
@@ -153,7 +153,7 @@ backtraceClient.BeforeSend =
     {
         var data = model;
         //do something with data for example:        
-        data.Attributes.Add("eventAtrtibute", "EventAttributeValue");
+        data.Attributes.Add("eventAttribute", "EventAttributeValue");
         if(data.Classifier == null || !data.Classifier.Any())
         {
             data.Attachments.Add("path to attachment");
@@ -170,7 +170,7 @@ backtraceClient.BeforeSend =
 - `OnServerError`
 
 ## Reporting unhandled application exceptions
-`BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions even if you dont set this option in `Backtrace configuration window` please use code below:
+`BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions even if you don't set this option in `Backtrace configuration window` please use code below:
 ```csharp
 backtraceClient.HandleApplicationException();
 ``` 
@@ -196,13 +196,13 @@ backtraceDatabase.Clear();
 **`BacktraceReport`** is a class that describe a single error report.
 
 ## BacktraceClient  <a name="architecture-BacktraceClient"></a>
-**`BacktraceClient`** is a class that allows you to send `BacktraceReport` to `Backtrace` server by using `BacktraceApi`. This class sets up connection to the Backtrace endpoint and manages error reporting behavior (for example, saving minidump files on your local hard drive and limiting the number of error reports per minute). `BacktraceClient` inherits from `Mono behaviour`.
+**`BacktraceClient`** is a class that allows you to send `BacktraceReport` to `Backtrace` server by using `BacktraceApi`. This class sets up connection to the Backtrace endpoint and manages error reporting behavior (for example, saving minidump files on your local hard drive and limiting the number of error reports per minute). `BacktraceClient` inherits from `Mono behavior`.
 
 `BacktraceClient` requires from a `Backtrace configuration window`
-- `Sever url` - url to `Backtrace` server,
+- `Sever URL` - URL to `Backtrace` server,
 - `Token` - token to `Backtrace` project,
 - `ReportPerMin` - A cap on the number of reports that can be sent per minute. If `ReportPerMin` is equal to zero then there is no cap.
-- `HandlUnhandleException` - flag that allows `BacktraceClient` handling unhandled exception by default.
+- `HandleUnhandledExceptions` - flag that allows `BacktraceClient` handling unhandled exception by default.
 
 ## BacktraceData  <a name="architecture-BacktraceData"></a>
 **`BacktraceData`** is a serializable class that holds the data to create a diagnostic JSON to be sent to the Backtrace endpoint via `BacktraceApi`. You can add additional pre-processors for `BacktraceData` by attaching an event handler to the `BacktraceClient.BeforeSend` event. `BacktraceData` require `BacktraceReport` and `BacktraceClient` client attributes.
