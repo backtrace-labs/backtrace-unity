@@ -248,7 +248,7 @@ namespace Backtrace.Unity
         }
 
         public void HandleUnhandledExceptions()
-        {
+        {            
             Application.logMessageReceived += HandleException;
         }
 
