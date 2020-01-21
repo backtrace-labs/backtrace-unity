@@ -45,11 +45,7 @@ namespace Backtrace.Unity.Services
         /// <param name="credentials">API credentials</param>
         public BacktraceApi(BacktraceCredentials credentials, uint reportPerMin = 3, bool ignoreSslValidation = false)
         {
-            if (credentials == null)
-            {
-                throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
-            }
-            _credentials = credentials;
+            _credentials = credentials ?? throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             _ignoreSslValidation = ignoreSslValidation;
             _serverurl = credentials.GetSubmissionUrl().ToString();
             reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
@@ -80,12 +76,17 @@ namespace Backtrace.Unity.Services
                 yield return RequestHandler.Invoke(_serverurl, data);
             }
             string json = data.ToJson();
-            yield return Send(json, data.Attachments, data.Report, callback);
+            yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
         }
 
-        private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, Action<BacktraceResult> callback)
+        private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, int deduplication, Action<BacktraceResult> callback)
         {
-            using (var request = new UnityWebRequest(_serverurl, "POST"))
+            var requestUrl = _serverurl;
+            if (deduplication > 0)
+            {
+                requestUrl += $"&_mod_duplicate={deduplication}";
+            }
+            using (var request = new UnityWebRequest(requestUrl, "POST"))
             {
                 if (_ignoreSslValidation)
                 {

@@ -85,6 +85,12 @@ namespace Backtrace.Unity.Model
         public Annotations Annotation = null;
         public ThreadData ThreadData = null;
 
+
+        /// <summary>
+        /// Number of deduplications
+        /// </summary>
+        public int Deduplication { get; set; } = 0;
+
         /// <summary>
         /// Empty constructor for serialization purpose
         /// </summary>

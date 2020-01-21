@@ -74,6 +74,11 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         public uint RetryLimit { get; set; } = 3;
 
+        /// <summary>
+        /// Deduplication strategy
+        /// </summary>
+        public DeduplicationStrategy DeduplicationStrategy { get; set; } = DeduplicationStrategy.None;
+
         public RetryOrder RetryOrder { get; set; } = RetryOrder.Queue;
     }
 }

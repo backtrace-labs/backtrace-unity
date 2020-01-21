@@ -22,7 +22,16 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         void Flush();
 
+        /// <summary>
+        /// Set Backtrace API instance
+        /// </summary>
+        /// <param name="backtraceApi">Backtrace API object instance</param>
         void SetApi(IBacktraceApi backtraceApi);
+
+        /// <summary>
+        /// Deduplication method. Use this method to override default method to generate hash from deduplication model
+        /// </summary>
+        Func<DeduplicationStrategy, BacktraceData, string> DeduplicationHash { set; get; }
 
         /// <summary>
         /// Remove all existing reports in BacktraceDatabase

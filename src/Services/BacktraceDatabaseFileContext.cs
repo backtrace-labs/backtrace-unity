@@ -74,7 +74,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void RemoveOrphaned(IEnumerable<BacktraceDatabaseRecord> existingRecords)
         {
-            IEnumerable<string> recordStringIds = existingRecords.Select(n => n.Id.ToString());
+            var recordStringIds = existingRecords.Select(n => n.Id.ToString());
             var files = GetAll();
             for (int fileIndex = 0; fileIndex < files.Count(); fileIndex++)
             {
