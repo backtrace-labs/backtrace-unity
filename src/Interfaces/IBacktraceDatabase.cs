@@ -1,5 +1,6 @@
 ﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
+using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
@@ -70,5 +71,11 @@ namespace Backtrace.Unity.Interfaces
         /// Get database size
         /// </summary>
         long GetDatabaseSize();
+
+        /// <summary>
+        /// Set report limit watcher - object responsible to validate number of events per time unit
+        /// </summary>
+        /// <param name="reportLimitWatcher">Report limit watcher instance</param>
+        void SetReportWatcher(ReportLimitWatcher reportLimitWatcher);
     }
 }

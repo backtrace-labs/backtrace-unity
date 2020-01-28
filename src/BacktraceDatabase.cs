@@ -1,5 +1,4 @@
-﻿using Backtrace.Unity.Common;
-using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
@@ -133,7 +132,11 @@ namespace Backtrace.Unity
 
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
-            BacktraceApi = new BacktraceApi(Configuration.ToCredentials(), Convert.ToUInt32(Configuration.ReportPerMin));
+            BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
+            if(_reportLimitWatcher == null)
+            {
+                _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
+            }
         }
         private void Awake()
         {
@@ -410,6 +413,12 @@ namespace Backtrace.Unity
         public long GetDatabaseSize()
         {
             return BacktraceDatabaseContext.GetSize();
+        }
+
+        private ReportLimitWatcher _reportLimitWatcher;
+        public void SetReportWatcher(ReportLimitWatcher reportLimitWatcher)
+        {
+            _reportLimitWatcher = reportLimitWatcher;
         }
     }
 }

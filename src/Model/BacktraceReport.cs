@@ -31,7 +31,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
-        public long Timestamp { get; private set; } = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        public long Timestamp { get; private set; } = new DateTime().Timestamp();
 
         /// <summary>
         /// Get information aboout report type. If value is true the BacktraceReport has an error information

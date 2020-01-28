@@ -29,7 +29,6 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public Action<BacktraceResult> OnServerResponse { get; set; }
 
-        internal readonly ReportLimitWatcher reportLimitWatcher;
 
         /// <summary>
         /// Url to server
@@ -43,12 +42,11 @@ namespace Backtrace.Unity.Services
         /// Create a new instance of Backtrace API
         /// </summary>
         /// <param name="credentials">API credentials</param>
-        public BacktraceApi(BacktraceCredentials credentials, uint reportPerMin = 3, bool ignoreSslValidation = false)
+        public BacktraceApi(BacktraceCredentials credentials, bool ignoreSslValidation = false)
         {
             _credentials = credentials ?? throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             _ignoreSslValidation = ignoreSslValidation;
             _serverurl = credentials.GetSubmissionUrl().ToString();
-            reportLimitWatcher = new ReportLimitWatcher(reportPerMin);
         }
 
         /// <summary>
@@ -58,12 +56,7 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
-            //check rate limiting
-            bool watcherValidation = reportLimitWatcher.WatchReport(data.Report);
-            if (!watcherValidation)
-            {
-                yield return BacktraceResult.OnLimitReached(data.Report);
-            }
+
             if (data == null)
             {
                 yield return new BacktraceResult()
@@ -71,7 +64,7 @@ namespace Backtrace.Unity.Services
                     Status = Types.BacktraceResultStatus.LimitReached
                 };
             }
-            if(RequestHandler != null)
+            if (RequestHandler != null)
             {
                 yield return RequestHandler.Invoke(_serverurl, data);
             }
@@ -97,7 +90,7 @@ namespace Backtrace.Unity.Services
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                 request.SetRequestHeader("Content-Type", "application/json");
                 yield return request.SendWebRequest();
-                
+
                 BacktraceResult result;
                 if (request.responseCode == 200)
                 {
@@ -194,16 +187,6 @@ namespace Backtrace.Unity.Services
                 }
             }
             return sb.ToString();
-        }
-
-        public void SetClientRateLimitEvent(Action<BacktraceReport> onClientReportLimitReached)
-        {
-            reportLimitWatcher.OnClientReportLimitReached = onClientReportLimitReached;
-        }
-
-        public void SetClientRateLimit(uint rateLimit)
-        {
-            reportLimitWatcher.SetClientReportLimit(rateLimit);
         }
     }
 }
