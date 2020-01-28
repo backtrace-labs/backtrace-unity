@@ -19,12 +19,12 @@ namespace Tests
             var gameObject = new GameObject();
             gameObject.SetActive(false);
             client = gameObject.AddComponent<BacktraceClient>();
-            client.Configuration = new BacktraceConfiguration()
-            {
-                ServerUrl = "https://test.sp.backtrace.io:6097/",
-                //backtrace configuration require 64 characters
-                Token = "1234123412341234123412341234123412341234123412341234123412341234"
-            };
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+
+            configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
+            //backtrace configuration require 64 characters
+            configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
+            client.Configuration = configuration;
             gameObject.SetActive(true);
         }
 

@@ -68,6 +68,8 @@ namespace Tests
         [UnityTest]
         public IEnumerator TestSendEvent_DisabledApi_NotSendingEvent()
         {
+            client.Configuration = GetValidClientConfiguration();
+            client.Refresh();
             Assert.DoesNotThrow(() => client.Send(new Exception("test exception")));
             yield return null;
         }
@@ -76,10 +78,12 @@ namespace Tests
         public IEnumerator TestBeforeSendEvent_ValidConfiguration_EventTrigger()
         {
             var trigger = false;
-            client.BeforeSend = (BacktraceData d) =>
+            client.Configuration = GetValidClientConfiguration();
+            client.Refresh();
+            client.BeforeSend = (BacktraceData backtraceData) =>
             {
                 trigger = true;
-                return d;
+                return backtraceData;
             };
             client.Send(new Exception("test exception"));
             Assert.IsTrue(trigger);
@@ -107,12 +111,10 @@ namespace Tests
 
         private BacktraceConfiguration GetValidClientConfiguration()
         {
-            return new BacktraceConfiguration()
-            {
-                ServerUrl = "https://test.sp.backtrace.io:6097/",
-                //backtrace configuration require 64 characters
-                Token = "1234123412341234123412341234123412341234123412341234123412341234"
-            };
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
+            configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
+            return configuration;
         }
 
     }

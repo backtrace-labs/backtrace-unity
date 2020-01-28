@@ -37,16 +37,15 @@ namespace Tests
         [UnityTest]
         public IEnumerator TestDbCreation_ValidConfiguration_EnabledDb()
         {
-            var configuration = new BacktraceConfiguration()
-            {
-                ServerUrl = "https://test.sp.backtrace.io:6097/",
-                //backtrace configuration require 64 characters
-                Token = "1234123412341234123412341234123412341234123412341234123412341234",
-                DatabasePath = Application.dataPath,
-                CreateDatabase = false,
-                AutoSendMode = false,
-                Enabled = true
-            };
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
+            //backtrace configuration require 64 characters
+            configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
+            configuration.DatabasePath = Application.dataPath;
+            configuration.CreateDatabase = false;
+            configuration.AutoSendMode = false;
+            configuration.Enabled = true;
+
             database.Configuration = configuration;
             database.Reload();
             Assert.IsTrue(database.Enable);

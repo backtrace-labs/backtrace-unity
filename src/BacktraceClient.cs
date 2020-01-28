@@ -129,7 +129,9 @@ namespace Backtrace.Unity
         public Action<Exception> OnUnhandledApplicationException = null;
 
         /// <summary>
-        /// Get custom client attributes. Every argument stored in dictionary will be send to Backtrace API
+        /// Get custom client attributes. Every argument stored in dictionary will be send to Backtrace API.
+        /// Backtrace unity-plugin allows you to store in attributes only primitive values. Plugin will skip loading 
+        /// complex object.
         /// </summary>
         public readonly Dictionary<string, object> Attributes;
 
@@ -218,7 +220,7 @@ namespace Backtrace.Unity
         {
             //check rate limiting
             bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit == true && _onClientReportLimitReached == null)
+            if (limitHit == false && _onClientReportLimitReached == null)
             {
                 Debug.LogWarning("Report limit hit.");
                 return;
@@ -234,7 +236,7 @@ namespace Backtrace.Unity
                 return;
             }
 
-            Send(report);
+            SendReport(report);
         }
 
         /// <summary>
@@ -247,7 +249,7 @@ namespace Backtrace.Unity
         {
             //check rate limiting
             bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit == true && _onClientReportLimitReached == null)
+            if (limitHit == false && _onClientReportLimitReached == null)
             {
                 Debug.LogWarning("Report limit hit.");
                 return;
@@ -262,7 +264,7 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Report limit hit.");
                 return;
             }
-            Send(report);
+            SendReport(report);
         }
 
         /// <summary>
@@ -281,7 +283,16 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Report limit hit.");
                 return;
             }
+            SendReport(report, sendCallback);
+        }
 
+        /// <summary>
+        /// Send a report to Backtrace API after first type of report validation rules
+        /// </summary>
+        /// <param name="report">Backtrace report</param>
+        /// <param name="sendCallback">send callback</param>
+        private void SendReport(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
+        {
             var record = Database?.Add(report, Attributes, MiniDumpType);
             //create a JSON payload instance
             BacktraceData data = null;
@@ -311,6 +322,7 @@ namespace Backtrace.Unity
                 });
                 sendCallback?.Invoke(result);
             }));
+
         }
 
         /// <summary>

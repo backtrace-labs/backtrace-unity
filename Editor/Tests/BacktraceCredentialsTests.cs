@@ -6,20 +6,6 @@ namespace Tests
 {
     internal class BacktraceCredentialsTests
     {
-        [TestCase("http://backtrace.sp.backtrace.io")]
-        [TestCase("http://backtrace.sp.backtrace.io:6098")]
-        [TestCase("http://backtrace.sp.backtrace.io:7777")]
-        [TestCase("http://backtrace.sp.backtrace.io:7777/")]
-        [TestCase("http://backtrace.sp.backtrace.io/")]
-        [Test(Author = "Konrad Dysput", Description = "Test valid submission url")]
-        public void GenerateSubmissionUrl_FromValidHostName_ValidSubmissionUrl(string test)
-        {
-            const string token = "1234";
-            var credentials = new BacktraceCredentials(test, token);
-
-            string expectedUrl = $"{credentials.BacktraceHostUri.AbsoluteUri}post?format=json&token={credentials.Token}";
-            Assert.AreEqual(credentials.GetSubmissionUrl(), expectedUrl);
-        }
 
         [TestCase("https://www.submit.backtrace.io")]
         [TestCase("http://www.submit.backtrace.io")]

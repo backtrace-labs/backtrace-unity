@@ -11,13 +11,33 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
+
+        private const string ENVIRONMENT_VARIABLE_KEY = "Environment Variables";
         private JToken _serializedAnnotations;
 
+        private Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
         /// <summary>
         /// Get system environment variables
         /// </summary>
-        [JsonProperty(PropertyName = "Environment Variables")]
-        public Dictionary<string, string> EnvironmentVariables { get; set; }
+        [JsonProperty(PropertyName = ENVIRONMENT_VARIABLE_KEY)]
+        public Dictionary<string, string> EnvironmentVariables
+        {
+            get
+            {
+                if (_serializedAnnotations != null && _environmentVariables.Count == 0)
+                {
+                    foreach (BacktraceJProperty keys in _serializedAnnotations[ENVIRONMENT_VARIABLE_KEY])
+                    {
+                        _environmentVariables.Add(keys.Name, keys.Value.Value<string>());
+                    }
+                    return _environmentVariables;
+                }
+                else
+                {
+                    return _environmentVariables;
+                }
+            }
+        }
 
         /// <summary>
         /// Get built-in complex attributes
@@ -37,11 +57,12 @@ namespace Backtrace.Unity.Model.JsonData
         {
             var environment = new EnvironmentVariables();
             ComplexAttributes = complexAttributes;
-            EnvironmentVariables = environment.Variables;
+            _environmentVariables = environment.Variables;
         }
 
         public void FromJson(JToken jtoken)
         {
+
             _serializedAnnotations = jtoken;
         }
 
@@ -58,7 +79,7 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 envVariables[envVariable.Key] = envVariable.Value?.ToString() ?? string.Empty;
             }
-            annotations["Environment Variables"] = envVariables;
+            annotations[ENVIRONMENT_VARIABLE_KEY] = envVariables;
             var activeScene = SceneManager.GetActiveScene();
             if (activeScene != null)
             {
@@ -95,7 +116,7 @@ namespace Backtrace.Unity.Model.JsonData
         }
 
         public static Annotations Deserialize(JToken token)
-        {            
+        {
             var annotations = new Annotations();
             annotations.FromJson(token);
             return annotations;

@@ -80,16 +80,12 @@ namespace Backtrace.Unity.Model.Database
         [JsonIgnore]
         private string _path = string.Empty;
 
-        private int _count = 0;
+        private int _count = 1;
 
         public int Count
         {
             get
             {
-                if (_count == 0)
-                {
-                    _count = ReadCounter();
-                }
                 return _count;
             }
         }
@@ -206,8 +202,6 @@ namespace Backtrace.Unity.Model.Database
         {
             try
             {
-                CounterDataPath = Save(CounterData.DefaultJson().ToString(), $"{Id}-counter");
-
                 var diagnosticDataJson = Record.ToJson();
                 DiagnosticDataPath = Save(diagnosticDataJson, $"{Id}-attachment");
                 var reportJson = Record.Report.ToJson();
@@ -280,42 +274,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 return;
             }
-
-            if (!File.Exists(CounterDataPath))
-            {
-                var counter = new CounterData()
-                {
-                    // because we try to increment existing report
-                    Total = 2
-                };
-                return;
-            }
-            string resultJson = string.Empty;
-            //read json files stored in BacktraceDatabase
-            using (var dataReader = new StreamReader(CounterDataPath))
-            {
-                var json = dataReader.ReadToEnd();
-                try
-                {
-                    var counterData = CounterData.Deserialize(json);
-                    counterData.Total++;
-                    resultJson = counterData.ToJson();
-
-                }
-                catch (SerializationException)
-                {
-                    File.Delete(CounterDataPath);
-                    Increment();
-                }
-            }
-            using (var dataWriter = new StreamWriter(CounterDataPath))
-            {
-                if (!string.IsNullOrEmpty(resultJson))
-                {
-                    dataWriter.Write(resultJson);
-                    _count++;
-                }
-            }
+            _count++;
         }
 
         /// <summary>
@@ -328,11 +287,10 @@ namespace Backtrace.Unity.Model.Database
         }
 
         /// <summary>
-        /// Delete all record files
+        /// Delete all records from hard drive.
         /// </summary>
         internal void Delete()
         {
-            Delete(CounterDataPath);
             Delete(MiniDumpPath);
             Delete(ReportPath);
             Delete(DiagnosticDataPath);
@@ -383,45 +341,6 @@ namespace Backtrace.Unity.Model.Database
                 }
             }
         }
-
-        /// <summary>
-        /// Read total numbers of the same records
-        /// </summary>
-        /// <returns>Number of records</returns>
-        private int ReadCounter()
-        {
-            if (!Valid())
-            {
-                return 1;
-            }
-
-            string predictedPath = Path.Combine(_path, $"{Id}-counter.json");
-            if (string.IsNullOrEmpty(CounterDataPath) && File.Exists(predictedPath))
-            {
-                CounterDataPath = predictedPath;
-            }
-
-            if (!File.Exists(CounterDataPath))
-            {
-                CounterDataPath = Save(CounterData.DefaultJson(), $"{Id}-counter");
-                return 1;
-            }
-
-            using (var dataReader = new StreamReader(CounterDataPath))
-            {
-                try
-                {
-                    var json = dataReader.ReadToEnd();
-                    var counter = CounterData.Deserialize(json);
-                    return counter.Total;
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-        }
-
         #region dispose
         public void Dispose()
         {
