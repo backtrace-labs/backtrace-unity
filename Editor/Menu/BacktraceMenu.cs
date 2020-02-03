@@ -34,16 +34,16 @@ namespace Backtrace.Unity.Editor
             var destinationPath = Path.Combine(currentProjectPath, fileName);
             if (File.Exists(destinationPath))
             {
-                //find the best name for Backtrace integration
                 var files = Directory.GetFiles(currentProjectPath);
-             
                 var lastFileIndex = files
                     .Where(n =>
                         Path.GetFileNameWithoutExtension(n).StartsWith(DEFAULT_CONFIGURATION_NAME) &&
                         Path.GetExtension(n) == DEFAULT_EXTENSION_NAME)
                         .Select(n =>
                         {
-                            if (n != null && int.TryParse(n.Substring(n.IndexOf('('), n.IndexOf(')')), out int result))
+                            int startIndex = n.IndexOf('(') + 1;
+                            int endIndex = n.IndexOf(')');
+                            if (startIndex != 0 && endIndex != -1 && int.TryParse(n.Substring(startIndex, endIndex - startIndex), out int result))
                             {
                                 return result;
                             }
@@ -53,9 +53,8 @@ namespace Backtrace.Unity.Editor
 
                 lastFileIndex++;
                 destinationPath = Path.Combine(currentProjectPath, $"{DEFAULT_CONFIGURATION_NAME}({lastFileIndex}){DEFAULT_EXTENSION_NAME}");
-                Debug.Log(destinationPath);
-                return;
             }
+            Debug.Log($"Generating new Backtrace configuration file available in path: {destinationPath}");
             AssetDatabase.CreateAsset(asset, destinationPath);
             AssetDatabase.SaveAssets();
             Selection.activeObject = asset;
