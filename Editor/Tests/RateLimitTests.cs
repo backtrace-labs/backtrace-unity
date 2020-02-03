@@ -18,8 +18,11 @@ namespace Tests
             var gameObject = new GameObject();
             gameObject.SetActive(false);
             client = gameObject.AddComponent<BacktraceClient>();
-            client.Configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
-            client.Configuration.ServerUrl = "https://submit.backtrace.io/test/1234123412341234123412341234123412341234123412341234123412341234/json";
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            configuration.ServerUrl = "https://submit.backtrace.io/test/1234123412341234123412341234123412341234123412341234123412341234/json";
+            configuration.DestroyOnLoad = true;
+            client.Configuration = configuration;
+            
             client.Refresh();
             client.SetClientReportLimit(CLIENT_RATE_LIMIT);
             gameObject.SetActive(true);

@@ -33,7 +33,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Url to server
         /// </summary>
-        private readonly string _serverurl;
+        private readonly Uri _serverurl;
 
         private readonly bool _ignoreSslValidation;
 
@@ -46,7 +46,7 @@ namespace Backtrace.Unity.Services
         {
             _credentials = credentials ?? throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
             _ignoreSslValidation = ignoreSslValidation;
-            _serverurl = credentials.GetSubmissionUrl().ToString();
+            _serverurl = credentials.GetSubmissionUrl();
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Backtrace.Unity.Services
             }
             if (RequestHandler != null)
             {
-                yield return RequestHandler.Invoke(_serverurl, data);
+                yield return RequestHandler.Invoke(_serverurl.ToString(), data);
             }
             string json = data.ToJson();
             yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
@@ -74,10 +74,11 @@ namespace Backtrace.Unity.Services
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, int deduplication, Action<BacktraceResult> callback)
         {
-            var requestUrl = _serverurl;
+            var requestUrl = _serverurl.ToString();
             if (deduplication > 0)
             {
-                requestUrl += $"&_mod_duplicate={deduplication}";
+                var startingChar = string.IsNullOrEmpty(_serverurl.Query) ? "?" : "&";
+                requestUrl += $"{startingChar}_mod_duplicate={deduplication}";
             }
             using (var request = new UnityWebRequest(requestUrl, "POST"))
             {

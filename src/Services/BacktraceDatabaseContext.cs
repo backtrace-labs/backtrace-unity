@@ -18,7 +18,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Database cache
         /// </summary>
-        internal Dictionary<int, List<BacktraceDatabaseRecord>> BatchRetry = new Dictionary<int, List<BacktraceDatabaseRecord>>();
+        public Dictionary<int, List<BacktraceDatabaseRecord>> BatchRetry  = new Dictionary<int, List<BacktraceDatabaseRecord>>();
 
         /// <summary>
         /// Total database size on hard drive
@@ -148,7 +148,10 @@ namespace Backtrace.Unity.Services
 
             string minidumpPath = GenerateMiniDump(backtraceData.Report, miniDumpType);
             backtraceData.Report.SetMinidumpPath(minidumpPath);
-            backtraceData.Attachments.Add(minidumpPath);
+            if (!string.IsNullOrEmpty(minidumpPath))
+            {
+                backtraceData.Attachments.Add(minidumpPath);
+            }
 
             //create new record and save it on hard drive
             var record = new BacktraceDatabaseRecord(backtraceData, _path)

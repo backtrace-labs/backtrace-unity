@@ -51,13 +51,29 @@ namespace Backtrace.Unity
             }
         }
 
+        public DeduplicationStrategy DeduplicationStrategy
+        {
+            get
+            {
+                return BacktraceDatabaseContext?.DeduplicationStrategy ?? DeduplicationStrategy.None;
+            }
+            set
+            {
+                if (!Enable)
+                {
+                    throw new InvalidOperationException("Backtrace Database is disabled");
+                }
+                BacktraceDatabaseContext.DeduplicationStrategy = value;
+            }
+        }
+
         /// <summary>
         /// Database settings
         /// </summary>
         private BacktraceDatabaseSettings DatabaseSettings { get; set; }
 
         private float _lastConnection;
-        
+
 
         /// <summary>
         /// Backtrace Api instance. Use BacktraceApi to send data to Backtrace server
@@ -96,21 +112,21 @@ namespace Backtrace.Unity
             {
                 Configuration = GetComponent<BacktraceClient>().Configuration;
             }
+
             if (Configuration == null || !Configuration.IsValid())
             {
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 Enable = false;
                 return;
             }
-           
 
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
             if (DatabaseSettings == null)
             {
                 Enable = false;
-
                 return;
             }
+
             if (Configuration.CreateDatabase)
             {
                 Directory.CreateDirectory(Configuration.DatabasePath);
@@ -120,24 +136,31 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
-            Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
 
+            Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
             if (!Enable)
             {
-               
                 return;
             }
 
             _lastConnection = Time.time;
 
-            BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder);
+            BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder, DatabaseSettings.DeduplicationStrategy);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
-            if(_reportLimitWatcher == null)
+            if (_reportLimitWatcher == null)
             {
                 _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
             }
         }
+
+        public void OnDisable()
+        {
+            Debug.LogWarning("Disabling BacktraceDatabase integration");
+            Enable = false;
+        }
+        
+
         private void Awake()
         {
             Reload();
@@ -152,7 +175,7 @@ namespace Backtrace.Unity
             if (Time.time - _lastConnection > DatabaseSettings.RetryInterval)
             {
                 _lastConnection = Time.time;
-                if (!BacktraceDatabaseContext.Any() || _timerBackgroundWork)
+                if (_timerBackgroundWork || !BacktraceDatabaseContext.Any())
                 {
                     return;
                 }
@@ -166,7 +189,7 @@ namespace Backtrace.Unity
         private void Start()
         {
             if (!Enable)
-           {
+            {
                 return;
             }
             if (DatabaseSettings.AutoSendMode)
@@ -282,7 +305,8 @@ namespace Backtrace.Unity
         private void SendData(BacktraceDatabaseRecord record)
         {
             var backtraceData = record?.BacktraceData;
-            //meanwhile someone delete data from a disk
+            //check if report exists on hard drive 
+            // to avoid situation when someone manually remove data
             if (backtraceData == null || backtraceData.Report == null)
             {
                 Delete(record);
@@ -300,6 +324,7 @@ namespace Backtrace.Unity
                          {
                              record.Dispose();
                              BacktraceDatabaseContext.IncrementBatchRetry();
+                             return;
                          }
                          record = BacktraceDatabaseContext.FirstOrDefault();
                          SendData(record);
@@ -307,7 +332,6 @@ namespace Backtrace.Unity
             }
 
         }
-
 
         /// <summary>
         /// Get total number of records in database
@@ -347,7 +371,7 @@ namespace Backtrace.Unity
                     {
                         record.Delete();
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                         Debug.LogWarning($"Cannot remove file from database. File name: {file.FullName}");
                     }
@@ -420,5 +444,6 @@ namespace Backtrace.Unity
         {
             _reportLimitWatcher = reportLimitWatcher;
         }
+
     }
 }

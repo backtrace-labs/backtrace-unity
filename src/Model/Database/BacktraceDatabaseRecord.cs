@@ -39,12 +39,6 @@ namespace Backtrace.Unity.Model.Database
         internal string DiagnosticDataPath { get; set; }
 
         /// <summary>
-        /// Path to counter data json
-        /// </summary>
-        [JsonProperty(PropertyName = "counterPath")]
-        internal string CounterDataPath { get; set; }
-
-        /// <summary>
         /// Path to minidump file
         /// </summary>
         [JsonProperty(PropertyName = "minidumpPath")]
@@ -107,6 +101,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 if (Record != null)
                 {
+                    Record.Deduplication = Count;
                     return Record;
                 }
                 if (!Valid())

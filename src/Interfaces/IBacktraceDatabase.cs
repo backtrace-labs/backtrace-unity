@@ -77,5 +77,6 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         /// <param name="reportLimitWatcher">Report limit watcher instance</param>
         void SetReportWatcher(ReportLimitWatcher reportLimitWatcher);
+
     }
 }

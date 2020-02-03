@@ -1,11 +1,11 @@
-﻿using Backtrace.Unity.Types;
-using System.Linq;
-using System.Collections.Generic;
-using Backtrace.Unity.Model.JsonData;
-using System.Text;
-using System.Security.Cryptography;
+﻿using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Types;
 using System;
-using Backtrace.Newtonsoft.Linq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
@@ -30,7 +30,8 @@ namespace Backtrace.Unity.Model
                 }
                 if (_backtraceData.Report == null || _backtraceData.Report.DiagnosticStack == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("Report or diagnostic stack is null");
+                    Debug.Log("Report or diagnostic stack is null");
+                    return new string[0];
                 }
                 var result = _backtraceData.Report.DiagnosticStack
                     .Select(n => n.FunctionName)
@@ -88,21 +89,17 @@ namespace Backtrace.Unity.Model
                 return _backtraceData.Report.Fingerprint;
             }
 
-            string json = new BacktraceJObject
-            {
-                ["Application"] = Application,
-                ["ExceptionMessage"] = ExceptionMessage,
-                ["Factor"] = Factor,
-                ["Classifier"] = new JArray(Classifier),
-                ["StackTrace"] = new JArray(StackTrace)
-            }.ToString();
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append(Application);
+            stringBuilder.Append(ExceptionMessage);
+            stringBuilder.Append(Classifier);
+            stringBuilder.Append(StackTrace);
 
-            using (var sha1 = new SHA1Managed())
+            using (var sha256Hash = SHA256.Create())
             {
-                var bytes = Encoding.ASCII.GetBytes(json);
-                var hash = sha1.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            };
+                var bytes = sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(stringBuilder.ToString()));
+                return Convert.ToBase64String(bytes);
+            }
         }
     }
 }

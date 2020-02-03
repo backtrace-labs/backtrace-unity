@@ -114,6 +114,7 @@ namespace Tests
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
             configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
+            configuration.DestroyOnLoad = true;
             return configuration;
         }
 

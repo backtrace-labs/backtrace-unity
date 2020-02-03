@@ -19,7 +19,7 @@ namespace Backtrace.Unity.Editor
                     false);
             if (component.Configuration != null)
             {
-                BacktraceConfigurationEditor editor = (BacktraceConfigurationEditor)CreateEditor(component.Configuration);
+                var editor = (BacktraceConfigurationEditor)CreateEditor(component.Configuration);
                 editor.OnInspectorGUI();
                 if (component.Configuration.Enabled && component.gameObject.GetComponent<BacktraceDatabase>() == null)
                 {

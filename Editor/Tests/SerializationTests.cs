@@ -25,6 +25,7 @@ namespace Tests
             //backtrace configuration require 64 characters
             configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
             client.Configuration = configuration;
+            
             gameObject.SetActive(true);
         }
 

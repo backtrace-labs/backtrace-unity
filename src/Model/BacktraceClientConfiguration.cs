@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Backtrace.Unity.Types;
+using System;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model
@@ -11,14 +12,14 @@ namespace Backtrace.Unity.Model
         public bool HandleUnhandledExceptions = true;
         public bool IgnoreSslValidation = false;
         public bool DestroyOnLoad = true;
-        
+        public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
         public void UpdateServerUrl()
         {
             if (string.IsNullOrEmpty(ServerUrl))
             {
                 return;
             }
-
+            
             Uri serverUri;
             var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out serverUri);
             if (result)
