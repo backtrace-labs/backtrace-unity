@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
 {
-    internal interface IBacktraceDatabaseContext : IDisposable
+    public interface IBacktraceDatabaseContext : IDisposable
     {
         /// <summary>
         /// Add new data to database

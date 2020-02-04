@@ -13,12 +13,12 @@ namespace Backtrace.Unity.Services
     /// <summary>
     /// Backtrace Database Context
     /// </summary>
-    internal class BacktraceDatabaseContext : IBacktraceDatabaseContext
+    public class BacktraceDatabaseContext : IBacktraceDatabaseContext
     {
         /// <summary>
         /// Database cache
         /// </summary>
-        public Dictionary<int, List<BacktraceDatabaseRecord>> BatchRetry  = new Dictionary<int, List<BacktraceDatabaseRecord>>();
+        public Dictionary<int, List<BacktraceDatabaseRecord>> BatchRetry = new Dictionary<int, List<BacktraceDatabaseRecord>>();
 
         /// <summary>
         /// Total database size on hard drive
@@ -109,7 +109,7 @@ namespace Backtrace.Unity.Services
             {
                 return string.Empty;
             }
-           
+
             var deduplicationModel = new DeduplicationModel(backtraceData, DeduplicationStrategy);
             return deduplicationModel.GetSha();
         }
@@ -148,14 +148,26 @@ namespace Backtrace.Unity.Services
                 backtraceData.Attachments.Add(minidumpPath);
             }
 
+            var record = ConvertToRecord(backtraceData, hash);
+            //add record to database context
+            return Add(record);
+        }
+
+        /// <summary>
+        /// Convert Backtrace data to Backtrace record and save it.
+        /// </summary>
+        /// <param name="backtraceData">Backtrace data</param>
+        /// <param name="hash">deduplicaiton hash</param>
+        /// <returns></returns>
+        protected virtual BacktraceDatabaseRecord ConvertToRecord(BacktraceData backtraceData, string hash)
+        {
             //create new record and save it on hard drive
             var record = new BacktraceDatabaseRecord(backtraceData, _path)
             {
                 Hash = hash
             };
             record.Save();
-            //add record to database context
-            return Add(record);
+            return record;
         }
 
         /// <summary>
@@ -409,7 +421,7 @@ namespace Backtrace.Unity.Services
                 if (BatchRetry.ContainsKey(i) && BatchRetry[i].Any(n => !n.Locked))
                 {
                     var record = BatchRetry[i].FirstOrDefault(n => !n.Locked);
-                    if(record == null)
+                    if (record == null)
                     {
                         return null;
                     }

@@ -333,7 +333,10 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
                 return;
             }
-
+            if (BacktraceApi.RequestHandler == null)
+            {
+                Debug.Log("ERror message to send: " + report.Message);
+            }
             StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
             {
                 if (record != null)

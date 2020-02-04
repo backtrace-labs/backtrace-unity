@@ -264,11 +264,6 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         public virtual void Increment()
         {
-            // file not exists
-            if (!File.Exists(ReportPath) && !File.Exists(DiagnosticDataPath))
-            {
-                return;
-            }
             _count++;
         }
 

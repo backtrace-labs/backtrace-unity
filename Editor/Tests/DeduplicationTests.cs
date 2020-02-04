@@ -35,6 +35,7 @@ namespace Tests
         {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
+            configuration.DatabasePath = Application.dataPath;
             configuration.CreateDatabase = false;
             configuration.AutoSendMode = false;
             configuration.Enabled = true;

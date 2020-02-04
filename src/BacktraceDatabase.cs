@@ -61,7 +61,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Database settings
         /// </summary>
-        private BacktraceDatabaseSettings DatabaseSettings { get; set; }
+        protected BacktraceDatabaseSettings DatabaseSettings { get; set; }
 
         /// <summary>
         /// Last update timestamp
@@ -77,7 +77,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Database context - in memory cache and record operations
         /// </summary>
-        internal IBacktraceDatabaseContext BacktraceDatabaseContext { get; set; }
+        protected virtual IBacktraceDatabaseContext BacktraceDatabaseContext { get; set; }
 
         /// <summary>
         /// File context - file collection operations

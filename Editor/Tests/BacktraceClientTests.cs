@@ -11,15 +11,16 @@ namespace Tests
     public class BacktraceClientTests
     {
         private BacktraceClient client;
+        private GameObject _gameObject;
 
         [SetUp]
         public void Setup()
         {
-            var gameObject = new GameObject();
-            gameObject.SetActive(false);
-            client = gameObject.AddComponent<BacktraceClient>();
+            _gameObject = new GameObject();
+            _gameObject.SetActive(false);
+            client = _gameObject.AddComponent<BacktraceClient>();
             client.Configuration = null;
-            gameObject.SetActive(true);
+            _gameObject.SetActive(true);
         }
 
         [UnityTest]
@@ -57,6 +58,8 @@ namespace Tests
         [UnityTest]
         public IEnumerator TestUnvailableEvents_EmptyConfiguration_ShouldntThrowException()
         {
+            client.Configuration = null;
+            client.Refresh();
             client.OnServerError = (Exception e) => { };
             client.OnServerResponse = (BacktraceResult r) => { };
             client.BeforeSend = (BacktraceData d) => d;
@@ -65,49 +68,49 @@ namespace Tests
             yield return null;
         }
 
-        //[UnityTest]
-        //public IEnumerator TestSendEvent_DisabledApi_NotSendingEvent()
-        //{
-        //    client.Configuration = GetValidClientConfiguration();
-        //    client.Refresh();
-        //    Assert.DoesNotThrow(() => client.Send(new Exception("test exception")));
-        //    yield return null;
-        //}
+        [UnityTest]
+        public IEnumerator TestSendEvent_DisabledApi_NotSendingEvent()
+        {
+            client.Configuration = GetValidClientConfiguration();
+            client.Refresh();
+            Assert.DoesNotThrow(() => client.Send(new Exception("test exception")));
+            yield return null;
+        }
 
-        //[UnityTest]
-        //public IEnumerator TestBeforeSendEvent_ValidConfiguration_EventTrigger()
-        //{
-        //    var trigger = false;
-        //    client.Configuration = GetValidClientConfiguration();
-        //    client.Refresh();
-        //    client.BeforeSend = (BacktraceData backtraceData) =>
-        //    {
-        //        trigger = true;
-        //        return backtraceData;
-        //    };
-        //    client.Send(new Exception("test exception"));
-        //    Assert.IsTrue(trigger);
-        //    yield return null;
-        //}
+        [UnityTest]
+        public IEnumerator TestBeforeSendEvent_ValidConfiguration_EventTrigger()
+        {
+            var trigger = false;
+            client.Configuration = GetValidClientConfiguration();
+            client.Refresh();
+            client.BeforeSend = (BacktraceData backtraceData) =>
+            {
+                trigger = true;
+                return backtraceData;
+            };
+            client.Send(new Exception("test exception"));
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
 
-        //[UnityTest]
-        //public IEnumerator TestSendingReport_ValidConfiguration_ValidSend()
-        //{
-        //    var trigger = false;
-        //    client.Configuration = GetValidClientConfiguration();
-        //    client.Refresh();
+        [UnityTest]
+        public IEnumerator TestSendingReport_ValidConfiguration_ValidSend()
+        {
+            var trigger = false;
+            client.Configuration = GetValidClientConfiguration();
+            client.Refresh();
 
-        //    client.RequestHandler = (string url, BacktraceData data) =>
-        //    { 
-        //        Assert.IsNotNull(data);
-        //        Assert.IsFalse(string.IsNullOrEmpty(data.ToJson()));
-        //        trigger = true;
-        //        return new BacktraceResult();
-        //    };
-        //    client.Send(new Exception("test exception"));
-        //    Assert.IsTrue(trigger);
-        //    yield return null;
-        //}
+            client.RequestHandler = (string url, BacktraceData data) =>
+            {
+                Assert.IsNotNull(data);
+                Assert.IsFalse(string.IsNullOrEmpty(data.ToJson()));
+                trigger = true;
+                return new BacktraceResult();
+            };
+            client.Send(new Exception("test exception"));
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
 
         private BacktraceConfiguration GetValidClientConfiguration()
         {
@@ -115,7 +118,17 @@ namespace Tests
             configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
             configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
             configuration.DestroyOnLoad = true;
+            client.RequestHandler = (string url, BacktraceData backtraceData) =>
+            {
+                return new BacktraceResult();
+            };
             return configuration;
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            UnityEngine.Object.DestroyImmediate(_gameObject);
         }
 
     }

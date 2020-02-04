@@ -67,8 +67,11 @@ namespace Backtrace.Unity.Services
             {
                 yield return RequestHandler.Invoke(_serverurl.ToString(), data);
             }
-            string json = data.ToJson();
-            yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
+            else
+            {
+                string json = data.ToJson();
+                yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
+            }
         }
 
         private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, int deduplication, Action<BacktraceResult> callback)
