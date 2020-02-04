@@ -2,7 +2,6 @@
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
-using System;
 using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
@@ -29,10 +28,6 @@ namespace Backtrace.Unity.Interfaces
         /// <param name="backtraceApi">Backtrace API object instance</param>
         void SetApi(IBacktraceApi backtraceApi);
 
-        /// <summary>
-        /// Deduplication method. Use this method to override default method to generate hash from deduplication model
-        /// </summary>
-        Func<DeduplicationStrategy, BacktraceData, string> DeduplicationHash { set; get; }
 
         /// <summary>
         /// Remove all existing reports in BacktraceDatabase
@@ -78,5 +73,10 @@ namespace Backtrace.Unity.Interfaces
         /// <param name="reportLimitWatcher">Report limit watcher instance</param>
         void SetReportWatcher(ReportLimitWatcher reportLimitWatcher);
 
+        /// <summary>
+        /// Reload Backtrace database configuration. Reloading configuration is required, when you change 
+        /// BacktraceDatabase configuration options.
+        /// </summary>
+        void Reload();
     }
 }

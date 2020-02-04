@@ -174,32 +174,33 @@ namespace Backtrace.Unity
 
         public void Refresh()
         {
-            Database = GetComponent<BacktraceDatabase>();
             if (Configuration == null || !Configuration.IsValid())
             {
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
-
             Enabled = true;
-            if (Configuration.HandleUnhandledExceptions)
-            {
-                HandleUnhandledExceptions();
-            }
-            _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
+            HandleUnhandledExceptions();
+            _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
             BacktraceApi = new BacktraceApi(
                 credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
                 ignoreSslValidation: Configuration.IgnoreSslValidation);
-
-            Database?.SetApi(BacktraceApi);
-            Database?.SetReportWatcher(_reportLimitWatcher);
 
             if (Configuration.DestroyOnLoad == false)
             {
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
+            Database = GetComponent<BacktraceDatabase>();
+            if (Database == null)
+            {
+                return;
+            }
+            Database.Reload();
+            Database.SetApi(BacktraceApi);
+            Database.SetReportWatcher(_reportLimitWatcher);
+
         }
 
         private void Awake()
@@ -262,7 +263,7 @@ namespace Backtrace.Unity
         /// <param name="attachmentPaths">List of attachments</param>
         /// <param name="attributes">List of report attributes</param
         public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
-        { 
+        {
             if (Enabled == false)
             {
                 Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
@@ -365,7 +366,10 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Cannot set unhandled exception handler for not enabled Backtrace client instance");
                 return;
             }
-            Application.logMessageReceived += HandleException;
+            if (Configuration.HandleUnhandledExceptions)
+            {
+                Application.logMessageReceived += HandleException;
+            }
         }
 
 

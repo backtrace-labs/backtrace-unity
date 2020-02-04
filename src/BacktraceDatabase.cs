@@ -39,18 +39,9 @@ namespace Backtrace.Unity
             }
         }
 
-        public Func<DeduplicationStrategy, BacktraceData, string> DeduplicationHash
-        {
-            set
-            {
-                BacktraceDatabaseContext.DeduplicationHash = value;
-            }
-            get
-            {
-                return BacktraceDatabaseContext.DeduplicationHash;
-            }
-        }
-
+        /// <summary>
+        /// Backtrace Database deduplication strategy
+        /// </summary>
         public DeduplicationStrategy DeduplicationStrategy
         {
             get
@@ -72,6 +63,9 @@ namespace Backtrace.Unity
         /// </summary>
         private BacktraceDatabaseSettings DatabaseSettings { get; set; }
 
+        /// <summary>
+        /// Last update timestamp
+        /// </summary>
         private float _lastConnection;
 
 
@@ -106,13 +100,19 @@ namespace Backtrace.Unity
         /// </summary>
         public bool Enable { get; private set; }
 
+
+        /// <summary>
+        /// Reload Backtrace database configuration. Reloading configuration is required, when you change 
+        /// BacktraceDatabase configuration options.
+        /// </summary>
         public void Reload()
         {
+
+            // validate configuration
             if (Configuration == null)
             {
                 Configuration = GetComponent<BacktraceClient>().Configuration;
             }
-
             if (Configuration == null || !Configuration.IsValid())
             {
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
@@ -120,52 +120,46 @@ namespace Backtrace.Unity
                 return;
             }
 
+            //setup database object
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
-            if (DatabaseSettings == null)
-            {
-                Enable = false;
-                return;
-            }
-
-            if (Configuration.CreateDatabase)
-            {
-                Directory.CreateDirectory(Configuration.DatabasePath);
-            }
-            if (Configuration.DestroyOnLoad == false)
-            {
-                DontDestroyOnLoad(gameObject);
-                _instance = this;
-            }
-
             Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
             if (!Enable)
             {
+                Debug.LogWarning("Cannot initialize database - invalid database configuration. Database is disabled");
                 return;
             }
-
+            CreateDatabaseDirectory();
+            SetupMultisceneSupport();
             _lastConnection = Time.time;
 
+            //Setup database context
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder, DatabaseSettings.DeduplicationStrategy);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
-            if (_reportLimitWatcher == null)
-            {
-                _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
-            }
-        }
+            _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
+        }
+        
+        /// <summary>
+        /// Backtrace database on disable event
+        /// </summary>
         public void OnDisable()
         {
             Debug.LogWarning("Disabling BacktraceDatabase integration");
             Enable = false;
         }
-        
 
+        /// <summary>
+        /// Backtrace database awake event
+        /// </summary>
         private void Awake()
         {
             Reload();
         }
 
+        /// <summary>
+        /// Backtrace database update event
+        /// </summary>
         private void Update()
         {
             if (!Enable)
@@ -345,10 +339,41 @@ namespace Backtrace.Unity
         /// <summary>
         /// Detect all orphaned minidump and files
         /// </summary>
-        private void RemoveOrphaned()
+        protected virtual void RemoveOrphaned()
         {
             var records = BacktraceDatabaseContext.Get();
             BacktraceDatabaseFileContext.RemoveOrphaned(records);
+        }
+
+        /// <summary>
+        /// Setup multiscene support
+        /// </summary>
+        protected virtual void SetupMultisceneSupport()
+        {
+            if (Configuration.DestroyOnLoad == true)
+            {
+                return;
+            }
+            DontDestroyOnLoad(gameObject);
+            _instance = this;
+        }
+
+
+        /// <summary>
+        /// Create database directory
+        /// </summary>
+        protected virtual void CreateDatabaseDirectory()
+        {
+            if (Configuration.CreateDatabase != true)
+            {
+                return;
+            }
+            if (string.IsNullOrEmpty(Configuration.DatabasePath))
+            {
+                Enable = false;
+                throw new InvalidOperationException("Cannot create Backtrace datase directory. Database directory is null or empty");
+            }
+            Directory.CreateDirectory(Configuration.DatabasePath);
         }
 
         /// <summary>

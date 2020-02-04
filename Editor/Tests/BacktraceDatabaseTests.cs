@@ -20,9 +20,8 @@ namespace Tests
             _gameObject.SetActive(false);
             client = _gameObject.AddComponent<BacktraceClient>();
             client.Configuration = null;
-            database = _gameObject.AddComponent<BacktraceDatabase>();
+            database = _gameObject.AddComponent<BacktraceDatabaseMock>();
             database.Configuration = null;
-
             _gameObject.SetActive(true);
         }
 
@@ -42,6 +41,7 @@ namespace Tests
             //backtrace configuration require 64 characters
             configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
             configuration.DatabasePath = Application.dataPath;
+            configuration.DestroyOnLoad = true;
             configuration.CreateDatabase = false;
             configuration.AutoSendMode = false;
             configuration.Enabled = true;
@@ -50,6 +50,12 @@ namespace Tests
             database.Reload();
             Assert.IsTrue(database.Enable);
             yield return null;
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            Object.DestroyImmediate(_gameObject);
         }
     }
 }

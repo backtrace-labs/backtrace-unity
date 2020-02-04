@@ -14,8 +14,9 @@ namespace Tests
     public class DeduplicaitonTests
     {
         private GameObject _gameObject;
-        private BacktraceDatabase _database;
+        private BacktraceDatabaseMock _database;
         private BacktraceClient _client;
+
 
         [SetUp]
         public void Setup()
@@ -25,7 +26,7 @@ namespace Tests
             var configuration = GenerateDefaultConfiguration();
             _client = _gameObject.AddComponent<BacktraceClient>();
             _client.Configuration = configuration;
-            _database = _gameObject.AddComponent<BacktraceDatabase>();
+            _database = _gameObject.AddComponent<BacktraceDatabaseMock>();
             _database.Configuration = configuration;
             _database.Reload();
         }
@@ -34,7 +35,6 @@ namespace Tests
         {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
-            configuration.DatabasePath = Application.dataPath;
             configuration.CreateDatabase = false;
             configuration.AutoSendMode = false;
             configuration.Enabled = true;
@@ -69,13 +69,13 @@ namespace Tests
         [TestCase(DeduplicationStrategy.LibraryName | DeduplicationStrategy.Classifier)]
         [TestCase(DeduplicationStrategy.LibraryName | DeduplicationStrategy.Message)]
         [TestCase(DeduplicationStrategy.Classifier | DeduplicationStrategy.Message)]
-        [TestCase(DeduplicationStrategy.LibraryName | DeduplicationStrategy.Classifier | DeduplicationStrategy.Message)]        
+        [TestCase(DeduplicationStrategy.LibraryName | DeduplicationStrategy.Classifier | DeduplicationStrategy.Message)]
         public void TestDeduplicationStrategy_TestDifferentStrategies_ReportShouldMerge(DeduplicationStrategy deduplicationStrategy)
         {
             _database.DeduplicationStrategy = deduplicationStrategy;
             _database.Clear();
             var report = new BacktraceReport(new Exception("Exception Message"));
-           
+
             // validate total number of reports
             // Count method should return all reports (include reports after deduplicaiton)
             int totalNumberOfReports = 2;
@@ -87,6 +87,12 @@ namespace Tests
             var records = _database.Get();
             int expectedNumberOfReports = 1;
             Assert.AreEqual(expectedNumberOfReports, records.Count());
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            UnityEngine.Object.DestroyImmediate(_gameObject);
         }
     }
 }

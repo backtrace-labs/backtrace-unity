@@ -56,7 +56,6 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
-
             if (data == null)
             {
                 yield return new BacktraceResult()

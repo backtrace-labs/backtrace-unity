@@ -50,8 +50,6 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public DeduplicationStrategy DeduplicationStrategy { get; set; }
 
-        public Func<DeduplicationStrategy, BacktraceData, string> DeduplicationHash { get; set; }
-
 
         /// <summary>
         /// Initialize new instance of Backtrace Database Context
@@ -111,10 +109,7 @@ namespace Backtrace.Unity.Services
             {
                 return string.Empty;
             }
-            if (DeduplicationHash != null)
-            {
-                return DeduplicationHash(DeduplicationStrategy, backtraceData);
-            }
+           
             var deduplicationModel = new DeduplicationModel(backtraceData, DeduplicationStrategy);
             return deduplicationModel.GetSha();
         }

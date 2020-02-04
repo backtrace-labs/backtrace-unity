@@ -65,49 +65,49 @@ namespace Tests
             yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator TestSendEvent_DisabledApi_NotSendingEvent()
-        {
-            client.Configuration = GetValidClientConfiguration();
-            client.Refresh();
-            Assert.DoesNotThrow(() => client.Send(new Exception("test exception")));
-            yield return null;
-        }
+        //[UnityTest]
+        //public IEnumerator TestSendEvent_DisabledApi_NotSendingEvent()
+        //{
+        //    client.Configuration = GetValidClientConfiguration();
+        //    client.Refresh();
+        //    Assert.DoesNotThrow(() => client.Send(new Exception("test exception")));
+        //    yield return null;
+        //}
 
-        [UnityTest]
-        public IEnumerator TestBeforeSendEvent_ValidConfiguration_EventTrigger()
-        {
-            var trigger = false;
-            client.Configuration = GetValidClientConfiguration();
-            client.Refresh();
-            client.BeforeSend = (BacktraceData backtraceData) =>
-            {
-                trigger = true;
-                return backtraceData;
-            };
-            client.Send(new Exception("test exception"));
-            Assert.IsTrue(trigger);
-            yield return null;
-        }
+        //[UnityTest]
+        //public IEnumerator TestBeforeSendEvent_ValidConfiguration_EventTrigger()
+        //{
+        //    var trigger = false;
+        //    client.Configuration = GetValidClientConfiguration();
+        //    client.Refresh();
+        //    client.BeforeSend = (BacktraceData backtraceData) =>
+        //    {
+        //        trigger = true;
+        //        return backtraceData;
+        //    };
+        //    client.Send(new Exception("test exception"));
+        //    Assert.IsTrue(trigger);
+        //    yield return null;
+        //}
 
-        [UnityTest]
-        public IEnumerator TestSendingReport_ValidConfiguration_ValidSend()
-        {
-            var trigger = false;
-            client.Configuration = GetValidClientConfiguration();
-            client.Refresh();
+        //[UnityTest]
+        //public IEnumerator TestSendingReport_ValidConfiguration_ValidSend()
+        //{
+        //    var trigger = false;
+        //    client.Configuration = GetValidClientConfiguration();
+        //    client.Refresh();
 
-            client.RequestHandler = (string url, BacktraceData data) =>
-            { 
-                Assert.IsNotNull(data);
-                Assert.IsFalse(string.IsNullOrEmpty(data.ToJson()));
-                trigger = true;
-                return new BacktraceResult();
-            };
-            client.Send(new Exception("test exception"));
-            Assert.IsTrue(trigger);
-            yield return null;
-        }
+        //    client.RequestHandler = (string url, BacktraceData data) =>
+        //    { 
+        //        Assert.IsNotNull(data);
+        //        Assert.IsFalse(string.IsNullOrEmpty(data.ToJson()));
+        //        trigger = true;
+        //        return new BacktraceResult();
+        //    };
+        //    client.Send(new Exception("test exception"));
+        //    Assert.IsTrue(trigger);
+        //    yield return null;
+        //}
 
         private BacktraceConfiguration GetValidClientConfiguration()
         {
