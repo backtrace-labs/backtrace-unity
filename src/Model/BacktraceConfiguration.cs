@@ -82,6 +82,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
+
         /// <summary>
         /// Retry order
         /// </summary>

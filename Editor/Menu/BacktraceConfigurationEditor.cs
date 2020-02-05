@@ -14,6 +14,7 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_ENABLE_DATABASE = "Enable Database";
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
         public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
+
         public const string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load";
 
         public const string LABEL_PATH = "Backtrace database path";
@@ -44,6 +45,7 @@ namespace Backtrace.Unity.Editor
 
             SerializedProperty sslValidation = serializedObject.FindProperty("IgnoreSslValidation");
             EditorGUILayout.PropertyField(sslValidation, new GUIContent(LABEL_IGNORE_SSL_VALIDATION));
+
 
             SerializedProperty deduplicationStrategy = serializedObject.FindProperty("DeduplicationStrategy");
             EditorGUILayout.PropertyField(deduplicationStrategy, new GUIContent(LABEL_DEDUPLICATION_RULES));

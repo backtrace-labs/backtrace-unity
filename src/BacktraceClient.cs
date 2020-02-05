@@ -179,6 +179,7 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
+            
             Enabled = true;
 
             HandleUnhandledExceptions();

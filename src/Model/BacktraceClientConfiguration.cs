@@ -13,6 +13,7 @@ namespace Backtrace.Unity.Model
         public bool IgnoreSslValidation = false;
         public bool DestroyOnLoad = true;
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+
         public void UpdateServerUrl()
         {
             if (string.IsNullOrEmpty(ServerUrl))

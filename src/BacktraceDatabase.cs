@@ -57,7 +57,6 @@ namespace Backtrace.Unity
                 BacktraceDatabaseContext.DeduplicationStrategy = value;
             }
         }
-
         /// <summary>
         /// Database settings
         /// </summary>
@@ -67,7 +66,6 @@ namespace Backtrace.Unity
         /// Last update timestamp
         /// </summary>
         private float _lastConnection;
-
 
         /// <summary>
         /// Backtrace Api instance. Use BacktraceApi to send data to Backtrace server
@@ -119,9 +117,11 @@ namespace Backtrace.Unity
                 Enable = false;
                 return;
             }
+           
 
             //setup database object
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
+
             Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
             if (!Enable)
             {

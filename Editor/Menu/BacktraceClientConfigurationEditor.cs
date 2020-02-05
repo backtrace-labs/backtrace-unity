@@ -19,6 +19,7 @@ namespace Backtrace.Unity.Editor
 
 
 
+
         private const string CONFIG_NAME = "backtrace_client_config";
 
         public override void OnInspectorGUI()
@@ -36,8 +37,6 @@ namespace Backtrace.Unity.Editor
             settings.ReportPerMin = EditorGUILayout.IntField(LABEL_REPORT_PER_MIN, settings.ReportPerMin);
             settings.HandleUnhandledExceptions = EditorGUILayout.Toggle(LABEL_HANDLE_UNHANDLED_EXCEPTION, settings.HandleUnhandledExceptions);
             settings.IgnoreSslValidation = EditorGUILayout.Toggle(LABEL_IGNORE_SSL_VALIDATION, settings.IgnoreSslValidation);
-
-            //settings.DeduplicationStrategy = EditorGUILayout.DropdownButton(LABEL_DEDUPLICATION_RULES,FocusType.Passive, )
             settings.DeduplicationStrategy = (DeduplicationStrategy)EditorGUILayout.EnumPopup(LABEL_DEDUPLICATION_RULES, settings.DeduplicationStrategy);
         }
     }
