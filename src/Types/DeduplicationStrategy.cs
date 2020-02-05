@@ -24,10 +24,6 @@ namespace Backtrace.Unity.Types
         /// <summary>
         /// Stack trace and exception message
         /// </summary>
-        Message = 4,
-        /// <summary>
-        /// Stack trace and library name
-        /// </summary>
-        LibraryName = 8
+        Message = 4
     }
 }

@@ -1,5 +1,4 @@
-﻿using Backtrace.Unity.Model.JsonData;
-using Backtrace.Unity.Types;
+﻿using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
-    internal class DeduplicationModel
+    public class DeduplicationModel
     {
         private readonly BacktraceData _backtraceData;
         private readonly DeduplicationStrategy _strategy;
@@ -20,35 +19,36 @@ namespace Backtrace.Unity.Model
             _backtraceData = backtraceData;
             _strategy = strategy;
         }
-        public string[] StackTrace
+        public string StackTrace
         {
             get
             {
                 if (_strategy == DeduplicationStrategy.None)
                 {
-                    return new string[0];
+                    return "";
                 }
                 if (_backtraceData.Report == null || _backtraceData.Report.DiagnosticStack == null)
                 {
                     Debug.Log("Report or diagnostic stack is null");
-                    return new string[0];
+                    return "";
                 }
                 var result = _backtraceData.Report.DiagnosticStack
                     .Select(n => n.FunctionName)
                     .OrderByDescending(n => n);
 
-                return new HashSet<string>(result).ToArray();
+                var stackTrace = new HashSet<string>(result).ToArray();
+                return string.Join(",", stackTrace);
             }
         }
-        public string[] Classifier
+        public string Classifier
         {
             get
             {
                 if ((_strategy & DeduplicationStrategy.Classifier) == 0)
                 {
-                    return new string[0];
+                    return "";
                 }
-                return _backtraceData.Classifier;
+                return string.Join(",", _backtraceData.Classifier);
             }
         }
         public string ExceptionMessage
@@ -62,18 +62,7 @@ namespace Backtrace.Unity.Model
                 return _backtraceData.Report.Message;
             }
         }
-        public string Application
-        {
-            get
-            {
-                if ((_strategy & DeduplicationStrategy.LibraryName) == 0)
-                {
-                    return string.Empty;
-                }
-                string key = BacktraceAttributes.APPLICATION_ATTRIBUTE_NAME;
-                return _backtraceData.Attributes?.Attributes[key] as string;
-            }
-        }
+
         public string Factor
         {
             get
@@ -90,7 +79,6 @@ namespace Backtrace.Unity.Model
             }
 
             var stringBuilder = new StringBuilder();
-            stringBuilder.Append(Application);
             stringBuilder.Append(ExceptionMessage);
             stringBuilder.Append(Classifier);
             stringBuilder.Append(StackTrace);

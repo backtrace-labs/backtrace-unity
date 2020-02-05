@@ -87,6 +87,10 @@ namespace Backtrace.Unity.Model.JsonData
 
                 var rootObjects = new List<GameObject>();
                 activeScene.GetRootGameObjects(rootObjects);
+                if(rootObjects.Count > 50)
+                {
+                    rootObjects.RemoveRange(50, rootObjects.Count - 50);
+                }
                 for (int i = 0; i < rootObjects.Count; ++i)
                 {
                     // https://docs.unity3d.com/ScriptReference/GameObject.html

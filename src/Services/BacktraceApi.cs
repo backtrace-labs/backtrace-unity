@@ -69,7 +69,7 @@ namespace Backtrace.Unity.Services
             }
             else
             {
-                string json = data.ToJson();
+               string json = data.ToJson();
                 yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
             }
         }

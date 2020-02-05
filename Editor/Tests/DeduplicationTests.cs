@@ -11,35 +11,32 @@ using UnityEngine.TestTools;
 
 namespace Tests
 {
-    public class DeduplicaitonTests
+    public class DeduplicaitonTests : BacktraceBaseTest
     {
-        private GameObject _gameObject;
         private BacktraceDatabaseMock _database;
-        private BacktraceClient _client;
-
 
         [SetUp]
         public void Setup()
         {
-            _gameObject = new GameObject();
-            _gameObject.SetActive(false);
+            BeforeSetup();
             var configuration = GenerateDefaultConfiguration();
-            _client = _gameObject.AddComponent<BacktraceClient>();
-            _client.Configuration = configuration;
-            _database = _gameObject.AddComponent<BacktraceDatabaseMock>();
+            BacktraceClient.Configuration = configuration;
+            _database = GameObject.AddComponent<BacktraceDatabaseMock>();
             _database.Configuration = configuration;
             _database.Reload();
+            AfterSetup();
         }
 
+        /// <summary>
+        /// Generate specific backtrace configuration object for deduplication testing
+        /// </summary>
         private BacktraceConfiguration GenerateDefaultConfiguration()
         {
-            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
-            configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
+            var configuration = GetBasicConfiguration();
             configuration.DatabasePath = Application.dataPath;
             configuration.CreateDatabase = false;
             configuration.AutoSendMode = false;
             configuration.Enabled = true;
-            configuration.DestroyOnLoad = true;
 
             return configuration;
         }
@@ -64,13 +61,10 @@ namespace Tests
         }
 
         [TestCase(DeduplicationStrategy.Default)]
-        [TestCase(DeduplicationStrategy.LibraryName)]
         [TestCase(DeduplicationStrategy.Classifier)]
         [TestCase(DeduplicationStrategy.Message)]
-        [TestCase(DeduplicationStrategy.LibraryName | DeduplicationStrategy.Classifier)]
-        [TestCase(DeduplicationStrategy.LibraryName | DeduplicationStrategy.Message)]
         [TestCase(DeduplicationStrategy.Classifier | DeduplicationStrategy.Message)]
-        [TestCase(DeduplicationStrategy.LibraryName | DeduplicationStrategy.Classifier | DeduplicationStrategy.Message)]
+        [TestCase(DeduplicationStrategy.Default | DeduplicationStrategy.Classifier | DeduplicationStrategy.Message)]
         public void TestDeduplicationStrategy_TestDifferentStrategies_ReportShouldMerge(DeduplicationStrategy deduplicationStrategy)
         {
             _database.DeduplicationStrategy = deduplicationStrategy;
@@ -90,10 +84,25 @@ namespace Tests
             Assert.AreEqual(expectedNumberOfReports, records.Count());
         }
 
-        [TearDown]
-        public void Cleanup()
+        //avoid testing default as a single parameter because default will analyse stack trace, which will be the same
+        // for both exceptions
+        [TestCase(DeduplicationStrategy.Classifier)]
+        [TestCase(DeduplicationStrategy.Message)]
+        [TestCase(DeduplicationStrategy.Classifier | DeduplicationStrategy.Message)]
+        [TestCase(DeduplicationStrategy.Classifier | DeduplicationStrategy.Default)]
+        [TestCase(DeduplicationStrategy.Default | DeduplicationStrategy.Message)]
+        public void TestDeduplicaiton_DifferentExceptions_ShouldGenerateDifferentHashForDifferentRerports(DeduplicationStrategy strategy)
         {
-            UnityEngine.Object.DestroyImmediate(_gameObject);
+            var report1 = new BacktraceReport(new Exception("test"));
+            var report2 = new BacktraceReport(new ArgumentException("argument test"));
+
+            var deduplicationStrategy1 = new DeduplicationModel(new BacktraceData(report1, null), strategy);
+            var deduplicationStrategy2 = new DeduplicationModel(new BacktraceData(report2, null), strategy);
+
+            var sha1 = deduplicationStrategy1.GetSha();
+            var sha2 = deduplicationStrategy2.GetSha();
+
+            Assert.AreNotEqual(sha1, sha2);
         }
     }
 }

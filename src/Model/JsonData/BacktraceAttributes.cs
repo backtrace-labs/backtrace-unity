@@ -34,6 +34,10 @@ namespace Backtrace.Unity.Model.JsonData
         /// <param name="clientAttributes">Client's attributes (report and client)</param>
         public BacktraceAttributes(BacktraceReport report, Dictionary<string, object> clientAttributes)
         {
+            if(clientAttributes == null)
+            {
+                clientAttributes = new Dictionary<string, object>();
+            }
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);

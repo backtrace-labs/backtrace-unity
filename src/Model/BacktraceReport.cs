@@ -178,6 +178,10 @@ namespace Backtrace.Unity.Model
             AttachmentPaths = attachmentPaths ?? new List<string>();
             Exception = exception;
             ExceptionTypeReport = exception != null;
+            if (ExceptionTypeReport)
+            {
+                Message = exception.Message;
+            }
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
             SetStacktraceInformation();
         }

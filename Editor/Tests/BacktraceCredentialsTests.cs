@@ -6,7 +6,6 @@ namespace Tests
 {
     internal class BacktraceCredentialsTests
     {
-
         [TestCase("https://www.submit.backtrace.io")]
         [TestCase("http://www.submit.backtrace.io")]
         [TestCase("https://submit.backtrace.io")]

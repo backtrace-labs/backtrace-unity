@@ -13,8 +13,6 @@ namespace Tests
 {
     public class BacktraceStackTraceTests
     {
-        private BacktraceClient client;
-
         private static readonly List<SampleStackFrame> _advancedStack = new List<SampleStackFrame>()
             {
                 new SampleStackFrame(){
@@ -92,15 +90,7 @@ namespace Tests
                 }
         };
 
-        [SetUp]
-        public void Setup()
-        {
-            var gameObject = new GameObject();
-            gameObject.SetActive(false);
-            client = gameObject.AddComponent<BacktraceClient>();
-            client.Configuration = null;
-            gameObject.SetActive(true);
-        }
+     
 
         [UnityTest]
         public IEnumerator TestReportStackTrace_StackTraceShouldBeTheSameLikeExceptionStackTrace_ShouldReturnCorrectStackTrace()

@@ -7,22 +7,17 @@ using UnityEngine.TestTools;
 
 namespace Tests
 {
-    public class BacktraceDatabaseTests
+    public class BacktraceDatabaseTests: BacktraceBaseTest
     {
-        private GameObject _gameObject;
         private BacktraceDatabase database;
-        private BacktraceClient client;
 
         [SetUp]
         public void Setup()
         {
-            _gameObject = new GameObject();
-            _gameObject.SetActive(false);
-            client = _gameObject.AddComponent<BacktraceClient>();
-            client.Configuration = null;
-            database = _gameObject.AddComponent<BacktraceDatabaseMock>();
+            BeforeSetup();
+            database = GameObject.AddComponent<BacktraceDatabaseMock>();
             database.Configuration = null;
-            _gameObject.SetActive(true);
+            AfterSetup(false);
         }
 
         [UnityTest]
@@ -36,12 +31,8 @@ namespace Tests
         [UnityTest]
         public IEnumerator TestDbCreation_ValidConfiguration_EnabledDb()
         {
-            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
-            configuration.ServerUrl = "https://test.sp.backtrace.io:6097/";
-            //backtrace configuration require 64 characters
-            configuration.Token = "1234123412341234123412341234123412341234123412341234123412341234";
+            var configuration = GetBasicConfiguration();
             configuration.DatabasePath = Application.dataPath;
-            configuration.DestroyOnLoad = true;
             configuration.CreateDatabase = false;
             configuration.AutoSendMode = false;
             configuration.Enabled = true;
@@ -52,10 +43,5 @@ namespace Tests
             yield return null;
         }
 
-        [TearDown]
-        public void Cleanup()
-        {
-            Object.DestroyImmediate(_gameObject);
-        }
     }
 }
