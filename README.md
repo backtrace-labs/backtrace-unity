@@ -135,10 +135,10 @@ catch (Exception exception)
 ```
 Notes:
 - if you setup `BacktraceClient` with `BacktraceDatabase` and your application is offline or you pass invalid credentials to `Backtrace server`, reports will be stored in database directory path,
-- `BacktraceReport` allows you to change default fingerprint generation algorithm. You can use `fingerprint` property if you want to change fingerprint value. Keep in mind - fingerprint should be valid sha256 string. By setting `fingerprint` you are instructing the client reporting library to only write a single report for the exception as it is encountered, and maintain a counter for every additional time it is encountered, instead of creating a new report. This will allow better control over the volume of reports being generated and sent to Backtrace. The counter is reset when the offline database is cleared (usually when the reports are sent to the server). A new single report will be created the next time the error is encountered.  
-- `BacktraceReport` allows you to change grouping strategy in Backtrace server. If you want to change how algorithm group your reports in Backtrace server please override `factor` property.
+- `BacktraceReport` allows you to change default Fingerprint generation algorithm. You can use `Fingerprint` property if you want to change Fingerprint value. Keep in mind - Fingerprint should be valid sha256 string. By setting `Fingerprint` you are instructing the client reporting library to only write a single report for the exception as it is encountered, and maintain a counter for every additional time it is encountered, instead of creating a new report. This will allow better control over the volume of reports being generated and sent to Backtrace. The counter is reset when the offline database is cleared (usually when the reports are sent to the server). A new single report will be created the next time the error is encountered.  
+- `BacktraceReport` allows you to change grouping strategy in Backtrace server. If you want to change how algorithm group your reports in Backtrace server please override `Factor` property.
 
-If you want to use `fingerprint` and `factor` property you have to override default property values. See example below to check how to use these properties:
+If you want to use `Fingerprint` and `Factor` property you have to override default property values. See example below to check how to use these properties:
 
 ```csharp
 try
@@ -148,8 +148,8 @@ try
 catch (Exception exception)
 {
     var report = new BacktraceReport(...){
-        fingerprint = "sha256 string",
-        factor = exception.GetType().Name
+        Fingerprint = "sha256 string",
+        Factor = exception.GetType().Name
     };
     ....
 }
