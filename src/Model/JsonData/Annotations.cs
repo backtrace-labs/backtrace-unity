@@ -11,7 +11,6 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
-        private JToken _serializedAnnotations;
 
         private const string ENVIRONMENT_VARIABLE_KEY = "Environment Variables";
         private JToken _serializedAnnotations;
@@ -59,12 +58,6 @@ namespace Backtrace.Unity.Model.JsonData
             var environment = new EnvironmentVariables();
             ComplexAttributes = complexAttributes;
             _environmentVariables = environment.Variables;
-        }
-
-        public void FromJson(JToken jtoken)
-        {
-
-            _serializedAnnotations = jtoken;
         }
 
         public void FromJson(JToken jtoken)
