@@ -121,7 +121,7 @@ namespace Backtrace.Unity.Services
         private void PrintLog(UnityWebRequest request)
         {
             string responseText = Encoding.UTF8.GetString(request.downloadHandler.data);
-            Debug.LogError($"[Backtrace]::Reponse code: {request.responseCode}, Response text: {responseText}" +
+            Debug.LogWarning($"[Backtrace]::Reponse code: {request.responseCode}, Response text: {responseText}" +
                 $"\n Please check provided url to Backtrace service or learn more from our integration guide: https://help.backtrace.io/integration-guides/game-engines/unity-integration-guide");
         }
 
@@ -146,11 +146,7 @@ namespace Backtrace.Unity.Services
                         request.SetRequestHeader("Content-Type", "application/json");
                         yield return request.SendWebRequest();
 
-                        if (request.responseCode == 200)
-                        {
-                            PrintLog(request);
-                        }
-                        else
+                        if(request.responseCode != 200)
                         {
                             PrintLog(request);
                         }

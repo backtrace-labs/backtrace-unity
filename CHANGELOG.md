@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+
+## Version 2.0.1
+- `BacktraceApi` won't print anymore Error message when Backtrace-integration cannot send data to Backtrace. Now `BacktraceApi` will print warning instead.
+
 ## Version 2.0.0
 - Backtrace-Unity plugin will set `"Destroy object on new scene"` by default to false.
 - Backtrace stack trace improvements,
