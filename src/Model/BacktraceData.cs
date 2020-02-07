@@ -123,7 +123,7 @@ namespace Backtrace.Unity.Model
                 ["lang"] = "csharp",
                 ["langVersion"] = "Unity",
                 ["agent"] = "backtrace-unity",
-                ["agentVersion"] = "2.0.0-alpha",
+                ["agentVersion"] = "2.0.0",
                 ["mainThread"] = MainThread,
                 ["classifiers"] = new JArray(Classifier),
                 ["attributes"] = Attributes.ToJson(),
@@ -169,7 +169,7 @@ namespace Backtrace.Unity.Model
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             LangVersion = "Mono/IL2CPP";
-            AgentVersion = "2.0.0-alpha";
+            AgentVersion = "2.0.0";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }
