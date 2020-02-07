@@ -12,6 +12,11 @@ public class BacktraceDatabaseMock : BacktraceDatabase
         Debug.Log("Removing old reports");
     }
 
+    internal override void LoadReports()
+    {
+        Debug.Log("Loading reports");
+    }
+
     /// <summary>
     /// Make sure we don't store any data on hard drive.
     /// </summary>

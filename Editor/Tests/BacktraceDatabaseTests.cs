@@ -32,7 +32,7 @@ namespace Tests
         public IEnumerator TestDbCreation_ValidConfiguration_EnabledDb()
         {
             var configuration = GetBasicConfiguration();
-            configuration.DatabasePath = Application.dataPath;
+            configuration.DatabasePath = Application.temporaryCachePath;
             configuration.CreateDatabase = false;
             configuration.AutoSendMode = false;
             configuration.Enabled = true;

@@ -87,31 +87,13 @@ namespace Backtrace.Unity.Model.JsonData
 
                 var rootObjects = new List<GameObject>();
                 activeScene.GetRootGameObjects(rootObjects);
-                if(rootObjects.Count > 50)
+                foreach (var objects in rootObjects)
                 {
-                    rootObjects.RemoveRange(50, rootObjects.Count - 50);
-                }
-                for (int i = 0; i < rootObjects.Count; ++i)
-                {
-                    // https://docs.unity3d.com/ScriptReference/GameObject.html
-                    // game object properties
-                    var gameObject = new BacktraceJObject()
+                    gameObjects.Add(ConvertGameObject(objects));
+                    if (gameObjects.Count > 30)
                     {
-                        ["name"] = rootObjects[i].name,
-                        ["isStatic"] = rootObjects[i].isStatic,
-                        ["layer"] = rootObjects[i].layer,
-                        ["tag"] = rootObjects[i].tag,
-                        ["transform.position"] = rootObjects[i].transform?.position.ToString() ?? "",
-                        ["transform.rotation"] = rootObjects[i].transform?.rotation.ToString() ?? "",
-                        ["tag"] = rootObjects[i].tag,
-                        ["tag"] = rootObjects[i].tag,
-                        ["activeInHierarchy"] = rootObjects[i].activeInHierarchy,
-                        ["activeSelf"] = rootObjects[i].activeSelf,
-                        ["hideFlags"] = (int)rootObjects[i].hideFlags,
-                        ["instanceId"] = rootObjects[i].GetInstanceID(),
-
-                    };
-                    gameObjects.Add(gameObject);
+                        break;
+                    }
                 }
                 annotations["Game objects"] = gameObjects;
             }
@@ -125,5 +107,72 @@ namespace Backtrace.Unity.Model.JsonData
             annotations.FromJson(token);
             return annotations;
         }
+
+        private BacktraceJObject ConvertGameObject(GameObject gameObject)
+        {
+            if (gameObject == null)
+            {
+                return new BacktraceJObject();
+            }
+            var jGameObject = GetJObject(gameObject);
+            var innerObjects = new JArray();
+
+            foreach (RectTransform childObject in gameObject.transform)
+            {
+                innerObjects.Add(ConvertGameObject(childObject, gameObject.name));
+            }
+            jGameObject["childrens"] = innerObjects;
+            return jGameObject;
+        }
+
+        private BacktraceJObject ConvertGameObject(RectTransform gameObject, string parentName)
+        {
+            var result = GetJObject(gameObject, parentName);
+            var innerObjects = new JArray();
+
+            foreach (RectTransform childObject in gameObject.transform)
+            {
+                innerObjects.Add(ConvertGameObject(childObject, gameObject.name));
+            }
+            result["childrens"] = innerObjects;
+            return result;
+        }
+
+        private BacktraceJObject GetJObject(GameObject gameObject, string parentName = "")
+        {
+            return new BacktraceJObject()
+            {
+                ["name"] = gameObject.name,
+                ["isStatic"] = gameObject.isStatic,
+                ["layer"] = gameObject.layer,
+                ["tag"] = gameObject.tag,
+                ["transform.position"] = gameObject.transform?.position.ToString() ?? "",
+                ["transform.rotation"] = gameObject.transform?.rotation.ToString() ?? "",
+                ["tag"] = gameObject.tag,
+                ["activeInHierarchy"] = gameObject.activeInHierarchy,
+                ["activeSelf"] = gameObject.activeSelf,
+                ["hideFlags"] = (int)gameObject.hideFlags,
+                ["instanceId"] = gameObject.GetInstanceID(),
+                ["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName
+            };
+        }
+
+        private BacktraceJObject GetJObject(RectTransform gameObject, string parentName = "")
+        {
+            return new BacktraceJObject()
+            {
+                ["name"] = gameObject.name,
+                ["tag"] = gameObject.tag,
+                ["transform.position"] = gameObject.transform?.position.ToString() ?? "",
+                ["transform.rotation"] = gameObject.transform?.rotation.ToString() ?? "",
+                ["tag"] = gameObject.tag,
+                ["hideFlags"] = (int)gameObject.hideFlags,
+                ["instanceId"] = gameObject.GetInstanceID(),
+                ["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName
+            };
+        }
+
+
+
     }
 }

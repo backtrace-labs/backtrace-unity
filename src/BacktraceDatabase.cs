@@ -379,7 +379,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Load all records stored in database path
         /// </summary>
-        private void LoadReports()
+        internal virtual void LoadReports()
         {
             var files = BacktraceDatabaseFileContext.GetRecords();
             foreach (var file in files)
@@ -394,6 +394,7 @@ namespace Backtrace.Unity
                 {
                     try
                     {
+                        Debug.Log("Removing record from Backtrace Database path");
                         record.Delete();
                     }
                     catch (Exception)

@@ -33,7 +33,7 @@ namespace Tests
         private BacktraceConfiguration GenerateDefaultConfiguration()
         {
             var configuration = GetBasicConfiguration();
-            configuration.DatabasePath = Application.dataPath;
+            configuration.DatabasePath = Application.temporaryCachePath;
             configuration.CreateDatabase = false;
             configuration.AutoSendMode = false;
             configuration.Enabled = true;
