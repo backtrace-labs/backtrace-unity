@@ -130,7 +130,7 @@ catch (Exception exception)
         attributes: new Dictionary<string, object>() { { "key", "value" } },
         attachmentPaths: new List<string>() { @"file_path_1", @"file_path_2" }
     );
-    backtraceClient.Send(backtraceReport);
+    backtraceClient.Send(report);
 }
 ```
 Notes:
