@@ -13,6 +13,8 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
         public const string LABEL_ENABLE_DATABASE = "Enable Database";
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
+        public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
+
         public const string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load";
 
         public const string LABEL_PATH = "Backtrace database path";
@@ -44,11 +46,15 @@ namespace Backtrace.Unity.Editor
             SerializedProperty sslValidation = serializedObject.FindProperty("IgnoreSslValidation");
             EditorGUILayout.PropertyField(sslValidation, new GUIContent(LABEL_IGNORE_SSL_VALIDATION));
 
+
+            SerializedProperty deduplicationStrategy = serializedObject.FindProperty("DeduplicationStrategy");
+            EditorGUILayout.PropertyField(deduplicationStrategy, new GUIContent(LABEL_DEDUPLICATION_RULES));
+
             SerializedProperty destroyOnLoad = serializedObject.FindProperty("DestroyOnLoad");
             EditorGUILayout.PropertyField(destroyOnLoad, new GUIContent(LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
 
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");
-            EditorGUILayout.PropertyField(enabled, new GUIContent(LABEL_ENABLE_DATABASE));
+            EditorGUILayout.PropertyField(enabled, new GUIContent(LABEL_ENABLE_DATABASE));            
 
             if (enabled.boolValue)
             {

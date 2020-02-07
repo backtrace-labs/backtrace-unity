@@ -66,7 +66,7 @@ namespace Backtrace.Unity.Model
         /// How much seconds library should wait before next retry.
         /// </summary>
         public int RetryInterval = 60;
-        
+
         /// <summary>
         /// Maximum number of retries
         /// </summary>
@@ -75,7 +75,13 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Destroy Backtrace instances on new scene load.
         /// </summary>
-        public bool DestroyOnLoad = true;
+        public bool DestroyOnLoad = false;
+
+        /// <summary>
+        /// Backtrace client deduplication strategy. 
+        /// </summary>
+        public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+
 
         /// <summary>
         /// Retry order
@@ -96,7 +102,7 @@ namespace Backtrace.Unity.Model
             {
                 return value;
             }
-          
+
             if (!value.StartsWith("http"))
             {
                 value = $"https://{value}";

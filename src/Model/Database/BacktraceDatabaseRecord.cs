@@ -57,6 +57,12 @@ namespace Backtrace.Unity.Model.Database
         internal long Size { get; set; }
 
         /// <summary>
+        /// Record hash
+        /// </summary>
+        [JsonProperty(PropertyName = "hash")]
+        internal string Hash = string.Empty;
+
+        /// <summary>
         /// Stored record
         /// </summary>
         [JsonIgnore]
@@ -66,7 +72,18 @@ namespace Backtrace.Unity.Model.Database
         /// Path to database directory
         /// </summary>
         [JsonIgnore]
-        private readonly string _path = string.Empty;
+        private string _path = string.Empty;
+
+        private int _count = 1;
+
+        public int Count
+        {
+            get
+            {
+                return _count;
+            }
+        }
+
 
         /// <summary>
         /// Record writer
@@ -84,6 +101,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 if (Record != null)
                 {
+                    Record.Deduplication = Count;
                     return Record;
                 }
                 if (!Valid())
@@ -109,6 +127,8 @@ namespace Backtrace.Unity.Model.Database
                         //because we have easier way to serialize and deserialize data
                         //and no problem/condition with serialization when BacktraceApi want to send diagnostic data to API
                         diagnosticData.Report = report;
+                        diagnosticData.Attachments = report.AttachmentPaths;
+                        diagnosticData.Deduplication = Count;
                         return diagnosticData;
                     }
                     catch (SerializationException)
@@ -213,6 +233,16 @@ namespace Backtrace.Unity.Model.Database
         }
 
         /// <summary>
+        /// Setup RecordWriter and database path after deserialization event
+        /// </summary>
+        /// <param name="path">Path to database</param>
+        internal void DatabasePath(string path)
+        {
+            _path = path;
+            RecordWriter = new BacktraceDatabaseRecordWriter(path);
+        }
+
+        /// <summary>
         /// Save single file from database record
         /// </summary>
         /// <param name="json">single file (json/dmp)</param>
@@ -230,6 +260,14 @@ namespace Backtrace.Unity.Model.Database
         }
 
         /// <summary>
+        /// Increment number of the same records in database
+        /// </summary>
+        public virtual void Increment()
+        {
+            _count++;
+        }
+
+        /// <summary>
         /// Check if all necessary files declared on record exists
         /// </summary>
         /// <returns>True if record is valid</returns>
@@ -239,7 +277,7 @@ namespace Backtrace.Unity.Model.Database
         }
 
         /// <summary>
-        /// Delete all record files
+        /// Delete all records from hard drive.
         /// </summary>
         internal void Delete()
         {

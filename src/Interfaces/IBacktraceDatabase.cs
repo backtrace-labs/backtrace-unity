@@ -1,7 +1,7 @@
 ﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
+using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
-using System;
 using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
@@ -22,7 +22,12 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         void Flush();
 
+        /// <summary>
+        /// Set Backtrace API instance
+        /// </summary>
+        /// <param name="backtraceApi">Backtrace API object instance</param>
         void SetApi(IBacktraceApi backtraceApi);
+
 
         /// <summary>
         /// Remove all existing reports in BacktraceDatabase
@@ -61,5 +66,17 @@ namespace Backtrace.Unity.Interfaces
         /// Get database size
         /// </summary>
         long GetDatabaseSize();
+
+        /// <summary>
+        /// Set report limit watcher - object responsible to validate number of events per time unit
+        /// </summary>
+        /// <param name="reportLimitWatcher">Report limit watcher instance</param>
+        void SetReportWatcher(ReportLimitWatcher reportLimitWatcher);
+
+        /// <summary>
+        /// Reload Backtrace database configuration. Reloading configuration is required, when you change 
+        /// BacktraceDatabase configuration options.
+        /// </summary>
+        void Reload();
     }
 }

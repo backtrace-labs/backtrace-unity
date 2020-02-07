@@ -22,6 +22,7 @@ namespace Backtrace.Unity.Model.Database
             RetryInterval = Convert.ToUInt32(configuration.RetryInterval);
             RetryLimit = Convert.ToUInt32(configuration.RetryLimit);
             RetryOrder = configuration.RetryOrder;
+            DeduplicationStrategy = configuration.DeduplicationStrategy;
         }
         /// <summary>
         /// Directory path where reports and minidumps are stored
@@ -73,6 +74,11 @@ namespace Backtrace.Unity.Model.Database
         /// Maximum number of retries
         /// </summary>
         public uint RetryLimit { get; set; } = 3;
+
+        /// <summary>
+        /// Deduplication strategy
+        /// </summary>
+        public DeduplicationStrategy DeduplicationStrategy { get; set; } = DeduplicationStrategy.None;
 
         public RetryOrder RetryOrder { get; set; } = RetryOrder.Queue;
     }

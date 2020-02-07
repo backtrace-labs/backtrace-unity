@@ -59,7 +59,10 @@ The following is a reference guide to the Backtrace Client fields:
 
 * Server Address: This field is required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve this value for your instance is our docs at What is a submission URL and What is a submission token?  NOTE: the backtrace-unity plugin  will expect full URL with token to your Backtrace instance,
 * Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
+* Destroy client on new scene load - Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true. 
 * Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
+* Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
+* Deduplication rules: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
 * Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure. 
 * Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start
 * Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
@@ -94,6 +97,19 @@ catch(Exception exception){
 }
 ```
 
+If you would like to change Backtrace client/database options, we recommend to change these values on the Unity UI via Backtrace Configuration file. However, if you would like to change these values dynamically, please use method `Refresh` to apply new configuration changes. 
+
+For example:
+```csharp
+ //Read from manager BacktraceClient instance
+var backtraceClient = GameObject.Find("manager name").GetComponent<BacktraceClient>();
+
+//Change configuration value
+backtraceClient.Configuration.DeduplicationStrategy = deduplicationStrategy;
+//Refresh configuraiton
+backtraceClient.Refresh();
+
+```
 ## Sending an error report <a name="documentation-sending-report"></a>
 
 `BacktraceClient.Send` method will send an error report to the Backtrace endpoint specified. There `Send` method is overloaded, see examples below:
@@ -119,7 +135,7 @@ catch (Exception exception)
 ```
 Notes:
 - if you setup `BacktraceClient` with `BacktraceDatabase` and your application is offline or you pass invalid credentials to `Backtrace server`, reports will be stored in database directory path,
-- `BacktraceReport` allows you to change default fingerprint generation algorithm. You can use `Fingerprint` property if you want to change fingerprint value. Keep in mind - fingerprint should be valid sha256 string.,
+- `BacktraceReport` allows you to change default Fingerprint generation algorithm. You can use `Fingerprint` property if you want to change Fingerprint value. Keep in mind - Fingerprint should be valid sha256 string. By setting `Fingerprint` you are instructing the client reporting library to only write a single report for the exception as it is encountered, and maintain a counter for every additional time it is encountered, instead of creating a new report. This will allow better control over the volume of reports being generated and sent to Backtrace. The counter is reset when the offline database is cleared (usually when the reports are sent to the server). A new single report will be created the next time the error is encountered.  
 - `BacktraceReport` allows you to change grouping strategy in Backtrace server. If you want to change how algorithm group your reports in Backtrace server please override `Factor` property.
 
 If you want to use `Fingerprint` and `Factor` property you have to override default property values. See example below to check how to use these properties:
@@ -132,7 +148,7 @@ try
 catch (Exception exception)
 {
     var report = new BacktraceReport(...){
-        FingerPrint = "sha256 string",
+        Fingerprint = "sha256 string",
         Factor = exception.GetType().Name
     };
     ....
@@ -189,6 +205,23 @@ You can clear all data from database without sending it to server by using `Clea
 backtraceDatabase.Clear();
 ```
 
+#### Deduplication 
+Backtrace unity integration allows you to aggregate the same reports and send only one message to Backtrace Api. As a developer you can choose deduplication options. Please use `DeduplicationStrategy` enum to setup possible deduplication rules in Unity UI:
+![Backtrace deduplicaiton setup](./images/deduplication-setup.PNG)
+
+Deduplication strategy types:
+* Ignore - ignore deduplication strategy,
+* Default - deduplication strategy will only use current strack trace to find duplicated reports,
+* Classifier - deduplication strategy will use stack trace and exception type to find duplicated reports,
+* Message - deduplication strategy will use stack trace and exception message to find duplicated reports,
+
+Notes:
+* When you aggregate reports via Backtrace C# library, `BacktraceDatabase` will increase number of reports in BacktraceDatabaseRecord counter property. 
+* Deduplication algorithm will include `BacktraceReport` `Fingerprint` and `Factor` properties. `Fingerprint` property will overwrite deduplication algorithm result. `Factor` property will change hash generated by deduplication algorithm.
+* If Backtrace unity integration combine multiple reports and user will close a game before plugin will send data to Backtrace, you will lose coutner information.
+* `BacktraceDatabase` methods allows you to use aggregated diagnostic data together. You can check `Hash` property of `BacktraceDatabaseRecord` to check generated hash for diagnostic data and `Counter` to check how much the same records we detect.
+* `BacktraceDatabase` `Count` method will return number of all records stored in database (included deduplicated records),
+* `BacktarceDatabase` `Delete` method will remove record (with multiple deduplicated records) at the same time.
 
 # Architecture description
 

@@ -85,6 +85,12 @@ namespace Backtrace.Unity.Model
         public Annotations Annotation = null;
         public ThreadData ThreadData = null;
 
+
+        /// <summary>
+        /// Number of deduplications
+        /// </summary>
+        public int Deduplication { get; set; } = 0;
+
         /// <summary>
         /// Empty constructor for serialization purpose
         /// </summary>
@@ -117,7 +123,7 @@ namespace Backtrace.Unity.Model
                 ["lang"] = "csharp",
                 ["langVersion"] = "Unity",
                 ["agent"] = "backtrace-unity",
-                ["agentVersion"] = "1.1.5",
+                ["agentVersion"] = "2.0.0",
                 ["mainThread"] = MainThread,
                 ["classifiers"] = new JArray(Classifier),
                 ["attributes"] = Attributes.ToJson(),
@@ -163,7 +169,7 @@ namespace Backtrace.Unity.Model
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             LangVersion = "Mono/IL2CPP";
-            AgentVersion = "1.1.5";
+            AgentVersion = "2.0.0";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

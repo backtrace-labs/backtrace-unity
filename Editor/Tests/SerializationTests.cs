@@ -1,33 +1,14 @@
-﻿using Backtrace.Unity;
-using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
 using System;
 using System.Collections;
-using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Tests
 {
     public class SerializationTests
     {
-        private BacktraceClient client;
-
-        [SetUp]
-        public void Setup()
-        {
-            var gameObject = new GameObject();
-            gameObject.SetActive(false);
-            client = gameObject.AddComponent<BacktraceClient>();
-            client.Configuration = new BacktraceConfiguration()
-            {
-                ServerUrl = "https://test.sp.backtrace.io:6097/",
-                //backtrace configuration require 64 characters
-                Token = "1234123412341234123412341234123412341234123412341234123412341234"
-            };
-            gameObject.SetActive(true);
-        }
-
         [UnityTest]
         public IEnumerator TestDataSerialization_ValidReport_DataSerializeAndDeserialize()
         {
@@ -58,8 +39,6 @@ namespace Tests
             var json = data.Attributes.ToJson();
             var deserializedData = BacktraceAttributes.Deserialize(json);
             Assert.IsTrue(deserializedData.Attributes.Count == data.Attributes.Attributes.Count);
-            //Assert.IsTrue(deserializedData.ComplexAttributes.Count == data.Attributes.ComplexAttributes.Count);
-
             yield return null;
         }
 

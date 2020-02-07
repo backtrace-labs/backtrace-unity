@@ -11,7 +11,7 @@ namespace Backtrace.Unity.Model
         /// Function where exception occurs
         /// </summary>
         [JsonProperty(PropertyName = "funcName")]
-        public string FunctionName;
+        public string FunctionName = "unknown";
 
         /// <summary>
         /// Line number in source code where exception occurs
@@ -123,7 +123,7 @@ namespace Backtrace.Unity.Model
             Il = frame.GetILOffset();
             ILOffset = Il;
 
-            Library = SourceCodeFullPath;
+            Library = string.IsNullOrEmpty(SourceCodeFullPath) ? frame.GetMethod()?.DeclaringType.ToString() : SourceCodeFullPath;
 
             SourceCode = generatedByException
                     ? Guid.NewGuid().ToString()
@@ -148,8 +148,9 @@ namespace Backtrace.Unity.Model
         private string GetMethodName(StackFrame frame)
         {
             var method = frame.GetMethod();
-            string methodName = method.Name;
-            return methodName;
+            var methodName = method.Name.StartsWith(".") ? method.Name.Substring(1, method.Name.Length - 1) : method.Name;
+            string fullMethodName = $"{method?.DeclaringType.ToString()}.{methodName}()";
+            return fullMethodName;
         }
     }
 }

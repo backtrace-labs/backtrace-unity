@@ -1,14 +1,17 @@
 ﻿#if UNITY_EDITOR
+using Backtrace.Unity.Model;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Backtrace.Unity.Model;
 
 namespace Backtrace.Unity.Editor
 {
     public class BacktraceMenu : MonoBehaviour
     {
-        public const string DEFAULT_CLIENT_CONFIGURATION_NAME = "Backtrace Configuration.asset";
+        public const string DEFAULT_CONFIGURATION_NAME = "Backtrace Configuration";
+        public const string DEFAULT_EXTENSION_NAME = ".asset";
+        public const string DEFAULT_CLIENT_CONFIGURATION_NAME = DEFAULT_CONFIGURATION_NAME + DEFAULT_EXTENSION_NAME;
 
         [MenuItem("Assets/Backtrace/Configuration", false, 1)]
         public static void CreateClientConfigurationFile()
@@ -19,7 +22,7 @@ namespace Backtrace.Unity.Editor
         private static void CreateAsset<T>(string fileName) where T : ScriptableObject
         {
             T asset = ScriptableObject.CreateInstance<T>();
-            string currentProjectPath = AssetDatabase.GetAssetPath(Selection.activeObject);
+            var currentProjectPath = AssetDatabase.GetAssetPath(Selection.activeObject);
             if (string.IsNullOrEmpty(currentProjectPath))
             {
                 currentProjectPath = "Assets";
@@ -28,11 +31,32 @@ namespace Backtrace.Unity.Editor
             {
                 currentProjectPath = Path.GetDirectoryName(currentProjectPath);
             }
-            AssetDatabase.CreateAsset(asset, "Assets/" + fileName);
-            AssetDatabase.SaveAssets();
-
             var destinationPath = Path.Combine(currentProjectPath, fileName);
-            AssetDatabase.MoveAsset("Assets/" + fileName, destinationPath);
+            if (File.Exists(destinationPath))
+            {
+                var files = Directory.GetFiles(currentProjectPath);
+                var lastFileIndex = files
+                    .Where(n =>
+                        Path.GetFileNameWithoutExtension(n).StartsWith(DEFAULT_CONFIGURATION_NAME) &&
+                        Path.GetExtension(n) == DEFAULT_EXTENSION_NAME)
+                        .Select(n =>
+                        {
+                            int startIndex = n.IndexOf('(') + 1;
+                            int endIndex = n.IndexOf(')');
+                            if (startIndex != 0 && endIndex != -1 && int.TryParse(n.Substring(startIndex, endIndex - startIndex), out int result))
+                            {
+                                return result;
+                            }
+                            return 0;
+                        })
+                        .DefaultIfEmpty().Max();
+
+                lastFileIndex++;
+                destinationPath = Path.Combine(currentProjectPath, $"{DEFAULT_CONFIGURATION_NAME}({lastFileIndex}){DEFAULT_EXTENSION_NAME}");
+            }
+            Debug.Log($"Generating new Backtrace configuration file available in path: {destinationPath}");
+            AssetDatabase.CreateAsset(asset, destinationPath);
+            AssetDatabase.SaveAssets();
             Selection.activeObject = asset;
         }
     }

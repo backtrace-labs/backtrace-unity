@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 2.0.0
+- Backtrace-Unity plugin will set `"Destroy object on new scene"` by default to false.
+- Backtrace stack trace improvements,
+- `BacktraceDatabase` retry method now respect correctly `BacktraceDatabase` `retryInterval` property,
+- New `Backtrace Configuration` won't override existing `Backtrace Configuration` in configuration directory. 
+- Backtrace-Unity plugin tests now won't override some files in Backtrace-Database unit tests,
+- Backtrace-Unity plugin now allows you to setup client side deduplication rules via `Fingerprint`. By using this field you can limit reporting of an error that occurs many times over a few frames. 
+- Backtrace report limit watcher feature now will validate limits before BacktraceReport creation.
+- `BacktraceClient` and `BacktraceDatabase` now expose `Reload` method. You can use this method do dynamically change `BacktraceClient`/`BacktraceDatabase` configurations.
+
 ## Version 1.1.5 - 09.01.2019
 - Added support to DontDestroyOnLoad property. Right now users might use this property to store `BacktraceClient`/`BacktraceDatabase` instances between all game scenes.
 - Added more attributes to `BacktraceReport` object,

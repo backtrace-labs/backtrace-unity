@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Types;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -13,7 +14,9 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_REPORT_PER_MIN = "Reports per minute";
         public const string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
-        public const string LABEL_DONT_DESTROY_BACKTRACE_ON_SCENE_LOAD = "Don't destroy Backtrace client on scene load";
+        public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
+        public const string LABEL_DONT_DESTROY_BACKTRACE_ON_SCENE_LOAD = "Don't destroy on scene load";
+
 
 
 
@@ -29,10 +32,12 @@ namespace Backtrace.Unity.Editor
             {
                 EditorGUILayout.HelpBox("Detected different pattern of url. Please make sure its a valid Backtrace url!", MessageType.Warning);
             }
+
+            settings.DestroyOnLoad = EditorGUILayout.Toggle(LABEL_DONT_DESTROY_BACKTRACE_ON_SCENE_LOAD, settings.DestroyOnLoad);
             settings.ReportPerMin = EditorGUILayout.IntField(LABEL_REPORT_PER_MIN, settings.ReportPerMin);
             settings.HandleUnhandledExceptions = EditorGUILayout.Toggle(LABEL_HANDLE_UNHANDLED_EXCEPTION, settings.HandleUnhandledExceptions);
             settings.IgnoreSslValidation = EditorGUILayout.Toggle(LABEL_IGNORE_SSL_VALIDATION, settings.IgnoreSslValidation);
-            settings.DestroyOnLoad = EditorGUILayout.Toggle(LABEL_DONT_DESTROY_BACKTRACE_ON_SCENE_LOAD, settings.DestroyOnLoad);
+            settings.DeduplicationStrategy = (DeduplicationStrategy)EditorGUILayout.EnumPopup(LABEL_DEDUPLICATION_RULES, settings.DeduplicationStrategy);
         }
     }
 

@@ -20,6 +20,8 @@ namespace Backtrace.Unity.Model.JsonData
         /// </summary>
         public Dictionary<string, object> Attributes = new Dictionary<string, object>();
 
+        internal const string APPLICATION_ATTRIBUTE_NAME = "application";
+
         /// <summary>
         /// Get built-in complex attributes
         /// </summary>
@@ -32,6 +34,10 @@ namespace Backtrace.Unity.Model.JsonData
         /// <param name="clientAttributes">Client's attributes (report and client)</param>
         public BacktraceAttributes(BacktraceReport report, Dictionary<string, object> clientAttributes)
         {
+            if(clientAttributes == null)
+            {
+                clientAttributes = new Dictionary<string, object>();
+            }
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);
@@ -90,7 +96,7 @@ namespace Backtrace.Unity.Model.JsonData
             //A unique identifier of a machine
             Attributes["guid"] = GenerateMachineId();
             //Base name of application generating the report
-            Attributes["application"] = Application.productName;
+            Attributes[APPLICATION_ATTRIBUTE_NAME] = Application.productName;
             Attributes["application.version"] = Application.version;
             Attributes["application.url"] = Application.absoluteURL;
             Attributes["application.company.name"] = Application.companyName;

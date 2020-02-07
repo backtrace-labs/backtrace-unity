@@ -19,10 +19,9 @@ namespace Tests
             var gameObject = new GameObject();
             gameObject.SetActive(false);
             client = gameObject.AddComponent<BacktraceClient>();
-            client.Configuration = new BacktraceConfiguration()
-            {
-                ServerUrl = "https://submit.backtrace.io/test/1234123412341234123412341234123412341234123412341234123412341234/json"
-            };
+            client.Configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            client.Configuration.ServerUrl = "https://submit.backtrace.io/test/1234123412341234123412341234123412341234123412341234123412341234/json";
+            client.Configuration.DestroyOnLoad = true;
             gameObject.SetActive(true);
             client.Refresh();
         }
