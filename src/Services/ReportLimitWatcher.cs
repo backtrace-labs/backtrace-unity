@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Backtrace.Unity.Services
 {
@@ -27,8 +28,18 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Determine how many reports class instance can store in report queue.
         /// </summary>
-        private int _reportPerSec;
+        private int _reportPerMin;
 
+
+        /// <summary>
+        /// Determine if ReportLimitWatcher class should display warning message
+        /// </summary>
+        private bool _displayMessage = false;
+
+        /// <summary>
+        /// Determine if BacktraceClient/BacktraceDatabase hit report limit 
+        /// </summary>
+        private bool _limitHit = false;
 
         /// <summary>
         /// Create new instance of background watcher
@@ -42,14 +53,14 @@ namespace Backtrace.Unity.Services
             }
             int reportNumber = checked((int)reportPerMin);
             _reportQueue = new Queue<long>(reportNumber);
-            _reportPerSec = reportNumber;
+            _reportPerMin = reportNumber;
             _watcherEnable = reportPerMin != 0;
         }
 
         internal void SetClientReportLimit(uint reportPerMin)
         {
             int reportNumber = checked((int)reportPerMin);
-            _reportPerSec = reportNumber;
+            _reportPerMin = reportNumber;
             _watcherEnable = reportPerMin != 0;
         }
 
@@ -67,10 +78,13 @@ namespace Backtrace.Unity.Services
             }
             //clear all reports older than _queReportTime
             Clear();
-            if (_reportQueue.Count + 1 > _reportPerSec)
+            if (_reportQueue.Count + 1 > _reportPerMin)
             {
+                _limitHit = true;
                 return false;
             }
+            _limitHit = false;
+            _displayMessage = true;
             _reportQueue.Enqueue(timestamp);
             return true;
         }
@@ -85,6 +99,18 @@ namespace Backtrace.Unity.Services
             return WatchReport(report.Timestamp);
         }
 
+
+        /// <summary>
+        /// Display report limit hit 
+        /// </summary>
+        public void DisplayReportLimitHitMessage()
+        {
+            if(_limitHit == true && _displayMessage == true)
+            {
+                _displayMessage = false;
+                Debug.LogWarning($"Backtrace report limit hit({_reportPerMin}/min) – Ignoring errors for 1 minute");
+            }
+        }
 
 
         /// <summary>

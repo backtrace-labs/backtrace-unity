@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
@@ -145,7 +146,6 @@ namespace Backtrace.Unity
         /// </summary>
         public void OnDisable()
         {
-            Debug.LogWarning("Disabling BacktraceDatabase integration");
             Enable = false;
         }
 
@@ -318,6 +318,12 @@ namespace Backtrace.Unity
                          {
                              record.Dispose();
                              BacktraceDatabaseContext.IncrementBatchRetry();
+                             return;
+                         }
+                        bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+                         if (!limitHit)
+                         {
+                             _reportLimitWatcher.DisplayReportLimitHitMessage();
                              return;
                          }
                          record = BacktraceDatabaseContext.FirstOrDefault();

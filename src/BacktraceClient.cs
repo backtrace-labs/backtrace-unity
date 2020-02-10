@@ -168,7 +168,6 @@ namespace Backtrace.Unity
 
         public void OnDisable()
         {
-            Debug.LogWarning("Disabling BacktraceClient integration");
             Enabled = false;
         }
 
@@ -176,7 +175,6 @@ namespace Backtrace.Unity
         {
             if (Configuration == null || !Configuration.IsValid())
             {
-                Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 return;
             }
             
@@ -240,7 +238,7 @@ namespace Backtrace.Unity
             bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (limitHit == false && _onClientReportLimitReached == null)
             {
-                Debug.LogWarning("Report limit hit.");
+                _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
             var report = new BacktraceReport(
@@ -250,7 +248,7 @@ namespace Backtrace.Unity
             if (!limitHit)
             {
                 _onClientReportLimitReached?.Invoke(report);
-                Debug.LogWarning("Report limit hit.");
+                _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
 
@@ -274,7 +272,7 @@ namespace Backtrace.Unity
             bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (limitHit == false && _onClientReportLimitReached == null)
             {
-                Debug.LogWarning("Report limit hit.");
+                _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
             var report = new BacktraceReport(
@@ -284,7 +282,7 @@ namespace Backtrace.Unity
             if (!limitHit)
             {
                 _onClientReportLimitReached?.Invoke(report);
-                Debug.LogWarning("Report limit hit.");
+                _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
             SendReport(report);
@@ -303,12 +301,12 @@ namespace Backtrace.Unity
                 return;
             }
             //check rate limiting
-            bool watcherValidation = _reportLimitWatcher.WatchReport(report);
-            if (!watcherValidation)
+            bool limitHit = _reportLimitWatcher.WatchReport(report);
+            if (!limitHit)
             {
                 _onClientReportLimitReached?.Invoke(report);
                 sendCallback?.Invoke(BacktraceResult.OnLimitReached(report));
-                Debug.LogWarning("Report limit hit.");
+                _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
             SendReport(report, sendCallback);

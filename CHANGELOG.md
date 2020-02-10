@@ -1,31 +1,43 @@
 # Backtrace Unity Release Notes
 
+## Version 2.0.2
+
+- Fixed invalid cast for nested game objects in Backtrace Attributes,
+- BacktraceClient will print message only once per report rate limit hit per 1 minute.
+- `BacktraceDatabase` `Send` method will check client rate limit after each send.
+- `BacktraceClient` and `BacktraceDatabase` won't generate warning on `Disabled` event.
 
 ## Version 2.0.1
+
 - `BacktraceApi` won't print anymore Error message when Backtrace-integration cannot send data to Backtrace. Now `BacktraceApi` will print warning instead.
 
 ## Version 2.0.0
+
 - Backtrace-Unity plugin will set `"Destroy object on new scene"` by default to false.
 - Backtrace stack trace improvements,
 - `BacktraceDatabase` retry method now respect correctly `BacktraceDatabase` `retryInterval` property,
-- New `Backtrace Configuration` won't override existing `Backtrace Configuration` in configuration directory. 
+- New `Backtrace Configuration` won't override existing `Backtrace Configuration` in configuration directory.
 - Backtrace-Unity plugin tests now won't override some files in Backtrace-Database unit tests,
-- Backtrace-Unity plugin now allows you to setup client side deduplication rules via `Fingerprint`. By using this field you can limit reporting of an error that occurs many times over a few frames. 
+- Backtrace-Unity plugin now allows you to setup client side deduplication rules via `Fingerprint`. By using this field you can limit reporting of an error that occurs many times over a few frames.
 - Backtrace report limit watcher feature now will validate limits before BacktraceReport creation.
 - `BacktraceClient` and `BacktraceDatabase` now expose `Reload` method. You can use this method do dynamically change `BacktraceClient`/`BacktraceDatabase` configurations.
 
 ## Version 1.1.5 - 09.01.2019
+
 - Added support to DontDestroyOnLoad property. Right now users might use this property to store `BacktraceClient`/`BacktraceDatabase` instances between all game scenes.
 - Added more attributes to `BacktraceReport` object,
 - Added scene game objects information to `BacktraceReport` annotations.
 
 ## Version 1.1.4 - 27.08.2019
+
 - Added support for servies under proxy (removed backtrace.sp conditions)
 
 ## Version 1.1.3 - 07.06.2019
+
 - Removed error log when unity-plugin receive status code: 200 on attachment upload.
 
 ## Version 1.1.2 - 06.06.2019
+
 - Changed a way how Unity-plugin upload attachments to Backtrace via `submit.backtrace.io`
 
 ## Version 1.1.1 - 28.03.2019
