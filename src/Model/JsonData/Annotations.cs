@@ -117,9 +117,14 @@ namespace Backtrace.Unity.Model.JsonData
             var jGameObject = GetJObject(gameObject);
             var innerObjects = new JArray();
 
-            foreach (RectTransform childObject in gameObject.transform)
+            foreach (var childObject in gameObject.transform)
             {
-                innerObjects.Add(ConvertGameObject(childObject, gameObject.name));
+                var transformChildObject = childObject as RectTransform;
+                if(transformChildObject == null)
+                {
+                    continue;
+                }
+                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name));
             }
             jGameObject["childrens"] = innerObjects;
             return jGameObject;
@@ -130,9 +135,14 @@ namespace Backtrace.Unity.Model.JsonData
             var result = GetJObject(gameObject, parentName);
             var innerObjects = new JArray();
 
-            foreach (RectTransform childObject in gameObject.transform)
+            foreach (var childObject in gameObject.transform)
             {
-                innerObjects.Add(ConvertGameObject(childObject, gameObject.name));
+                var transformChildObject = childObject as RectTransform;
+                if (transformChildObject == null)
+                {
+                    continue;
+                }
+                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name));
             }
             result["childrens"] = innerObjects;
             return result;

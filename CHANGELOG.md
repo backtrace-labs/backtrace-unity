@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+## Version 2.0.3
+
+- Annotations object will validate game object before converting it.
+
 ## Version 2.0.2
 
 - Fixed invalid cast for nested game objects in Backtrace Attributes,
