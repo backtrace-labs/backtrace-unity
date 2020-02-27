@@ -51,7 +51,6 @@ namespace Backtrace.Unity.Model.JsonData
 
         public Annotations()
         {
-
         }
         /// <summary>
         /// Create new instance of Annotations class
@@ -122,7 +121,6 @@ namespace Backtrace.Unity.Model.JsonData
                 var transformChildObject = childObject as Component;
                 if (transformChildObject == null)
                 {
-                    Debug.LogError("Cannot convert child object to component!");
                     continue;
                 }
                 innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
@@ -133,19 +131,23 @@ namespace Backtrace.Unity.Model.JsonData
 
         private BacktraceJObject ConvertGameObject(Component gameObject, string parentName, int depth)
         {
-            if (GameObjectDepth <= 0 || depth >= GameObjectDepth)
+            if (GameObjectDepth > 0 && depth > GameObjectDepth)
             {
                 return new BacktraceJObject();
             }
             var result = GetJObject(gameObject, parentName);
+            if (GameObjectDepth > 0 && depth + 1 >= GameObjectDepth)
+            {
+                return result;
+            }
             var innerObjects = new JArray();
+
 
             foreach (var childObject in gameObject.transform)
             {
                 var transformChildObject = childObject as Component;
                 if (transformChildObject == null)
                 {
-                    Debug.LogError("Cannot convert child object to component!");
                     continue;
                 }
                 innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
