@@ -79,6 +79,10 @@ namespace Backtrace.Unity.Model
         [JsonProperty(PropertyName = "minidumpFile")]
         internal string MinidumpFile { get; private set; }
 
+        /// <summary>
+        /// Convert Backtrace report to JSON
+        /// </summary>
+        /// <returns>Backtrace report JSON representation</returns>
         public string ToJson()
         {
             var reportStackTrace = new JArray();
@@ -110,6 +114,11 @@ namespace Backtrace.Unity.Model
             return report.ToString();
         }
 
+        /// <summary>
+        /// Convert JSON to Backtrace Report
+        /// </summary>
+        /// <param name="json">Backtrace Report JSON</param>
+        /// <returns>Backtrace report instance</returns>
         public static BacktraceReport Deserialize(string json)
         {
             var @object = BacktraceJObject.Parse(json);

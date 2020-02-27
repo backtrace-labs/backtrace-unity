@@ -11,6 +11,10 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
+        /// <summary>
+        /// Set maximum number of game objects in Backtrace report
+        /// </summary>
+        public static int GameObjectDepth { get; set; } = 0;
 
         private const string ENVIRONMENT_VARIABLE_KEY = "Environment Variables";
         private JToken _serializedAnnotations;
@@ -87,13 +91,9 @@ namespace Backtrace.Unity.Model.JsonData
 
                 var rootObjects = new List<GameObject>();
                 activeScene.GetRootGameObjects(rootObjects);
-                foreach (var objects in rootObjects)
+                foreach (var gameObject in rootObjects)
                 {
-                    gameObjects.Add(ConvertGameObject(objects));
-                    if (gameObjects.Count > 30)
-                    {
-                        break;
-                    }
+                    gameObjects.Add(ConvertGameObject(gameObject));
                 }
                 annotations["Game objects"] = gameObjects;
             }
@@ -108,7 +108,7 @@ namespace Backtrace.Unity.Model.JsonData
             return annotations;
         }
 
-        private BacktraceJObject ConvertGameObject(GameObject gameObject)
+        private BacktraceJObject ConvertGameObject(GameObject gameObject, int depth = 0)
         {
             if (gameObject == null)
             {
@@ -119,19 +119,24 @@ namespace Backtrace.Unity.Model.JsonData
 
             foreach (var childObject in gameObject.transform)
             {
-                var transformChildObject = childObject as RectTransform;
-                if(transformChildObject == null)
+                var transformChildObject = childObject as Component;
+                if (transformChildObject == null)
                 {
+                    Debug.LogError("Cannot convert child object to component!");
                     continue;
                 }
-                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name));
+                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
             jGameObject["childrens"] = innerObjects;
             return jGameObject;
         }
 
-        private BacktraceJObject ConvertGameObject(Component gameObject, string parentName)
+        private BacktraceJObject ConvertGameObject(Component gameObject, string parentName, int depth)
         {
+            if (GameObjectDepth <= 0 || depth >= GameObjectDepth)
+            {
+                return new BacktraceJObject();
+            }
             var result = GetJObject(gameObject, parentName);
             var innerObjects = new JArray();
 
@@ -140,9 +145,10 @@ namespace Backtrace.Unity.Model.JsonData
                 var transformChildObject = childObject as Component;
                 if (transformChildObject == null)
                 {
+                    Debug.LogError("Cannot convert child object to component!");
                     continue;
                 }
-                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name));
+                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
             result["childrens"] = innerObjects;
             return result;
@@ -155,7 +161,6 @@ namespace Backtrace.Unity.Model.JsonData
                 ["name"] = gameObject.name,
                 ["isStatic"] = gameObject.isStatic,
                 ["layer"] = gameObject.layer,
-                ["tag"] = gameObject.tag,
                 ["transform.position"] = gameObject.transform.position.ToString() ?? "",
                 ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
                 ["tag"] = gameObject.tag,
@@ -172,7 +177,6 @@ namespace Backtrace.Unity.Model.JsonData
             return new BacktraceJObject()
             {
                 ["name"] = gameObject.name,
-                ["tag"] = gameObject.tag,
                 ["transform.position"] = gameObject.transform.position.ToString() ?? "",
                 ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
                 ["tag"] = gameObject.tag,

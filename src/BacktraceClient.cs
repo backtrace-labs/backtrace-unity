@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -179,7 +180,7 @@ namespace Backtrace.Unity
             }
             
             Enabled = true;
-
+            Annotations.GameObjectDepth = Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
             BacktraceApi = new BacktraceApi(

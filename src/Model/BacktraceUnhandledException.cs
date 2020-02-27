@@ -4,6 +4,10 @@ using System.Diagnostics;
 
 namespace Backtrace.Unity.Model
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Usage", 
+        "CA2237:Mark ISerializable types with serializable", 
+        Justification = "Backtrace already implements own serialization to generate report")]
     public class BacktraceUnhandledException : Exception
     {
         private bool _header = false;

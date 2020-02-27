@@ -13,7 +13,7 @@ namespace Tests
 {
     public class BacktraceStackTraceTests
     {
-        private static readonly List<SampleStackFrame> _advancedStack = new List<SampleStackFrame>()
+        private readonly List<SampleStackFrame> _advancedStack = new List<SampleStackFrame>()
             {
                 new SampleStackFrame(){
                     Method ="InvalidSignatureException: Return type System.Void of GenerateSubmissionUrl_FromValidHostName_ValidSubmissionUrl in Tests.BacktraceCredentialsTests is not supported."
@@ -44,7 +44,7 @@ namespace Tests
                 },
             };
 
-        private static readonly List<SampleStackFrame> _simpleStack = new List<SampleStackFrame>()
+        private readonly List<SampleStackFrame> _simpleStack = new List<SampleStackFrame>()
         {
             new SampleStackFrame()
                 {
