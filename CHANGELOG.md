@@ -8,6 +8,7 @@
 - Added correct path to source file in `BacktraceUnhnandledException`,
 - Changed line endings in `BacktraceDatabase`, `ReportLimitWatcher`, `BacktraceClient` files,
 - Changed `ReactTransform` casting to `Component` in `Annotations` class. With this change Backtrace library should correctly send all game objects to Backtrace,
+- Changed a way how we guess game assets directory.
 
 ## Version 2.0.3
 
