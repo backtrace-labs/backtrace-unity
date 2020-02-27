@@ -15,7 +15,7 @@ namespace Backtrace.Unity.Model.JsonData
         private const string ENVIRONMENT_VARIABLE_KEY = "Environment Variables";
         private JToken _serializedAnnotations;
 
-        private Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
         /// <summary>
         /// Get system environment variables
         /// </summary>
@@ -130,14 +130,14 @@ namespace Backtrace.Unity.Model.JsonData
             return jGameObject;
         }
 
-        private BacktraceJObject ConvertGameObject(RectTransform gameObject, string parentName)
+        private BacktraceJObject ConvertGameObject(Component gameObject, string parentName)
         {
             var result = GetJObject(gameObject, parentName);
             var innerObjects = new JArray();
 
             foreach (var childObject in gameObject.transform)
             {
-                var transformChildObject = childObject as RectTransform;
+                var transformChildObject = childObject as Component;
                 if (transformChildObject == null)
                 {
                     continue;
@@ -156,8 +156,8 @@ namespace Backtrace.Unity.Model.JsonData
                 ["isStatic"] = gameObject.isStatic,
                 ["layer"] = gameObject.layer,
                 ["tag"] = gameObject.tag,
-                ["transform.position"] = gameObject.transform?.position.ToString() ?? "",
-                ["transform.rotation"] = gameObject.transform?.rotation.ToString() ?? "",
+                ["transform.position"] = gameObject.transform.position.ToString() ?? "",
+                ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
                 ["tag"] = gameObject.tag,
                 ["activeInHierarchy"] = gameObject.activeInHierarchy,
                 ["activeSelf"] = gameObject.activeSelf,
@@ -167,14 +167,14 @@ namespace Backtrace.Unity.Model.JsonData
             };
         }
 
-        private BacktraceJObject GetJObject(RectTransform gameObject, string parentName = "")
+        private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
         {
             return new BacktraceJObject()
             {
                 ["name"] = gameObject.name,
                 ["tag"] = gameObject.tag,
-                ["transform.position"] = gameObject.transform?.position.ToString() ?? "",
-                ["transform.rotation"] = gameObject.transform?.rotation.ToString() ?? "",
+                ["transform.position"] = gameObject.transform.position.ToString() ?? "",
+                ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
                 ["tag"] = gameObject.tag,
                 ["hideFlags"] = (int)gameObject.hideFlags,
                 ["instanceId"] = gameObject.GetInstanceID(),

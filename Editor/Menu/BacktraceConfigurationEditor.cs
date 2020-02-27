@@ -15,7 +15,7 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
         public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
 
-        public const string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load";
+        public const string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (Backtrace managed)";
 
         public const string LABEL_PATH = "Backtrace database path";
         public const string LABEL_AUTO_SEND_MODE = "Auto send mode";

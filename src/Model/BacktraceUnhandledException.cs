@@ -42,7 +42,7 @@ namespace Backtrace.Unity.Model
 
             if (string.IsNullOrEmpty(stacktrace))
             {
-                stacktrace = new StackTrace(0, true).ToString();
+                _stacktrace = new StackTrace(0, true).ToString();
                 return;
             }
             ConvertStackFrames();
@@ -117,6 +117,15 @@ namespace Backtrace.Unity.Model
                             .Substring(atSeparator, endLine)
                             ?.Trim() ?? string.Empty;
 
+                        if (!string.IsNullOrEmpty(methodPath))
+                        {
+                            var testString = string.Copy(methodPath);
+                            testString = testString.Replace("0", string.Empty);
+                            if (testString.Length <= 2)
+                            {
+                                methodPath = null;
+                            }
+                        }
                     }
 
                 }
@@ -124,9 +133,8 @@ namespace Backtrace.Unity.Model
                 {
 
                     FunctionName = string.Join(".", routingParams),
-                    Library = routingParams[0],
-                    Line = fileLine,
-                    SourceCode = methodPath
+                    Library = methodPath,
+                    Line = fileLine
                 });
 
             }

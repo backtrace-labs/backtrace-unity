@@ -15,12 +15,8 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
         public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
-        public const string LABEL_DONT_DESTROY_BACKTRACE_ON_SCENE_LOAD = "Don't destroy on scene load";
+        public const string LABEL_DONT_DESTROY_BACKTRACE_ON_SCENE_LOAD = "Do not destroy on scene load (Backtrace managed)";
 
-
-
-
-        private const string CONFIG_NAME = "backtrace_client_config";
 
         public override void OnInspectorGUI()
         {

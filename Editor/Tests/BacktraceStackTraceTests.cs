@@ -139,7 +139,7 @@ namespace Tests
                     var realStackFrame = data[i];
                     Assert.AreEqual(realStackFrame.Method, backtraceStackFrame.FunctionName);
                     Assert.AreEqual(realStackFrame.LineNumber, backtraceStackFrame.Line);
-                    Assert.AreEqual(realStackFrame.Path, backtraceStackFrame.SourceCode);
+                    Assert.AreEqual(realStackFrame.Path, backtraceStackFrame.Library);
                 }
                 // -1 because we include header in stack trace
                 Assert.AreEqual(data.Count - startIndex, backtraceStackTrace.StackFrames.Count);
