@@ -114,6 +114,10 @@ namespace Backtrace.Unity.Model
             Attachments = Report.AttachmentPaths.Distinct().ToList();
         }
 
+        /// <summary>
+        /// Convert Backtrace data to JSON
+        /// </summary>
+        /// <returns>Backtrace Data JSON string</returns>
         public string ToJson()
         {
             var json = new BacktraceJObject
@@ -123,7 +127,7 @@ namespace Backtrace.Unity.Model
                 ["lang"] = "csharp",
                 ["langVersion"] = "Unity",
                 ["agent"] = "backtrace-unity",
-                ["agentVersion"] = "2.0.3",
+                ["agentVersion"] = "2.0.4",
                 ["mainThread"] = MainThread,
                 ["classifiers"] = new JArray(Classifier),
                 ["attributes"] = Attributes.ToJson(),
@@ -132,6 +136,12 @@ namespace Backtrace.Unity.Model
             };
             return json.ToString();
         }
+
+        /// <summary>
+        /// Convert JSON to Backtrace Data
+        /// </summary>
+        /// <param name="json">Backtrace Data JSON</param>
+        /// <returns>Backtrace Data instance</returns>
         public static BacktraceData Deserialize(string json)
         {
             var @object = BacktraceJObject.Parse(json);
@@ -151,6 +161,9 @@ namespace Backtrace.Unity.Model
             };
         }
 
+        /// <summary>
+        /// Set thread information
+        /// </summary>
         private void SetThreadInformations()
         {
             ThreadData = new ThreadData(Report.DiagnosticStack);
@@ -158,18 +171,25 @@ namespace Backtrace.Unity.Model
             MainThread = ThreadData.MainThread;
         }
 
+        /// <summary>
+        /// Set report attributes and annotations
+        /// </summary>
+        /// <param name="clientAttributes">Backtrace client attributes</param>
         private void SetAttributes(Dictionary<string, object> clientAttributes)
         {
             Attributes = new BacktraceAttributes(Report, clientAttributes);
             Annotation = new Annotations(Attributes.ComplexAttributes);
         }
 
+        /// <summary>
+        /// Set default exception/agent information
+        /// </summary>
         private void SetReportInformation()
         {
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             LangVersion = "Mono/IL2CPP";
-            AgentVersion = "2.0.3";
+            AgentVersion = "2.0.4";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

@@ -78,6 +78,11 @@ namespace Backtrace.Unity.Model
         public bool DestroyOnLoad = false;
 
         /// <summary>
+        /// Game object depth in Backtrace report
+        /// </summary>
+        public int GameObjectDepth = 0;
+
+        /// <summary>
         /// Backtrace client deduplication strategy. 
         /// </summary>
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;

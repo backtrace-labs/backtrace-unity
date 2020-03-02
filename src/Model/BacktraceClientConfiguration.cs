@@ -12,6 +12,7 @@ namespace Backtrace.Unity.Model
         public bool HandleUnhandledExceptions = true;
         public bool IgnoreSslValidation = false;
         public bool DestroyOnLoad = true;
+        public int GameObjectDepth = 0;
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
         public void UpdateServerUrl()
@@ -20,9 +21,8 @@ namespace Backtrace.Unity.Model
             {
                 return;
             }
-            
-            Uri serverUri;
-            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out serverUri);
+
+            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out _);
             if (result)
             {
                 try
@@ -32,7 +32,7 @@ namespace Backtrace.Unity.Model
                 }
                 catch (Exception)
                 {
-                    Debug.LogWarning("Invalid uri provided");
+                    Debug.LogWarning("Invalid Backtrace URL");
                 }
             }
         }
@@ -44,7 +44,7 @@ namespace Backtrace.Unity.Model
                 return false;
             }
 
-            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out Uri serverUri);
+            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out _);
             try
             {
                 new UriBuilder(ServerUrl) { Scheme = Uri.UriSchemeHttps, Port = 6098 }.Uri.ToString();
@@ -55,15 +55,6 @@ namespace Backtrace.Unity.Model
             }
             return result;
         }
-        
-        public bool IsValid()
-        {
-            return ValidateServerUrl();
-        }
-      
-        public BacktraceCredentials ToCredentials()
-        {
-            return new BacktraceCredentials(ServerUrl);
-        }
+
     }
 }

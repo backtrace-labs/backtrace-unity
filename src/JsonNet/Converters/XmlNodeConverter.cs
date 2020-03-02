@@ -30,9 +30,7 @@ using System.Globalization;
 using System.Xml;
 using Backtrace.Newtonsoft.Serialization;
 using Backtrace.Newtonsoft.Shims;
-#if !(NET20 || PORTABLE40)
 using System.Xml.Linq;
-#endif
 using Backtrace.Newtonsoft.Utilities;
 
 namespace Backtrace.Newtonsoft.Converters
@@ -580,8 +578,7 @@ namespace Backtrace.Newtonsoft.Converters
 
         public override IXmlNode AppendChild(IXmlNode newChild)
         {
-            XDeclarationWrapper declarationWrapper = newChild as XDeclarationWrapper;
-            if (declarationWrapper != null)
+            if (newChild is XDeclarationWrapper declarationWrapper)
             {
                 Document.Declaration = declarationWrapper.Declaration;
                 return declarationWrapper;
@@ -1173,8 +1170,7 @@ namespace Backtrace.Newtonsoft.Converters
                 IXmlNode childNode = node.ChildNodes[i];
                 string nodeName = GetPropertyName(childNode, manager);
 
-                List<IXmlNode> nodes;
-                if (!nodesGroupedByName.TryGetValue(nodeName, out nodes))
+                if (!nodesGroupedByName.TryGetValue(nodeName, out List<IXmlNode> nodes))
                 {
                     nodes = new List<IXmlNode>();
                     nodesGroupedByName.Add(nodeName, nodes);
@@ -1635,7 +1631,7 @@ namespace Backtrace.Newtonsoft.Converters
         {
             if (reader.TokenType == JsonToken.String)
             {
-                return (reader.Value != null) ? reader.Value.ToString() : null;
+                return reader.Value?.ToString();
             }
             else if (reader.TokenType == JsonToken.Integer)
             {
@@ -1708,8 +1704,7 @@ namespace Backtrace.Newtonsoft.Converters
             {
                 foreach (IXmlNode childNode in nestedArrayElement.ChildNodes)
                 {
-                    IXmlElement element = childNode as IXmlElement;
-                    if (element != null && element.LocalName == propertyName)
+                    if (childNode is IXmlElement element && element.LocalName == propertyName)
                     {
                         AddJsonArrayAttribute(element, document);
                         break;
@@ -1816,7 +1811,7 @@ namespace Backtrace.Newtonsoft.Converters
                                                     throw JsonSerializationException.Create(reader, "Unexpected JsonToken: " + reader.TokenType);
                                                 }
 
-                                                attributeValue = (reader.Value != null) ? reader.Value.ToString() : null;
+                                                attributeValue = reader.Value?.ToString();
                                                 attributeNameValues.Add(jsonPrefix + ":" + attributeName, attributeValue);
                                                 break;
                                             default:
@@ -1961,8 +1956,7 @@ namespace Backtrace.Newtonsoft.Converters
                             {
                                 foreach (IXmlNode childNode in currentNode.ChildNodes)
                                 {
-                                    IXmlElement element = childNode as IXmlElement;
-                                    if (element != null && element.LocalName == propertyName)
+                                    if (childNode is IXmlElement element && element.LocalName == propertyName)
                                     {
                                         AddJsonArrayAttribute(element, document);
                                         break;

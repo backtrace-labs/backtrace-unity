@@ -11,11 +11,15 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
+        /// <summary>
+        /// Set maximum number of game objects in Backtrace report
+        /// </summary>
+        public static int GameObjectDepth { get; set; } = 0;
 
         private const string ENVIRONMENT_VARIABLE_KEY = "Environment Variables";
         private JToken _serializedAnnotations;
 
-        private Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
         /// <summary>
         /// Get system environment variables
         /// </summary>
@@ -47,7 +51,6 @@ namespace Backtrace.Unity.Model.JsonData
 
         public Annotations()
         {
-
         }
         /// <summary>
         /// Create new instance of Annotations class
@@ -87,13 +90,9 @@ namespace Backtrace.Unity.Model.JsonData
 
                 var rootObjects = new List<GameObject>();
                 activeScene.GetRootGameObjects(rootObjects);
-                foreach (var objects in rootObjects)
+                foreach (var gameObject in rootObjects)
                 {
-                    gameObjects.Add(ConvertGameObject(objects));
-                    if (gameObjects.Count > 30)
-                    {
-                        break;
-                    }
+                    gameObjects.Add(ConvertGameObject(gameObject));
                 }
                 annotations["Game objects"] = gameObjects;
             }
@@ -108,7 +107,7 @@ namespace Backtrace.Unity.Model.JsonData
             return annotations;
         }
 
-        private BacktraceJObject ConvertGameObject(GameObject gameObject)
+        private BacktraceJObject ConvertGameObject(GameObject gameObject, int depth = 0)
         {
             if (gameObject == null)
             {
@@ -119,30 +118,39 @@ namespace Backtrace.Unity.Model.JsonData
 
             foreach (var childObject in gameObject.transform)
             {
-                var transformChildObject = childObject as RectTransform;
-                if(transformChildObject == null)
+                var transformChildObject = childObject as Component;
+                if (transformChildObject == null)
                 {
                     continue;
                 }
-                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name));
+                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
             jGameObject["childrens"] = innerObjects;
             return jGameObject;
         }
 
-        private BacktraceJObject ConvertGameObject(RectTransform gameObject, string parentName)
+        private BacktraceJObject ConvertGameObject(Component gameObject, string parentName, int depth)
         {
+            if (GameObjectDepth > 0 && depth > GameObjectDepth)
+            {
+                return new BacktraceJObject();
+            }
             var result = GetJObject(gameObject, parentName);
+            if (GameObjectDepth > 0 && depth + 1 >= GameObjectDepth)
+            {
+                return result;
+            }
             var innerObjects = new JArray();
+
 
             foreach (var childObject in gameObject.transform)
             {
-                var transformChildObject = childObject as RectTransform;
+                var transformChildObject = childObject as Component;
                 if (transformChildObject == null)
                 {
                     continue;
                 }
-                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name));
+                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
             result["childrens"] = innerObjects;
             return result;
@@ -155,9 +163,8 @@ namespace Backtrace.Unity.Model.JsonData
                 ["name"] = gameObject.name,
                 ["isStatic"] = gameObject.isStatic,
                 ["layer"] = gameObject.layer,
-                ["tag"] = gameObject.tag,
-                ["transform.position"] = gameObject.transform?.position.ToString() ?? "",
-                ["transform.rotation"] = gameObject.transform?.rotation.ToString() ?? "",
+                ["transform.position"] = gameObject.transform.position.ToString() ?? "",
+                ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
                 ["tag"] = gameObject.tag,
                 ["activeInHierarchy"] = gameObject.activeInHierarchy,
                 ["activeSelf"] = gameObject.activeSelf,
@@ -167,14 +174,13 @@ namespace Backtrace.Unity.Model.JsonData
             };
         }
 
-        private BacktraceJObject GetJObject(RectTransform gameObject, string parentName = "")
+        private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
         {
             return new BacktraceJObject()
             {
                 ["name"] = gameObject.name,
-                ["tag"] = gameObject.tag,
-                ["transform.position"] = gameObject.transform?.position.ToString() ?? "",
-                ["transform.rotation"] = gameObject.transform?.rotation.ToString() ?? "",
+                ["transform.position"] = gameObject.transform.position.ToString() ?? "",
+                ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
                 ["tag"] = gameObject.tag,
                 ["hideFlags"] = (int)gameObject.hideFlags,
                 ["instanceId"] = gameObject.GetInstanceID(),
