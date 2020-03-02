@@ -4,7 +4,7 @@
 
 - Added Game object depth property that allows developer to filter game object childrens in Backtrace report
 - Changed "Destroy client on new scene load" label. Now: "Destroy client on new scene load (false - Backtrace managed),
-- added namespaced to
+- added namespaces to `XmlNodeConverter` class,
 - Added correct path to source file in `BacktraceUnhnandledException`,
 - Changed line endings in `BacktraceDatabase`, `ReportLimitWatcher`, `BacktraceClient` files,
 - Changed `ReactTransform` casting to `Component` in `Annotations` class. With this change Backtrace library should correctly send all game objects to Backtrace,
