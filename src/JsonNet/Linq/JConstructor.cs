@@ -135,12 +135,12 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (name == null)
             {
-                throw new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException("name");
             }
 
             if (name.Length == 0)
             {
-                throw new ArgumentException("Constructor name cannot be empty.", nameof(name));
+                throw new ArgumentException("Constructor name cannot be empty.", "name");
             }
 
             _name = name;
@@ -182,7 +182,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             get
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "key");
 
                 if (!(key is int))
                 {
@@ -193,7 +193,7 @@ namespace Backtrace.Newtonsoft.Linq
             }
             set
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "key");
 
                 if (!(key is int))
                 {

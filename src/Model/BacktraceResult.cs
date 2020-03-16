@@ -43,7 +43,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Result
         /// </summary>
-        public BacktraceResultStatus Status { get; set; } = BacktraceResultStatus.Ok;
+        public BacktraceResultStatus Status = BacktraceResultStatus.Ok;
 
         private string _object;
         /// <summary>

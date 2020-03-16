@@ -19,7 +19,7 @@ namespace Tests
             var credentials = new BacktraceCredentials(host);
             if (!host.StartsWith("https://") && !host.StartsWith("http://"))
             {
-                host = $"https://{host}";
+                host = string.Format("https://{0}", host);
             }
 
             if (!host.EndsWith("/"))

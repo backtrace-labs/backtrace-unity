@@ -58,7 +58,7 @@ namespace Backtrace.Newtonsoft.Bson
         private ContainerContext _currentContext;
 
         private bool _readRootValueAsArray;
-        private bool _jsonNet35BinaryCompatibility;
+        private bool _jsonNET35BinaryCompatibility;
         private DateTimeKind _dateTimeKindHandling;
 
         private enum BsonReaderState
@@ -92,11 +92,11 @@ namespace Backtrace.Newtonsoft.Bson
         /// <value>
         /// 	<c>true</c> if binary data reading will be compatible with incorrect Json.NET 3.5 written binary; otherwise, <c>false</c>.
         /// </value>
-        [Obsolete("JsonNet35BinaryCompatibility will be removed in a future version of Json.NET.")]
-        public bool JsonNet35BinaryCompatibility
+        [Obsolete("JsonNET35BinaryCompatibility will be removed in a future version of Json.NET.")]
+        public bool JsonNET35BinaryCompatibility
         {
-            get { return _jsonNet35BinaryCompatibility; }
-            set { _jsonNet35BinaryCompatibility = value; }
+            get { return _jsonNET35BinaryCompatibility; }
+            set { _jsonNET35BinaryCompatibility = value; }
         }
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace Backtrace.Newtonsoft.Bson
         /// <param name="dateTimeKindHandling">The <see cref="DateTimeKind" /> used when reading <see cref="DateTime"/> values from BSON.</param>
         public BsonReader(Stream stream, bool readRootValueAsArray, DateTimeKind dateTimeKindHandling)
         {
-            ValidationUtils.ArgumentNotNull(stream, nameof(stream));
+            ValidationUtils.ArgumentNotNull(stream, "stream");
             _reader = new BinaryReader(stream);
             _stack = new List<ContainerContext>();
             _readRootValueAsArray = readRootValueAsArray;
@@ -162,7 +162,7 @@ namespace Backtrace.Newtonsoft.Bson
         /// <param name="dateTimeKindHandling">The <see cref="DateTimeKind" /> used when reading <see cref="DateTime"/> values from BSON.</param>
         public BsonReader(BinaryReader reader, bool readRootValueAsArray, DateTimeKind dateTimeKindHandling)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
             _reader = reader;
             _stack = new List<ContainerContext>();
             _readRootValueAsArray = readRootValueAsArray;
@@ -558,7 +558,7 @@ namespace Backtrace.Newtonsoft.Bson
                     SetToken(JsonToken.Integer, ReadInt64());
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(type), "Unexpected BsonType value: " + type);
+                    throw new ArgumentOutOfRangeException("type", "Unexpected BsonType value: " + type);
             }
         }
 
@@ -570,7 +570,7 @@ namespace Backtrace.Newtonsoft.Bson
 
 #pragma warning disable 612,618
             // the old binary type has the data length repeated in the data for some reason
-            if (binaryType == BsonBinaryType.BinaryOld && !_jsonNet35BinaryCompatibility)
+            if (binaryType == BsonBinaryType.BinaryOld && !_jsonNET35BinaryCompatibility)
             {
                 dataLength = ReadInt32();
             }

@@ -46,7 +46,7 @@ namespace Backtrace.Newtonsoft.Utilities
         {
             if (creator == null)
             {
-                throw new ArgumentNullException(nameof(creator));
+                throw new ArgumentNullException("creator");
             }
 
             _creator = creator;
@@ -89,7 +89,7 @@ namespace Backtrace.Newtonsoft.Utilities
                     Dictionary<TKey, TValue> newStore = new Dictionary<TKey, TValue>(_store);
                     newStore[key] = value;
 
-#if !(DOTNET || PORTABLE || PORTABLE40 || NET35)
+#if !(DOTNET || PORTABLE || PORTABLE40 || (NET35 || NET_2_0 || NET_2_0_SUBSET))
                     Thread.MemoryBarrier();
 #endif
                     _store = newStore;

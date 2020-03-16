@@ -52,7 +52,9 @@ namespace Backtrace.Unity
         {
             get
             {
-                return BacktraceApi?.OnServerError;
+                if (BacktraceApi != null)
+                    return BacktraceApi.OnServerError;
+                return null;
             }
 
             set
@@ -66,7 +68,12 @@ namespace Backtrace.Unity
 
         public Func<string, BacktraceData, BacktraceResult> RequestHandler
         {
-            get { return BacktraceApi?.RequestHandler; }
+            get
+            {
+                if (BacktraceApi != null)
+                    return BacktraceApi.RequestHandler;
+                return null;
+            }
             set
             {
                 if (ValidClientConfiguration())
@@ -83,7 +90,9 @@ namespace Backtrace.Unity
         {
             get
             {
-                return BacktraceApi?.OnServerResponse;
+                if (BacktraceApi != null)
+                    return BacktraceApi.OnServerResponse;
+                return null;
             }
 
             set
@@ -98,7 +107,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Get or set minidump type
         /// </summary>
-        public MiniDumpType MiniDumpType { get; set; } = MiniDumpType.None;
+        public MiniDumpType MiniDumpType = MiniDumpType.None;
 
         /// <summary>
         /// Set event executed when client site report limit reached
@@ -150,7 +159,9 @@ namespace Backtrace.Unity
             set
             {
                 _backtraceApi = value;
-                Database?.SetApi(_backtraceApi);
+
+                if (Database != null)
+                    Database.SetApi(_backtraceApi);
             }
         }
 
@@ -163,7 +174,9 @@ namespace Backtrace.Unity
             set
             {
                 _reportLimitWatcher = value;
-                Database?.SetReportWatcher(_reportLimitWatcher);
+
+                if (Database != null)
+                    Database.SetReportWatcher(_reportLimitWatcher);
             }
         }
 
@@ -248,7 +261,9 @@ namespace Backtrace.Unity
               attributes: attributes);
             if (!limitHit)
             {
-                _onClientReportLimitReached?.Invoke(report);
+                if (_onClientReportLimitReached != null)
+                    _onClientReportLimitReached.Invoke(report);
+
                 _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
@@ -282,7 +297,9 @@ namespace Backtrace.Unity
               attributes: attributes);
             if (!limitHit)
             {
-                _onClientReportLimitReached?.Invoke(report);
+                if (_onClientReportLimitReached != null)
+                    _onClientReportLimitReached.Invoke(report);
+
                 _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
@@ -305,8 +322,12 @@ namespace Backtrace.Unity
             bool limitHit = _reportLimitWatcher.WatchReport(report);
             if (!limitHit)
             {
-                _onClientReportLimitReached?.Invoke(report);
-                sendCallback?.Invoke(BacktraceResult.OnLimitReached(report));
+                if (_onClientReportLimitReached != null)
+                    _onClientReportLimitReached.Invoke(report);
+
+                if (sendCallback != null)
+                    sendCallback.Invoke(BacktraceResult.OnLimitReached(report));
+
                 _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
@@ -320,16 +341,19 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">send callback</param>
         private void SendReport(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            var record = Database?.Add(report, Attributes, MiniDumpType);
+            var record = Database != null ? Database.Add(report, Attributes, MiniDumpType) : null;
             //create a JSON payload instance
             BacktraceData data = null;
-            data = record?.BacktraceData ?? report.ToBacktraceData(Attributes);
+
+            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(Attributes);
             //valid user custom events
-            data = BeforeSend?.Invoke(data) ?? data;
+            data = (BeforeSend != null ? BeforeSend.Invoke(data) : null) ?? data;
 
             if (BacktraceApi == null)
             {
-                record?.Dispose();
+                if (record != null)
+                    record.Dispose();
+
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
                 return;
             }
@@ -340,9 +364,11 @@ namespace Backtrace.Unity
                     record.Dispose();
                     //Database?.IncrementRecordRetryLimit(record);
                 }
-                if (result?.Status == BacktraceResultStatus.Ok)
+                if(result!=null)
+                if (result.Status == BacktraceResultStatus.Ok)
                 {
-                    Database?.Delete(record);
+                    if (Database != null)
+                        Database.Delete(record);
                 }
                 //check if there is more errors to send
                 //handle inner exception
@@ -350,7 +376,9 @@ namespace Backtrace.Unity
                 {
                     result.InnerExceptionResult = innerResult;
                 });
-                sendCallback?.Invoke(result);
+
+                if (sendCallback != null)
+                    sendCallback.Invoke(result);
             }));
 
         }
@@ -386,7 +414,10 @@ namespace Backtrace.Unity
                 && (!string.IsNullOrEmpty(message) && !message.StartsWith("[Backtrace]::")))
             {
                 var exception = new BacktraceUnhandledException(message, stackTrace);
-                OnUnhandledApplicationException?.Invoke(exception);
+
+                if (OnUnhandledApplicationException != null)
+                    OnUnhandledApplicationException.Invoke(exception);
+
                 Send(exception);
             }
         }
@@ -415,7 +446,7 @@ namespace Backtrace.Unity
             var invalidConfiguration = BacktraceApi == null || !Enabled;
             if (invalidConfiguration)
             {
-                Debug.LogWarning($"Cannot set method if configuration contain invalid url to Backtrace server or client is disabled");
+                Debug.LogWarning("Cannot set method if configuration contain invalid url to Backtrace server or client is disabled");
             }
             return !invalidConfiguration;
         }

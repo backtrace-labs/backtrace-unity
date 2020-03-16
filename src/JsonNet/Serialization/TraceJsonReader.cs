@@ -87,7 +87,7 @@ namespace Backtrace.Newtonsoft.Serialization
             return value;
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         public override DateTimeOffset? ReadAsDateTimeOffset()
         {
             var value = _innerReader.ReadAsDateTimeOffset();

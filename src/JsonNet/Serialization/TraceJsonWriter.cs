@@ -85,7 +85,7 @@ namespace Backtrace.Newtonsoft.Serialization
             base.WriteValue(value);
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         public override void WriteValue(DateTimeOffset value)
         {
             _textWriter.WriteValue(value);

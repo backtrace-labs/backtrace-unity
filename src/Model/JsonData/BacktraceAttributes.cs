@@ -203,7 +203,9 @@ namespace Backtrace.Unity.Model.JsonData
             }
             Attributes["scene.active"] = activeScene.name;
             Attributes["scene.buildIndex"] = activeScene.buildIndex;
+#if UNITY_2017_4_OR_NEWER
             Attributes["scene.handle"] = activeScene.handle;
+#endif
             Attributes["scene.isDirty"] = activeScene.isDirty;
             Attributes["scene.isLoaded"] = activeScene.isLoaded;
             Attributes["scene.name"] = activeScene.name;

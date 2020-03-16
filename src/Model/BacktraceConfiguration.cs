@@ -110,7 +110,7 @@ namespace Backtrace.Unity.Model
 
             if (!value.StartsWith("http"))
             {
-                value = $"https://{value}";
+                value = string.Format("https://{0}", value);
             }
             string uriScheme = value.StartsWith("https://")
                 ? Uri.UriSchemeHttps

@@ -45,7 +45,7 @@ namespace Backtrace.Newtonsoft.Serialization
         /// <param name="attributeProvider">The instance to get attributes for. This parameter should be a <see cref="System.Type"/>, <see cref="MemberInfo"/>, <see cref="ParameterInfo"/> or <see cref="Assembly"/>.</param>
         public ReflectionAttributeProvider(object attributeProvider)
         {
-            ValidationUtils.ArgumentNotNull(attributeProvider, nameof(attributeProvider));
+            ValidationUtils.ArgumentNotNull(attributeProvider, "attributeProvider");
             _attributeProvider = attributeProvider;
         }
 

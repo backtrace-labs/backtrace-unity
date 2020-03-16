@@ -111,7 +111,11 @@ namespace Backtrace.Unity.Common
 
         internal static string CpuArchitecture()
         {
-            return Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE")?.ToLower();
+            var variable = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+            if (variable == null)
+                return null;
+
+            return variable.ToLower();
         }
     }
 }

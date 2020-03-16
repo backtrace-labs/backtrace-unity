@@ -37,7 +37,7 @@ namespace Backtrace.Unity.Model
             }
         }
 
-        public List<BacktraceStackFrame> StackFrames { get; private set; } = new List<BacktraceStackFrame>();
+        public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
 
         public BacktraceUnhandledException(string message, string stacktrace)
         {
@@ -60,7 +60,7 @@ namespace Backtrace.Unity.Model
             var frames = _stacktrace.Trim().Split('\n');
             foreach (var frame in frames)
             {
-                string frameString = frame?.Trim() ?? string.Empty;
+                string frameString = frame == null ? string.Empty : frame.Trim();
                 int methodNameEndIndex = frameString.IndexOf(')');
 
                 //because we didnt found 
@@ -117,9 +117,8 @@ namespace Backtrace.Unity.Model
                         int endLine = lineNumberSeparator == 0
                             ? sourceString.LastIndexOf(')') - atSeparator
                             : lineNumberSeparator - 1 - atSeparator;
-                        methodPath = sourceString
-                            .Substring(atSeparator, endLine)
-                            ?.Trim() ?? string.Empty;
+                        var substring = sourceString.Substring(atSeparator, endLine);
+                        methodPath = (substring == null ? string.Empty : substring.Trim());
 
                         if (!string.IsNullOrEmpty(methodPath))
                         {

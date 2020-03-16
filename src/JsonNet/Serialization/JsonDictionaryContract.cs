@@ -144,11 +144,11 @@ namespace Backtrace.Newtonsoft.Serialization
                     CreatedType = typeof(Dictionary<,>).MakeGenericType(keyType, valueType);
                 }
 
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40)
                 IsReadOnlyOrFixedSize = ReflectionUtils.InheritsGenericDefinition(underlyingType, typeof(ReadOnlyDictionary<,>));
 #endif
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40)
             else if (ReflectionUtils.ImplementsGenericDefinition(underlyingType, typeof(IReadOnlyDictionary<,>), out _genericCollectionDefinitionType))
             {
                 keyType = _genericCollectionDefinitionType.GetGenericArguments()[0];
@@ -179,7 +179,7 @@ namespace Backtrace.Newtonsoft.Serialization
                     typeof(KeyValuePair<,>).MakeGenericType(keyType, valueType),
                     typeof(IDictionary<,>).MakeGenericType(keyType, valueType));
 
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20)
                 if (!HasParameterizedCreatorInternal && underlyingType.Name == FSharpUtils.FSharpMapTypeName)
                 {
                     FSharpUtils.EnsureInitialized(underlyingType.Assembly());
@@ -193,7 +193,7 @@ namespace Backtrace.Newtonsoft.Serialization
             DictionaryKeyType = keyType;
             DictionaryValueType = valueType;
 
-#if (NET20 || NET35)
+#if (NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET))
             if (DictionaryValueType != null && ReflectionUtils.IsNullableType(DictionaryValueType))
             {
                 Type tempDictioanryType;
@@ -207,7 +207,7 @@ namespace Backtrace.Newtonsoft.Serialization
             }
 #endif
 
-#if !(NET20 || NET35 || NET40)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET40)
             Type immutableCreatedType;
             ObjectConstructor<object> immutableParameterizedCreator;
             if (ImmutableCollectionsUtils.TryBuildImmutableForDictionaryContract(underlyingType, DictionaryKeyType, DictionaryValueType, out immutableCreatedType, out immutableParameterizedCreator))

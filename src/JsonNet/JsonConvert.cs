@@ -26,7 +26,7 @@
 using System;
 using System.IO;
 using System.Globalization;
-#if !(NET20 || NET35 || PORTABLE40)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE40)
 using System.Threading.Tasks;
 #endif
 using Backtrace.Newtonsoft.Linq;
@@ -142,7 +142,7 @@ namespace Backtrace.Newtonsoft
             }
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Converts the <see cref="DateTimeOffset"/> to its JSON string representation.
         /// </summary>
@@ -448,7 +448,7 @@ namespace Backtrace.Newtonsoft
         {
             if (delimiter != '"' && delimiter != '\'')
             {
-                throw new ArgumentException("Delimiter must be a single or double quote.", nameof(delimiter));
+                throw new ArgumentException("Delimiter must be a single or double quote.", "delimiter");
             }
 
             return JavaScriptUtils.ToEscapedJavaScriptString(value, delimiter, true, stringEscapeHandling);
@@ -504,7 +504,7 @@ namespace Backtrace.Newtonsoft
                 case PrimitiveTypeCode.DBNull:
                     return Null;
 #endif
-#if !NET20
+#if !NET20  
                 case PrimitiveTypeCode.DateTimeOffset:
                     return ToString((DateTimeOffset)value);
 #endif
@@ -661,7 +661,7 @@ namespace Backtrace.Newtonsoft
             return sw.ToString();
         }
 
-#if !(NET20 || NET35 || PORTABLE40)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE40  )
         /// <summary>
         /// Asynchronously serializes the specified object to a JSON string.
         /// Serialization will happen on a new thread.
@@ -848,7 +848,7 @@ namespace Backtrace.Newtonsoft
         /// <returns>The deserialized object from the JSON string.</returns>
         public static object DeserializeObject(string value, Type type, JsonSerializerSettings settings)
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
 
             JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(settings);
 
@@ -864,7 +864,7 @@ namespace Backtrace.Newtonsoft
             }
         }
 
-#if !(NET20 || NET35 || PORTABLE40)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE40  )
         /// <summary>
         /// Asynchronously deserializes the JSON to the specified .NET type.
         /// Deserialization will happen on a new thread.
@@ -969,7 +969,7 @@ namespace Backtrace.Newtonsoft
             }
         }
 
-#if !(NET20 || NET35 || PORTABLE40)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE40  )
         /// <summary>
         /// Asynchronously populates the object with values from the JSON string using <see cref="JsonSerializerSettings"/>.
         /// </summary>
@@ -1071,7 +1071,7 @@ namespace Backtrace.Newtonsoft
         }
 #endif
 
-#if !NET20 && !PORTABLE40
+#if !NET20 && !PORTABLE40 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Serializes the <see cref="XNode"/> to a JSON string.
         /// </summary>

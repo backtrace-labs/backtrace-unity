@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  )
 using System;
 using System.Collections.Generic;
 #if NET20
@@ -53,7 +53,7 @@ namespace Backtrace.Newtonsoft.Serialization
         /// <param name="memberInfo">The member info.</param>
         public ExpressionValueProvider(MemberInfo memberInfo)
         {
-            ValidationUtils.ArgumentNotNull(memberInfo, nameof(memberInfo));
+            ValidationUtils.ArgumentNotNull(memberInfo, "memberInfo");
             _memberInfo = memberInfo;
         }
 

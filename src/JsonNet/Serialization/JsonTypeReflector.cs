@@ -384,7 +384,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         public static bool DynamicCodeGeneration
         {
-#if !(NET20 || NET35 || PORTABLE)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE)
             [SecuritySafeCritical]
 #endif
                 get
@@ -422,7 +422,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 {
 #if (DOTNET || PORTABLE || PORTABLE40)
                     _fullyTrusted = false;
-#elif !(NET20 || NET35 || PORTABLE40)
+#elif !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE40)
                     AppDomain appDomain = AppDomain.CurrentDomain;
 
                     _fullyTrusted = appDomain.IsHomogenous && appDomain.IsFullyTrusted;

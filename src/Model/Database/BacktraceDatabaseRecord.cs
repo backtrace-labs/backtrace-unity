@@ -18,13 +18,13 @@ namespace Backtrace.Unity.Model.Database
         /// Id
         /// </summary>
         [JsonProperty]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id = Guid.NewGuid();
 
         /// <summary>
         /// Check if current record is in use
         /// </summary>
         [JsonIgnore]
-        internal bool Locked { get; set; } = false;
+        internal bool Locked = false;
 
         /// <summary>
         /// Path to json stored all information about current record
@@ -144,12 +144,12 @@ namespace Backtrace.Unity.Model.Database
         {
             var record = new BacktraceJObject
             {
-                ["Id"] = Id,
-                ["recordName"] = RecordPath,
-                ["dataPath"] = DiagnosticDataPath,
-                ["minidumpPath"] = MiniDumpPath,
-                ["reportPath"] = ReportPath,
-                ["size"] = Size
+                {"Id", Id},
+                {"recordName", RecordPath},
+                {"dataPath", DiagnosticDataPath},
+                {"minidumpPath", MiniDumpPath},
+                {"reportPath", ReportPath},
+                {"size", Size}
             };
             return record.ToString();
         }
@@ -173,7 +173,7 @@ namespace Backtrace.Unity.Model.Database
         [JsonConstructor]
         internal BacktraceDatabaseRecord()
         {
-            RecordPath = $"{Id}-record.json";
+            RecordPath = string.Format("{0}-record.json", Id);
         }
 
         /// <summary>
@@ -198,16 +198,18 @@ namespace Backtrace.Unity.Model.Database
             try
             {
                 var diagnosticDataJson = Record.ToJson();
-                DiagnosticDataPath = Save(diagnosticDataJson, $"{Id}-attachment");
+                DiagnosticDataPath = Save(diagnosticDataJson, string.Format("{0}-attachment", Id));
                 var reportJson = Record.Report.ToJson();
-                ReportPath = Save(reportJson, $"{Id}-report");
+                ReportPath = Save(reportJson, string.Format("{0}-report", Id));
 
                 // get minidump information
-                MiniDumpPath = Record.Report?.MinidumpFile ?? string.Empty;
+                MiniDumpPath = Record.Report != null
+                    ? Record.Report.MinidumpFile ?? string.Empty
+                    : string.Empty;
                 Size += MiniDumpPath == string.Empty ? 0 : new FileInfo(MiniDumpPath).Length;
 
                 //save record
-                RecordPath = Path.Combine(_path, $"{Id}-record.json");
+                RecordPath = Path.Combine(_path, string.Format("{0}-record.json", Id));
                 //check current record size
                 var json = ToJson();
                 byte[] file = Encoding.UTF8.GetBytes(json);
@@ -215,19 +217,20 @@ namespace Backtrace.Unity.Model.Database
                 Size += file.Length;
                 //save it again with actual record size
                 string recordJson = ToJson();
-                RecordWriter.Write(recordJson, $"{Id}-record");
+                RecordWriter.Write(recordJson, string.Format("{0}-record", Id));
                 return true;
             }
             catch (IOException io)
             {
-                Debug.Log($"Received {nameof(IOException)} while saving data to database.");
-                Debug.Log($"Message {io.Message}");
+                Debug.Log(string.Format("Received {0} while saving data to database.",
+                    "IOException"));
+                Debug.Log(string.Format("Message {0}", io.Message));
                 return false;
             }
             catch (Exception ex)
             {
-                Debug.Log($"Received {nameof(Exception)} while saving data to database.");
-                Debug.Log($"Message {ex.Message}");
+                Debug.Log(string.Format("Received {0} while saving data to database.", ex.GetType().Name));
+                Debug.Log(string.Format("Message {0}", ex.Message));
                 return false;
             }
         }
@@ -302,11 +305,11 @@ namespace Backtrace.Unity.Model.Database
             }
             catch (IOException e)
             {
-                Debug.Log($"File {path} is in use. Message: {e.Message}");
+                Debug.Log(string.Format("File {0} is in use. Message: {1}", path, e.Message));
             }
             catch (Exception e)
             {
-                Debug.Log($"Cannot delete file: {path}. Message: {e.Message}");
+                Debug.Log(string.Format("Cannot delete file: {0}. Message: {1}", path, e.Message));
             }
         }
 

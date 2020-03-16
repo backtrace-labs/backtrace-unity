@@ -26,22 +26,22 @@ namespace Backtrace.Unity.Model
         /// 16 bytes of randomness in human readable UUID format
         /// server will reject request if uuid is already found
         /// </summary>s
-        public Guid Uuid { get; private set; } = Guid.NewGuid();
+        public Guid Uuid = Guid.NewGuid();
 
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
-        public long Timestamp { get; private set; } = new DateTime().Timestamp();
+        public long Timestamp = new DateTime().Timestamp();
 
         /// <summary>
         /// Get information aboout report type. If value is true the BacktraceReport has an error information
         /// </summary>
-        public bool ExceptionTypeReport { get; private set; } = false;
+        public bool ExceptionTypeReport = false;
 
         /// <summary>
         /// Get a report classification 
         /// </summary>
-        public string Classifier { get; set; } = string.Empty;
+        public string Classifier = string.Empty;
 
         /// <summary>
         /// Get an report attributes
@@ -99,17 +99,17 @@ namespace Backtrace.Unity.Model
 
             var report = new BacktraceJObject()
             {
-                ["Fingerprint"] = Fingerprint,
-                ["Factor"] = Factor,
-                ["Uuid"] = Uuid.ToString(),
-                ["Timestamp"] = Timestamp,
-                ["ExceptionTypeReport"] = ExceptionTypeReport,
-                ["Classifier"] = Classifier,
-                ["message"] = Message,
-                ["minidumpFile"] = MinidumpFile,
-                ["attachmentPaths"] = new JArray(AttachmentPaths),
-                ["diagnosticStack"] = reportStackTrace,
-                ["attributes"] = attributes
+                {"Fingerprint", Fingerprint},
+                {"Factor", Factor},
+                {"Uuid", Uuid.ToString()},
+                {"Timestamp", Timestamp},
+                {"ExceptionTypeReport", ExceptionTypeReport},
+                {"Classifier", Classifier},
+                {"message", Message},
+                {"minidumpFile", MinidumpFile},
+                {"attachmentPaths", new JArray(AttachmentPaths)},
+                {"diagnosticStack", reportStackTrace},
+                {"attributes", attributes}
             };
             return report.ToString();
         }

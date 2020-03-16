@@ -93,7 +93,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException(nameof(value), "Reference resolver cannot be null.");
+                    throw new ArgumentNullException("value", "Reference resolver cannot be null.");
                 }
 
                 _referenceResolver = value;
@@ -110,7 +110,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException(nameof(value), "Serialization binder cannot be null.");
+                    throw new ArgumentNullException("value", "Serialization binder cannot be null.");
                 }
 
                 _binder = value;
@@ -152,7 +152,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < TypeNameHandling.None || value > TypeNameHandling.Auto)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _typeNameHandling = value;
@@ -170,7 +170,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < FormatterAssemblyStyle.Simple || value > FormatterAssemblyStyle.Full)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _typeNameAssemblyFormat = value;
@@ -187,7 +187,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < PreserveReferencesHandling.None || value > PreserveReferencesHandling.All)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _preserveReferencesHandling = value;
@@ -204,7 +204,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < ReferenceLoopHandling.Error || value > ReferenceLoopHandling.Serialize)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _referenceLoopHandling = value;
@@ -221,7 +221,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < MissingMemberHandling.Ignore || value > MissingMemberHandling.Error)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _missingMemberHandling = value;
@@ -238,7 +238,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < NullValueHandling.Include || value > NullValueHandling.Ignore)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _nullValueHandling = value;
@@ -255,7 +255,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < DefaultValueHandling.Include || value > DefaultValueHandling.IgnoreAndPopulate)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _defaultValueHandling = value;
@@ -273,7 +273,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < ObjectCreationHandling.Auto || value > ObjectCreationHandling.Replace)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _objectCreationHandling = value;
@@ -291,7 +291,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < ConstructorHandling.Default || value > ConstructorHandling.AllowNonPublicDefaultConstructor)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _constructorHandling = value;
@@ -309,7 +309,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < MetadataPropertyHandling.Default || value > MetadataPropertyHandling.Ignore)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _metadataPropertyHandling = value;
@@ -450,7 +450,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value <= 0)
                 {
-                    throw new ArgumentException("Value must be positive.", nameof(value));
+                    throw new ArgumentException("Value must be positive.", "value");
                 }
 
                 _maxDepth = value;
@@ -731,8 +731,8 @@ namespace Backtrace.Newtonsoft
 
         internal virtual void PopulateInternal(JsonReader reader, object target)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
-            ValidationUtils.ArgumentNotNull(target, nameof(target));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
+            ValidationUtils.ArgumentNotNull(target, "target");
 
             // set serialization options onto reader
             CultureInfo previousCulture;
@@ -806,7 +806,7 @@ namespace Backtrace.Newtonsoft
 
         internal virtual object DeserializeInternal(JsonReader reader, Type objectType)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
 
             // set serialization options onto reader
             CultureInfo previousCulture;
@@ -998,7 +998,7 @@ namespace Backtrace.Newtonsoft
 
         internal virtual void SerializeInternal(JsonWriter jsonWriter, object value, Type objectType)
         {
-            ValidationUtils.ArgumentNotNull(jsonWriter, nameof(jsonWriter));
+            ValidationUtils.ArgumentNotNull(jsonWriter, "jsonWriter");
 
             // set serialization options onto writer
             Formatting? previousFormatting = null;
@@ -1111,7 +1111,7 @@ namespace Backtrace.Newtonsoft
         internal static JsonConverter GetMatchingConverter(IList<JsonConverter> converters, Type objectType)
         {
 #if DEBUG
-            ValidationUtils.ArgumentNotNull(objectType, nameof(objectType));
+            ValidationUtils.ArgumentNotNull(objectType, "objectType");
 #endif
 
             if (converters != null)

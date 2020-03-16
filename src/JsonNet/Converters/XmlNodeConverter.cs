@@ -404,7 +404,7 @@ namespace Backtrace.Newtonsoft.Converters
     #endregion
 
     #region XNodeWrappers
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
     internal class XDeclarationWrapper : XObjectWrapper, IXmlDeclaration
     {
         internal XDeclaration Declaration { get; private set; }
@@ -578,8 +578,10 @@ namespace Backtrace.Newtonsoft.Converters
 
         public override IXmlNode AppendChild(IXmlNode newChild)
         {
-            if (newChild is XDeclarationWrapper declarationWrapper)
+            if (newChild is XDeclarationWrapper)
             {
+                XDeclarationWrapper declarationWrapper = newChild as XDeclarationWrapper;
+                
                 Document.Declaration = declarationWrapper.Declaration;
                 return declarationWrapper;
             }
@@ -910,7 +912,7 @@ namespace Backtrace.Newtonsoft.Converters
                     // ensure elements created with a namespace but no namespace attribute are converted correctly
                     // e.g. new XElement("{http://example.com}MyElement");
                     string namespaceUri = NamespaceUri;
-                    if (!string.IsNullOrEmpty(namespaceUri) && namespaceUri != ParentNode?.NamespaceUri)
+                    if (!string.IsNullOrEmpty(namespaceUri) && (ParentNode == null || namespaceUri != ParentNode.NamespaceUri)) // TODO: Check me
                     {
                         if (string.IsNullOrEmpty(GetPrefixOfNamespace(namespaceUri)))
                         {
@@ -1033,7 +1035,7 @@ namespace Backtrace.Newtonsoft.Converters
 
         private IXmlNode WrapXml(object value)
         {
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             if (value is XObject)
             {
                 return XContainerWrapper.WrapNode((XObject)value);
@@ -1046,7 +1048,7 @@ namespace Backtrace.Newtonsoft.Converters
             }
 #endif
 
-            throw new ArgumentException("Value must be an XML object.", nameof(value));
+            throw new ArgumentException("Value must be an XML object.", "value");
         }
 
         private void PushParentNamespaces(IXmlNode node, XmlNamespaceManager manager)
@@ -1170,7 +1172,8 @@ namespace Backtrace.Newtonsoft.Converters
                 IXmlNode childNode = node.ChildNodes[i];
                 string nodeName = GetPropertyName(childNode, manager);
 
-                if (!nodesGroupedByName.TryGetValue(nodeName, out List<IXmlNode> nodes))
+                List<IXmlNode> nodes;
+                if (!nodesGroupedByName.TryGetValue(nodeName, out nodes))
                 {
                     nodes = new List<IXmlNode>();
                     nodesGroupedByName.Add(nodeName, nodes);
@@ -1413,7 +1416,7 @@ namespace Backtrace.Newtonsoft.Converters
             IXmlDocument document = null;
             IXmlNode rootNode = null;
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             if (typeof(XObject).IsAssignableFrom(objectType))
             {
                 if (objectType != typeof(XDocument) && objectType != typeof(XElement))
@@ -1467,7 +1470,7 @@ namespace Backtrace.Newtonsoft.Converters
                 DeserializeNode(reader, document, manager, rootNode);
             }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             if (objectType == typeof(XElement))
             {
                 XElement element = (XElement)document.DocumentElement.WrappedNode;
@@ -1631,7 +1634,7 @@ namespace Backtrace.Newtonsoft.Converters
         {
             if (reader.TokenType == JsonToken.String)
             {
-                return reader.Value?.ToString();
+                return (reader.Value != null ? reader.Value.ToString() : null);
             }
             else if (reader.TokenType == JsonToken.Integer)
             {
@@ -1656,7 +1659,7 @@ namespace Backtrace.Newtonsoft.Converters
             }
             else if (reader.TokenType == JsonToken.Date)
             {
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                 if (reader.Value is DateTimeOffset)
                 {
                     return XmlConvert.ToString((DateTimeOffset)reader.Value);
@@ -1704,10 +1707,14 @@ namespace Backtrace.Newtonsoft.Converters
             {
                 foreach (IXmlNode childNode in nestedArrayElement.ChildNodes)
                 {
-                    if (childNode is IXmlElement element && element.LocalName == propertyName)
+                    if (childNode is IXmlElement)
                     {
-                        AddJsonArrayAttribute(element, document);
-                        break;
+                        IXmlElement element = childNode as IXmlElement;
+                        if (element.LocalName == propertyName)
+                        {
+                            AddJsonArrayAttribute(element, document);
+                            break;
+                        }
                     }
                 }
             }
@@ -1717,7 +1724,7 @@ namespace Backtrace.Newtonsoft.Converters
         {
             element.SetAttributeNode(document.CreateAttribute("json:Array", JsonNamespaceUri, "true"));
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             // linq to xml doesn't automatically include prefixes via the namespace manager
             if (element is XElementWrapper)
             {
@@ -1811,7 +1818,7 @@ namespace Backtrace.Newtonsoft.Converters
                                                     throw JsonSerializationException.Create(reader, "Unexpected JsonToken: " + reader.TokenType);
                                                 }
 
-                                                attributeValue = reader.Value?.ToString();
+                                                attributeValue = (reader.Value != null ? reader.Value.ToString() : null);
                                                 attributeNameValues.Add(jsonPrefix + ":" + attributeName, attributeValue);
                                                 break;
                                             default:
@@ -1956,10 +1963,15 @@ namespace Backtrace.Newtonsoft.Converters
                             {
                                 foreach (IXmlNode childNode in currentNode.ChildNodes)
                                 {
-                                    if (childNode is IXmlElement element && element.LocalName == propertyName)
+                                    if (childNode is IXmlElement)
                                     {
-                                        AddJsonArrayAttribute(element, document);
-                                        break;
+                                        IXmlElement element = childNode as IXmlElement;
+
+                                        if (element.LocalName == propertyName)
+                                        {
+                                            AddJsonArrayAttribute(element, document);
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -2038,7 +2050,7 @@ namespace Backtrace.Newtonsoft.Converters
         /// </returns>
         public override bool CanConvert(Type valueType)
         {
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             if (typeof(XObject).IsAssignableFrom(valueType))
             {
                 return true;

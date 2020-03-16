@@ -34,7 +34,7 @@ namespace Backtrace.Newtonsoft.Linq
     /// <typeparam name="T">The type of token</typeparam>
     [Preserve]
     public interface IJEnumerable<
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  )
         out
 #endif
             T> : IEnumerable<T> where T : JToken

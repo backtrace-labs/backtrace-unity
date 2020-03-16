@@ -60,13 +60,13 @@ namespace Backtrace.Unity.Model
         {
             var stackFrame = new BacktraceJObject
             {
-                ["funcName"] = FunctionName,
-                ["line"] = Line,
-                ["il"] = Il,
-                ["metadata_token"] = MemberInfo,
-                ["column"] = Column,
-                ["address"] = ILOffset,
-                ["library"] = Library
+                {"funcName", FunctionName},
+                {"line", Line},
+                {"il", Il},
+                {"metadata_token", MemberInfo},
+                {"column", Column},
+                {"address", ILOffset},
+                {"library", Library}
             };
             //todo: source code information
 
@@ -123,7 +123,7 @@ namespace Backtrace.Unity.Model
             Il = frame.GetILOffset();
             ILOffset = Il;
 
-            Library = string.IsNullOrEmpty(SourceCodeFullPath) ? frame.GetMethod()?.DeclaringType.ToString() : SourceCodeFullPath;
+            Library = string.IsNullOrEmpty(SourceCodeFullPath) ? (frame.GetMethod() != null ? frame.GetMethod().DeclaringType.ToString() : null) : SourceCodeFullPath;
 
             SourceCode = generatedByException
                     ? Guid.NewGuid().ToString()
@@ -131,7 +131,7 @@ namespace Backtrace.Unity.Model
             Column = frame.GetFileColumnNumber();
             try
             {
-                MemberInfo = frame.GetMethod()?.MetadataToken;
+                MemberInfo = (frame.GetMethod() != null ? frame.GetMethod().MetadataToken : default(int)); // TODO: Check me
             }
             catch (InvalidOperationException)
             {
@@ -149,7 +149,7 @@ namespace Backtrace.Unity.Model
         {
             var method = frame.GetMethod();
             var methodName = method.Name.StartsWith(".") ? method.Name.Substring(1, method.Name.Length - 1) : method.Name;
-            string fullMethodName = $"{method?.DeclaringType.ToString()}.{methodName}()";
+            string fullMethodName = string.Format("{0}.{1}()", method.DeclaringType == null ? null : method.DeclaringType.ToString(), methodName);
             return fullMethodName;
         }
     }

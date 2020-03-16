@@ -1,4 +1,5 @@
-﻿using Backtrace.Newtonsoft;
+﻿using System;
+using Backtrace.Newtonsoft;
 using Backtrace.Unity.Interfaces.Database;
 using System.IO;
 using System.Text;
@@ -32,8 +33,8 @@ namespace Backtrace.Unity.Model.Database
 
         public string Write(byte[] data, string prefix)
         {
-            string filename = $"{prefix}.json";
-            string tempFilePath = Path.Combine(_destinationPath, $"temp_{filename}");
+            string filename = string.Format("{0}.json", prefix);
+            string tempFilePath = Path.Combine(_destinationPath, string.Format("temp_{0}", filename));
             SaveTemporaryFile(tempFilePath, data);
             string destFilePath = Path.Combine(_destinationPath, filename);
             SaveValidRecord(tempFilePath, destFilePath);

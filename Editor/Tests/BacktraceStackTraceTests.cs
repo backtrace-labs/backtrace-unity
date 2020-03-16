@@ -97,7 +97,7 @@ namespace Tests
         {
             var exception = new Exception("exception");
             var report = new BacktraceReport(exception);
-            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace?.Count() ?? 0);
+            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace.Count()); // TODO: Verify change
             yield return null;
         }
 
@@ -158,9 +158,9 @@ namespace Tests
         {
             if (string.IsNullOrEmpty(Path) && LineNumber == 0)
             {
-                return $"{Method} \r\n";
+                return string.Format("{0} \r\n", Method);
             }
-            return $"{Method} (at {Path}:{LineNumber}) \r\n";
+            return string.Format("{0} (at {1}:{2}) \r\n", Method, Path, LineNumber);
         }
     }
 

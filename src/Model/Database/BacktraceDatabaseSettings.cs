@@ -32,7 +32,7 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Maximum number of stored reports in Database. If value is equal to zero, then limit not exists
         /// </summary>
-        public uint MaxRecordCount { get; set; } = 0;
+        public uint MaxRecordCount { get; set; }
 
         /// <summary>
         /// Database size in MB
@@ -58,28 +58,28 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Resend report when http client throw exception
         /// </summary>
-        public bool AutoSendMode { get; set; } = false;
+        public bool AutoSendMode { get; set; }
 
         /// <summary>
         /// Retry behaviour
         /// </summary>
-        public RetryBehavior RetryBehavior { get; set; } = RetryBehavior.ByInterval;
+        public RetryBehavior RetryBehavior = RetryBehavior.ByInterval;
 
         /// <summary>
         /// How much seconds library should wait before next retry.
         /// </summary>
-        public uint RetryInterval { get; set; } = 5;
+        public uint RetryInterval = 5;
 
         /// <summary>
         /// Maximum number of retries
         /// </summary>
-        public uint RetryLimit { get; set; } = 3;
+        public uint RetryLimit = 3;
 
         /// <summary>
         /// Deduplication strategy
         /// </summary>
-        public DeduplicationStrategy DeduplicationStrategy { get; set; } = DeduplicationStrategy.None;
+        public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
-        public RetryOrder RetryOrder { get; set; } = RetryOrder.Queue;
+        public RetryOrder RetryOrder = RetryOrder.Queue;
     }
 }

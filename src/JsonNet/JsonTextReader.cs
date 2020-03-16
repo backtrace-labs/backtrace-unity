@@ -41,7 +41,7 @@ namespace Backtrace.Newtonsoft
         ReadAsString,
         ReadAsDecimal,
         ReadAsDateTime,
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         ReadAsDateTimeOffset,
 #endif
         ReadAsDouble,
@@ -77,7 +77,7 @@ namespace Backtrace.Newtonsoft
         {
             if (reader == null)
             {
-                throw new ArgumentNullException(nameof(reader));
+                throw new ArgumentNullException("reader");
             }
 
             _reader = reader;
@@ -101,7 +101,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException(nameof(value));
+                    throw new ArgumentNullException("value");
                 }
 
                 _arrayPool = value;
@@ -169,7 +169,7 @@ namespace Backtrace.Newtonsoft
                         {
                             dateParseHandling = DateParseHandling.DateTime;
                         }
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                         else if (readType == ReadType.ReadAsDateTimeOffset)
                         {
                             dateParseHandling = DateParseHandling.DateTimeOffset;
@@ -189,7 +189,7 @@ namespace Backtrace.Newtonsoft
                                 return;
                             }
                         }
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                         else
                         {
                             DateTimeOffset dt;
@@ -583,7 +583,7 @@ namespace Backtrace.Newtonsoft
                                             return (DateTime)Value;
                                         }
                                         return ReadDateTimeString((string)Value);
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                                     case ReadType.ReadAsDateTimeOffset:
                                         if (Value is DateTimeOffset)
                                         {
@@ -592,7 +592,7 @@ namespace Backtrace.Newtonsoft
                                         return ReadDateTimeOffsetString((string)Value);
 #endif
                                     default:
-                                        throw new ArgumentOutOfRangeException(nameof(readType));
+                                        throw new ArgumentOutOfRangeException("readType");
                                 }
                             case '-':
                                 if (EnsureChars(1, true) && _chars[_charPos + 1] == 'I')
@@ -853,7 +853,7 @@ namespace Backtrace.Newtonsoft
                                     case ReadType.ReadAsDouble:
                                         return ReadDoubleString(_stringReference.ToString());
                                     default:
-                                        throw new ArgumentOutOfRangeException(nameof(readType));
+                                        throw new ArgumentOutOfRangeException("readType");
                                 }
                             case 'n':
                                 HandleNull();
@@ -930,7 +930,7 @@ namespace Backtrace.Newtonsoft
             }
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTimeOffset}"/>.
         /// </summary>
@@ -2009,7 +2009,7 @@ namespace Backtrace.Newtonsoft
                     }
                     else if (parseResult == ParseResult.Overflow)
                     {
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE40 || PORTABLE)
                         string number = _stringReference.ToString();
 
                         if (number.Length > MaximumJavascriptIntegerCharacterLength)

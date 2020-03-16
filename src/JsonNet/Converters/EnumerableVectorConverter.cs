@@ -33,7 +33,7 @@ namespace Backtrace.Newtonsoft.Converters
             if (value == null)
                 writer.WriteNull();
 
-            T[] src = (value as IEnumerable<T>)?.ToArray();
+            T[] src = (value as IEnumerable<T>) != null ? (value as IEnumerable<T>).ToArray() : null;
 
             if (src == null)
             {

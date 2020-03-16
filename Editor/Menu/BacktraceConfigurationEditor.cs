@@ -40,23 +40,23 @@ namespace Backtrace.Unity.Editor
                 EditorGUILayout.HelpBox("Please insert valid Backtrace server url!", MessageType.Error);
             }
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(BacktraceConfiguration.ReportPerMin)), new GUIContent(LABEL_REPORT_PER_MIN));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("BacktraceConfiguration.ReportPerMin"), new GUIContent(LABEL_REPORT_PER_MIN));
 
-            SerializedProperty unhandledExceptions = serializedObject.FindProperty(nameof(BacktraceConfiguration.HandleUnhandledExceptions));
+            SerializedProperty unhandledExceptions = serializedObject.FindProperty("BacktraceConfiguration.HandleUnhandledExceptions");
             EditorGUILayout.PropertyField(unhandledExceptions, new GUIContent(LABEL_HANDLE_UNHANDLED_EXCEPTION));
 
-            SerializedProperty sslValidation = serializedObject.FindProperty(nameof(BacktraceConfiguration.IgnoreSslValidation));
+            SerializedProperty sslValidation = serializedObject.FindProperty("BacktraceConfiguration.IgnoreSslValidation");
             EditorGUILayout.PropertyField(sslValidation, new GUIContent(LABEL_IGNORE_SSL_VALIDATION));
 
 
-            SerializedProperty deduplicationStrategy = serializedObject.FindProperty(nameof(BacktraceConfiguration.DeduplicationStrategy));
+            SerializedProperty deduplicationStrategy = serializedObject.FindProperty("BacktraceConfiguration.DeduplicationStrategy");
             EditorGUILayout.PropertyField(deduplicationStrategy, new GUIContent(LABEL_DEDUPLICATION_RULES));
 
-            SerializedProperty destroyOnLoad = serializedObject.FindProperty(nameof(BacktraceConfiguration.DestroyOnLoad));
+            SerializedProperty destroyOnLoad = serializedObject.FindProperty("BacktraceConfiguration.DestroyOnLoad");
             EditorGUILayout.PropertyField(destroyOnLoad, new GUIContent(LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
 
 
-            SerializedProperty gameObjectDepth = serializedObject.FindProperty(nameof(BacktraceConfiguration.GameObjectDepth));
+            SerializedProperty gameObjectDepth = serializedObject.FindProperty("BacktraceConfiguration.GameObjectDepth");
             EditorGUILayout.PropertyField(gameObjectDepth, new GUIContent(LABEL_GAME_OBJECT_DEPTH));
 
             if (gameObjectDepth.intValue < 0)
@@ -64,41 +64,41 @@ namespace Backtrace.Unity.Editor
                 EditorGUILayout.HelpBox("Please inser value greater or equal 0", MessageType.Error);
             }
 
-            SerializedProperty enabled = serializedObject.FindProperty(nameof(BacktraceConfiguration.Enabled));
+            SerializedProperty enabled = serializedObject.FindProperty("BacktraceConfiguration.Enabled");
             EditorGUILayout.PropertyField(enabled, new GUIContent(LABEL_ENABLE_DATABASE));
 
             if (enabled.boolValue)
             {
                 EditorGUILayout.LabelField("Backtrace Database settings.");
 
-                SerializedProperty databasePath = serializedObject.FindProperty(nameof(BacktraceConfiguration.DatabasePath));
+                SerializedProperty databasePath = serializedObject.FindProperty("BacktraceConfiguration.DatabasePath");
                 EditorGUILayout.PropertyField(databasePath, new GUIContent(LABEL_PATH));
                 if (string.IsNullOrEmpty(databasePath.stringValue))
                 {
                     EditorGUILayout.HelpBox("Please insert valid Backtrace database path!", MessageType.Error);
                 }
 
-                SerializedProperty autoSendMode = serializedObject.FindProperty(nameof(BacktraceConfiguration.AutoSendMode));
+                SerializedProperty autoSendMode = serializedObject.FindProperty("BacktraceConfiguration.AutoSendMode");
                 EditorGUILayout.PropertyField(autoSendMode, new GUIContent(LABEL_AUTO_SEND_MODE));
 
 
-                SerializedProperty createDatabase = serializedObject.FindProperty(nameof(BacktraceConfiguration.CreateDatabase));
+                SerializedProperty createDatabase = serializedObject.FindProperty("BacktraceConfiguration.CreateDatabase");
                 EditorGUILayout.PropertyField(createDatabase, new GUIContent(LABEL_CREATE_DATABASE_DIRECTORY));
 
-                SerializedProperty maxRecordCount = serializedObject.FindProperty(nameof(BacktraceConfiguration.MaxRecordCount));
+                SerializedProperty maxRecordCount = serializedObject.FindProperty("BacktraceConfiguration.MaxRecordCount");
                 EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(LABEL_MAX_REPORT_COUNT));
 
-                SerializedProperty maxDatabaseSize = serializedObject.FindProperty(nameof(BacktraceConfiguration.MaxDatabaseSize));
+                SerializedProperty maxDatabaseSize = serializedObject.FindProperty("BacktraceConfiguration.MaxDatabaseSize");
                 EditorGUILayout.PropertyField(maxDatabaseSize, new GUIContent(LABEL_MAX_DATABASE_SIZE));
 
-                SerializedProperty retryInterval = serializedObject.FindProperty(nameof(BacktraceConfiguration.RetryInterval));
+                SerializedProperty retryInterval = serializedObject.FindProperty("BacktraceConfiguration.RetryInterval");
                 EditorGUILayout.PropertyField(retryInterval, new GUIContent(LABEL_RETRY_INTERVAL));
 
                 EditorGUILayout.LabelField("Backtrace database require at least one retry.");
-                SerializedProperty retryLimit = serializedObject.FindProperty(nameof(BacktraceConfiguration.RetryLimit));
+                SerializedProperty retryLimit = serializedObject.FindProperty("BacktraceConfiguration.RetryLimit");
                 EditorGUILayout.PropertyField(retryLimit, new GUIContent(LABEL_RETRY_LIMIT));
 
-                SerializedProperty retryOrder = serializedObject.FindProperty(nameof(BacktraceConfiguration.RetryOrder));
+                SerializedProperty retryOrder = serializedObject.FindProperty("BacktraceConfiguration.RetryOrder");
                 EditorGUILayout.PropertyField(retryOrder, new GUIContent(LABEL_RETRY_ORDER));
             }
 

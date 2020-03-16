@@ -27,7 +27,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
 using System.Dynamic;
 #endif
 using System.Diagnostics;
@@ -63,7 +63,7 @@ namespace Backtrace.Newtonsoft.Serialization
         {
             if (jsonWriter == null)
             {
-                throw new ArgumentNullException(nameof(jsonWriter));
+                throw new ArgumentNullException("jsonWriter");
             }
 
             _rootType = objectType;
@@ -195,7 +195,7 @@ namespace Backtrace.Newtonsoft.Serialization
                     JsonDictionaryContract dictionaryContract = (JsonDictionaryContract)valueContract;
                     SerializeDictionary(writer, (value is IDictionary) ? (IDictionary)value : dictionaryContract.CreateWrapper(value), dictionaryContract, member, containerContract, containerProperty);
                     break;
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 case JsonContractType.Dynamic:
                     SerializeDynamic(writer, (IDynamicMetaObjectProvider)value, (JsonDynamicContract)valueContract, member, containerContract, containerProperty);
                     break;
@@ -836,7 +836,7 @@ namespace Backtrace.Newtonsoft.Serialization
         }
 
 #if !(DOTNET || PORTABLE40 || PORTABLE)
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET))
         [SecuritySafeCritical]
 #endif
         private void SerializeISerializable(JsonWriter writer, ISerializable value, JsonISerializableContract contract, JsonProperty member, JsonContainerContract collectionContract, JsonProperty containerProperty)
@@ -881,7 +881,7 @@ namespace Backtrace.Newtonsoft.Serialization
         }
 #endif
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         private void SerializeDynamic(JsonWriter writer, IDynamicMetaObjectProvider value, JsonDynamicContract contract, JsonProperty member, JsonContainerContract collectionContract, JsonProperty containerProperty)
         {
             OnSerializing(writer, contract, value);
@@ -1104,7 +1104,9 @@ namespace Backtrace.Newtonsoft.Serialization
             }
             finally
             {
-                (e as IDisposable)?.Dispose();
+                var disposable = e as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
             }
 
             writer.WriteEndObject();

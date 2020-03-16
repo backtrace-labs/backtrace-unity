@@ -30,7 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-#if NET20
+#if NET20  
 using Backtrace.Newtonsoft.Utilities.LinqBridge;
 #else
 #endif
@@ -176,7 +176,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < DateTimeZoneHandling.Local || value > DateTimeZoneHandling.RoundtripKind)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _dateTimeZoneHandling = value;
@@ -192,14 +192,14 @@ namespace Backtrace.Newtonsoft
             set
             {
                 if (value < DateParseHandling.None ||
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                     value > DateParseHandling.DateTimeOffset
 #else
                     value > DateParseHandling.DateTime
 #endif
                     )
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _dateParseHandling = value;
@@ -216,7 +216,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < FloatParseHandling.Double || value > FloatParseHandling.Decimal)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _floatParseHandling = value;
@@ -242,7 +242,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value <= 0)
                 {
-                    throw new ArgumentException("Value must be positive.", nameof(value));
+                    throw new ArgumentException("Value must be positive.", "value");
                 }
 
                 _maxDepth = value;
@@ -766,7 +766,7 @@ namespace Backtrace.Newtonsoft
                 case JsonToken.EndArray:
                     return null;
                 case JsonToken.Date:
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                     if (Value is DateTimeOffset)
                     {
                         SetToken(JsonToken.Date, ((DateTimeOffset)Value).DateTime, false);
@@ -808,7 +808,7 @@ namespace Backtrace.Newtonsoft
             throw JsonReaderException.Create(this, "Could not convert string to DateTime: {0}.".FormatWith(CultureInfo.InvariantCulture, s));
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTimeOffset}"/>.
         /// </summary>

@@ -52,7 +52,7 @@ namespace Backtrace.Newtonsoft.Converters
                 DateTime utcDateTime = dateTime.ToUniversalTime();
                 ticks = DateTimeUtils.ConvertDateTimeToJavaScriptTicks(utcDateTime);
             }
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             else if (value is DateTimeOffset)
             {
                 DateTimeOffset dateTimeOffset = (DateTimeOffset)value;
@@ -113,7 +113,7 @@ namespace Backtrace.Newtonsoft.Converters
                 throw JsonSerializationException.Create(reader, "Unexpected token parsing date. Expected EndConstructor, got {0}.".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
             }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             Type t = (ReflectionUtils.IsNullableType(objectType))
                 ? Nullable.GetUnderlyingType(objectType)
                 : objectType;

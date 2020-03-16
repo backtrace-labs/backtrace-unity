@@ -60,7 +60,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <param name="enumerable">The enumerable.</param>
         public JEnumerable(IEnumerable<T> enumerable)
         {
-            ValidationUtils.ArgumentNotNull(enumerable, nameof(enumerable));
+            ValidationUtils.ArgumentNotNull(enumerable, "enumerable");
 
             _enumerable = enumerable;
         }

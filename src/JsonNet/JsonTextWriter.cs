@@ -71,7 +71,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException(nameof(value));
+                    throw new ArgumentNullException("value");
                 }
 
                 _arrayPool = value;
@@ -146,7 +146,7 @@ namespace Backtrace.Newtonsoft
         {
             if (textWriter == null)
             {
-                throw new ArgumentNullException(nameof(textWriter));
+                throw new ArgumentNullException("textWriter");
             }
 
             _writer = textWriter;
@@ -625,7 +625,7 @@ namespace Backtrace.Newtonsoft
             }
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Writes a <see cref="DateTimeOffset"/> value.
         /// </summary>
@@ -684,7 +684,7 @@ namespace Backtrace.Newtonsoft
             InternalWriteValue(JsonToken.String);
 
             string text;
-#if (NET35 || NET20)
+#if ((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20  )
             text = value.ToString();
 #else
             text = value.ToString(null, CultureInfo.InvariantCulture);

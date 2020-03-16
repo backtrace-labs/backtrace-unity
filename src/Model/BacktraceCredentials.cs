@@ -47,13 +47,13 @@ namespace Backtrace.Unity.Model
         {
             if (_backtraceHostUri == null)
             {
-                throw new ArgumentException(nameof(BacktraceHostUri));
+                throw new ArgumentException("BacktraceHostUri");
             }
 
             var uriBuilder = new UriBuilder(BacktraceHostUri);
             if (!uriBuilder.Scheme.StartsWith("http"))
             {
-                uriBuilder.Scheme = $"https://{uriBuilder.Scheme}";
+                uriBuilder.Scheme = string.Format("https://{0}", uriBuilder.Scheme);
             }
             return uriBuilder.Uri;
         }
@@ -77,7 +77,7 @@ namespace Backtrace.Unity.Model
             var hostToCheck = backtraceSubmitUrl.Host;
             if (!hostToCheck.StartsWith("www."))
             {
-                hostToCheck = $"www.{hostToCheck}";
+                hostToCheck = string.Format("www.{0}", hostToCheck);
             }
             _backtraceHostUri = backtraceSubmitUrl;
         }
@@ -94,7 +94,7 @@ namespace Backtrace.Unity.Model
         {
             if (!IsValid(backtraceHostUri, accessToken))
             {
-                throw new ArgumentException($"{nameof(backtraceHostUri)} or {nameof(accessToken)} is not valid.");
+                throw new ArgumentException(string.Format("{0} or {1} is not valid.", "backtraceHostUri", "accessToken"));
             }
             _backtraceHostUri = backtraceHostUri;
             _accessToken = accessToken;

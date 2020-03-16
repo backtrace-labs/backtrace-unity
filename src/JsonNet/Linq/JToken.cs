@@ -26,7 +26,7 @@
 using System;
 using System.Collections.Generic;
 using Backtrace.Newtonsoft.Linq.JsonPath;
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40 )
 using System.Dynamic;
 using System.Linq.Expressions;
 #endif
@@ -53,7 +53,7 @@ namespace Backtrace.Newtonsoft.Linq
 #if !(DOTNET || PORTABLE40 || PORTABLE)
         , ICloneable
 #endif
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         , IDynamicMetaObjectProvider
 #endif
     {
@@ -66,7 +66,7 @@ namespace Backtrace.Newtonsoft.Linq
 
         private static readonly JTokenType[] BooleanTypes = new[] { JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean };
         private static readonly JTokenType[] NumberTypes = new[] { JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean };
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || PORTABLE40 || PORTABLE)
         private static readonly JTokenType[] BigIntegerTypes = new[] { JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean, JTokenType.Bytes };
 #endif
         private static readonly JTokenType[] StringTypes = new[] { JTokenType.Date, JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean, JTokenType.Bytes, JTokenType.Guid, JTokenType.TimeSpan, JTokenType.Uri };
@@ -448,7 +448,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (value == null)
             {
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException("value");
             }
 
             if (value is BacktraceJProperty)
@@ -463,7 +463,7 @@ namespace Backtrace.Newtonsoft.Linq
 
         private static string GetType(JToken token)
         {
-            ValidationUtils.ArgumentNotNull(token, nameof(token));
+            ValidationUtils.ArgumentNotNull(token, "token");
 
             if (token is BacktraceJProperty)
             {
@@ -1621,8 +1621,8 @@ namespace Backtrace.Newtonsoft.Linq
 
         internal static JToken FromObjectInternal(object o, JsonSerializer jsonSerializer)
         {
-            ValidationUtils.ArgumentNotNull(o, nameof(o));
-            ValidationUtils.ArgumentNotNull(jsonSerializer, nameof(jsonSerializer));
+            ValidationUtils.ArgumentNotNull(o, "o");
+            ValidationUtils.ArgumentNotNull(jsonSerializer, "jsonSerializer");
 
             JToken token;
             using (JTokenWriter jsonWriter = new JTokenWriter())
@@ -1801,7 +1801,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>The new object created from the JSON value.</returns>
         public object ToObject(Type objectType, JsonSerializer jsonSerializer)
         {
-            ValidationUtils.ArgumentNotNull(jsonSerializer, nameof(jsonSerializer));
+            ValidationUtils.ArgumentNotNull(jsonSerializer, "jsonSerializer");
 
             using (JTokenReader jsonReader = new JTokenReader(this))
             {
@@ -1836,7 +1836,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// </returns>
         public static JToken ReadFrom(JsonReader reader, JsonLoadSettings settings)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
 
             if (reader.TokenType == JsonToken.None)
             {
@@ -2079,7 +2079,7 @@ namespace Backtrace.Newtonsoft.Linq
             return p.Evaluate(this, errorWhenNoMatch);
         }
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         /// <summary>
         /// Returns the <see cref="T:System.Dynamic.DynamicMetaObject"/> responsible for binding operations performed on this object.
         /// </summary>
@@ -2129,7 +2129,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (annotation == null)
             {
-                throw new ArgumentNullException(nameof(annotation));
+                throw new ArgumentNullException("annotation");
             }
 
             if (_annotations == null)
@@ -2202,7 +2202,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (type == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException("type");
             }
 
             if (_annotations != null)
@@ -2286,7 +2286,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (type == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException("type");
             }
 
             if (_annotations == null)
@@ -2380,7 +2380,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (type == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException("type");
             }
 
             if (_annotations != null)

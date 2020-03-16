@@ -42,8 +42,8 @@ namespace Backtrace.Newtonsoft.Serialization
 
         public JsonFormatterConverter(JsonSerializerInternalReader reader, JsonISerializableContract contract, JsonProperty member)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
-            ValidationUtils.ArgumentNotNull(contract, nameof(contract));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
+            ValidationUtils.ArgumentNotNull(contract, "contract");
 
             _reader = reader;
             _contract = contract;
@@ -52,7 +52,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         private T GetTokenValue<T>(object value)
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
 
             JValue v = (JValue)value;
             return (T)System.Convert.ChangeType(v.Value, typeof(T), CultureInfo.InvariantCulture);
@@ -60,12 +60,12 @@ namespace Backtrace.Newtonsoft.Serialization
 
         public object Convert(object value, Type type)
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
 
             JToken token = value as JToken;
             if (token == null)
             {
-                throw new ArgumentException("Value is not a JToken.", nameof(value));
+                throw new ArgumentException("Value is not a JToken.", "value");
             }
 
             return _reader.CreateISerializableItem(token, type, _contract, _member);
@@ -73,7 +73,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         public object Convert(object value, TypeCode typeCode)
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
 
             if (value is JValue)
             {

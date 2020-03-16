@@ -295,7 +295,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value <= 0)
                 {
-                    throw new ArgumentException("Value must be positive.", nameof(value));
+                    throw new ArgumentException("Value must be positive.", "value");
                 }
 
                 _maxDepth = value;

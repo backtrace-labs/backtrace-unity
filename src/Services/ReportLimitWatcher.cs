@@ -49,7 +49,8 @@ namespace Backtrace.Unity.Services
         {
             if (reportPerMin < 0)
             {
-                throw new ArgumentException($"{nameof(reportPerMin)} have to be greater than or equal to zero");
+                throw new ArgumentException(string.Format((string) "{0} have to be greater than or equal to zero",
+                    (object) "reportPerMin"));
             }
             int reportNumber = checked((int)reportPerMin);
             _reportQueue = new Queue<long>(reportNumber);
@@ -108,7 +109,8 @@ namespace Backtrace.Unity.Services
             if(_limitHit == true && _displayMessage == true)
             {
                 _displayMessage = false;
-                Debug.LogWarning($"Backtrace report limit hit({_reportPerMin}/min) – Ignoring errors for 1 minute");
+                Debug.LogWarning(string.Format("Backtrace report limit hit({0}/min) – Ignoring errors for 1 minute",
+                    _reportPerMin));
             }
         }
 

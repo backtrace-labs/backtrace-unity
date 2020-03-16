@@ -33,7 +33,7 @@ namespace Backtrace.Unity.Common
                 }
                 // ReSharper disable once ConstantConditionalAccessQualifier
                 // ReSharper disable once ConstantNullCoalescingCondition
-                var typeName = param.ParameterType?.Name ?? "<UnknownType>";
+                var typeName = param.ParameterType != null ? param.ParameterType.Name : "<UnknownType>";
                 builder.Append(typeName);
                 builder.Append(" ");
                 builder.Append(param.Name);

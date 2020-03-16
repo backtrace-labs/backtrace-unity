@@ -62,7 +62,7 @@ namespace Backtrace.Newtonsoft
         {
             if (converterType == null)
             {
-                throw new ArgumentNullException(nameof(converterType));
+                throw new ArgumentNullException("converterType");
             }
 
             _converterType = converterType;

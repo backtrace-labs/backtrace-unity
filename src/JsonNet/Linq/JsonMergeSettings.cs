@@ -23,7 +23,7 @@ namespace Backtrace.Newtonsoft.Linq
             {
                 if (value < MergeArrayHandling.Concat || value > MergeArrayHandling.Merge)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _mergeArrayHandling = value;
@@ -41,7 +41,7 @@ namespace Backtrace.Newtonsoft.Linq
             {
                 if (value < MergeNullValueHandling.Ignore || value > MergeNullValueHandling.Merge)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _mergeNullValueHandling = value;

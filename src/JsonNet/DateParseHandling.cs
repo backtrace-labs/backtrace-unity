@@ -42,7 +42,7 @@ namespace Backtrace.Newtonsoft
         /// Date formatted strings, e.g. "\/Date(1198908717056)\/" and "2012-03-21T05:40Z", are parsed to <see cref="DateTime"/>.
         /// </summary>
         DateTime = 1,
-#if !NET20
+#if !NET20  
         /// <summary>
         /// Date formatted strings, e.g. "\/Date(1198908717056)\/" and "2012-03-21T05:40Z", are parsed to <see cref="DateTimeOffset"/>.
         /// </summary>

@@ -45,7 +45,7 @@ namespace Backtrace.Newtonsoft.Serialization
         /// <param name="memberInfo">The member info.</param>
         public ReflectionValueProvider(MemberInfo memberInfo)
         {
-            ValidationUtils.ArgumentNotNull(memberInfo, nameof(memberInfo));
+            ValidationUtils.ArgumentNotNull(memberInfo, "memberInfo");
             _memberInfo = memberInfo;
         }
 

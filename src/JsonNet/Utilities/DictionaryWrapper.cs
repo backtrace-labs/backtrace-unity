@@ -49,26 +49,26 @@ namespace Backtrace.Newtonsoft.Utilities
     {
         private readonly IDictionary _dictionary;
         private readonly IDictionary<TKey, TValue> _genericDictionary;
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         private readonly IReadOnlyDictionary<TKey, TValue> _readOnlyDictionary;
 #endif
         private object _syncRoot;
 
         public DictionaryWrapper(IDictionary dictionary)
         {
-            ValidationUtils.ArgumentNotNull(dictionary, nameof(dictionary));
+            ValidationUtils.ArgumentNotNull(dictionary, "dictionary");
 
             _dictionary = dictionary;
         }
 
         public DictionaryWrapper(IDictionary<TKey, TValue> dictionary)
         {
-            ValidationUtils.ArgumentNotNull(dictionary, nameof(dictionary));
+            ValidationUtils.ArgumentNotNull(dictionary, "dictionary");
 
             _genericDictionary = dictionary;
         }
 
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         public DictionaryWrapper(IReadOnlyDictionary<TKey, TValue> dictionary)
         {
             ValidationUtils.ArgumentNotNull(dictionary, nameof(dictionary));
@@ -99,7 +99,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 return _dictionary.Contains(key);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.ContainsKey(key);
@@ -119,7 +119,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _dictionary.Keys.Cast<TKey>().ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Keys.ToList();
@@ -146,7 +146,7 @@ namespace Backtrace.Newtonsoft.Utilities
                     return false;
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -173,7 +173,7 @@ namespace Backtrace.Newtonsoft.Utilities
                     return true;
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -193,7 +193,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _dictionary.Values.Cast<TValue>().ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Values.ToList();
@@ -214,7 +214,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return (TValue)_dictionary[key];
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary[key];
@@ -231,7 +231,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     _dictionary[key] = value;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     throw new NotSupportedException();
@@ -250,7 +250,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 ((IList)_dictionary).Add(item);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -268,7 +268,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 _dictionary.Clear();
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -286,7 +286,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 return ((IList)_dictionary).Contains(item);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.Contains(item);
@@ -314,10 +314,11 @@ namespace Backtrace.Newtonsoft.Utilities
                 }
                 finally
                 {
-                    (e as IDisposable)?.Dispose();
+                    if (e is IDisposable)
+                        (e as IDisposable).Dispose();
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -337,7 +338,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _dictionary.Count;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Count;
@@ -358,7 +359,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _dictionary.IsReadOnly;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return true;
@@ -394,7 +395,7 @@ namespace Backtrace.Newtonsoft.Utilities
                     return true;
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -412,7 +413,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 return _dictionary.Cast<DictionaryEntry>().Select(de => new KeyValuePair<TKey, TValue>((TKey)de.Key, (TValue)de.Value)).GetEnumerator();
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.GetEnumerator();
@@ -435,7 +436,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 _dictionary.Add(key, value);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -455,7 +456,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _dictionary[key];
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary[(TKey)key];
@@ -472,7 +473,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     _dictionary[key] = value;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     throw new NotSupportedException();
@@ -491,7 +492,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
             public DictionaryEnumerator(IEnumerator<KeyValuePair<TEnumeratorKey, TEnumeratorValue>> e)
             {
-                ValidationUtils.ArgumentNotNull(e, nameof(e));
+                ValidationUtils.ArgumentNotNull(e, "e");
                 _e = e;
             }
 
@@ -532,7 +533,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 return _dictionary.GetEnumerator();
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 return new DictionaryEnumerator<TKey, TValue>(_readOnlyDictionary.GetEnumerator());
@@ -550,7 +551,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 return _genericDictionary.ContainsKey((TKey)key);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.ContainsKey((TKey)key);
@@ -570,7 +571,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return false;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return true;
@@ -591,7 +592,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _genericDictionary.Keys.ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Keys.ToList();
@@ -610,7 +611,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 _dictionary.Remove(key);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -630,7 +631,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _genericDictionary.Values.ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Values.ToList();
@@ -649,7 +650,7 @@ namespace Backtrace.Newtonsoft.Utilities
             {
                 _dictionary.CopyTo(array, index);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -697,7 +698,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 {
                     return _dictionary;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary;

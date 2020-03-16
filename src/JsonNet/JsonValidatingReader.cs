@@ -315,7 +315,7 @@ namespace Backtrace.Newtonsoft
         /// <param name="reader">The <see cref="JsonReader"/> to read from while validating.</param>
         public JsonValidatingReader(JsonReader reader)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
             _reader = reader;
             _stack = new Stack<SchemaScope>();
         }
@@ -474,7 +474,7 @@ namespace Backtrace.Newtonsoft
             return dateTime;
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTimeOffset}"/>.
         /// </summary>

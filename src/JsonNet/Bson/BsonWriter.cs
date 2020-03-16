@@ -60,7 +60,7 @@ namespace Backtrace.Newtonsoft.Bson
         /// <param name="stream">The stream.</param>
         public BsonWriter(Stream stream)
         {
-            ValidationUtils.ArgumentNotNull(stream, nameof(stream));
+            ValidationUtils.ArgumentNotNull(stream, "stream");
             _writer = new BsonBinaryWriter(new BinaryWriter(stream));
         }
 
@@ -70,7 +70,7 @@ namespace Backtrace.Newtonsoft.Bson
         /// <param name="writer">The writer.</param>
         public BsonWriter(BinaryWriter writer)
         {
-            ValidationUtils.ArgumentNotNull(writer, nameof(writer));
+            ValidationUtils.ArgumentNotNull(writer, "writer");
             _writer = new BsonBinaryWriter(writer);
         }
 
@@ -425,7 +425,7 @@ namespace Backtrace.Newtonsoft.Bson
             AddValue(value, BsonType.Date);
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Writes a <see cref="DateTimeOffset"/> value.
         /// </summary>
@@ -484,7 +484,7 @@ namespace Backtrace.Newtonsoft.Bson
         /// <param name="value">The Object ID value to write.</param>
         public void WriteObjectId(byte[] value)
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
 
             if (value.Length != 12)
             {
@@ -504,7 +504,7 @@ namespace Backtrace.Newtonsoft.Bson
         /// <param name="options">The regex options.</param>
         public void WriteRegex(string pattern, string options)
         {
-            ValidationUtils.ArgumentNotNull(pattern, nameof(pattern));
+            ValidationUtils.ArgumentNotNull(pattern, "pattern");
 
             // hack to update the writer state
             UpdateScopeWithFinishedValue();

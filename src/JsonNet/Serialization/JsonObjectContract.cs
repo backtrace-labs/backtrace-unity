@@ -211,7 +211,7 @@ namespace Backtrace.Newtonsoft.Serialization
         }
 
 #if !(DOTNET || PORTABLE40 || PORTABLE)
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET))
         [SecuritySafeCritical]
 #endif
         internal object GetUninitializedObject()
