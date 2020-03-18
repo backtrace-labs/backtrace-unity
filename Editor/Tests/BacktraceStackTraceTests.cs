@@ -97,7 +97,7 @@ namespace Tests
         {
             var exception = new Exception("exception");
             var report = new BacktraceReport(exception);
-            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace.Count()); // TODO: Verify change
+            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace.Count());
             yield return null;
         }
 
