@@ -89,7 +89,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Number of deduplications
         /// </summary>
-        public int Deduplication { get; set; } = 0;
+        public int Deduplication = 0;
 
         /// <summary>
         /// Empty constructor for serialization purpose
@@ -122,17 +122,17 @@ namespace Backtrace.Unity.Model
         {
             var json = new BacktraceJObject
             {
-                ["uuid"] = Uuid,
-                ["timestamp"] = Timestamp,
-                ["lang"] = "csharp",
-                ["langVersion"] = "Unity",
-                ["agent"] = "backtrace-unity",
-                ["agentVersion"] = "2.0.4",
-                ["mainThread"] = MainThread,
-                ["classifiers"] = new JArray(Classifier),
-                ["attributes"] = Attributes.ToJson(),
-                ["annotations"] = Annotation.ToJson(),
-                ["threads"] = ThreadData?.ToJson()
+                {"uuid", Uuid},
+                {"timestamp", Timestamp},
+                {"lang", Lang},
+                {"langVersion", LangVersion},
+                {"agent", Agent},
+                {"agentVersion", AgentVersion},
+                {"mainThread", MainThread},
+                {"classifiers", new JArray(Classifier)},
+                {"attributes", Attributes.ToJson()},
+                {"annotations", Annotation.ToJson()},
+                {"threads", ThreadData == null ? null : ThreadData.ToJson()}
             };
             return json.ToString();
         }
@@ -146,8 +146,8 @@ namespace Backtrace.Unity.Model
         {
             var @object = BacktraceJObject.Parse(json);
 
-            var classfiers = @object["classifiers"]?
-                .Select(n => n.Value<string>()).ToArray() ?? null;
+            var classfiers = @object == null ? null : @object["classifiers"]
+                                 .Select(n => n.Value<string>()).ToArray() ?? null;
 
             return new BacktraceData()
             {
@@ -189,7 +189,7 @@ namespace Backtrace.Unity.Model
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             LangVersion = "Mono/IL2CPP";
-            AgentVersion = "2.0.4";
+            AgentVersion = "2.0.5-alpha";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

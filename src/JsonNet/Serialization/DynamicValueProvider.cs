@@ -53,7 +53,7 @@ namespace Backtrace.Newtonsoft.Serialization
         /// <param name="memberInfo">The member info.</param>
         public DynamicValueProvider(MemberInfo memberInfo)
         {
-            ValidationUtils.ArgumentNotNull(memberInfo, nameof(memberInfo));
+            ValidationUtils.ArgumentNotNull(memberInfo, "memberInfo");
             _memberInfo = memberInfo;
         }
 

@@ -147,7 +147,7 @@ namespace Backtrace.Newtonsoft.Serialization
             return _typeCache.Get(new TypeNameKey(assemblyName, typeName));
         }
 
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20  )
         /// <summary>
         /// When overridden in a derived class, controls the binding of a serialized object to a type.
         /// </summary>

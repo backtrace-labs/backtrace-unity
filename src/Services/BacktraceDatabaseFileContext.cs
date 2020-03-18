@@ -109,7 +109,7 @@ namespace Backtrace.Unity.Services
 #if DEBUG
                     Debug.Log(e.ToString());
 #endif
-                    Debug.LogWarning($"Cannot remove file in path: { file.FullName}");
+                    Debug.LogWarning(string.Format("Cannot remove file in path: {0}", file.FullName));
                 }
             }
         }

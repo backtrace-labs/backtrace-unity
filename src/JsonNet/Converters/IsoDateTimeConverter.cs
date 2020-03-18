@@ -94,7 +94,7 @@ namespace Backtrace.Newtonsoft.Converters
 
                 text = dateTime.ToString(_dateTimeFormat ?? DefaultDateTimeFormat, Culture);
             }
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             else if (value is DateTimeOffset)
             {
                 DateTimeOffset dateTimeOffset = (DateTimeOffset)value;
@@ -126,7 +126,7 @@ namespace Backtrace.Newtonsoft.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             bool nullable = ReflectionUtils.IsNullableType(objectType);
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             Type t = (nullable)
                 ? Nullable.GetUnderlyingType(objectType)
                 : objectType;
@@ -144,7 +144,7 @@ namespace Backtrace.Newtonsoft.Converters
 
             if (reader.TokenType == JsonToken.Date)
             {
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                 if (t == typeof(DateTimeOffset))
                 {
                     return (reader.Value is DateTimeOffset) ? reader.Value : new DateTimeOffset((DateTime)reader.Value);
@@ -172,7 +172,7 @@ namespace Backtrace.Newtonsoft.Converters
                 return null;
             }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             if (t == typeof(DateTimeOffset))
             {
                 if (!string.IsNullOrEmpty(_dateTimeFormat))

@@ -154,7 +154,7 @@ namespace Backtrace.Newtonsoft.Bson
 
                         ticks = DateTimeUtils.ConvertDateTimeToJavaScriptTicks(dateTime, false);
                     }
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                     else
                     {
                         DateTimeOffset dateTimeOffset = (DateTimeOffset)value.Value;
@@ -162,7 +162,7 @@ namespace Backtrace.Newtonsoft.Bson
                     }
 #endif
 
-                    _writer.Write(ticks);
+                        _writer.Write(ticks);
                 }
                     break;
                 case BsonType.Binary:
@@ -192,7 +192,7 @@ namespace Backtrace.Newtonsoft.Bson
                 }
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(t), "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
+                    throw new ArgumentOutOfRangeException("t", "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
             }
         }
 
@@ -326,7 +326,7 @@ namespace Backtrace.Newtonsoft.Bson
                     return value.CalculatedSize;
                 }
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(t), "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
+                    throw new ArgumentOutOfRangeException("t", "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
             }
         }
     }

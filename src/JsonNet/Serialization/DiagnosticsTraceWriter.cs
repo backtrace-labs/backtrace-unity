@@ -35,7 +35,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 case TraceLevel.Verbose:
                     return TraceEventType.Verbose;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(level));
+                    throw new ArgumentOutOfRangeException("level");
             }
         }
 

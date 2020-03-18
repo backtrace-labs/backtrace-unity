@@ -1,12 +1,11 @@
-﻿using Backtrace.Unity;
-using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using UnityEngine;
+using System.Text;
 using UnityEngine.TestTools;
 
 namespace Tests
@@ -90,14 +89,14 @@ namespace Tests
                 }
         };
 
-     
+
 
         [UnityTest]
         public IEnumerator TestReportStackTrace_StackTraceShouldBeTheSameLikeExceptionStackTrace_ShouldReturnCorrectStackTrace()
         {
             var exception = new Exception("exception");
             var report = new BacktraceReport(exception);
-            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace?.Count() ?? 0);
+            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace == null ? 0 : exception.StackTrace.Count());
             yield return null;
         }
 
@@ -126,7 +125,13 @@ namespace Tests
             var source = new List<List<SampleStackFrame>>() { _simpleStack, _advancedStack };
             foreach (var data in source)
             {
-                var stackTrace = string.Concat(data.Select(n => n.ToString()));
+                var stringBuilder = new StringBuilder();
+                foreach (var stackFrame in data)
+                {
+                    stringBuilder.Append(stackFrame.ToStackFrameString());
+                }
+                var stackTrace = stringBuilder.ToString();
+
                 string message = "message";
                 var exception = new BacktraceUnhandledException(message, stackTrace);
                 var backtraceStackTrace = new BacktraceStackTrace(exception);
@@ -154,13 +159,13 @@ namespace Tests
         public string Path { get; set; }
         public int LineNumber { get; set; }
 
-        public override string ToString()
+        public string ToStackFrameString()
         {
             if (string.IsNullOrEmpty(Path) && LineNumber == 0)
             {
-                return $"{Method} \r\n";
+                return string.Format("{0} \r\n", Method);
             }
-            return $"{Method} (at {Path}:{LineNumber}) \r\n";
+            return string.Format("{0} (at {1}:{2}) \r\n", Method, Path, LineNumber);
         }
     }
 

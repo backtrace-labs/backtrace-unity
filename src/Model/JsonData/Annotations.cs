@@ -14,7 +14,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Set maximum number of game objects in Backtrace report
         /// </summary>
-        public static int GameObjectDepth { get; set; } = 0;
+        public static int GameObjectDepth { get; set; }
 
         private const string ENVIRONMENT_VARIABLE_KEY = "Environment Variables";
         private JToken _serializedAnnotations;
@@ -79,23 +79,22 @@ namespace Backtrace.Unity.Model.JsonData
 
             foreach (var envVariable in EnvironmentVariables)
             {
-                envVariables[envVariable.Key] = envVariable.Value?.ToString() ?? string.Empty;
+                envVariables[envVariable.Key] = envVariable.Value ?? string.Empty;
             }
             annotations[ENVIRONMENT_VARIABLE_KEY] = envVariables;
 
             var activeScene = SceneManager.GetActiveScene();
-            if (activeScene != null)
-            {
-                var gameObjects = new JArray();
 
-                var rootObjects = new List<GameObject>();
-                activeScene.GetRootGameObjects(rootObjects);
-                foreach (var gameObject in rootObjects)
-                {
-                    gameObjects.Add(ConvertGameObject(gameObject));
-                }
-                annotations["Game objects"] = gameObjects;
+            var gameObjects = new JArray();
+
+            var rootObjects = new List<GameObject>();
+            activeScene.GetRootGameObjects(rootObjects);
+            foreach (var gameObject in rootObjects)
+            {
+                gameObjects.Add(ConvertGameObject(gameObject));
             }
+            annotations["Game objects"] = gameObjects;
+
 
             return annotations;
         }
@@ -158,34 +157,32 @@ namespace Backtrace.Unity.Model.JsonData
 
         private BacktraceJObject GetJObject(GameObject gameObject, string parentName = "")
         {
-            return new BacktraceJObject()
-            {
-                ["name"] = gameObject.name,
-                ["isStatic"] = gameObject.isStatic,
-                ["layer"] = gameObject.layer,
-                ["transform.position"] = gameObject.transform.position.ToString() ?? "",
-                ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
-                ["tag"] = gameObject.tag,
-                ["activeInHierarchy"] = gameObject.activeInHierarchy,
-                ["activeSelf"] = gameObject.activeSelf,
-                ["hideFlags"] = (int)gameObject.hideFlags,
-                ["instanceId"] = gameObject.GetInstanceID(),
-                ["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName
-            };
+            var o = new BacktraceJObject();
+            o["name"] = gameObject.name;
+            o["isStatic"] = gameObject.isStatic;
+            o["layer"] = gameObject.layer;
+            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
+            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
+            o["tag"] = gameObject.tag;
+            o["activeInHierarchy"] = gameObject.activeInHierarchy;
+            o["activeSelf"] = gameObject.activeSelf;
+            o["hideFlags"] = (int)gameObject.hideFlags;
+            o["instanceId"] = gameObject.GetInstanceID();
+            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
+            return o;
         }
 
         private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
         {
-            return new BacktraceJObject()
-            {
-                ["name"] = gameObject.name,
-                ["transform.position"] = gameObject.transform.position.ToString() ?? "",
-                ["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "",
-                ["tag"] = gameObject.tag,
-                ["hideFlags"] = (int)gameObject.hideFlags,
-                ["instanceId"] = gameObject.GetInstanceID(),
-                ["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName
-            };
+            var o = new BacktraceJObject();
+            o["name"] = gameObject.name;
+            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
+            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
+            o["tag"] = gameObject.tag;
+            o["hideFlags"] = (int)gameObject.hideFlags;
+            o["instanceId"] = gameObject.GetInstanceID();
+            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
+            return o;
         }
 
 

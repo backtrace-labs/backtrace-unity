@@ -306,7 +306,7 @@ namespace Backtrace.Newtonsoft.Linq
         internal BacktraceJProperty(string name)
         {
             // called from JTokenWriter
-            ValidationUtils.ArgumentNotNull(name, nameof(name));
+            ValidationUtils.ArgumentNotNull(name, "name");
 
             _name = name;
         }
@@ -328,7 +328,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <param name="content">The property content.</param>
         public BacktraceJProperty(string name, object content)
         {
-            ValidationUtils.ArgumentNotNull(name, nameof(name));
+            ValidationUtils.ArgumentNotNull(name, "name");
 
             _name = name;
 

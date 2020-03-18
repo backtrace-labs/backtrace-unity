@@ -25,18 +25,18 @@
 
 using System;
 using System.Collections;
-#if !(NET35 || NET20 || PORTABLE || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE || PORTABLE40 )
 using System.Collections.Concurrent;
 #endif
 using System.Collections.Generic;
 using System.ComponentModel;
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40 )
 using System.Dynamic;
 #endif
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if !(DOTNET || PORTABLE || PORTABLE40 )
 using System.Security.Permissions;
 #endif
 using Backtrace.Newtonsoft.Converters;
@@ -116,13 +116,13 @@ namespace Backtrace.Newtonsoft.Serialization
 #if !(NET20 || DOTNET || PORTABLE40 || PORTABLE || UNITYPROFILE)
             new EntityKeyMemberConverter(),
 #endif
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40 )
             new ExpandoObjectConverter(),
 #endif
 #if !(PORTABLE40)
             new XmlNodeConverter(),
 #endif
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20)
             new DiscriminatedUnionConverter(),
 #endif
             new KeyValuePairConverter(),
@@ -236,7 +236,7 @@ namespace Backtrace.Newtonsoft.Serialization
         {
             if (type == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException("type");
             }
 
             DefaultContractResolverState state = GetState();
@@ -584,7 +584,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
             public EnumerableDictionaryWrapper(IEnumerable<KeyValuePair<TEnumeratorKey, TEnumeratorValue>> e)
             {
-                ValidationUtils.ArgumentNotNull(e, nameof(e));
+                ValidationUtils.ArgumentNotNull(e, "e");
                 _e = e;
             }
 
@@ -735,7 +735,7 @@ namespace Backtrace.Newtonsoft.Serialization
             return JsonTypeReflector.ReflectionDelegateFactory.CreateDefaultConstructor<object>(createdType);
         }
 
-#if NET35
+#if (NET35 || NET_2_0 || NET_2_0_SUBSET)
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1903:UseOnlyApiFromTargetedFramework", MessageId = "System.Runtime.Serialization.DataContractAttribute.#get_IsReference()")]
 #endif
 
@@ -879,14 +879,14 @@ namespace Backtrace.Newtonsoft.Serialization
 
         private static bool ShouldSkipDeserialized(Type t)
         {
-#if !(NET35 || NET20 || PORTABLE || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE || PORTABLE40 )
             // ConcurrentDictionary throws an error in its OnDeserialized so ignore - http://json.codeplex.com/discussions/257093
             if (t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(ConcurrentDictionary<,>))
             {
                 return true;
             }
 #endif
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20)
             if (t.Name == FSharpUtils.FSharpSetTypeName || t.Name == FSharpUtils.FSharpMapTypeName)
             {
                 return true;
@@ -898,7 +898,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         private static bool ShouldSkipSerializing(Type t)
         {
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20)
             if (t.Name == FSharpUtils.FSharpSetTypeName || t.Name == FSharpUtils.FSharpMapTypeName)
             {
                 return true;
@@ -1055,7 +1055,7 @@ namespace Backtrace.Newtonsoft.Serialization
         }
 #endif
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         /// <summary>
         /// Creates a <see cref="JsonDynamicContract"/> for the given type.
         /// </summary>
@@ -1143,7 +1143,7 @@ namespace Backtrace.Newtonsoft.Serialization
             }
 #endif
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40 )
             if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(t))
             {
                 return CreateDynamicContract(objectType);
@@ -1443,7 +1443,7 @@ namespace Backtrace.Newtonsoft.Serialization
             {
                 bool hasIgnoreDataMemberAttribute = false;
 
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET))
                 hasIgnoreDataMemberAttribute = (JsonTypeReflector.GetAttribute<IgnoreDataMemberAttribute>(attributeProvider) != null);
 #endif
 

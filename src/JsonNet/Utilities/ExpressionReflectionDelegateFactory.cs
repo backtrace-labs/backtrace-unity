@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  )
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,7 +47,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public override ObjectConstructor<object> CreateParameterizedConstructor(MethodBase method)
         {
-            ValidationUtils.ArgumentNotNull(method, nameof(method));
+            ValidationUtils.ArgumentNotNull(method, "method");
 
             Type type = typeof(object);
 
@@ -63,7 +63,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public override MethodCall<T, object> CreateMethodCall<T>(MethodBase method)
         {
-            ValidationUtils.ArgumentNotNull(method, nameof(method));
+            ValidationUtils.ArgumentNotNull(method, "method");
 
             Type type = typeof(object);
 

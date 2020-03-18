@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET20 || NET35 || NET40)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET40  )
 using System;
 using System.Collections.Generic;
 using System.Linq;

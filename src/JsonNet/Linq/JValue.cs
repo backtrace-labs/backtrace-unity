@@ -29,7 +29,7 @@ using Backtrace.Newtonsoft.Utilities;
 using System.Globalization;
 using Backtrace.Newtonsoft.Shims;
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
 using System.Dynamic;
 using System.Linq.Expressions;
 #endif
@@ -372,7 +372,7 @@ namespace Backtrace.Newtonsoft.Linq
             return d1.CompareTo(d2);
         }
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         private static bool Operation(ExpressionType operation, object objA, object objB, out object result)
         {
             if (objA is string || objB is string)
@@ -878,7 +878,7 @@ namespace Backtrace.Newtonsoft.Linq
             }
         }
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         /// <summary>
         /// Returns the <see cref="T:System.Dynamic.DynamicMetaObject"/> responsible for binding operations performed on this object.
         /// </summary>

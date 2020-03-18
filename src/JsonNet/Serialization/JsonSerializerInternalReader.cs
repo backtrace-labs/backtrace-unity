@@ -27,7 +27,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
 using System.ComponentModel;
 using System.Dynamic;
 #endif
@@ -64,7 +64,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         public void Populate(JsonReader reader, object target)
         {
-            ValidationUtils.ArgumentNotNull(target, nameof(target));
+            ValidationUtils.ArgumentNotNull(target, "target");
 
             Type objectType = target.GetType();
 
@@ -136,7 +136,7 @@ namespace Backtrace.Newtonsoft.Serialization
         {
             if (reader == null)
             {
-                throw new ArgumentNullException(nameof(reader));
+                throw new ArgumentNullException("reader");
             }
 
             JsonContract contract = GetContractSafe(objectType);
@@ -206,7 +206,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         private JToken CreateJToken(JsonReader reader, JsonContract contract)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
 
             if (contract != null)
             {
@@ -233,7 +233,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         private JToken CreateJObject(JsonReader reader)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
 
             // this is needed because we've already read inside the object, looking for metadata properties
             using (JTokenWriter writer = new JTokenWriter())
@@ -353,7 +353,7 @@ namespace Backtrace.Newtonsoft.Serialization
 #if !(DOTNET || PORTABLE || PORTABLE40)
                 case JsonContractType.Serializable:
 #endif
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40)
                 case JsonContractType.Dynamic:
 #endif
                     return @"JSON object (e.g. {""name"":""value""})";
@@ -562,7 +562,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
                     return targetDictionary;
                 }
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                 case JsonContractType.Dynamic:
                     JsonDynamicContract dynamicContract = (JsonDynamicContract)contract;
                     return CreateDynamic(reader, dynamicContract, member, id);
@@ -802,7 +802,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 }
 
                 if (objectType != null
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                     && objectType != typeof(IDynamicMetaObjectProvider)
 #endif
                     && !objectType.IsAssignableFrom(specifiedType))
@@ -925,7 +925,7 @@ namespace Backtrace.Newtonsoft.Serialization
         private bool HasNoDefinedType(JsonContract contract)
         {
             return (contract == null || contract.UnderlyingType == typeof(object) || contract.ContractType == JsonContractType.Linq
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
                     || contract.UnderlyingType == typeof(IDynamicMetaObjectProvider)
 #endif
                 );
@@ -1751,7 +1751,7 @@ namespace Backtrace.Newtonsoft.Serialization
         }
 #endif
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         private object CreateDynamic(JsonReader reader, JsonDynamicContract contract, JsonProperty member, string id)
         {
             IDynamicMetaObjectProvider newObject;
@@ -1875,7 +1875,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         private object CreateObjectUsingCreatorWithParameters(JsonReader reader, JsonObjectContract contract, JsonProperty containerProperty, ObjectConstructor<object> creator, string id)
         {
-            ValidationUtils.ArgumentNotNull(creator, nameof(creator));
+            ValidationUtils.ArgumentNotNull(creator, "creator");
 
             // only need to keep a track of properies presence if they are required or a value should be defaulted if missing
             bool trackPresence = (contract.HasRequiredOrDefaultValueProperties || HasFlag(Serializer._defaultValueHandling, DefaultValueHandling.Populate));
@@ -2044,7 +2044,8 @@ namespace Backtrace.Newtonsoft.Serialization
                             }
                             finally
                             {
-                                (e as IDisposable)?.Dispose();
+                                if (e is IDisposable)
+                                    (e as IDisposable).Dispose();
                             }
                         }
                     }
@@ -2226,7 +2227,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 case ReadType.ReadAsDateTime:
                     reader.ReadAsDateTime();
                     break;
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                 case ReadType.ReadAsDateTimeOffset:
                     reader.ReadAsDateTimeOffset();
                     break;

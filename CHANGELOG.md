@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+## Version 2.0.5
+
+- Unity compatibility patch / .NET 2 + 2 Subset (https://github.com/backtrace-labs/backtrace-unity/pull/10)
+
 ## Version 2.0.4
 
 - Added Game object depth property that allows developer to filter game object childrens in Backtrace report

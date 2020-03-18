@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿using System;
+using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
 using System.Collections;
@@ -27,12 +28,12 @@ namespace Tests
         {
             var exception = new FileNotFoundException();
             var reportAttributeKey = "report_attr";
-            var reportAttributeValue = $"{reportAttributeKey}-value";
+            var reportAttributeValue = string.Format("{0}-value", reportAttributeKey);
             var reportAttributes = new Dictionary<string, object>() { { reportAttributeKey, reportAttributeValue } };
             var exceptionReport = new BacktraceReport(exception, reportAttributes);
 
             string clientAttributeKey = "client_attr";
-            string clientAttributeValue = $"{clientAttributeKey}-value";
+            string clientAttributeValue = string.Format("{0}-value", clientAttributeKey);
             var clientAttributes = new Dictionary<string, object>() { { clientAttributeKey, clientAttributeValue } };
 
             var testObject = new BacktraceAttributes(exceptionReport, clientAttributes);
@@ -47,8 +48,10 @@ namespace Tests
         public IEnumerator TestCorrectDictionaryGeneration_ReplaceAttributes_TheSameDictionaryAttributes()
         {
             var reportAttributeKey = "report_attr";
-            var reportAttributeValue = $"{reportAttributeKey}-value";
-            var clientAttributes = new Dictionary<string, object>() { { reportAttributeKey, $"{reportAttributeValue}-client" } };
+            var reportAttributeValue = string.Format("{0}-value", reportAttributeKey);
+            var clientAttributes = new Dictionary<string, object>() { { reportAttributeKey,
+                string.Format("{0}-client", reportAttributeValue)
+            } };
             Assert.IsFalse(clientAttributes[reportAttributeKey] as string == reportAttributeValue);
             yield return null;
         }

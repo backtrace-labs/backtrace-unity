@@ -28,7 +28,7 @@ using System.Collections.Generic;
 using Backtrace.Newtonsoft.Utilities;
 using System.Globalization;
 using Backtrace.Newtonsoft.Shims;
-#if NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
 using Backtrace.Newtonsoft.Utilities.LinqBridge;
 #else
 using System.Linq;
@@ -51,7 +51,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the ancestors of every token in the source collection.</returns>
         public static IJEnumerable<JToken> Ancestors<T>(this IEnumerable<T> source) where T : JToken
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             return source.SelectMany(j => j.Ancestors()).AsJEnumerable();
         }
@@ -64,7 +64,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains every token in the source collection, the ancestors of every token in the source collection.</returns>
         public static IJEnumerable<JToken> AncestorsAndSelf<T>(this IEnumerable<T> source) where T : JToken
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             return source.SelectMany(j => j.AncestorsAndSelf()).AsJEnumerable();
         }
@@ -77,7 +77,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the descendants of every token in the source collection.</returns>
         public static IJEnumerable<JToken> Descendants<T>(this IEnumerable<T> source) where T : BacktraceJContainer
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             return source.SelectMany(j => j.Descendants()).AsJEnumerable();
         }
@@ -90,7 +90,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains every token in the source collection, and the descendants of every token in the source collection.</returns>
         public static IJEnumerable<JToken> DescendantsAndSelf<T>(this IEnumerable<T> source) where T : BacktraceJContainer
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             return source.SelectMany(j => j.DescendantsAndSelf()).AsJEnumerable();
         }
@@ -102,7 +102,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="BacktraceJProperty"/> that contains the properties of every object in the source collection.</returns>
         public static IJEnumerable<BacktraceJProperty> Properties(this IEnumerable<BacktraceJObject> source)
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             return source.SelectMany(d => d.Properties()).AsJEnumerable();
         }
@@ -171,7 +171,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>A converted value.</returns>
         public static U Value<T, U>(this IEnumerable<T> value) where T : JToken
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
 
             JToken token = value as JToken;
             if (token == null)
@@ -184,7 +184,7 @@ namespace Backtrace.Newtonsoft.Linq
 
         internal static IEnumerable<U> Values<T, U>(this IEnumerable<T> source, object key) where T : JToken
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             foreach (JToken token in source)
             {
@@ -238,14 +238,14 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> that contains the converted values of every token in the source collection.</returns>
         public static IEnumerable<U> Children<T, U>(this IEnumerable<T> source) where T : JToken
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             return source.SelectMany(c => c.Children()).Convert<JToken, U>();
         }
 
         internal static IEnumerable<U> Convert<T, U>(this IEnumerable<T> source) where T : JToken
         {
-            ValidationUtils.ArgumentNotNull(source, nameof(source));
+            ValidationUtils.ArgumentNotNull(source, "source");
 
             foreach (T token in source)
             {

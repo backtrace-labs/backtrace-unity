@@ -97,7 +97,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static bool IsVirtual(this PropertyInfo propertyInfo)
         {
-            ValidationUtils.ArgumentNotNull(propertyInfo, nameof(propertyInfo));
+            ValidationUtils.ArgumentNotNull(propertyInfo, "propertyInfo");
 
             MethodInfo m = propertyInfo.GetGetMethod();
             if (m != null && m.IsVirtual)
@@ -116,7 +116,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static MethodInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {
-            ValidationUtils.ArgumentNotNull(propertyInfo, nameof(propertyInfo));
+            ValidationUtils.ArgumentNotNull(propertyInfo, "propertyInfo");
 
             MethodInfo m = propertyInfo.GetGetMethod();
             if (m != null)
@@ -155,7 +155,7 @@ namespace Backtrace.Newtonsoft.Utilities
         public static string GetTypeName(Type t, FormatterAssemblyStyle assemblyFormat, SerializationBinder binder)
         {
             string fullyQualifiedTypeName;
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  )
             if (binder != null)
             {
                 string assemblyName, typeName;
@@ -228,7 +228,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static bool HasDefaultConstructor(Type t, bool nonPublic)
         {
-            ValidationUtils.ArgumentNotNull(t, nameof(t));
+            ValidationUtils.ArgumentNotNull(t, "t");
 
             if (t.IsValueType())
             {
@@ -256,7 +256,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static bool IsNullable(Type t)
         {
-            ValidationUtils.ArgumentNotNull(t, nameof(t));
+            ValidationUtils.ArgumentNotNull(t, "t");
 
             if (t.IsValueType())
             {
@@ -268,7 +268,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static bool IsNullableType(Type t)
         {
-            ValidationUtils.ArgumentNotNull(t, nameof(t));
+            ValidationUtils.ArgumentNotNull(t, "t");
 
             return (t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
@@ -299,8 +299,8 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static bool ImplementsGenericDefinition(Type type, Type genericInterfaceDefinition, out Type implementingType)
         {
-            ValidationUtils.ArgumentNotNull(type, nameof(type));
-            ValidationUtils.ArgumentNotNull(genericInterfaceDefinition, nameof(genericInterfaceDefinition));
+            ValidationUtils.ArgumentNotNull(type, "type");
+            ValidationUtils.ArgumentNotNull(genericInterfaceDefinition, "genericInterfaceDefinition");
 
             if (!genericInterfaceDefinition.IsInterface() || !genericInterfaceDefinition.IsGenericTypeDefinition())
             {
@@ -347,8 +347,8 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static bool InheritsGenericDefinition(Type type, Type genericClassDefinition, out Type implementingType)
         {
-            ValidationUtils.ArgumentNotNull(type, nameof(type));
-            ValidationUtils.ArgumentNotNull(genericClassDefinition, nameof(genericClassDefinition));
+            ValidationUtils.ArgumentNotNull(type, "type");
+            ValidationUtils.ArgumentNotNull(genericClassDefinition, "genericClassDefinition");
 
             if (!genericClassDefinition.IsClass() || !genericClassDefinition.IsGenericTypeDefinition())
             {
@@ -387,7 +387,7 @@ namespace Backtrace.Newtonsoft.Utilities
         /// <returns>The type of the typed collection's items.</returns>
         public static Type GetCollectionItemType(Type type)
         {
-            ValidationUtils.ArgumentNotNull(type, nameof(type));
+            ValidationUtils.ArgumentNotNull(type, "type");
             Type genericListType;
 
             if (type.IsArray)
@@ -413,7 +413,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static void GetDictionaryKeyValueTypes(Type dictionaryType, out Type keyType, out Type valueType)
         {
-            ValidationUtils.ArgumentNotNull(dictionaryType, nameof(dictionaryType));
+            ValidationUtils.ArgumentNotNull(dictionaryType, "dictionaryType");
 
             Type genericDictionaryType;
             if (ImplementsGenericDefinition(dictionaryType, typeof(IDictionary<,>), out genericDictionaryType))
@@ -446,7 +446,7 @@ namespace Backtrace.Newtonsoft.Utilities
         /// <returns>The underlying type of the member.</returns>
         public static Type GetMemberUnderlyingType(MemberInfo member)
         {
-            ValidationUtils.ArgumentNotNull(member, nameof(member));
+            ValidationUtils.ArgumentNotNull(member, "member");
 
             switch (member.MemberType())
             {
@@ -459,7 +459,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 case MemberTypes.Method:
                     return ((MethodInfo)member).ReturnType;
                 default:
-                    throw new ArgumentException("MemberInfo must be of type FieldInfo, PropertyInfo, EventInfo or MethodInfo", nameof(member));
+                    throw new ArgumentException("MemberInfo must be of type FieldInfo, PropertyInfo, EventInfo or MethodInfo", "member");
             }
         }
 
@@ -472,7 +472,7 @@ namespace Backtrace.Newtonsoft.Utilities
         /// </returns>
         public static bool IsIndexedProperty(MemberInfo member)
         {
-            ValidationUtils.ArgumentNotNull(member, nameof(member));
+            ValidationUtils.ArgumentNotNull(member, "member");
 
             PropertyInfo propertyInfo = member as PropertyInfo;
 
@@ -495,7 +495,7 @@ namespace Backtrace.Newtonsoft.Utilities
         /// </returns>
         public static bool IsIndexedProperty(PropertyInfo property)
         {
-            ValidationUtils.ArgumentNotNull(property, nameof(property));
+            ValidationUtils.ArgumentNotNull(property, "property");
 
             return (property.GetIndexParameters().Length > 0);
         }
@@ -508,8 +508,8 @@ namespace Backtrace.Newtonsoft.Utilities
         /// <returns>The member's value on the object.</returns>
         public static object GetMemberValue(MemberInfo member, object target)
         {
-            ValidationUtils.ArgumentNotNull(member, nameof(member));
-            ValidationUtils.ArgumentNotNull(target, nameof(target));
+            ValidationUtils.ArgumentNotNull(member, "member");
+            ValidationUtils.ArgumentNotNull(target, "target");
 
             switch (member.MemberType())
             {
@@ -525,7 +525,7 @@ namespace Backtrace.Newtonsoft.Utilities
                         throw new ArgumentException("MemberInfo '{0}' has index parameters".FormatWith(CultureInfo.InvariantCulture, member.Name), e);
                     }
                 default:
-                    throw new ArgumentException("MemberInfo '{0}' is not of type FieldInfo or PropertyInfo".FormatWith(CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, member.Name), nameof(member));
+                    throw new ArgumentException("MemberInfo '{0}' is not of type FieldInfo or PropertyInfo".FormatWith(CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, member.Name), "member");
             }
         }
 
@@ -537,8 +537,8 @@ namespace Backtrace.Newtonsoft.Utilities
         /// <param name="value">The value.</param>
         public static void SetMemberValue(MemberInfo member, object target, object value)
         {
-            ValidationUtils.ArgumentNotNull(member, nameof(member));
-            ValidationUtils.ArgumentNotNull(target, nameof(target));
+            ValidationUtils.ArgumentNotNull(member, "member");
+            ValidationUtils.ArgumentNotNull(target, "target");
 
             switch (member.MemberType())
             {
@@ -549,7 +549,7 @@ namespace Backtrace.Newtonsoft.Utilities
                     ((PropertyInfo)member).SetValue(target, value, null);
                     break;
                 default:
-                    throw new ArgumentException("MemberInfo '{0}' must be of type FieldInfo or PropertyInfo".FormatWith(CultureInfo.InvariantCulture, member.Name), nameof(member));
+                    throw new ArgumentException("MemberInfo '{0}' must be of type FieldInfo or PropertyInfo".FormatWith(CultureInfo.InvariantCulture, member.Name), "member");
             }
         }
 
@@ -756,7 +756,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static Attribute[] GetAttributes(object attributeProvider, Type attributeType, bool inherit)
         {
-            ValidationUtils.ArgumentNotNull(attributeProvider, nameof(attributeProvider));
+            ValidationUtils.ArgumentNotNull(attributeProvider, "attributeProvider");
 
             object provider = attributeProvider;
 
@@ -769,7 +769,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 object[] a = (attributeType != null) ? t.GetCustomAttributes(attributeType, inherit) : t.GetCustomAttributes(inherit);
                 Attribute[] attributes = a.Cast<Attribute>().ToArray();
 
-#if (NET20 || NET35)
+#if (NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET))
                 // ye olde .NET GetCustomAttributes doesn't respect the inherit argument
                 if (inherit && t.BaseType != null)
                 {
@@ -922,7 +922,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static IEnumerable<FieldInfo> GetFields(Type targetType, BindingFlags bindingAttr)
         {
-            ValidationUtils.ArgumentNotNull(targetType, nameof(targetType));
+            ValidationUtils.ArgumentNotNull(targetType, "targetType");
 
             List<MemberInfo> fieldInfos = new List<MemberInfo>(targetType.GetFields(bindingAttr));
 #if !PORTABLE
@@ -958,7 +958,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static IEnumerable<PropertyInfo> GetProperties(Type targetType, BindingFlags bindingAttr)
         {
-            ValidationUtils.ArgumentNotNull(targetType, nameof(targetType));
+            ValidationUtils.ArgumentNotNull(targetType, "targetType");
 
             List<PropertyInfo> propertyInfos = new List<PropertyInfo>(targetType.GetProperties(bindingAttr));
 

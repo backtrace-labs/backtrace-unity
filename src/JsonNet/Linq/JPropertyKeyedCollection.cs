@@ -84,7 +84,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (key == null)
             {
-                throw new ArgumentNullException(nameof(key));
+                throw new ArgumentNullException("key");
             }
 
             if (_dictionary != null)
@@ -130,7 +130,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (key == null)
             {
-                throw new ArgumentNullException(nameof(key));
+                throw new ArgumentNullException("key");
             }
 
             if (_dictionary != null)
@@ -186,7 +186,7 @@ namespace Backtrace.Newtonsoft.Linq
             {
                 if (key == null)
                 {
-                    throw new ArgumentNullException(nameof(key));
+                    throw new ArgumentNullException("key");
                 }
 
                 if (_dictionary != null)

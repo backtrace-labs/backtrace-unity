@@ -34,7 +34,7 @@ using System.Collections;
 using System.Globalization;
 using System.ComponentModel;
 using Backtrace.Newtonsoft.Shims;
-#if NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
 using Backtrace.Newtonsoft.Utilities.LinqBridge;
 #else
 
@@ -117,7 +117,7 @@ namespace Backtrace.Newtonsoft.Linq
         internal BacktraceJContainer(BacktraceJContainer other)
             : this()
         {
-            ValidationUtils.ArgumentNotNull(other, nameof(other));
+            ValidationUtils.ArgumentNotNull(other, "other");
 
             int i = 0;
             foreach (JToken child in other)
@@ -371,7 +371,7 @@ namespace Backtrace.Newtonsoft.Linq
 
             if (index > children.Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), "Index must be within the bounds of the List.");
+                throw new ArgumentOutOfRangeException("index", "Index must be within the bounds of the List.");
             }
 
             CheckReentrancy();
@@ -420,11 +420,11 @@ namespace Backtrace.Newtonsoft.Linq
 
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), "Index is less than 0.");
+                throw new ArgumentOutOfRangeException("index", "Index is less than 0.");
             }
             if (index >= children.Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), "Index is equal to or greater than Count.");
+                throw new ArgumentOutOfRangeException("index", "Index is equal to or greater than Count.");
             }
 
             CheckReentrancy();
@@ -485,11 +485,11 @@ namespace Backtrace.Newtonsoft.Linq
 
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), "Index is less than 0.");
+                throw new ArgumentOutOfRangeException("index", "Index is less than 0.");
             }
             if (index >= children.Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), "Index is equal to or greater than Count.");
+                throw new ArgumentOutOfRangeException("index", "Index is equal to or greater than Count.");
             }
 
             JToken existing = children[index];
@@ -591,11 +591,11 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (array == null)
             {
-                throw new ArgumentNullException(nameof(array));
+                throw new ArgumentNullException("array");
             }
             if (arrayIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(arrayIndex), "arrayIndex is less than 0.");
+                throw new ArgumentOutOfRangeException("arrayIndex", "arrayIndex is less than 0.");
             }
             if (arrayIndex >= array.Length && arrayIndex != 0)
             {
@@ -633,7 +633,7 @@ namespace Backtrace.Newtonsoft.Linq
 
         internal virtual void ValidateToken(JToken o, JToken existing)
         {
-            ValidationUtils.ArgumentNotNull(o, nameof(o));
+            ValidationUtils.ArgumentNotNull(o, "o");
 
             if (o.Type == JTokenType.Property)
             {
@@ -765,14 +765,14 @@ namespace Backtrace.Newtonsoft.Linq
 
         internal void ReadContentFrom(JsonReader r, JsonLoadSettings settings)
         {
-            ValidationUtils.ArgumentNotNull(r, nameof(r));
+            ValidationUtils.ArgumentNotNull(r, "r");
             IJsonLineInfo lineInfo = r as IJsonLineInfo;
 
             BacktraceJContainer parent = this;
 
             do
             {
-                if ((parent as BacktraceJProperty)?.Value != null)
+                if (parent is BacktraceJProperty && (parent as BacktraceJProperty).Value != null)
                 {
                     if (parent == this)
                     {
@@ -900,7 +900,10 @@ namespace Backtrace.Newtonsoft.Linq
         PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
         {
             ICustomTypeDescriptor d = First as ICustomTypeDescriptor;
-            return d?.GetProperties();
+            if (d == null)
+                return null;
+
+            return d.GetProperties();
         }
 #endif
 
@@ -1237,7 +1240,7 @@ namespace Backtrace.Newtonsoft.Linq
                     }
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(settings), "Unexpected merge array handling when merging JSON.");
+                    throw new ArgumentOutOfRangeException("settings", "Unexpected merge array handling when merging JSON.");
             }
         }
     }

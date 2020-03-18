@@ -17,12 +17,12 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// User custom request method
         /// </summary>
-        public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; } = null;
+        public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
         /// <summary>
         /// Event triggered when server is unvailable
         /// </summary>
-        public Action<Exception> OnServerError { get; set; } = null;
+        public Action<Exception> OnServerError { get; set; }
 
         /// <summary>
         /// Event triggered when server respond to diagnostic data
@@ -35,19 +35,45 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly Uri _serverurl;
 
-        private readonly bool _ignoreSslValidation;
 
         private readonly BacktraceCredentials _credentials;
+
+
+#if UNITY_2018_4_OR_NEWER
+
+        private readonly bool _ignoreSslValidation;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
         /// <param name="credentials">API credentials</param>
         public BacktraceApi(BacktraceCredentials credentials, bool ignoreSslValidation = false)
         {
-            _credentials = credentials ?? throw new ArgumentException($"{nameof(BacktraceCredentials)} cannot be null");
+            _credentials = credentials;
+            if (_credentials == null)
+            {
+                throw new ArgumentException(string.Format("{0} cannot be null", "BacktraceCredentials"));
+            }
+
             _ignoreSslValidation = ignoreSslValidation;
             _serverurl = credentials.GetSubmissionUrl();
         }
+#else
+        /// <summary>
+        /// Create a new instance of Backtrace API
+        /// </summary>
+        /// <param name="credentials">API credentials</param>
+        public BacktraceApi(BacktraceCredentials credentials)
+        {
+            _credentials = credentials;
+            if (_credentials == null)
+            {
+                throw new ArgumentException(string.Format("{0} cannot be null", "BacktraceCredentials"));
+            }
+
+            _serverurl = credentials.GetSubmissionUrl();
+        }
+        
+#endif
 
         /// <summary>
         /// Sending a diagnostic report data to server API. 
@@ -69,7 +95,7 @@ namespace Backtrace.Unity.Services
             }
             else
             {
-               string json = data.ToJson();
+                string json = data.ToJson();
                 yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
             }
         }
@@ -80,14 +106,17 @@ namespace Backtrace.Unity.Services
             if (deduplication > 0)
             {
                 var startingChar = string.IsNullOrEmpty(_serverurl.Query) ? "?" : "&";
-                requestUrl += $"{startingChar}_mod_duplicate={deduplication}";
+                requestUrl += string.Format("{0}_mod_duplicate={1}", startingChar, deduplication);
             }
             using (var request = new UnityWebRequest(requestUrl, "POST"))
             {
+#if UNITY_2018_4_OR_NEWER
                 if (_ignoreSslValidation)
                 {
                     request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
                 }
+#endif
+
                 byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
                 request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
@@ -98,7 +127,7 @@ namespace Backtrace.Unity.Services
                 if (request.responseCode == 200)
                 {
                     result = new BacktraceResult();
-                    OnServerResponse?.Invoke(result);
+                    if (OnServerResponse != null) OnServerResponse.Invoke(result);
                     var response = BacktraceResult.FromJson(request.downloadHandler.text);
                     if (attachments != null && attachments.Count > 0)
                     {
@@ -111,9 +140,10 @@ namespace Backtrace.Unity.Services
                     PrintLog(request);
                     var exception = new Exception(request.error);
                     result = BacktraceResult.OnError(report, exception);
-                    OnServerError?.Invoke(exception);
+                    if (OnServerError != null) OnServerError.Invoke(exception);
                 }
-                callback?.Invoke(result);
+
+                if (callback != null) callback.Invoke(result);
                 yield return result;
             }
         }
@@ -121,8 +151,10 @@ namespace Backtrace.Unity.Services
         private void PrintLog(UnityWebRequest request)
         {
             string responseText = Encoding.UTF8.GetString(request.downloadHandler.data);
-            Debug.LogWarning($"[Backtrace]::Reponse code: {request.responseCode}, Response text: {responseText}" +
-                $"\n Please check provided url to Backtrace service or learn more from our integration guide: https://help.backtrace.io/integration-guides/game-engines/unity-integration-guide");
+            Debug.LogWarning(string.Format("{0}{1}", string.Format("[Backtrace]::Reponse code: {0}, Response text: {1}",
+                    request.responseCode,
+                    responseText),
+                "\n Please check provided url to Backtrace service or learn more from our integration guide: https://help.backtrace.io/integration-guides/game-engines/unity-integration-guide"));
         }
 
         private IEnumerator SendAttachment(string rxId, Stack<string> attachments)
@@ -136,17 +168,20 @@ namespace Backtrace.Unity.Services
                     string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
                     using (var request = new UnityWebRequest(serverUrl, "POST"))
                     {
+
+#if UNITY_2018_4_OR_NEWER
                         if (_ignoreSslValidation)
                         {
                             request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
                         }
+#endif
                         byte[] bodyRaw = System.IO.File.ReadAllBytes(attachment);
                         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                         request.SetRequestHeader("Content-Type", "application/json");
                         yield return request.SendWebRequest();
 
-                        if(request.responseCode != 200)
+                        if (request.responseCode != 200)
                         {
                             PrintLog(request);
                         }
@@ -159,8 +194,10 @@ namespace Backtrace.Unity.Services
         private string GetAttachmentUploadUrl(string rxId, string attachmentName)
         {
             return _credentials == null || string.IsNullOrEmpty(_credentials.Token)
-                ? $"{_credentials.BacktraceHostUri.AbsoluteUri}?object={rxId}&attachment_name={UrlEncode(attachmentName)}"
-                : $"{_credentials.BacktraceHostUri.AbsoluteUri}/api/post?token={_credentials.Token}&object={rxId}&attachment_name={UrlEncode(attachmentName)}";
+                ? string.Format("{0}?object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId,
+                    UrlEncode(attachmentName))
+                : string.Format("{0}/api/post?token={1}&object={2}&attachment_name={3}",
+                    _credentials.BacktraceHostUri.AbsoluteUri, _credentials.Token, rxId, UrlEncode(attachmentName));
 
         }
 

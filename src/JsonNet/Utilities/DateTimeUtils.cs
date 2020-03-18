@@ -53,7 +53,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static TimeSpan GetUtcOffset(this DateTime d)
         {
-#if NET20 || NET35
+#if NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)
             return TimeZone.CurrentTimeZone.GetUtcOffset(d);
 #else
             return TimeZoneInfo.Local.GetUtcOffset(d);

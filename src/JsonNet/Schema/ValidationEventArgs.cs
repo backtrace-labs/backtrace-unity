@@ -43,7 +43,7 @@ namespace Backtrace.Newtonsoft.Schema
 
         internal ValidationEventArgs(JsonSchemaException ex)
         {
-            ValidationUtils.ArgumentNotNull(ex, nameof(ex));
+            ValidationUtils.ArgumentNotNull(ex, "ex");
             _ex = ex;
         }
 

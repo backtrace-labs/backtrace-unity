@@ -240,7 +240,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             get
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "key");
 
                 if (!(key is int))
                 {
@@ -251,7 +251,7 @@ namespace Backtrace.Newtonsoft.Linq
             }
             set
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "key");
 
                 if (!(key is int))
                 {

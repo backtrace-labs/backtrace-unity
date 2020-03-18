@@ -34,12 +34,12 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 stackFrames.Add(stack.ToJson());
             }
-            return new BacktraceJObject
-            {
-                ["name"] = Name,
-                ["fault"] = Fault,
-                ["stack"] = stackFrames
-            };
+
+            var o = new BacktraceJObject();
+            o["name"] = Name;
+            o["fault"] = Fault;
+            o["stack"] = stackFrames;
+            return o;
         }
 
         /// <summary>

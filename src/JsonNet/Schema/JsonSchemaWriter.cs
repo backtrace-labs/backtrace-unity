@@ -45,7 +45,7 @@ namespace Backtrace.Newtonsoft.Schema
 
         public JsonSchemaWriter(JsonWriter writer, JsonSchemaResolver resolver)
         {
-            ValidationUtils.ArgumentNotNull(writer, nameof(writer));
+            ValidationUtils.ArgumentNotNull(writer, "writer");
             _writer = writer;
             _resolver = resolver;
         }
@@ -67,7 +67,7 @@ namespace Backtrace.Newtonsoft.Schema
 
         public void WriteSchema(JsonSchema schema)
         {
-            ValidationUtils.ArgumentNotNull(schema, nameof(schema));
+            ValidationUtils.ArgumentNotNull(schema, "schema");
 
             if (!_resolver.LoadedSchemas.Contains(schema))
             {

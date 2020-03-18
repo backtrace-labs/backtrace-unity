@@ -82,8 +82,8 @@ namespace Backtrace.Newtonsoft.Schema
 
             public TypeSchema(Type type, JsonSchema schema)
             {
-                ValidationUtils.ArgumentNotNull(type, nameof(type));
-                ValidationUtils.ArgumentNotNull(schema, nameof(schema));
+                ValidationUtils.ArgumentNotNull(type, "type");
+                ValidationUtils.ArgumentNotNull(schema, "schema");
 
                 Type = type;
                 Schema = schema;
@@ -164,8 +164,8 @@ namespace Backtrace.Newtonsoft.Schema
         /// <returns>A <see cref="JsonSchema"/> generated from the specified type.</returns>
         public JsonSchema Generate(Type type, JsonSchemaResolver resolver, bool rootSchemaNullable)
         {
-            ValidationUtils.ArgumentNotNull(type, nameof(type));
-            ValidationUtils.ArgumentNotNull(resolver, nameof(resolver));
+            ValidationUtils.ArgumentNotNull(type, "type");
+            ValidationUtils.ArgumentNotNull(resolver, "resolver");
 
             _resolver = resolver;
 
@@ -231,7 +231,7 @@ namespace Backtrace.Newtonsoft.Schema
 
         private JsonSchema GenerateInternal(Type type, Required valueRequired, bool required)
         {
-            ValidationUtils.ArgumentNotNull(type, nameof(type));
+            ValidationUtils.ArgumentNotNull(type, "type");
 
             string resolvedId = GetTypeId(type, false);
             string explicitId = GetTypeId(type, true);
@@ -365,7 +365,7 @@ namespace Backtrace.Newtonsoft.Schema
                         GenerateISerializableContract(type, (JsonISerializableContract)contract);
                         break;
 #endif
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40)
                     case JsonContractType.Dynamic:
 #endif
                     case JsonContractType.Linq:
@@ -488,7 +488,7 @@ namespace Backtrace.Newtonsoft.Schema
                 case PrimitiveTypeCode.UInt32:
                 case PrimitiveTypeCode.Int64:
                 case PrimitiveTypeCode.UInt64:
-#if !(PORTABLE || NET35 || NET20)
+#if !(PORTABLE || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20)
                 case PrimitiveTypeCode.BigInteger:
 #endif
                     return schemaType | JsonSchemaType.Integer;

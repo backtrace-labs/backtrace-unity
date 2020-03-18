@@ -29,7 +29,7 @@ using System.Collections.ObjectModel;
 #if !PORTABLE40
 using System.Collections.Specialized;
 #endif
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
 using System.Dynamic;
 using System.Linq.Expressions;
 #endif
@@ -149,7 +149,7 @@ namespace Backtrace.Newtonsoft.Linq
 
         internal override void ValidateToken(JToken o, JToken existing)
         {
-            ValidationUtils.ArgumentNotNull(o, nameof(o));
+            ValidationUtils.ArgumentNotNull(o, "o");
 
             if (o.Type != JTokenType.Property)
             {
@@ -195,7 +195,7 @@ namespace Backtrace.Newtonsoft.Linq
                     BacktraceJContainer existingContainer = existingProperty.Value as BacktraceJContainer;
                     if (existingContainer == null)
                     {
-                        if (contentItem.Value.Type != JTokenType.Null || settings?.MergeNullValueHandling == MergeNullValueHandling.Merge)
+                        if (contentItem.Value.Type != JTokenType.Null || (settings != null && settings.MergeNullValueHandling == MergeNullValueHandling.Merge))
                         {
                             existingProperty.Value = contentItem.Value;
                         }
@@ -293,7 +293,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             get
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "key");
 
                 string propertyName = key as string;
                 if (propertyName == null)
@@ -305,7 +305,7 @@ namespace Backtrace.Newtonsoft.Linq
             }
             set
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "key");
 
                 string propertyName = key as string;
                 if (propertyName == null)
@@ -325,7 +325,7 @@ namespace Backtrace.Newtonsoft.Linq
         {
             get
             {
-                ValidationUtils.ArgumentNotNull(propertyName, nameof(propertyName));
+                ValidationUtils.ArgumentNotNull(propertyName, "propertyName");
 
                 BacktraceJProperty property = Property(propertyName);
 
@@ -368,7 +368,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <returns>A <see cref="BacktraceJObject"/> that contains the JSON that was read from the specified <see cref="JsonReader"/>.</returns>
         public new static BacktraceJObject Load(JsonReader reader, JsonLoadSettings settings)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
 
             if (reader.TokenType == JsonToken.None)
             {
@@ -632,11 +632,11 @@ namespace Backtrace.Newtonsoft.Linq
         {
             if (array == null)
             {
-                throw new ArgumentNullException(nameof(array));
+                throw new ArgumentNullException("array");
             }
             if (arrayIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(arrayIndex), "arrayIndex is less than 0.");
+                throw new ArgumentOutOfRangeException("arrayIndex", "arrayIndex is less than 0.");
             }
             if (arrayIndex >= array.Length && arrayIndex != 0)
             {
@@ -871,7 +871,7 @@ namespace Backtrace.Newtonsoft.Linq
 
 #endif
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
         /// <summary>
         /// Returns the <see cref="T:System.Dynamic.DynamicMetaObject"/> responsible for binding operations performed on this object.
         /// </summary>

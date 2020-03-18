@@ -47,7 +47,7 @@ namespace Backtrace.Newtonsoft.Converters
             {
                 return true;
             }
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             if (objectType == typeof(DateTimeOffset) || objectType == typeof(DateTimeOffset?))
             {
                 return true;

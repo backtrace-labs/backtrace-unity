@@ -53,7 +53,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public CollectionWrapper(IList list)
         {
-            ValidationUtils.ArgumentNotNull(list, nameof(list));
+            ValidationUtils.ArgumentNotNull(list, "list");
 
             if (list is ICollection<T>)
             {
@@ -67,7 +67,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public CollectionWrapper(ICollection<T> list)
         {
-            ValidationUtils.ArgumentNotNull(list, nameof(list));
+            ValidationUtils.ArgumentNotNull(list, "list");
 
             _genericCollection = list;
         }
@@ -319,7 +319,7 @@ namespace Backtrace.Newtonsoft.Utilities
         {
             if (!IsCompatibleObject(value))
             {
-                throw new ArgumentException("The value '{0}' is not of type '{1}' and cannot be used in this generic collection.".FormatWith(CultureInfo.InvariantCulture, value, typeof(T)), nameof(value));
+                throw new ArgumentException("The value '{0}' is not of type '{1}' and cannot be used in this generic collection.".FormatWith(CultureInfo.InvariantCulture, value, typeof(T)), "value");
             }
         }
 

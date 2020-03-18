@@ -32,7 +32,7 @@ using System.Reflection;
 using Backtrace.Newtonsoft.Utilities;
 using System.Collections;
 using Backtrace.Newtonsoft.Shims;
-#if NET20
+#if NET20  
 using Backtrace.Newtonsoft.Utilities.LinqBridge;
 #else
 using System.Linq;
@@ -169,7 +169,7 @@ namespace Backtrace.Newtonsoft.Serialization
                     CreatedType = typeof(List<>).MakeGenericType(CollectionItemType);
                 }
 
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  )
                 if (ReflectionUtils.IsGenericDefinition(underlyingType, typeof(ISet<>)))
                 {
                     CreatedType = typeof(HashSet<>).MakeGenericType(CollectionItemType);
@@ -180,7 +180,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 canDeserialize = true;
                 ShouldCreateWrapper = true;
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if !(NET40 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
             else if (ReflectionUtils.ImplementsGenericDefinition(underlyingType, typeof(IReadOnlyCollection<>), out tempCollectionType))
             {
                 CollectionItemType = tempCollectionType.GetGenericArguments()[0];
@@ -208,7 +208,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
                 _parameterizedConstructor = CollectionUtils.ResolveEnumerableCollectionConstructor(underlyingType, CollectionItemType);
 
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20  )
                 if (!HasParameterizedCreatorInternal && underlyingType.Name == FSharpUtils.FSharpListTypeName)
                 {
                     FSharpUtils.EnsureInitialized(underlyingType.Assembly());
@@ -242,7 +242,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
             CanDeserialize = canDeserialize;
 
-#if (NET20 || NET35)
+#if (NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  )
             if (CollectionItemType != null && ReflectionUtils.IsNullableType(CollectionItemType))
             {
                 // bug in .NET 2.0 & 3.5 that List<Nullable<T>> throws an error when adding null via IList.Add(object)
@@ -255,7 +255,7 @@ namespace Backtrace.Newtonsoft.Serialization
             }
 #endif
 
-#if !(NET20 || NET35 || NET40)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET) || NET40  )
             Type immutableCreatedType;
             ObjectConstructor<object> immutableParameterizedCreator;
             if (ImmutableCollectionsUtils.TryBuildImmutableForArrayContract(underlyingType, CollectionItemType, out immutableCreatedType, out immutableParameterizedCreator))

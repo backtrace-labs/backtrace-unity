@@ -123,12 +123,12 @@ namespace Backtrace.Newtonsoft.Utilities
         {
             if (enumType == null)
             {
-                throw new ArgumentNullException(nameof(enumType));
+                throw new ArgumentNullException("enumType");
             }
 
             if (!enumType.IsEnum())
             {
-                throw new ArgumentException("Type {0} is not an Enum.".FormatWith(CultureInfo.InvariantCulture, enumType), nameof(enumType));
+                throw new ArgumentException("Type {0} is not an Enum.".FormatWith(CultureInfo.InvariantCulture, enumType), "enumType");
             }
 
             IList<object> enumValues = GetValues(enumType);

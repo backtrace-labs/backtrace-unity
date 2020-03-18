@@ -80,7 +80,7 @@ namespace Backtrace.Newtonsoft.Utilities
         {
             if (key == null)
             {
-                throw new ArgumentNullException(nameof(key));
+                throw new ArgumentNullException("key");
             }
 
             int length = key.Length;

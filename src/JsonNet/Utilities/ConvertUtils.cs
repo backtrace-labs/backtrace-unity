@@ -235,7 +235,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static TimeSpan ParseTimeSpan(string input)
         {
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20  )
             return TimeSpan.Parse(input, CultureInfo.InvariantCulture);
 #else
             return TimeSpan.Parse(input);
@@ -327,7 +327,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 case ConvertResult.CannotConvertNull:
                     throw new Exception("Can not convert null {0} into non-nullable {1}.".FormatWith(CultureInfo.InvariantCulture, initialValue.GetType(), targetType));
                 case ConvertResult.NotInstantiableType:
-                    throw new ArgumentException("Target type {0} is not a value type or a non-abstract class.".FormatWith(CultureInfo.InvariantCulture, targetType), nameof(targetType));
+                    throw new ArgumentException("Target type {0} is not a value type or a non-abstract class.".FormatWith(CultureInfo.InvariantCulture, targetType), "targetType");
                 case ConvertResult.NoValidConversion:
                     throw new InvalidOperationException("Can not convert from {0} to {1}.".FormatWith(CultureInfo.InvariantCulture, initialValue.GetType(), targetType));
                 default:
@@ -358,7 +358,7 @@ namespace Backtrace.Newtonsoft.Utilities
         {
             if (initialValue == null)
             {
-                throw new ArgumentNullException(nameof(initialValue));
+                throw new ArgumentNullException("initialValue");
             }
 
             if (ReflectionUtils.IsNullableType(targetType))
@@ -571,7 +571,7 @@ namespace Backtrace.Newtonsoft.Utilities
 
         public static bool VersionTryParse(string input, out Version result)
         {
-#if !(NET20 || NET35)
+#if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  )
             return Version.TryParse(input, out result);
 #else
     // improve failure performance with regex?
@@ -795,7 +795,7 @@ namespace Backtrace.Newtonsoft.Utilities
         public static bool TryConvertGuid(string s, out Guid g)
         {
             // GUID has to have format 00000000-0000-0000-0000-000000000000
-#if NET20 || NET35
+#if NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET)  
             if (s == null)
             {
                 throw new ArgumentNullException("s");

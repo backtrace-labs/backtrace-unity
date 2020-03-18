@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR
+using System;
 using Backtrace.Unity.Model;
 using System.IO;
 using System.Linq;
@@ -43,7 +44,8 @@ namespace Backtrace.Unity.Editor
                         {
                             int startIndex = n.IndexOf('(') + 1;
                             int endIndex = n.IndexOf(')');
-                            if (startIndex != 0 && endIndex != -1 && int.TryParse(n.Substring(startIndex, endIndex - startIndex), out int result))
+                            int result;
+                            if (startIndex != 0 && endIndex != -1 && int.TryParse(n.Substring(startIndex, endIndex - startIndex), out result))
                             {
                                 return result;
                             }
@@ -52,9 +54,11 @@ namespace Backtrace.Unity.Editor
                         .DefaultIfEmpty().Max();
 
                 lastFileIndex++;
-                destinationPath = Path.Combine(currentProjectPath, $"{DEFAULT_CONFIGURATION_NAME}({lastFileIndex}){DEFAULT_EXTENSION_NAME}");
+                destinationPath = Path.Combine(currentProjectPath,
+                    string.Format("{0}({1}){2}", DEFAULT_CONFIGURATION_NAME, lastFileIndex, DEFAULT_EXTENSION_NAME));
             }
-            Debug.Log($"Generating new Backtrace configuration file available in path: {destinationPath}");
+            Debug.Log(string.Format("Generating new Backtrace configuration file available in path: {0}",
+                destinationPath));
             AssetDatabase.CreateAsset(asset, destinationPath);
             AssetDatabase.SaveAssets();
             Selection.activeObject = asset;

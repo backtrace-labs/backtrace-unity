@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET35 || NET20)
+#if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20)
 using System.Threading;
 using System;
 using System.Collections.Generic;

@@ -47,7 +47,10 @@ namespace Backtrace.Unity
         {
             get
             {
-                return BacktraceDatabaseContext?.DeduplicationStrategy ?? DeduplicationStrategy.None;
+                if (BacktraceDatabaseContext == null)
+                    return DeduplicationStrategy.None;
+
+                return BacktraceDatabaseContext.DeduplicationStrategy;
             }
             set
             {
@@ -221,8 +224,11 @@ namespace Backtrace.Unity
         /// </summary>
         public void Clear()
         {
-            BacktraceDatabaseContext?.Clear();
-            BacktraceDatabaseFileContext?.Clear();
+            if (BacktraceDatabaseContext != null)
+                BacktraceDatabaseContext.Clear();
+
+            if (BacktraceDatabaseContext != null)
+                BacktraceDatabaseFileContext.Clear();
         }
 
         /// <summary>
@@ -252,7 +258,10 @@ namespace Backtrace.Unity
         /// <returns>All stored records in BacktraceDatabase</returns>
         public IEnumerable<BacktraceDatabaseRecord> Get()
         {
-            return BacktraceDatabaseContext?.Get() ?? new List<BacktraceDatabaseRecord>();
+            if (BacktraceDatabaseContext != null)
+                return BacktraceDatabaseContext.Get();
+
+            return new List<BacktraceDatabaseRecord>();
         }
 
         /// <summary>
@@ -261,7 +270,8 @@ namespace Backtrace.Unity
         /// <param name="record">Record to delete</param>
         public void Delete(BacktraceDatabaseRecord record)
         {
-            BacktraceDatabaseContext?.Delete(record);
+            if (BacktraceDatabaseContext != null)
+                BacktraceDatabaseContext.Delete(record);
         }
 
         /// <summary>
@@ -298,7 +308,7 @@ namespace Backtrace.Unity
 
         private void SendData(BacktraceDatabaseRecord record)
         {
-            var backtraceData = record?.BacktraceData;
+            var backtraceData = record!=null ? record.BacktraceData : null;
             //check if report exists on hard drive 
             // to avoid situation when someone manually remove data
             if (backtraceData == null || backtraceData.Report == null)
@@ -405,7 +415,7 @@ namespace Backtrace.Unity
                     }
                     catch (Exception)
                     {
-                        Debug.LogWarning($"Cannot remove file from database. File name: {file.FullName}");
+                        Debug.LogWarning(string.Format("Cannot remove file from database. File name: {0}", file.FullName));
                     }
                     continue;
                 }

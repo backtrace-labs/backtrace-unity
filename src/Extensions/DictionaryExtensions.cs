@@ -20,11 +20,11 @@ namespace Backtrace.Unity.Common
         {
             if (source == null)
             {
-                throw new ArgumentException(nameof(source));
+                throw new ArgumentException("source");
             }
             if (toMerge == null)
             {
-                throw new ArgumentException(nameof(toMerge));
+                throw new ArgumentException("toMerge");
             }
             var result = new Dictionary<string, object>(source);
             foreach (var record in toMerge)

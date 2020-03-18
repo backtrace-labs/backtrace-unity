@@ -14,7 +14,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Stack trace frames
         /// </summary>
-        public List<BacktraceStackFrame> StackFrames { get; set; } = new List<BacktraceStackFrame>();
+        public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
 
         /// <summary>
         /// Current exception
@@ -63,7 +63,12 @@ namespace Backtrace.Unity.Model
             int startingIndex = 0;
             foreach (var frame in frames)
             {
-                string name = frame?.GetMethod()?.DeclaringType.ToString() ?? string.Empty;
+                string name;
+                if (frame == null || frame.GetMethod() == null)
+                    name = string.Empty;
+                else
+                    name = frame.GetMethod().DeclaringType.ToString() ?? string.Empty;
+
                 if (name.ToLower().Contains("backtrace.unity"))
                 {
                     continue;

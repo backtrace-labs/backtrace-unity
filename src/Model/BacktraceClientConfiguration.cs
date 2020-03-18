@@ -22,7 +22,8 @@ namespace Backtrace.Unity.Model
                 return;
             }
 
-            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out _);
+            Uri tmp;
+            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out tmp);
             if (result)
             {
                 try
@@ -44,7 +45,8 @@ namespace Backtrace.Unity.Model
                 return false;
             }
 
-            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out _);
+            Uri tmp;
+            var result = Uri.TryCreate(ServerUrl, UriKind.RelativeOrAbsolute, out tmp);
             try
             {
                 new UriBuilder(ServerUrl) { Scheme = Uri.UriSchemeHttps, Port = 6098 }.Uri.ToString();

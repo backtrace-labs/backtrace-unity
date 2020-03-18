@@ -73,7 +73,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <param name="container">The container being written to.</param>
         public JTokenWriter(BacktraceJContainer container)
         {
-            ValidationUtils.ArgumentNotNull(container, nameof(container));
+            ValidationUtils.ArgumentNotNull(container, "container");
 
             _token = container;
             _parent = container;
@@ -422,7 +422,7 @@ namespace Backtrace.Newtonsoft.Linq
             AddValue(value, JsonToken.Date);
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Writes a <see cref="DateTimeOffset"/> value.
         /// </summary>

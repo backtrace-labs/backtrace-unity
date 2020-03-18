@@ -54,7 +54,7 @@ namespace Backtrace.Newtonsoft.Linq
         /// <param name="token">The token to read from.</param>
         public JTokenReader(JToken token)
         {
-            ValidationUtils.ArgumentNotNull(token, nameof(token));
+            ValidationUtils.ArgumentNotNull(token, "token");
 
             _root = token;
         }

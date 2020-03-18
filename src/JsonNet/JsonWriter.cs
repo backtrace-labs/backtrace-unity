@@ -229,7 +229,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < Formatting.None || value > Formatting.Indented)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _formatting = value;
@@ -246,7 +246,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < DateFormatHandling.IsoDateFormat || value > DateFormatHandling.MicrosoftDateFormat)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _dateFormatHandling = value;
@@ -263,7 +263,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < DateTimeZoneHandling.Local || value > DateTimeZoneHandling.RoundtripKind)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _dateTimeZoneHandling = value;
@@ -280,7 +280,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < StringEscapeHandling.Default || value > StringEscapeHandling.EscapeHtml)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _stringEscapeHandling = value;
@@ -305,7 +305,7 @@ namespace Backtrace.Newtonsoft
             {
                 if (value < FloatFormatHandling.String || value > FloatFormatHandling.DefaultValue)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("value");
                 }
 
                 _floatFormatHandling = value;
@@ -492,7 +492,7 @@ namespace Backtrace.Newtonsoft
         /// <param name="writeChildren">A flag indicating whether the current token's children should be written.</param>
         public void WriteToken(JsonReader reader, bool writeChildren)
         {
-            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(reader, "reader");
 
             WriteToken(reader, writeChildren, true, true);
         }
@@ -519,22 +519,22 @@ namespace Backtrace.Newtonsoft
                     WriteStartArray();
                     break;
                 case JsonToken.StartConstructor:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
+                    ValidationUtils.ArgumentNotNull(value, "value");
                     WriteStartConstructor(value.ToString());
                     break;
                 case JsonToken.PropertyName:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
+                    ValidationUtils.ArgumentNotNull(value, "value");
                     WritePropertyName(value.ToString());
                     break;
                 case JsonToken.Comment:
                     WriteComment((value != null) ? value.ToString() : null);
                     break;
                 case JsonToken.Integer:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
+                    ValidationUtils.ArgumentNotNull(value, "value");
                     WriteValue(Convert.ToInt64(value, CultureInfo.InvariantCulture));
                     break;
                 case JsonToken.Float:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
+                    ValidationUtils.ArgumentNotNull(value, "value");
                     if (value is decimal)
                     {
                         WriteValue((decimal)value);
@@ -553,11 +553,11 @@ namespace Backtrace.Newtonsoft
                     }
                     break;
                 case JsonToken.String:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
+                    ValidationUtils.ArgumentNotNull(value, "value");
                     WriteValue(value.ToString());
                     break;
                 case JsonToken.Boolean:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
+                    ValidationUtils.ArgumentNotNull(value, "value");
                     WriteValue(Convert.ToBoolean(value, CultureInfo.InvariantCulture));
                     break;
                 case JsonToken.Null:
@@ -576,8 +576,8 @@ namespace Backtrace.Newtonsoft
                     WriteEndConstructor();
                     break;
                 case JsonToken.Date:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
-#if !NET20
+                    ValidationUtils.ArgumentNotNull(value, "value");
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                     if (value is DateTimeOffset)
                     {
                         WriteValue((DateTimeOffset)value);
@@ -592,7 +592,7 @@ namespace Backtrace.Newtonsoft
                     WriteRawValue((value != null) ? value.ToString() : null);
                     break;
                 case JsonToken.Bytes:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
+                    ValidationUtils.ArgumentNotNull(value, "value");
                     if (value is Guid)
                     {
                         WriteValue((Guid)value);
@@ -603,7 +603,7 @@ namespace Backtrace.Newtonsoft
                     }
                     break;
                 default:
-                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException(nameof(token), token, "Unexpected token type.");
+                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException("token", token, "Unexpected token type.");
             }
         }
 
@@ -1030,7 +1030,7 @@ namespace Backtrace.Newtonsoft
             InternalWriteValue(JsonToken.Date);
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Writes a <see cref="DateTimeOffset"/> value.
         /// </summary>
@@ -1287,7 +1287,7 @@ namespace Backtrace.Newtonsoft
             }
         }
 
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
         /// <summary>
         /// Writes a <see cref="Nullable{DateTimeOffset}"/> value.
         /// </summary>
@@ -1505,7 +1505,7 @@ namespace Backtrace.Newtonsoft
                 case PrimitiveTypeCode.DateTimeNullable:
                     writer.WriteValue((value == null) ? (DateTime?)null : (DateTime)value);
                     break;
-#if !NET20
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
                 case PrimitiveTypeCode.DateTimeOffset:
                     writer.WriteValue((DateTimeOffset)value);
                     break;
@@ -1598,7 +1598,7 @@ namespace Backtrace.Newtonsoft
                 case JsonToken.PropertyName:
                     if (!(value is string))
                     {
-                        throw new ArgumentException("A name is required when setting property name state.", nameof(value));
+                        throw new ArgumentException("A name is required when setting property name state.", "value");
                     }
 
                     InternalWritePropertyName((string)value);
@@ -1629,7 +1629,7 @@ namespace Backtrace.Newtonsoft
                     InternalWriteEnd(JsonContainerType.Constructor);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(token));
+                    throw new ArgumentOutOfRangeException("token");
             }
         }
 
