@@ -396,8 +396,10 @@ namespace Backtrace.Newtonsoft.Serialization
                     {
                         new ReflectionPermission(ReflectionPermissionFlag.MemberAccess).Demand();
                         new ReflectionPermission(ReflectionPermissionFlag.RestrictedMemberAccess).Demand();
+#pragma warning disable CS0618 // Type or member is obsolete
                         new SecurityPermission(SecurityPermissionFlag.SkipVerification).Demand();
                         new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Demand();
+#pragma warning restore CS0618 // Type or member is obsolete
                         new SecurityPermission(PermissionState.Unrestricted).Demand();
                         _dynamicCodeGeneration = true;
                     }
