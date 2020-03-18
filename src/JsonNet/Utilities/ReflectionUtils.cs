@@ -648,8 +648,8 @@ namespace Backtrace.Newtonsoft.Utilities
         {
             List<MemberInfo> targetMembers = new List<MemberInfo>();
 
-            targetMembers.AddRange(GetFields(type, bindingAttr).Select(field => field as MemberInfo)); // TODO: Check/test
-            targetMembers.AddRange(GetProperties(type, bindingAttr).Select(property => property as MemberInfo)); // TODO: Check/test
+            targetMembers.AddRange(GetFields(type, bindingAttr));
+            targetMembers.AddRange(GetProperties(type, bindingAttr));
 
             // for some reason .NET returns multiple members when overriding a generic member on a base class
             // http://social.msdn.microsoft.com/Forums/en-US/b5abbfee-e292-4a64-8907-4e3f0fb90cd9/reflection-overriden-abstract-generic-properties?forum=netfxbcl

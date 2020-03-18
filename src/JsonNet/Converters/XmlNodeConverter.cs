@@ -912,7 +912,7 @@ namespace Backtrace.Newtonsoft.Converters
                     // ensure elements created with a namespace but no namespace attribute are converted correctly
                     // e.g. new XElement("{http://example.com}MyElement");
                     string namespaceUri = NamespaceUri;
-                    if (!string.IsNullOrEmpty(namespaceUri) && (ParentNode == null || namespaceUri != ParentNode.NamespaceUri)) // TODO: Check me
+                    if (!string.IsNullOrEmpty(namespaceUri) && (ParentNode == null || namespaceUri != ParentNode.NamespaceUri))
                     {
                         if (string.IsNullOrEmpty(GetPrefixOfNamespace(namespaceUri)))
                         {

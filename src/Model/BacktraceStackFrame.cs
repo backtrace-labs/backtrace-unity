@@ -131,7 +131,7 @@ namespace Backtrace.Unity.Model
             Column = frame.GetFileColumnNumber();
             try
             {
-                MemberInfo = (frame.GetMethod() != null ? frame.GetMethod().MetadataToken : default(int)); // TODO: Check me
+                MemberInfo = (frame.GetMethod() != null ? frame.GetMethod().MetadataToken : default(int));
             }
             catch (InvalidOperationException)
             {
