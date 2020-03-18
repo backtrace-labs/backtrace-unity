@@ -149,7 +149,8 @@ namespace Backtrace.Unity.Model.Database
                 {"dataPath", DiagnosticDataPath},
                 {"minidumpPath", MiniDumpPath},
                 {"reportPath", ReportPath},
-                {"size", Size}
+                {"size", Size},
+                {"hash", Hash }
             };
             return record.ToString();
         }
@@ -165,6 +166,7 @@ namespace Backtrace.Unity.Model.Database
                 MiniDumpPath = @object.Value<string>("minidumpPath"),
                 ReportPath = @object.Value<string>("reportPath"),
                 Size = @object.Value<long>("size"),
+                Hash = @object.Value<string>("hash"),
             };
         }
         /// <summary>
