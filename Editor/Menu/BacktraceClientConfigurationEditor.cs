@@ -13,7 +13,10 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_SERVER_URL = "Server Address";
         public const string LABEL_REPORT_PER_MIN = "Reports per minute";
         public const string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
+
+#if UNITY_2018_4_OR_NEWER
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
+#endif
         public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
         public const string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
 
@@ -34,7 +37,12 @@ namespace Backtrace.Unity.Editor
             settings.DestroyOnLoad = EditorGUILayout.Toggle(LABEL_DESTROY_CLIENT_ON_SCENE_LOAD, settings.DestroyOnLoad);
             settings.ReportPerMin = EditorGUILayout.IntField(LABEL_REPORT_PER_MIN, settings.ReportPerMin);
             settings.HandleUnhandledExceptions = EditorGUILayout.Toggle(LABEL_HANDLE_UNHANDLED_EXCEPTION, settings.HandleUnhandledExceptions);
+
+#if UNITY_2018_4_OR_NEWER
             settings.IgnoreSslValidation = EditorGUILayout.Toggle(LABEL_IGNORE_SSL_VALIDATION, settings.IgnoreSslValidation);
+#else
+            settings.IgnoreSslValidation = false;
+#endif
             settings.DeduplicationStrategy = (DeduplicationStrategy)EditorGUILayout.EnumPopup(LABEL_DEDUPLICATION_RULES, settings.DeduplicationStrategy);
             settings.GameObjectDepth = EditorGUILayout.IntField(LABEL_GAME_OBJECT_DEPTH, settings.GameObjectDepth);
         }

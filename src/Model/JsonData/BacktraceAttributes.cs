@@ -197,13 +197,9 @@ namespace Backtrace.Unity.Model.JsonData
             }
             Attributes["scene.count"] = SceneManager.sceneCount;
             var activeScene = SceneManager.GetActiveScene();
-            if(activeScene == null)
-            {
-                return;
-            }
             Attributes["scene.active"] = activeScene.name;
             Attributes["scene.buildIndex"] = activeScene.buildIndex;
-#if UNITY_2017_4_OR_NEWER
+#if UNITY_2018_4_OR_NEWER
             Attributes["scene.handle"] = activeScene.handle;
 #endif
             Attributes["scene.isDirty"] = activeScene.isDirty;

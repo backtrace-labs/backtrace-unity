@@ -106,6 +106,7 @@ namespace Backtrace.Newtonsoft.Converters
                 return null;
             }
 
+#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             byte[] data;
 
             if (reader.TokenType == JsonToken.StartArray)
@@ -124,11 +125,11 @@ namespace Backtrace.Newtonsoft.Converters
                 throw JsonSerializationException.Create(reader, "Unexpected token parsing binary. Expected String or StartArray, got {0}.".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
             }
 
+    
             Type t = (ReflectionUtils.IsNullableType(objectType))
                 ? Nullable.GetUnderlyingType(objectType)
                 : objectType;
 
-#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
             if (t.AssignableToTypeName(BinaryTypeName))
             {
                 EnsureReflectionObject(t);

@@ -191,14 +191,21 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            
+
             Enabled = true;
             Annotations.GameObjectDepth = Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
+
+
+#if UNITY_2018_4_OR_NEWER
+
             BacktraceApi = new BacktraceApi(
                 credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
                 ignoreSslValidation: Configuration.IgnoreSslValidation);
+#else
+            BacktraceApi = new BacktraceApi(new BacktraceCredentials(Configuration.GetValidServerUrl()));
+#endif
 
             if (Configuration.DestroyOnLoad == false)
             {
@@ -364,12 +371,12 @@ namespace Backtrace.Unity
                     record.Dispose();
                     //Database?.IncrementRecordRetryLimit(record);
                 }
-                if(result!=null)
-                if (result.Status == BacktraceResultStatus.Ok)
-                {
-                    if (Database != null)
-                        Database.Delete(record);
-                }
+                if (result != null)
+                    if (result.Status == BacktraceResultStatus.Ok)
+                    {
+                        if (Database != null)
+                            Database.Delete(record);
+                    }
                 //check if there is more errors to send
                 //handle inner exception
                 HandleInnerException(report, (BacktraceResult innerResult) =>

@@ -84,18 +84,17 @@ namespace Backtrace.Unity.Model.JsonData
             annotations[ENVIRONMENT_VARIABLE_KEY] = envVariables;
 
             var activeScene = SceneManager.GetActiveScene();
-            if (activeScene != null)
-            {
-                var gameObjects = new JArray();
 
-                var rootObjects = new List<GameObject>();
-                activeScene.GetRootGameObjects(rootObjects);
-                foreach (var gameObject in rootObjects)
-                {
-                    gameObjects.Add(ConvertGameObject(gameObject));
-                }
-                annotations["Game objects"] = gameObjects;
+            var gameObjects = new JArray();
+
+            var rootObjects = new List<GameObject>();
+            activeScene.GetRootGameObjects(rootObjects);
+            foreach (var gameObject in rootObjects)
+            {
+                gameObjects.Add(ConvertGameObject(gameObject));
             }
+            annotations["Game objects"] = gameObjects;
+
 
             return annotations;
         }
