@@ -34,7 +34,7 @@ using System.Collections;
 using System.Globalization;
 using System.ComponentModel;
 using Backtrace.Newtonsoft.Shims;
-#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
+#if NET20 && NET_2_0 && NET_2_0_SUBSET
 using Backtrace.Newtonsoft.Utilities.LinqBridge;
 #else
 

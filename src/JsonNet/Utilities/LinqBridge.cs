@@ -1,5 +1,5 @@
 ﻿
-#if NET20
+#if NET20 && NET_2_0 && NET_2_0_SUBSET
 
 #region License, Terms and Author(s)
 //

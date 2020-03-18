@@ -28,7 +28,7 @@ using System.Collections.Generic;
 using Backtrace.Newtonsoft.Utilities;
 using System.Globalization;
 using Backtrace.Newtonsoft.Shims;
-#if !NET20 && !NET_2_0 && !NET_2_0_SUBSET
+#if NET20 && NET_2_0 && NET_2_0_SUBSET
 using Backtrace.Newtonsoft.Utilities.LinqBridge;
 #else
 using System.Linq;
