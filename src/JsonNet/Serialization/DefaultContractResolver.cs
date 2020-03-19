@@ -413,7 +413,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 }
                 else if (contract.MemberSerialization == MemberSerialization.Fields)
                 {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
                     // mimic DataContractSerializer behaviour when populating fields by overriding default creator to create an uninitialized object
                     // note that this is only possible when the application is fully trusted so fall back to using the default constructor (if available) in partial trust
                     if (JsonTypeReflector.FullyTrusted)
@@ -1032,7 +1032,7 @@ namespace Backtrace.Newtonsoft.Serialization
             return contract;
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
         /// <summary>
         /// Creates a <see cref="JsonISerializableContract"/> for the given type.
         /// </summary>
@@ -1136,7 +1136,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 return CreateStringContract(objectType);
             }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             if (!IgnoreSerializableInterface && typeof(ISerializable).IsAssignableFrom(t))
             {
                 return CreateISerializableContract(objectType);
@@ -1183,7 +1183,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         internal static bool CanConvertToString(Type type)
         {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             TypeConverter converter = ConvertUtils.GetConverter(type);
 
             // use the objectType's TypeConverter if it has one and can convert to a string
@@ -1312,7 +1312,7 @@ namespace Backtrace.Newtonsoft.Serialization
             // warning - this method use to cause errors with Intellitrace. Retest in VS Ultimate after changes
             IValueProvider valueProvider;
 
-#if !(PORTABLE40 || PORTABLE || DOTNET || AOT)
+#if !(PORTABLE40 || PORTABLE || DOTNET || AOT || NET_STANDARD_2_0)
             if (DynamicCodeGeneration)
             {
                 valueProvider = new DynamicValueProvider(member);
@@ -1434,7 +1434,7 @@ namespace Backtrace.Newtonsoft.Serialization
                 JsonTypeReflector.GetAttribute<JsonIgnoreAttribute>(attributeProvider) != null
                 // automatically ignore extension data dictionary property if it is public
                 || JsonTypeReflector.GetAttribute<JsonExtensionDataAttribute>(attributeProvider) != null
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
                 || JsonTypeReflector.GetAttribute<NonSerializedAttribute>(attributeProvider) != null
 #endif
                 ;

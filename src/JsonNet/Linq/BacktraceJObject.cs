@@ -52,7 +52,7 @@ namespace Backtrace.Newtonsoft.Linq
     /// </summary>
     [Preserve]
     public class BacktraceJObject : BacktraceJContainer, IDictionary<string, JToken>, INotifyPropertyChanged
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
         , ICustomTypeDescriptor
 #endif
 #if !(NET20 || PORTABLE40 || PORTABLE)
@@ -215,7 +215,7 @@ namespace Backtrace.Newtonsoft.Linq
         internal void InternalPropertyChanged(BacktraceJProperty childProperty)
         {
             OnPropertyChanged(childProperty.Name);
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.ItemChanged, IndexOfItem(childProperty)));
@@ -721,7 +721,7 @@ namespace Backtrace.Newtonsoft.Linq
         }
 #endif
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
         // include custom type descriptor on JObject rather than use a provider because the properties are specific to a type
 
         #region ICustomTypeDescriptor

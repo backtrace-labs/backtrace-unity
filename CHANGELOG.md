@@ -3,6 +3,9 @@
 ## Version 2.0.5
 
 - Unity compatibility patch / .NET 2 + 2 Subset (https://github.com/backtrace-labs/backtrace-unity/pull/10)
+- Untiy .NET Standard 2.0 support,
+- Expose minidump type option to Backtrace Client configuration in the UI,
+- Changes LangVersion to Mono/Il2CPP depends on scripting backend - right now we will use Mono or IL2CPP - not Mono/IL2CPP value.
 
 ## Version 2.0.4
 

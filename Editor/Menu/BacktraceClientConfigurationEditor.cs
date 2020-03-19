@@ -17,6 +17,7 @@ namespace Backtrace.Unity.Editor
 #if UNITY_2018_4_OR_NEWER
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
 #endif
+        public const string LABEL_MINIDUMP_SUPPORT = "Minidump type";
         public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
         public const string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
 

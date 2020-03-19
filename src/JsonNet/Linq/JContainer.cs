@@ -52,7 +52,7 @@ namespace Backtrace.Newtonsoft.Linq
     /// </summary>
     [Preserve]
     public abstract class BacktraceJContainer : JToken, IList<JToken>
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if !(DOTNET || PORTABLE || PORTABLE40 || NET_STANDARD_2_0)
         , ITypedList, IBindingList
 #endif
         , IList
@@ -60,7 +60,7 @@ namespace Backtrace.Newtonsoft.Linq
         , INotifyCollectionChanged
 #endif
     {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
         internal ListChangedEventHandler _listChanged;
 #pragma warning disable CS0436 // Type conflicts with imported type
         internal AddingNewEventHandler _addingNew;
@@ -142,7 +142,7 @@ namespace Backtrace.Newtonsoft.Linq
             return new List<JToken>();
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
 #pragma warning disable CS0436 // Type conflicts with imported type
                               /// <summary>
                               /// Raises the <see cref="AddingNew"/> event.
@@ -400,7 +400,7 @@ namespace Backtrace.Newtonsoft.Linq
 
             children.Insert(index, item);
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, index));
@@ -448,7 +448,7 @@ namespace Backtrace.Newtonsoft.Linq
 
             children.RemoveAt(index);
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.ItemDeleted, index));
@@ -528,7 +528,7 @@ namespace Backtrace.Newtonsoft.Linq
             existing.Previous = null;
             existing.Next = null;
 
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if !(DOTNET || PORTABLE || PORTABLE40 || NET_STANDARD_2_0)
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.ItemChanged, index));
@@ -557,7 +557,7 @@ namespace Backtrace.Newtonsoft.Linq
 
             children.Clear();
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
@@ -891,7 +891,7 @@ namespace Backtrace.Newtonsoft.Linq
             return hashCode;
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
         string ITypedList.GetListName(PropertyDescriptor[] listAccessors)
         {
             return string.Empty;
@@ -1067,7 +1067,7 @@ namespace Backtrace.Newtonsoft.Linq
         #endregion
 
         #region IBindingList Members
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if !(DOTNET || PORTABLE || PORTABLE40 || NET_STANDARD_2_0)
         void IBindingList.AddIndex(PropertyDescriptor property)
         {
         }

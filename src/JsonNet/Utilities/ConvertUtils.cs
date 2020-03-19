@@ -474,7 +474,7 @@ namespace Backtrace.Newtonsoft.Utilities
                 return ConvertResult.Success;
             }
 #endif
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             // handle DBNull and INullable
             if (initialValue == DBNull.Value)
             {

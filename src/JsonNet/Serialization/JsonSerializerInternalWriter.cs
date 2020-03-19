@@ -200,7 +200,7 @@ namespace Backtrace.Newtonsoft.Serialization
                     SerializeDynamic(writer, (IDynamicMetaObjectProvider)value, (JsonDynamicContract)valueContract, member, containerContract, containerProperty);
                     break;
 #endif
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
                 case JsonContractType.Serializable:
                     SerializeISerializable(writer, (ISerializable)value, (JsonISerializableContract)valueContract, member, containerContract, containerProperty);
                     break;
@@ -381,7 +381,7 @@ namespace Backtrace.Newtonsoft.Serialization
 
         internal static bool TryConvertToString(object value, Type type, out string s)
         {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             TypeConverter converter = ConvertUtils.GetConverter(type);
 
             // use the objectType's TypeConverter if it has one and can convert to a string
@@ -835,7 +835,7 @@ namespace Backtrace.Newtonsoft.Serialization
             return writeMetadataObject;
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
 #if !(NET20 || (NET35 || NET_2_0 || NET_2_0_SUBSET))
         [SecuritySafeCritical]
 #endif

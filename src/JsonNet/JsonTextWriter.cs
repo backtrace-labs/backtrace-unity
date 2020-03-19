@@ -181,7 +181,7 @@ namespace Backtrace.Newtonsoft
 
             if (CloseOutput && _writer != null)
             {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
                 _writer.Close();
 #else
                 _writer.Dispose();
@@ -664,7 +664,7 @@ namespace Backtrace.Newtonsoft
 
             string text = null;
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             text = value.ToString("D", CultureInfo.InvariantCulture);
 #else
             text = value.ToString("D");

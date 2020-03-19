@@ -34,6 +34,11 @@ namespace Backtrace.Unity.Model
         public bool IgnoreSslValidation = false;
 
         /// <summary>
+        /// Determine minidump type support - minidump generation is supported on Windows.
+        /// </summary>
+        public MiniDumpType MinidumpType = MiniDumpType.None;
+
+        /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         public string DatabasePath;

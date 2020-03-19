@@ -533,7 +533,7 @@ namespace Backtrace.Newtonsoft.Linq
             {
                 return JTokenType.Null;
             }
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             else if (value == DBNull.Value)
             {
                 return JTokenType.Null;

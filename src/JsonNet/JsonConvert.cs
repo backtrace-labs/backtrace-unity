@@ -370,7 +370,7 @@ namespace Backtrace.Newtonsoft
         {
             string text;
             string qc;
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             text = value.ToString("D", CultureInfo.InvariantCulture);
             qc = quoteChar.ToString(CultureInfo.InvariantCulture);
 #else

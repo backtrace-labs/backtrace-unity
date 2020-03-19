@@ -14,6 +14,7 @@ namespace Backtrace.Unity.Model
         public bool DestroyOnLoad = true;
         public int GameObjectDepth = 0;
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+        public MiniDumpType MinidumpType = MiniDumpType.None;
 
         public void UpdateServerUrl()
         {

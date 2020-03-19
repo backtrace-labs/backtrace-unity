@@ -188,7 +188,12 @@ namespace Backtrace.Unity.Model
         {
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
-            LangVersion = "Mono/IL2CPP";
+#if ENABLE_IL2CPP
+            LangVersion = "IL2CPP";
+#else
+            LangVersion = "Mono";
+#endif
+
             AgentVersion = "2.0.5-alpha";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }

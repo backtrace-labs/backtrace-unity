@@ -375,7 +375,7 @@ namespace Backtrace.Newtonsoft.Bson
         {
             base.WriteValue(value);
             string s = null;
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             s = value.ToString(CultureInfo.InvariantCulture);
 #else
             s = value.ToString();

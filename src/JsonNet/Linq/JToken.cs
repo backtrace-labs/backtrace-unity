@@ -50,7 +50,7 @@ namespace Backtrace.Newtonsoft.Linq
     /// </summary>
     [Preserve]
     public abstract class JToken : IJEnumerable<JToken>, IJsonLineInfo
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
         , ICloneable
 #endif
 #if !((NET35 || NET_2_0 || NET_2_0_SUBSET) || NET20 || PORTABLE40  )
@@ -2105,7 +2105,7 @@ namespace Backtrace.Newtonsoft.Linq
         }
 #endif
 
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if !(DOTNET || PORTABLE || PORTABLE40 || NET_STANDARD_2_0)
         object ICloneable.Clone()
         {
             return DeepClone();

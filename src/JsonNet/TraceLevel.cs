@@ -1,5 +1,5 @@
 ﻿
-#if (DOTNET || PORTABLE40 || PORTABLE)
+#if (DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
 using Backtrace.Newtonsoft.Serialization;
 using Backtrace.Newtonsoft.Shims;
 

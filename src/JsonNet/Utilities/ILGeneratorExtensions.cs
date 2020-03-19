@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || AOT)
+#if !(DOTNET || PORTABLE40 || PORTABLE || AOT || NET_STANDARD_2_0)
 using System;
 using System.Reflection.Emit;
 using System.Reflection;

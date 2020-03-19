@@ -22,6 +22,8 @@ namespace Backtrace.Unity.Editor
 
         public const string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
 
+        public const string LABEL_MINIDUMP_SUPPORT = "Minidump type";
+
         public const string LABEL_PATH = "Backtrace database path";
         public const string LABEL_AUTO_SEND_MODE = "Auto send mode";
         public const string LABEL_CREATE_DATABASE_DIRECTORY = "Create database directory";
@@ -82,6 +84,12 @@ namespace Backtrace.Unity.Editor
                 {
                     EditorGUILayout.HelpBox("Please insert valid Backtrace database path!", MessageType.Error);
                 }
+
+#if UNITY_STANDALONE_WIN
+                EditorGUILayout.HelpBox("Minidump support works only on Windows machines.", MessageType.Warning);
+                SerializedProperty miniDumpType = serializedObject.FindProperty("MinidumpType");
+                EditorGUILayout.PropertyField(miniDumpType, new GUIContent(LABEL_MINIDUMP_SUPPORT));
+#endif
 
                 SerializedProperty autoSendMode = serializedObject.FindProperty("AutoSendMode");
                 EditorGUILayout.PropertyField(autoSendMode, new GUIContent(LABEL_AUTO_SEND_MODE));

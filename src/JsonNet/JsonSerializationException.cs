@@ -34,7 +34,7 @@ namespace Backtrace.Newtonsoft
     /// <summary>
     /// The exception thrown when an error occurs during JSON serialization or deserialization.
     /// </summary>
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
     [Serializable]
 #endif
     [Preserve]
@@ -68,7 +68,7 @@ namespace Backtrace.Newtonsoft
         {
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonSerializationException"/> class.
         /// </summary>

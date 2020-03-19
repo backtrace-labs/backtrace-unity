@@ -31,6 +31,13 @@ namespace Backtrace.Unity.Editor
             {
                 EditorGUILayout.HelpBox("Please insert valid Backtrace database path!", MessageType.Error);
             }
+
+#if UNITY_STANDALONE_WIN
+            settings.MinidumpType = (MiniDumpType)EditorGUILayout.EnumPopup(LABEL_MINIDUMP_SUPPORT, settings.MinidumpType);
+#else
+            settings.MinidumpType = MiniDumpType.None;
+
+#endif
             settings.AutoSendMode = EditorGUILayout.Toggle(LABEL_AUTO_SEND_MODE, settings.AutoSendMode);
             settings.CreateDatabase = EditorGUILayout.Toggle(LABEL_CREATE_DATABASE_DIRECTORY, settings.CreateDatabase);
             settings.MaxRecordCount = EditorGUILayout.IntField(LABEL_MAX_REPORT_COUNT, settings.MaxRecordCount);

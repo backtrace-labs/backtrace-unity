@@ -17,6 +17,7 @@ namespace Backtrace.Unity
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
         public BacktraceConfiguration Configuration;
+
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -193,6 +194,13 @@ namespace Backtrace.Unity
             }
 
             Enabled = true;
+#if UNITY_STANDALONE_WIN
+            MiniDumpType = Configuration.MinidumpType;
+#else
+            MiniDumpType = MiniDumpType.None;
+
+#endif
+
             Annotations.GameObjectDepth = Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));

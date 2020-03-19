@@ -56,7 +56,7 @@ namespace Backtrace.Newtonsoft.Bson
 
         public void Close()
         {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             _writer.Close();
 #else
             _writer.Dispose();

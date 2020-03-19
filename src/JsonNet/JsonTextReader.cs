@@ -2383,7 +2383,7 @@ namespace Backtrace.Newtonsoft
 
             if (CloseInput && _reader != null)
             {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
                 _reader.Close();
 #else
                 _reader.Dispose();

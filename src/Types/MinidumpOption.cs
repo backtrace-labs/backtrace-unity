@@ -7,12 +7,11 @@ namespace Backtrace.Unity.Types
     /// <summary>
     /// Minidump generation options. These values are available in dbghelp.h and you can get more information here: http://blog.kalmbach-software.de/2008/12/13/writing-minidumps-in-c/
     /// </summary>
-    [Flags]
-    public enum MiniDumpType : uint
+    public enum MiniDumpType: uint
     {
 #pragma warning disable 1591
         // From dbghelp.h:
-        None = 0xffffffff,
+        None = 0x7FFFE,
         Normal = 0x00000000,
         WithDataSegs = 0x00000001,
         WithFullMemory = 0x00000002,

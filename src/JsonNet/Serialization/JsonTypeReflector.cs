@@ -143,7 +143,7 @@ namespace Backtrace.Newtonsoft.Serialization
             }
 #endif
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
             if (!ignoreSerializableAttribute)
             {
                 SerializableAttribute serializableAttribute = GetCachedAttribute<SerializableAttribute>(objectType);
@@ -391,7 +391,7 @@ namespace Backtrace.Newtonsoft.Serialization
             {
                 if (_dynamicCodeGeneration == null)
                 {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NET_STANDARD_2_0)
                     try
                     {
                         new ReflectionPermission(ReflectionPermissionFlag.MemberAccess).Demand();
@@ -449,7 +449,7 @@ namespace Backtrace.Newtonsoft.Serialization
         {
             get
             {
-#if !(PORTABLE40 || PORTABLE || DOTNET)
+#if !(PORTABLE40 || PORTABLE || DOTNET || NET_STANDARD_2_0)
 #if !AOT
                 if (DynamicCodeGeneration)
                 {

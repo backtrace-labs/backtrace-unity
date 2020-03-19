@@ -17,6 +17,18 @@ namespace Backtrace.Unity.Common
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     internal struct MiniDumpExceptionInformation
     {
+
+        //====================================================================
+        // Win32 Exception stuff
+        // These are mostly interesting for Structured exception handling,
+        // but need to be exposed for all exceptions (not just SEHException).
+        //====================================================================
+        //[System.Security.SecurityCritical]  // auto-generated_required
+        //[System.Runtime.Versioning.ResourceExposure(System.Runtime.Versioning.ResourceScope.None)]
+        //[System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+        //[System.Runtime.InteropServices.ComVisible(true)]
+        //public static extern /* struct _EXCEPTION_POINTERS* */ IntPtr GetExceptionPointers();
+
         /// <summary>
         /// current thread id
         /// </summary>
@@ -44,6 +56,27 @@ namespace Backtrace.Unity.Common
             exp.ThreadId = SystemHelper.GetCurrentThreadId();
             exp.ClientPointers = false;
             exp.ExceptionPointers = IntPtr.Zero;
+            // right now Unity environment doesn't support 
+            // GetExceptionPointers
+            // because of that we cannot pass exception pointer to minidump write method
+
+            //right now GetExceptionPointers method is not available in .NET Standard 
+//#if !NET_STANDARD_2_0
+//            try
+//            {
+//                if (exceptionInfo == MinidumpException.Present)
+//                {
+//                    exp.ExceptionPointers = GetExceptionPointers();
+//                }
+//            }
+//            catch (Exception e)
+//            {
+//#if DEBUG
+//                UnityEngine.Debug.Log(string.Format("Cannot add exception information to minidump file. Reason: {0}", e));
+//#endif
+//                ///Operation not supported;
+//            }
+//#endif
             return exp;
         }
     }
