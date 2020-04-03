@@ -6,6 +6,7 @@ using UnityEngine;
 namespace Backtrace.Unity.Model
 {
     [Serializable]
+    [CreateAssetMenu(fileName = "DefaultBacktraceDatabaseConfiguration", menuName = "Backtrace/Database Configuration", order = 3)]
     public class BacktraceDatabaseConfiguration : BacktraceClientConfiguration
     {
         public bool Enabled = false;

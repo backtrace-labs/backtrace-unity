@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Backtrace.Unity.Model
 {
     [Serializable]
+    [CreateAssetMenu(fileName = "DefaultBacktraceClientConfiguration", menuName = "Backtrace/Client Configuration", order = 2)]
     public class BacktraceClientConfiguration : ScriptableObject
     {
         public string ServerUrl;
