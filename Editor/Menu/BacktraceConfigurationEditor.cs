@@ -66,9 +66,9 @@ namespace Backtrace.Unity.Editor
             SerializedProperty gameObjectDepth = serializedObject.FindProperty("GameObjectDepth");
             EditorGUILayout.PropertyField(gameObjectDepth, new GUIContent(LABEL_GAME_OBJECT_DEPTH));
 
-            if (gameObjectDepth.intValue < 0)
+            if (gameObjectDepth.intValue < -1)
             {
-                EditorGUILayout.HelpBox("Please inser value greater or equal 0", MessageType.Error);
+                EditorGUILayout.HelpBox("Please insert value greater or equal -1", MessageType.Error);
             }
 
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");

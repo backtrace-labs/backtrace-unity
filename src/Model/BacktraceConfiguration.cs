@@ -85,7 +85,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Game object depth in Backtrace report
         /// </summary>
-        public int GameObjectDepth = 0;
+        public int GameObjectDepth = -1;
 
         /// <summary>
         /// Backtrace client deduplication strategy. 

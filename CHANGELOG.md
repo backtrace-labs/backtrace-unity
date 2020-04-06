@@ -6,6 +6,7 @@
 - Untiy .NET Standard 2.0 support,
 - Expose minidump type option to Backtrace Client configuration in the UI,
 - Changes LangVersion to Mono/Il2CPP depends on scripting backend - right now we will use Mono or IL2CPP - not Mono/IL2CPP value.
+- Changed `Game object depth size` - right now default is `-1`, which means not include game objects in report.
 
 ## Version 2.0.4
 
