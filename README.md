@@ -24,7 +24,7 @@ catch(Exception exception){
 - Light-weight Unity client that quickly submits crashed generated in Unity environment to your Backtrace dashboard
   - Can include callstack, system metadata, custom metadata, custom attributes and file attachments if needed
 - Supports a wide range of unity version and environments
-- Supports .NET 4.5 Backend, IL2CPP and Mono environments
+- Supports .NET 2.0/3.5/4.5/Standard 2.0 Backend, IL2CPP and Mono environments
 - Supports offline database for error report storage and re-submission in case of network outage
 - Fully customizable and extendable event handlers
 - Custom IDE integrations
@@ -32,7 +32,7 @@ catch(Exception exception){
 # Prerequisites
 
 - Unity environment 2017.4.x
-- .NET 4.5 scripting runtime version
+- .NET 2.0/3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
 
 # Setup <a name="installation"></a>
@@ -42,7 +42,7 @@ List of steps necessary to setup full Backtrace Unity integration.
 ## Installation guide
 
 - Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded from https://github.com/backtrace-labs/backtrace-unity/releases
-- Open your Unity project and ensure it is configured to build with .NET 4.5+ runtime and a mono or il2cpp backend.
+- Open your Unity project
 - Copy the unzipped folder to your project's asset folder in the Windows File Explorer. The Unity editor will refresh and the Backtrace Plugin should become available in the editor.
 
 ## Integrating into your project
@@ -56,6 +56,10 @@ List of steps necessary to setup full Backtrace Unity integration.
   ![Full Backtrace configuration](./images/client-setup.PNG)
 
 Watch this 1 minute silent video to see the Integration and Configuration in action. The first 20 seconds of the video shows the above Integrating steps, and the second part shows details of the below Client and Database Settings - https://player.vimeo.com/video/300051476
+
+## Plugin best practices
+
+Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you would like to include all game objects, please select 0. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box.
 
 ## Backtrace Client and Offline Database Settings
 
