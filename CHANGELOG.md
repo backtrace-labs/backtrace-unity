@@ -1,12 +1,16 @@
 # Backtrace Unity Release Notes
 
+## Version 2.1.0
+
+- UPM support - changed project structure and divide Backtrae-unity plugin into assemblies.
+
 ## Version 2.0.5
 
 - Unity compatibility patch - .NET2.0, .NET 3.5 support (https://github.com/backtrace-labs/backtrace-unity/pull/10).
 - Untiy .NET Standard 2.0 support.
 - Expose minidump type option to Backtrace Client configuration in the UI.
 - Changed values of LangVersion to Mono or IL2CPP, depending on which is deployed.
-- Changed `Game object depth` property - default to `-1`, which means not to include Game Objects Hierarchy as an Annotation in the error report. Set the value to `1` to collect one level deep of Gane Object hierarchy, `2` to collect two levels deep, and so on. Setting the value to `0` will collect the full depth, which may be rather large if you have a lot of children. 
+- Changed `Game object depth` property - default to `-1`, which means not to include Game Objects Hierarchy as an Annotation in the error report. Set the value to `1` to collect one level deep of Gane Object hierarchy, `2` to collect two levels deep, and so on. Setting the value to `0` will collect the full depth, which may be rather large if you have a lot of children.
 
 ## Version 2.0.4
 
