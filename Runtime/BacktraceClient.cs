@@ -141,10 +141,9 @@ namespace Backtrace.Unity
 
         /// <summary>
         /// Get custom client attributes. Every argument stored in dictionary will be send to Backtrace API.
-        /// Backtrace unity-plugin allows you to store in attributes only primitive values. Plugin will skip loading 
-        /// complex object.
+        /// Backtrace unity-plugin allows you to store in attributes only string values. 
         /// </summary>
-        public readonly Dictionary<string, object> Attributes;
+        public readonly Dictionary<string, string> Attributes;
 
 
         /// <summary>
@@ -201,7 +200,6 @@ namespace Backtrace.Unity
 
 #endif
 
-            Annotations.GameObjectDepth = Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
@@ -256,7 +254,7 @@ namespace Backtrace.Unity
         /// <param name="message">Report message</param>
         /// <param name="attachmentPaths">List of attachments</param>
         /// <param name="attributes">List of report attributes</param
-        public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
+        public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, string> attributes = null)
         {
             if (Enabled == false)
             {
@@ -292,7 +290,7 @@ namespace Backtrace.Unity
         /// <param name="exception">Report exception</param>
         /// <param name="attachmentPaths">List of attachments</param>
         /// <param name="attributes">List of report attributes</param
-        public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
+        public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, string> attributes = null)
         {
             if (Enabled == false)
             {
@@ -341,7 +339,7 @@ namespace Backtrace.Unity
                     _onClientReportLimitReached.Invoke(report);
 
                 if (sendCallback != null)
-                    sendCallback.Invoke(BacktraceResult.OnLimitReached(report));
+                    sendCallback.Invoke(BacktraceResult.OnLimitReached());
 
                 _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
@@ -360,14 +358,16 @@ namespace Backtrace.Unity
             //create a JSON payload instance
             BacktraceData data = null;
 
-            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(Attributes);
+            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(Attributes, Configuration.GameObjectDepth);
             //valid user custom events
             data = (BeforeSend != null ? BeforeSend.Invoke(data) : null) ?? data;
 
             if (BacktraceApi == null)
             {
                 if (record != null)
+                {
                     record.Dispose();
+                }
 
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
                 return;

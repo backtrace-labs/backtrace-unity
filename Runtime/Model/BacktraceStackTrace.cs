@@ -34,7 +34,7 @@ namespace Backtrace.Unity.Model
                 if (_exception is BacktraceUnhandledException)
                 {
                     var current = _exception as BacktraceUnhandledException;
-                    StackFrames.InsertRange(0,current.StackFrames);
+                    StackFrames.InsertRange(0, current.StackFrames);
                 }
                 else
                 {
@@ -73,7 +73,11 @@ namespace Backtrace.Unity.Model
                 {
                     continue;
                 }
-                var backtraceFrame = new BacktraceStackFrame(frame, generatedByException);          
+                var backtraceFrame = new BacktraceStackFrame(frame, generatedByException);
+                if (backtraceFrame.InvalidFrame)
+                {
+                    continue;
+                }
                 StackFrames.Insert(startingIndex, backtraceFrame);
                 startingIndex++;
             }

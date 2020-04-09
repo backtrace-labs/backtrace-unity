@@ -121,7 +121,7 @@ namespace Backtrace.Unity
                 Enable = false;
                 return;
             }
-           
+
 
             //setup database object
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
@@ -143,7 +143,7 @@ namespace Backtrace.Unity
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
         }
-        
+
         /// <summary>
         /// Backtrace database on disable event
         /// </summary>
@@ -234,7 +234,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Add new report to BacktraceDatabase
         /// </summary>
-        public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, object> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
+        public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, string> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
         {
             if (!Enable || backtraceReport == null)
             {
@@ -247,7 +247,7 @@ namespace Backtrace.Unity
             {
                 return null;
             }
-            var data = backtraceReport.ToBacktraceData(attributes);
+            var data = backtraceReport.ToBacktraceData(attributes, Configuration.GameObjectDepth);
             return BacktraceDatabaseContext.Add(data, miniDumpType);
         }
 
@@ -292,7 +292,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            var backtraceData = record.BacktraceData;
+            var backtraceData = record.BacktraceDataJson;
             Delete(record);
             if (backtraceData == null)
             {
@@ -308,10 +308,10 @@ namespace Backtrace.Unity
 
         private void SendData(BacktraceDatabaseRecord record)
         {
-            var backtraceData = record!=null ? record.BacktraceData : null;
+            var backtraceData = record != null ? record.BacktraceDataJson : null;
             //check if report exists on hard drive 
             // to avoid situation when someone manually remove data
-            if (backtraceData == null || backtraceData.Report == null)
+            if (string.IsNullOrEmpty(backtraceData))
             {
                 Delete(record);
             }
@@ -330,7 +330,7 @@ namespace Backtrace.Unity
                              BacktraceDatabaseContext.IncrementBatchRetry();
                              return;
                          }
-                        bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+                         bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
                          if (!limitHit)
                          {
                              _reportLimitWatcher.DisplayReportLimitHitMessage();

@@ -44,7 +44,6 @@ namespace Tests
             Assert.IsNull(BacktraceClient.OnServerError);
             Assert.IsNull(BacktraceClient.OnServerResponse);
             Assert.IsNull(BacktraceClient.BeforeSend);
-            Assert.IsNull(BacktraceClient.RequestHandler);
             Assert.IsNull(BacktraceClient.OnUnhandledApplicationException);
             yield return null;
         }

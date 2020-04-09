@@ -1,10 +1,6 @@
 ﻿using System;
 using Backtrace.Unity.Types;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Backtrace.Newtonsoft;
-using Backtrace.Newtonsoft.Linq;
+using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
@@ -14,61 +10,55 @@ namespace Backtrace.Unity.Model
     public class BacktraceResult
     {
         /// <summary>
-        /// Current report
-        /// </summary>
-        public BacktraceReport BacktraceReport;
-
-        /// <summary>
         /// Inner exception Backtrace status
         /// </summary>
         public BacktraceResult InnerExceptionResult;
 
-        private string _message;
+        public string message;
         /// <summary>
         /// Message
         /// </summary>
-        [JsonProperty(PropertyName = "message")]
         public string Message
         {
             get
             {
-                return _message;
+                return message;
             }
             set
             {
-                _message = value;
+                message = value;
             }
         }
+
+        public string response;
 
         /// <summary>
         /// Result
         /// </summary>
         public BacktraceResultStatus Status = BacktraceResultStatus.Ok;
 
-        private string _object;
+        private string @object;
         /// <summary>
         /// Created object id
         /// </summary>
-        [JsonProperty(PropertyName = "object")]
         public string Object
         {
             get
             {
-                return _object;
+                return @object;
             }
             set
             {
-                _object = value;
+                @object = value;
                 Status = BacktraceResultStatus.Ok;
             }
         }
 
-        private string _rxId;
+        public string _rxId;
         /// <summary>
         /// Backtrace APi can return _rxid instead of ObjectId. 
         /// Use this setter to set _object field correctly for both answers
         /// </summary>
-        [JsonProperty(PropertyName = "_rxid")]
         public string RxId
         {
             get
@@ -77,7 +67,7 @@ namespace Backtrace.Unity.Model
             }
             set
             {
-                _rxId= value;
+                _rxId = value;
                 Status = BacktraceResultStatus.Ok;
             }
         }
@@ -88,11 +78,10 @@ namespace Backtrace.Unity.Model
         /// </summary>
         /// <param name="report">Executed report</param>
         /// <returns>BacktraceResult with limit reached information</returns>
-        internal static BacktraceResult OnLimitReached(BacktraceReport report)
+        internal static BacktraceResult OnLimitReached()
         {
             return new BacktraceResult()
             {
-                BacktraceReport = report,
                 Status = BacktraceResultStatus.LimitReached,
                 Message = "Client report limit reached"
             };
@@ -104,11 +93,10 @@ namespace Backtrace.Unity.Model
         /// <param name="report">Executed report</param>
         /// <param name="exception">Exception</param>
         /// <returns>BacktraceResult with exception information</returns>
-        internal static BacktraceResult OnError(BacktraceReport report, Exception exception)
+        internal static BacktraceResult OnError(Exception exception)
         {
             return new BacktraceResult()
             {
-                BacktraceReport = report,
                 Message = exception.Message,
                 Status = BacktraceResultStatus.ServerError
             };
@@ -126,17 +114,22 @@ namespace Backtrace.Unity.Model
 
         public static BacktraceResult FromJson(string json)
         {
-            var @object = BacktraceJObject.Parse(json);
-
-            return new BacktraceResult()
+            var rawResult = JsonUtility.FromJson<BacktraceRawResult>(json);
+            var result = new BacktraceResult()
             {
-                Object = @object.Value<string>("object"),
-                Message = @object.Value<string>("message"),
-                RxId = @object.Value<string>("_rxid"),
-                Status = @object.Value<string>("response") == "ok" 
-                    ? BacktraceResultStatus.Ok
-                    : BacktraceResultStatus.ServerError
+                response = rawResult.response,
+                _rxId = rawResult._rxid,
+                Status = rawResult.response == "ok" ? BacktraceResultStatus.Ok: BacktraceResultStatus.ServerError
             };
+            return result;
+        }
+
+
+        [Serializable]
+        private class BacktraceRawResult
+        {
+            public string response;
+            public string _rxid;
         }
     }
 }

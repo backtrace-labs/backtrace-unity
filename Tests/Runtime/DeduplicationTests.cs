@@ -53,7 +53,7 @@ namespace Tests
             int totalNumberOfReports = 2;
             for (int i = 0; i < totalNumberOfReports; i++)
             {
-                _database.Add(report, new Dictionary<string, object>(), MiniDumpType.None);
+                _database.Add(report, new Dictionary<string, string>(), MiniDumpType.None);
             }
             Assert.AreEqual(totalNumberOfReports, _database.Count());
             Assert.AreEqual(totalNumberOfReports, _database.Get().Count());
@@ -76,7 +76,7 @@ namespace Tests
             int totalNumberOfReports = 2;
             for (int i = 0; i < totalNumberOfReports; i++)
             {
-                _database.Add(report, new Dictionary<string, object>(), MiniDumpType.None);
+                _database.Add(report, new Dictionary<string, string>(), MiniDumpType.None);
             }
             Assert.AreEqual(totalNumberOfReports, _database.Count());
             var records = _database.Get();

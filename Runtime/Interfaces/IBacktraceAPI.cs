@@ -16,6 +16,14 @@ namespace Backtrace.Unity.Interfaces
         IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null);
 
         /// <summary>
+        /// Send diagnostic report to Backtrace API
+        /// </summary>
+        /// <param name="json">Library diagnostic data in JSON format</param>
+        /// <param name="callback">Coroutine callback</param>
+        /// <returns></returns>
+        IEnumerator Send(string json, Action<BacktraceResult> callback = null);
+
+        /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
         /// </summary>
         Action<Exception> OnServerError { get; set; }
@@ -29,5 +37,6 @@ namespace Backtrace.Unity.Interfaces
         /// Setup custom request method
         /// </summary>
         Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
+
     }
 }

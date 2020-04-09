@@ -1,6 +1,4 @@
-﻿using System;
-using Backtrace.Newtonsoft;
-using Backtrace.Unity.Interfaces.Database;
+﻿using Backtrace.Unity.Interfaces.Database;
 using System.IO;
 using System.Text;
 

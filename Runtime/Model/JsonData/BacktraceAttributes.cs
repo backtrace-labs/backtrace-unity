@@ -1,6 +1,6 @@
-﻿using Backtrace.Newtonsoft.Linq;
-using Backtrace.Unity.Common;
+﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,23 +20,31 @@ namespace Backtrace.Unity.Model.JsonData
         /// </summary>
         public Dictionary<string, object> Attributes = new Dictionary<string, object>();
 
+        private static string _machineId;
+        private static string MachineId
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_machineId))
+                {
+                    _machineId = GenerateMachineId();
+                }
+                return _machineId;
+            }
+        }
+
+
         internal const string APPLICATION_ATTRIBUTE_NAME = "application";
-
-        /// <summary>
-        /// Get built-in complex attributes
-        /// </summary>
-        public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
-
         /// <summary>
         /// Create instance of Backtrace Attribute
         /// </summary>
         /// <param name="report">Received report</param>
         /// <param name="clientAttributes">Client's attributes (report and client)</param>
-        public BacktraceAttributes(BacktraceReport report, Dictionary<string, object> clientAttributes)
+        public BacktraceAttributes(BacktraceReport report, Dictionary<string, string> clientAttributes)
         {
-            if(clientAttributes == null)
+            if (clientAttributes == null)
             {
-                clientAttributes = new Dictionary<string, object>();
+                clientAttributes = new Dictionary<string, string>();
             }
             if (report != null)
             {
@@ -51,38 +59,22 @@ namespace Backtrace.Unity.Model.JsonData
         }
         private BacktraceAttributes() { }
 
-        public static BacktraceAttributes Deserialize(JToken jToken)
-        {
-            var attributes = new Dictionary<string, object>();
-            foreach (BacktraceJProperty keys in jToken)
-            {
-                attributes.Add(keys.Name, keys.Value.Value<string>());
-            }
-            return new BacktraceAttributes()
-            {
-                Attributes = attributes
-            };
-        }
+        //public static BacktraceAttributes Deserialize(JToken jToken)
+        //{
+        //    var attributes = new Dictionary<string, object>();
+        //    foreach (BacktraceJProperty keys in jToken)
+        //    {
+        //        attributes.Add(keys.Name, keys.Value.Value<string>());
+        //    }
+        //    return new BacktraceAttributes()
+        //    {
+        //        Attributes = attributes
+        //    };
+        //}
 
         public BacktraceJObject ToJson()
         {
-            var attr = new BacktraceJObject();
-            foreach (var attribute in Attributes)
-            {
-                if (attribute.Value != null && attribute.Value.GetType() == typeof(bool))
-                {
-                    attr[attribute.Key] = (bool)attribute.Value;
-                }
-                else if (attribute.Value != null && TypeHelper.IsNumeric(attribute.Value.GetType()))
-                {
-                    attr[attribute.Key] = Convert.ToInt64(attribute.Value);
-                }
-                else
-                {
-                    attr[attribute.Key] = attribute.Value.ToString();
-                }
-            }
-            return attr;
+            return new BacktraceJObject(Attributes);
         }
         /// <summary>
         /// Set library attributes
@@ -94,7 +86,7 @@ namespace Backtrace.Unity.Model.JsonData
                 Attributes["_mod_factor"] = report.Factor;
             }
             //A unique identifier of a machine
-            Attributes["guid"] = GenerateMachineId();
+            Attributes["guid"] = MachineId;
             //Base name of application generating the report
             Attributes[APPLICATION_ATTRIBUTE_NAME] = Application.productName;
             Attributes["application.version"] = Application.version;
@@ -121,7 +113,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// Machine id is equal to mac address of first network interface. If network interface in unvailable, random long will be generated.
         /// </summary>
         /// <returns>Machine uuid</returns>
-        private string GenerateMachineId()
+        private static string GenerateMachineId()
         {
             if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
             {
@@ -151,25 +143,12 @@ namespace Backtrace.Unity.Model.JsonData
         /// <param name="report">Received report</param>
         /// <param name="clientAttributes">Client's attributes (report and client)</param>
         /// <returns>Dictionary of custom user attributes </returns>
-        private void ConvertAttributes(BacktraceReport report, Dictionary<string, object> clientAttributes)
+        private void ConvertAttributes(BacktraceReport report, Dictionary<string, string> clientAttributes)
         {
-            var attributes = BacktraceReport.ConcatAttributes(report, clientAttributes);
-            foreach (var attribute in attributes)
+            var reportAttributes = BacktraceReport.ConcatAttributes(report, clientAttributes);
+            foreach (var attribute in reportAttributes)
             {
-                var type = attribute.Value.GetType();
-                if (type.IsPrimitive || type == typeof(string) || type.IsEnum)
-                {
-                    Attributes.Add(attribute.Key, attribute.Value);
-                }
-                else
-                {
-                    ComplexAttributes.Add(attribute.Key, attribute.Value);
-                }
-            }
-            //add exception information to Complex attributes.
-            if (report.ExceptionTypeReport)
-            {
-                ComplexAttributes.Add("Exception Properties", report.Exception);
+                Attributes[attribute.Key] = attribute.Value;
             }
         }
 

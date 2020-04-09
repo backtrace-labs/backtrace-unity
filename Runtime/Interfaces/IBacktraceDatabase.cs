@@ -43,7 +43,7 @@ namespace Backtrace.Unity.Interfaces
         /// <summary>
         /// Add new report to Database
         /// </summary>
-        BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, object> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal);
+        BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, string> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal);
 
         /// <summary>
         /// Get all records stored in Database

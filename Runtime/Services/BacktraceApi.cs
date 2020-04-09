@@ -17,6 +17,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// User custom request method
         /// </summary>
+        [Obsolete("RequestHandler is obsolete. BacktraceApi won't be able to provide BacktraceData in every situation")]
         public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
         /// <summary>
@@ -82,13 +83,6 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
-            if (data == null)
-            {
-                yield return new BacktraceResult()
-                {
-                    Status = Types.BacktraceResultStatus.LimitReached
-                };
-            }
             if (RequestHandler != null)
             {
                 yield return RequestHandler.Invoke(_serverurl.ToString(), data);
@@ -96,11 +90,22 @@ namespace Backtrace.Unity.Services
             else
             {
                 string json = data.ToJson();
-                yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
+                yield return Send(json, data.Attachments, data.Deduplication, callback);
             }
         }
 
-        private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, int deduplication, Action<BacktraceResult> callback)
+        /// <summary>
+        /// Sending diagnostic report to Backtrace
+        /// </summary>
+        /// <param name="json">diagnostic data JSON</param>
+        /// <param name="callback">coroutine callback</param>
+        /// <returns>Server response</returns>
+        public IEnumerator Send(string json, Action<BacktraceResult> callback = null)
+        {
+            yield return Send(json, null, 0, callback);
+        }
+
+        private IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
             var requestUrl = _serverurl.ToString();
             if (deduplication > 0)
@@ -126,24 +131,33 @@ namespace Backtrace.Unity.Services
                 BacktraceResult result;
                 if (request.responseCode == 200)
                 {
-                    result = new BacktraceResult();
-                    if (OnServerResponse != null) OnServerResponse.Invoke(result);
-                    var response = BacktraceResult.FromJson(request.downloadHandler.text);
+                    result = BacktraceResult.FromJson(request.downloadHandler.text);
+
+                    if (OnServerResponse != null)
+                    {
+                        OnServerResponse.Invoke(result);
+                    }
                     if (attachments != null && attachments.Count > 0)
                     {
                         var stack = new Stack<string>(attachments);
-                        yield return SendAttachment(response.RxId, stack);
+                        yield return SendAttachment(result.RxId, stack);
                     }
                 }
                 else
                 {
                     PrintLog(request);
                     var exception = new Exception(request.error);
-                    result = BacktraceResult.OnError(report, exception);
-                    if (OnServerError != null) OnServerError.Invoke(exception);
+                    result = BacktraceResult.OnError(exception);
+                    if (OnServerError != null)
+                    {
+                        OnServerError.Invoke(exception);
+                    }
                 }
 
-                if (callback != null) callback.Invoke(result);
+                if (callback != null)
+                {
+                    callback.Invoke(result);
+                }
                 yield return result;
             }
         }
