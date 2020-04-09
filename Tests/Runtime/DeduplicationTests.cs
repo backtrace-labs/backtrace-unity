@@ -9,7 +9,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
     public class DeduplicaitonTests : BacktraceBaseTest
     {

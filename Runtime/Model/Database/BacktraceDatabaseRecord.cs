@@ -73,20 +73,17 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         internal IBacktraceDatabaseRecordWriter RecordWriter;
 
-        public string BacktraceDataJson
+        public string BacktraceDataJson()
         {
-            get
+            if (Record != null)
             {
-                if (Record != null)
-                {
-                    return Record.ToJson();
-                }
-                if (string.IsNullOrEmpty(DiagnosticDataPath))
-                {
-                    return null;
-                }
-                return File.ReadAllText(DiagnosticDataPath);
+                return Record.ToJson();
             }
+            if (string.IsNullOrEmpty(DiagnosticDataPath))
+            {
+                return null;
+            }
+            return File.ReadAllText(DiagnosticDataPath);
         }
 
         /// <summary>
@@ -122,22 +119,19 @@ namespace Backtrace.Unity.Model.Database
         public static BacktraceDatabaseRecord Deserialize(string json)
         {
             var rawRecord = JsonUtility.FromJson<BacktraceDatabaseRawRecord>(json);
-            return new BacktraceDatabaseRecord()
-            {
-                Id = Guid.Parse(rawRecord.Id),
-                RecordPath = rawRecord.recordName,
-                DiagnosticDataPath = rawRecord.dataPath,
-                MiniDumpPath = rawRecord.minidumpPath,
-                Size = rawRecord.size,
-                Hash = rawRecord.hash
-            };
+            return new BacktraceDatabaseRecord(rawRecord);
         }
         /// <summary>
         /// Constructor for serialization purpose
         /// </summary>
-        internal BacktraceDatabaseRecord()
+        private BacktraceDatabaseRecord(BacktraceDatabaseRawRecord rawRecord)
         {
-            RecordPath = string.Format("{0}-record.json", Id);
+            Id = Guid.Parse(rawRecord.Id);
+            RecordPath = rawRecord.recordName;
+            DiagnosticDataPath = rawRecord.dataPath;
+            MiniDumpPath = rawRecord.minidumpPath;
+            Size = rawRecord.size;
+            Hash = rawRecord.hash;
         }
 
         /// <summary>

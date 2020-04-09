@@ -98,13 +98,31 @@ namespace Backtrace.Unity.Model
                 InvalidFrame = true;
                 return;
             }
+
+            var declaringType = method.DeclaringType;
+            string assembly = "unknown";
+            if(declaringType != null)
+            {
+                var assemblyName = declaringType.Assembly.GetName().Name;
+                if (assemblyName!= null)
+                {
+                    assembly = assemblyName;
+                    if(assemblyName == "Backtrace.Unity")
+                    {
+                        InvalidFrame = true;
+                        return;
+                    }
+                } 
+            }
+
+
             SourceCodeFullPath = frame.GetFileName();
 
             FunctionName = GetMethodName(method);
             Line = frame.GetFileLineNumber();
             Il = frame.GetILOffset();
             ILOffset = Il;
-            Assembly = method.DeclaringType.Assembly.GetName().Name ?? "unknown";
+            Assembly = assembly;
             Library = string.IsNullOrEmpty(SourceCodeFullPath) ? method.DeclaringType.ToString() : SourceCodeFullPath;
 
             SourceCode = generatedByException

@@ -63,16 +63,6 @@ namespace Backtrace.Unity.Model
             int startingIndex = 0;
             foreach (var frame in frames)
             {
-                string name;
-                if (frame == null || frame.GetMethod() == null)
-                    name = string.Empty;
-                else
-                    name = frame.GetMethod().DeclaringType.ToString() ?? string.Empty;
-
-                if (name.ToLower().Contains("backtrace.unity"))
-                {
-                    continue;
-                }
                 var backtraceFrame = new BacktraceStackFrame(frame, generatedByException);
                 if (backtraceFrame.InvalidFrame)
                 {

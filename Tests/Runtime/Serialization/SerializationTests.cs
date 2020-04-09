@@ -5,7 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
     public class SerializationTests
     {

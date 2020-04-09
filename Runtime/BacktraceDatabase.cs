@@ -292,7 +292,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            var backtraceData = record.BacktraceDataJson;
+            var backtraceData = record.BacktraceDataJson();
             Delete(record);
             if (backtraceData == null)
             {
@@ -308,7 +308,7 @@ namespace Backtrace.Unity
 
         private void SendData(BacktraceDatabaseRecord record)
         {
-            var backtraceData = record != null ? record.BacktraceDataJson : null;
+            var backtraceData = record != null ? record.BacktraceDataJson() : null;
             //check if report exists on hard drive 
             // to avoid situation when someone manually remove data
             if (string.IsNullOrEmpty(backtraceData))
@@ -340,7 +340,6 @@ namespace Backtrace.Unity
                          SendData(record);
                      }));
             }
-
         }
 
         /// <summary>

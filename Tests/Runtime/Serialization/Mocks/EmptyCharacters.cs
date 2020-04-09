@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
     [Serializable]
     internal class EmptyCharacters

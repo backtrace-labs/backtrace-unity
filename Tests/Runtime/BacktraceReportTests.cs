@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
     public class BacktraceReportTests
     {

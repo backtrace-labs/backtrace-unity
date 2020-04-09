@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
     public class BacktraceStackTraceTests
     {
@@ -106,7 +106,7 @@ namespace Tests
         {
             var environmentStackTrace = new StackTrace(true);
             var report = new BacktraceReport("msg");
-            Assert.AreEqual(report.DiagnosticStack.Count, environmentStackTrace.FrameCount);
+            Assert.AreEqual(environmentStackTrace.FrameCount, report.DiagnosticStack.Count);
             yield return null;
         }
 

@@ -49,17 +49,19 @@ namespace Backtrace.Unity.Json
 
             foreach (var entry in Source)
             {
+                // add to each property (expect first one) 
+                // ,\n for fomarring reasons. 
+                // without adding this condition at the beginning of the string builder,
+                // we will generate invalid json with `,` character in the end of the json properties.
                 if (stringBuilder.Length != 3)
                 {
                     stringBuilder.Append(",");
                     stringBuilder.AppendLine();
                 }
-                var key = EscapeKey(entry.Key);
-                stringBuilder.AppendFormat("\"{0}\":", key);
-
-                var value = entry.Value;
-                var jsonValue = ConvertValue(value);
-                stringBuilder.Append(jsonValue);
+                // add key
+                stringBuilder.AppendFormat("\"{0}\":", EscapeString(entry.Key));
+                // add value to key
+                stringBuilder.Append(ConvertValue(entry.Value));
             }
 
             stringBuilder.AppendLine();
@@ -73,7 +75,7 @@ namespace Backtrace.Unity.Json
         /// </summary>
         /// <param name="value">string to escape</param>
         /// <returns>escaped string</returns>
-        private string EscapeKey(string value)
+        private string EscapeString(string value)
         {
             var output = new StringBuilder(value.Length);
             foreach (char c in value)
@@ -132,11 +134,11 @@ namespace Backtrace.Unity.Json
             }
             else if (analysedType == typeof(double))
             {
-                return Convert.ToDouble(value, CultureInfo.CurrentCulture).ToString();
+                return Convert.ToDouble(value, CultureInfo.CurrentCulture).ToString(CultureInfo.InvariantCulture);
             }
             else if (analysedType == typeof(float))
             {
-                return Convert.ToDouble(value, CultureInfo.CurrentCulture).ToString();
+                return Convert.ToDouble(value, CultureInfo.CurrentCulture).ToString(CultureInfo.InvariantCulture);
             }
             else if (analysedType == typeof(int))
             {
@@ -148,9 +150,9 @@ namespace Backtrace.Unity.Json
             }
             else if (analysedType == typeof(string))
             {
-                return string.Format("\"{0}\"", EscapeKey(value as string));
+                return string.Format("\"{0}\"", EscapeString(value as string));
             }
-            else if (value is IEnumerable)
+            else if (value is IEnumerable && !(value is IDictionary))
             {
                 var collection = (value as IEnumerable);
                 var builder = new StringBuilder();
