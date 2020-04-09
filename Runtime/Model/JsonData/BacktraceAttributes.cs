@@ -41,9 +41,10 @@ namespace Backtrace.Unity.Model.JsonData
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);
-                SetLibraryAttributes(report);
+               
                 SetExceptionAttributes(report);
             }
+             SetLibraryAttributes(report);
             //Environment attributes override user attributes            
             SetMachineAttributes();
             SetProcessAttributes();
