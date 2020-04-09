@@ -1,5 +1,6 @@
 ﻿using Backtrace.Unity.Interfaces.Database;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
@@ -57,6 +58,11 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         private string _path = string.Empty;
 
+        /// <summary>
+        /// Attachments path
+        /// </summary>
+        public List<string> Attachments { get; private set; }
+
         private int _count = 1;
 
         public int Count
@@ -111,7 +117,8 @@ namespace Backtrace.Unity.Model.Database
                 dataPath = DiagnosticDataPath,
                 minidumpPath = MiniDumpPath,
                 size = Size,
-                hash = Hash
+                hash = Hash,
+                attachments = Record.Report.AttachmentPaths
             };
             return JsonUtility.ToJson(rawRecord, true);
         }
@@ -132,6 +139,7 @@ namespace Backtrace.Unity.Model.Database
             MiniDumpPath = rawRecord.minidumpPath;
             Size = rawRecord.size;
             Hash = rawRecord.hash;
+            Attachments = rawRecord.attachments;
         }
 
         /// <summary>
@@ -313,6 +321,7 @@ namespace Backtrace.Unity.Model.Database
             public string minidumpPath;
             public long size;
             public string hash;
+            public List<string> attachments;
         }
     }
 }

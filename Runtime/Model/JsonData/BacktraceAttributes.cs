@@ -49,28 +49,19 @@ namespace Backtrace.Unity.Model.JsonData
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);
-                SetLibraryAttributes(report);
+                if (!string.IsNullOrEmpty(report.Factor))
+                {
+                    Attributes["_mod_factor"] = report.Factor;
+                }
                 SetExceptionAttributes(report);
             }
-            //Environment attributes override user attributes            
+            //Environment attributes override user attributes     
+            SetLibraryAttributes();
             SetMachineAttributes();
             SetProcessAttributes();
             SetSceneInformation();
         }
         private BacktraceAttributes() { }
-
-        //public static BacktraceAttributes Deserialize(JToken jToken)
-        //{
-        //    var attributes = new Dictionary<string, object>();
-        //    foreach (BacktraceJProperty keys in jToken)
-        //    {
-        //        attributes.Add(keys.Name, keys.Value.Value<string>());
-        //    }
-        //    return new BacktraceAttributes()
-        //    {
-        //        Attributes = attributes
-        //    };
-        //}
 
         public BacktraceJObject ToJson()
         {
@@ -79,12 +70,8 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Set library attributes
         /// </summary>
-        private void SetLibraryAttributes(BacktraceReport report)
-        {
-            if (!string.IsNullOrEmpty(report.Factor))
-            {
-                Attributes["_mod_factor"] = report.Factor;
-            }
+        private void SetLibraryAttributes()
+        {            
             //A unique identifier of a machine
             Attributes["guid"] = MachineId;
             //Base name of application generating the report

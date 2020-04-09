@@ -299,7 +299,7 @@ namespace Backtrace.Unity
                 return;
             }
             StartCoroutine(
-                BacktraceApi.Send(backtraceData, (BacktraceResult result) =>
+                BacktraceApi.Send(backtraceData, record.Attachments, record.Count, (BacktraceResult result) =>
                 {
                     record = BacktraceDatabaseContext.FirstOrDefault();
                     FlushRecord(record);
@@ -318,7 +318,7 @@ namespace Backtrace.Unity
             else
             {
                 StartCoroutine(
-                     BacktraceApi.Send(backtraceData, (BacktraceResult sendResult) =>
+                     BacktraceApi.Send(backtraceData, record.Attachments, record.Count, (BacktraceResult sendResult) =>
                      {
                          if (sendResult.Status == BacktraceResultStatus.Ok)
                          {
@@ -485,6 +485,5 @@ namespace Backtrace.Unity
         {
             _reportLimitWatcher = reportLimitWatcher;
         }
-
     }
 }

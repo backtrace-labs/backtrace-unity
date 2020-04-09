@@ -94,18 +94,16 @@ namespace Backtrace.Unity.Services
             }
         }
 
+
         /// <summary>
         /// Sending diagnostic report to Backtrace
         /// </summary>
         /// <param name="json">diagnostic data JSON</param>
+        /// <param name="attachments">List of report attachments</param>
+        /// <param name="deduplication">Deduplication count</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, Action<BacktraceResult> callback = null)
-        {
-            yield return Send(json, null, 0, callback);
-        }
-
-        private IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
             var requestUrl = _serverurl.ToString();
             if (deduplication > 0)
@@ -180,7 +178,6 @@ namespace Backtrace.Unity.Services
                 {
                     string fileName = System.IO.Path.GetFileName(attachment);
                     string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
-                    Debug.Log("Server url = " + serverUrl);
                     using (var request = new UnityWebRequest(serverUrl, "POST"))
                     {
 

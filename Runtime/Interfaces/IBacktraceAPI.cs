@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Model;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
 {
@@ -19,9 +20,11 @@ namespace Backtrace.Unity.Interfaces
         /// Send diagnostic report to Backtrace API
         /// </summary>
         /// <param name="json">Library diagnostic data in JSON format</param>
+        /// <param name="attachments">List of report attachments</param>
+        /// /// <param name="deduplication">Deduplication count</param>
         /// <param name="callback">Coroutine callback</param>
         /// <returns></returns>
-        IEnumerator Send(string json, Action<BacktraceResult> callback = null);
+        IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback);
 
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
