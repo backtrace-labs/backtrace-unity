@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - backtrace-unity
+          - .
         unityVersion:
           - 2019.2.11f1
         targetPlatform:
