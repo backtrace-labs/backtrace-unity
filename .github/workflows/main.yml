@@ -45,7 +45,7 @@ jobs:
       - name: Run tests
         uses: webbertakken/unity-test-runner@v1.3
         with:
-          projectPath: test-project
+          projectPath: Library
           unityVersion: 2019.2.11f1
 
       # Output 
