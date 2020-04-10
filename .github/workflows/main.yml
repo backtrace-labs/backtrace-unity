@@ -12,38 +12,43 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  readmeWorkflow:
-    name: Readme Workflow ✨
+ build:
+    name: Build my project ✨
     runs-on: ubuntu-latest
     steps:
+    
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           lfs: true
-
+    
       # Cache
       - uses: actions/cache@v1.1.0
         with:
-          path: backtrace-unity/Cache
-          key: Library-test-project-WebGL
+          path: Library
+          key: Library
 
-      # Test
-      - name: Run tests
-        uses: webbertakken/unity-test-runner@v1.3
-        with:
-          projectPath: backtrace-unity/Cache
-          unityVersion: 2019.2.11f1
+      - name: Activate Unity
+        uses: webbertakken/unity-activate@v1.2
+        with:  
+          unityVersion:  2019.2.11f1
 
       # Build
       - name: Build project
         uses: webbertakken/unity-builder@v0.10
         with:
-          projectPath: backtrace-unity/Cache
           unityVersion: 2019.2.11f1
-          targetPlatform: WebGL
+          targetPlatform: StandaloneWindows64 
 
-      # Output
+       # Test
+      - name: Run tests
+        uses: webbertakken/unity-test-runner@v1.3
+        with:
+          projectPath: test-project
+          unityVersion: 2019.2.11f1
+
+      # Output 
       - uses: actions/upload-artifact@v1
         with:
           name: Build
