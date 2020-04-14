@@ -1,5 +1,4 @@
-﻿#if UNITY_EDITOR
-using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
 using UnityEditor;
 using UnityEngine;
@@ -120,4 +119,3 @@ namespace Backtrace.Unity.Editor
     }
 
 }
-#endif
