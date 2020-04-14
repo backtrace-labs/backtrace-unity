@@ -7,13 +7,13 @@ using UnityEngine;
 
 namespace Backtrace.Unity.Editor
 {
-    public class BacktraceMenu : MonoBehaviour
+    public class BacktraceMenu
     {
         public const string DEFAULT_CONFIGURATION_NAME = "Backtrace Configuration";
         public const string DEFAULT_EXTENSION_NAME = ".asset";
         public const string DEFAULT_CLIENT_CONFIGURATION_NAME = DEFAULT_CONFIGURATION_NAME + DEFAULT_EXTENSION_NAME;
 
-        [MenuItem("Assets/Backtrace/Configuration", false, 1)]
+        [MenuItem("Assets/Create/Backtrace/Configuration")]
         public static void CreateClientConfigurationFile()
         {
             CreateAsset<BacktraceConfiguration>(DEFAULT_CLIENT_CONFIGURATION_NAME);
