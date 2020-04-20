@@ -47,13 +47,13 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 ## Integrating into your project
 
-- Under the Assets Menu, there is now a Backtrace -> Configuration option. Choose that option (or Right click on empty space and select from the menu box) to have a Backtrace Configuration is generated in the Assets folder. You can drag and drop generated asset file into Backtrace Client configuration window.
-  ![Backtrace menu dialog box](./Documentation/images/dialog-box.PNG)
+- Under the Assets Menu "Create" option, there is now a Backtrace -> Configuration option. Choose that option (or Right click on empty space and select from the menu box) to have a Backtrace Configuration is generated in the Assets folder. You can drag and drop generated asset file into Backtrace Client configuration window.
+  ![Backtrace menu dialog box](./Documentation~/images/dialog-box.PNG)
 - Next, select an object from the Scene Hierarchy to associate the Backtrace reporting client to. In the example below, we use the Manager object., Using the Inspector panel, click the Add Component button and search for the Backtrace Client object.
 - Within the Backtrace Client panel, there is a Backtrace Configuration field. Drag and drop the Backtrace Configuration from the Assets folder to that field. More fields will appear for you to fill in to configure the Backtrace Client and Offline Database options.
-  ![Backtrace configuration window](./Documentation/images/unity-basic-configuration.PNG)
+  ![Backtrace configuration window](./Documentation~/images/unity-basic-configuration.PNG)
 - Provide valid Backtrace client configuration and start using library!
-  ![Full Backtrace configuration](./Documentation/images/client-setup.PNG)
+  ![Full Backtrace configuration](./Documentation~/images/client-setup.PNG)
 
 Watch this 1 minute silent video to see the Integration and Configuration in action. The first 20 seconds of the video shows the above Integrating steps, and the second part shows details of the below Client and Database Settings - https://player.vimeo.com/video/300051476
 
@@ -229,7 +229,7 @@ backtraceDatabase.Clear();
 #### Deduplication
 
 Backtrace unity integration allows you to aggregate the same reports and send only one message to Backtrace Api. As a developer you can choose deduplication options. Please use `DeduplicationStrategy` enum to setup possible deduplication rules in Unity UI:
-![Backtrace deduplicaiton setup](./Documentation/images/deduplication-setup.PNG)
+![Backtrace deduplicaiton setup](./Documentation~/images/deduplication-setup.PNG)
 
 Deduplication strategy types:
 
