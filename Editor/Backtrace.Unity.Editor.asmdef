@@ -1,7 +1,7 @@
 {
     "name": "Backtrace.Unity.Editor",
     "references": [
-        "GUID:e9d637572d6c60f47a11b46506753692"
+        "Backtrace.Unity"
     ],
     "includePlatforms": [
         "Editor"
@@ -10,7 +10,7 @@
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

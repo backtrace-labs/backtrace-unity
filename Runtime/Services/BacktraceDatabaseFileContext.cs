@@ -104,6 +104,7 @@ namespace Backtrace.Unity.Services
                         file.Delete();
                     }
                 }
+#pragma warning disable CS0168
                 catch (Exception e)
                 {
 #if DEBUG
@@ -111,6 +112,7 @@ namespace Backtrace.Unity.Services
 #endif
                     Debug.LogWarning(string.Format("Cannot remove file in path: {0}", file.FullName));
                 }
+#pragma warning restore CS0168
             }
         }
 

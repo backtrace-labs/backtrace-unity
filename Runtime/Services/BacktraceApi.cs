@@ -83,7 +83,9 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             if (RequestHandler != null)
+
             {
                 yield return RequestHandler.Invoke(_serverurl.ToString(), data);
             }
@@ -92,6 +94,7 @@ namespace Backtrace.Unity.Services
                 string json = data.ToJson();
                 yield return Send(json, data.Attachments, data.Deduplication, callback);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
 

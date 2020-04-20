@@ -1,5 +1,12 @@
 # Backtrace Unity Release Notes
 
+## Version 2.1.1
+
+- UPM modifications - fixed editor assembly definition,
+- Hiding Documentation and Scripts folders
+- Added Mac and Rider files to .gitignore
+- Moved Backtrace Configuration create menu deeper into the hierarchy
+
 ## Version 2.1.0
 
 - UPM support - changed project structure and divide Backtrae-unity plugin into assemblies.

@@ -1,4 +1,3 @@
-﻿#if UNITY_EDITOR
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Types;
 using System.IO;
@@ -50,5 +49,3 @@ namespace Backtrace.Unity.Editor
     }
 
 }
-
-#endif

@@ -1,4 +1,3 @@
-﻿#if UNITY_EDITOR
 using UnityEditor;
 
 namespace Backtrace.Unity.Editor
@@ -13,4 +12,3 @@ namespace Backtrace.Unity.Editor
     }
 
 }
-#endif

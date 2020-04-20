@@ -128,8 +128,14 @@ namespace Backtrace.Unity.Model
         [Serializable]
         private class BacktraceRawResult
         {
+#pragma warning disable CA2235 // Mark all non-serializable fields
+#pragma warning disable CS0649
             public string response;
             public string _rxid;
+#pragma warning restore CS0649
+#pragma warning restore CA2235 // Mark all non-serializable fields
+
+
         }
     }
 }

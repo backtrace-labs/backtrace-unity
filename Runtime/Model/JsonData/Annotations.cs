@@ -1,4 +1,3 @@
-﻿
 using Backtrace.Unity.Json;
 using System;
 using System.Collections;

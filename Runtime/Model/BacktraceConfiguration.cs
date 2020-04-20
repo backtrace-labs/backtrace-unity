@@ -6,6 +6,7 @@ using UnityEngine;
 namespace Backtrace.Unity.Model
 {
     [Serializable]
+    [CreateAssetMenu(fileName = "Backtrace Configuration", menuName = "Backtrace/Configuration", order = 0)]
     public class BacktraceConfiguration : ScriptableObject
     {
         /// <summary>
