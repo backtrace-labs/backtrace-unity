@@ -1,5 +1,12 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.0
+
+- Removed JSON.NET Dependency - now Backtrace library provide our own serializer just for BacktraceReport usage.
+- BacktraceJObject allowed us to decrease size of Backtrace.Unity assembly.
+- BacktraceClient and BacktraceReport allow our user to pass attributes in dictionary form with string key and string values. Because we want our serializer to be as fast as possible, we will require attributes in Dictionary<string, string> data structure.
+- BacktraceDatabase won't try to deserialize BacktraceReport anymore - because of that, callback api won't return BacktraceReport object in BacktraceResult.
+
 ## Version 2.1.1
 
 - UPM modifications - fixed editor assembly definition,
