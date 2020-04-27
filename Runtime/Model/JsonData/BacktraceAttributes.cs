@@ -121,7 +121,6 @@ namespace Backtrace.Unity.Model.JsonData
 
         /// <summary>
         /// Generate unique machine identifier. Value should be with guid key in Attributes dictionary. 
-        /// Machine id is equal to mac address of first network interface. If network interface in unvailable, random long will be generated.
         /// </summary>
         /// <returns>Machine uuid</returns>
         private static string GenerateMachineId()
@@ -132,24 +131,9 @@ namespace Backtrace.Unity.Model.JsonData
                 return SystemInfo.deviceUniqueIdentifier;
             }
             
-            // Second choice: Guid based on the MAC address of the first up NIC
-            NetworkInterface networkInterface = null;
-            try {
-                networkInterface =
-                    NetworkInterface.GetAllNetworkInterfaces()
-                        .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up);
-            }
-            catch (Exception e)
-            {
-                // On some Unity runtimes (like WebGL), there's no access to System.Net.*
-                Debug.Log("Unable to retrieve network interfaces: [" + e.Message + "].");
-            }
-
-            PhysicalAddress physicalAddr = null;
-            string macAddress = null;
-            if (networkInterface != null
-                && (physicalAddr = networkInterface.GetPhysicalAddress()) != null
-                && !string.IsNullOrEmpty(macAddress = physicalAddr.ToString()))
+            // Second choice: Guid based on the MAC address
+            string macAddress = getMacAddress();
+            if (!string.IsNullOrEmpty(macAddress))
             {
                 string hex = macAddress.Replace(":", string.Empty);
                 long value = Convert.ToInt64(hex, 16);
@@ -158,6 +142,27 @@ namespace Backtrace.Unity.Model.JsonData
 
             // Final resort: a new Guid based on nothing unique to the machine
             return Guid.NewGuid().ToString();
+        }
+        
+        /// <summary>
+        /// Returns mac address of first up network interface. If network interface is unvailable, null is returned.
+        /// </summary>
+        /// <returns>Mac address</returns>
+        private static string getMacAddress()
+        {
+            try {
+                return NetworkInterface
+                    .GetAllNetworkInterfaces()
+                    .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
+                    .Select(nic => nic.GetPhysicalAddress().ToString())
+                    .FirstOrDefault();
+            }
+            catch (Exception e)
+            {
+                // On some Unity runtimes (like WebGL), there's no access to System.Net.*
+                Debug.Log("Unable to retrieve primary network interface and/or mac address: [" + e.Message + "].");
+                return null;
+            }
         }
 
         /// <summary>
