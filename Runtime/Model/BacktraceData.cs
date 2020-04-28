@@ -154,7 +154,7 @@ namespace Backtrace.Unity.Model
             LangVersion = "Mono";
 #endif
 
-            AgentVersion = "3.0.0-alpha";
+            AgentVersion = "3.0.0-alpha1";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }
