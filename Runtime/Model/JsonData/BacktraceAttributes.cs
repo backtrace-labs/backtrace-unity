@@ -125,6 +125,9 @@ namespace Backtrace.Unity.Model.JsonData
         /// <returns>Machine uuid</returns>
         private static string GenerateMachineId()
         {
+#if UNITY_WEBGL
+            return Guid.NewGuid().ToString();
+#endif
             // First choice: the unique identifier provided by Unity
             if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
             {
@@ -132,7 +135,7 @@ namespace Backtrace.Unity.Model.JsonData
             }
             
             // Second choice: Guid based on the MAC address
-            string macAddress = getMacAddress();
+            string macAddress = getMacAddressOrNull();
             if (!string.IsNullOrEmpty(macAddress))
             {
                 string hex = macAddress.Replace(":", string.Empty);
@@ -145,24 +148,17 @@ namespace Backtrace.Unity.Model.JsonData
         }
         
         /// <summary>
-        /// Returns mac address of first up network interface. If network interface is unvailable, null is returned.
+        /// Returns mac address of first up network interface.
         /// </summary>
-        /// <returns>Mac address</returns>
-        private static string getMacAddress()
+        /// <returns>Mac address or null if network interface is unvailable.</returns>
+        private static string getMacAddressOrNull()
         {
-            try {
-                return NetworkInterface
-                    .GetAllNetworkInterfaces()
-                    .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
-                    .Select(nic => nic.GetPhysicalAddress().ToString())
-                    .FirstOrDefault();
-            }
-            catch (Exception e)
-            {
-                // On some Unity runtimes (like WebGL), there's no access to System.Net.*
-                Debug.Log("Unable to retrieve primary network interface and/or mac address: [" + e.Message + "].");
-                return null;
-            }
+            // On some Unity runtimes (like WebGL), there's no access to System.Net.*
+            return NetworkInterface
+                .GetAllNetworkInterfaces()
+                .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
+                .Select(nic => nic.GetPhysicalAddress().ToString())
+                .FirstOrDefault();
         }
 
         /// <summary>
