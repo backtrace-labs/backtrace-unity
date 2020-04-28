@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Linq;
 
 namespace Backtrace.Unity.Json
 {
@@ -47,24 +48,10 @@ namespace Backtrace.Unity.Json
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("{");
 
-            foreach (var entry in Source)
-            {
-                // add to each property (expect first one) 
-                // ,\n for fomarring reasons. 
-                // without adding this condition at the beginning of the string builder,
-                // we will generate invalid json with `,` character in the end of the json properties.
-                if (stringBuilder.Length != 3)
-                {
-                    stringBuilder.Append(",");
-                    stringBuilder.AppendLine();
-                }
-                // add key
-                stringBuilder.AppendFormat("\"{0}\":", EscapeString(entry.Key));
-                // add value to key
-                stringBuilder.Append(ConvertValue(entry.Value));
-            }
+            var lines = Source.Select(entry => string.Format("\"{0}\": {1}",EscapeString(entry.Key),ConvertValue(entry.Value)));
+            var content = string.Join(",", lines);
 
-            stringBuilder.AppendLine();
+            stringBuilder.Append(content);
             stringBuilder.AppendLine("}");
 
             return stringBuilder.ToString();

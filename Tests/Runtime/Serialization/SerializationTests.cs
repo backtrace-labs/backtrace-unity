@@ -40,12 +40,13 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var report = new BacktraceReport(new Exception("test"));
             var data = new BacktraceData(report, attributes, 0);
+
             var json = data.ToJson();
             foreach (var keyValuePair in attributes)
             {
-                Assert.IsTrue(json.Contains(string.Format("\"{0}\":\"{1}\"", keyValuePair.Key, keyValuePair.Value)));
+                Assert.IsTrue(json.Contains(string.Format("\"{0}\": \"{1}\"", keyValuePair.Key, keyValuePair.Value)));
             }
-            
+
 
             yield return null;
         }

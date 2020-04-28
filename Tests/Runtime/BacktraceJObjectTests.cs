@@ -21,7 +21,6 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsNotEmpty(json);
 
             var expectedResult = "{\r\n" +
-                "\r\n" +
                 "}\r\n";
             Assert.AreEqual(expectedResult, json);
             yield return null;
@@ -173,8 +172,8 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var json = jObject.ToJson();
             var expectedResult = "{\r\n" +
-               "\"foo\":null,\r\n" +
-               "\"bar\":\"\"\r\n" +
+               "\"foo\": null," +
+               "\"bar\": \"\"" +
                "}\r\n";
             Assert.AreEqual(expectedResult, json);
             yield return null;
