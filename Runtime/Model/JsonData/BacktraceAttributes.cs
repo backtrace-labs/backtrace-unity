@@ -125,15 +125,13 @@ namespace Backtrace.Unity.Model.JsonData
         /// <returns>Machine uuid</returns>
         private static string GenerateMachineId()
         {
-#if UNITY_WEBGL
-            return Guid.NewGuid().ToString();
-#endif
             // First choice: the unique identifier provided by Unity
             if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
             {
                 return SystemInfo.deviceUniqueIdentifier;
             }
-            
+
+         
             // Second choice: Guid based on the MAC address
             string macAddress = getMacAddressOrNull();
             if (!string.IsNullOrEmpty(macAddress))
@@ -153,12 +151,15 @@ namespace Backtrace.Unity.Model.JsonData
         /// <returns>Mac address or null if network interface is unvailable.</returns>
         private static string getMacAddressOrNull()
         {
-            // On some Unity runtimes (like WebGL), there's no access to System.Net.*
+#if UNITY_WEBGL   
+            return null;
+#else
             return NetworkInterface
                 .GetAllNetworkInterfaces()
                 .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
                 .Select(nic => nic.GetPhysicalAddress().ToString())
                 .FirstOrDefault();
+#endif
         }
 
         /// <summary>
