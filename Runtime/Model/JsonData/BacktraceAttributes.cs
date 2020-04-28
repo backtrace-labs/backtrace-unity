@@ -22,8 +22,6 @@ namespace Backtrace.Unity.Model.JsonData
 
         internal const string APPLICATION_ATTRIBUTE_NAME = "application";
 
-        internal readonly static string MACHINE_ID = GenerateMachineId();
-
         /// <summary>
         /// Get built-in complex attributes
         /// </summary>
@@ -97,7 +95,7 @@ namespace Backtrace.Unity.Model.JsonData
                 Attributes["_mod_factor"] = report.Factor;
             }
             //A unique identifier of a machine
-            Attributes["guid"] = MACHINE_ID;
+            Attributes["guid"] = GetDeviceUniqueId();
             //Base name of application generating the report
             Attributes[APPLICATION_ATTRIBUTE_NAME] = Application.productName;
             Attributes["application.version"] = Application.version;
@@ -119,6 +117,15 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.debug"] = Debug.isDebugBuild;
         }
 
+        private string GetDeviceUniqueId() 
+        {
+            if (!PlayerPrefs.HasKey("deviceUniqueIdentifier")) 
+            {
+                PlayerPrefs.SetString("deviceUniqueIdentifier", GenerateMachineId());
+            }
+            return PlayerPrefs.GetString("deviceUniqueIdentifier");
+        }
+
         /// <summary>
         /// Generate unique machine identifier. Value should be with guid key in Attributes dictionary. 
         /// </summary>
@@ -130,7 +137,6 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 return SystemInfo.deviceUniqueIdentifier;
             }
-
          
             // Second choice: Guid based on the MAC address
             string macAddress = getMacAddressOrNull();
