@@ -1,4 +1,4 @@
-﻿using Backtrace.Newtonsoft.Linq;
+using Backtrace.Newtonsoft.Linq;
 using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using System;
@@ -95,7 +95,7 @@ namespace Backtrace.Unity.Model.JsonData
                 Attributes["_mod_factor"] = report.Factor;
             }
             //A unique identifier of a machine
-            Attributes["guid"] = GenerateMachineId();
+            Attributes["guid"] = GetDeviceUniqueId();
             //Base name of application generating the report
             Attributes[APPLICATION_ATTRIBUTE_NAME] = Application.productName;
             Attributes["application.version"] = Application.version;
@@ -117,33 +117,55 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.debug"] = Debug.isDebugBuild;
         }
 
+        private string GetDeviceUniqueId() 
+        {
+            if (!PlayerPrefs.HasKey("deviceUniqueIdentifier")) 
+            {
+                PlayerPrefs.SetString("deviceUniqueIdentifier", GenerateMachineId());
+            }
+            return PlayerPrefs.GetString("deviceUniqueIdentifier");
+        }
+
         /// <summary>
         /// Generate unique machine identifier. Value should be with guid key in Attributes dictionary. 
-        /// Machine id is equal to mac address of first network interface. If network interface in unvailable, random long will be generated.
         /// </summary>
         /// <returns>Machine uuid</returns>
-        private string GenerateMachineId()
+        private static string GenerateMachineId()
         {
+            // First choice: the unique identifier provided by Unity
             if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
             {
                 return SystemInfo.deviceUniqueIdentifier;
             }
-            var networkInterface =
-                 NetworkInterface.GetAllNetworkInterfaces()
-                    .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up);
-
-            PhysicalAddress physicalAddr = null;
-            string macAddress = null;
-            if (networkInterface == null
-                || (physicalAddr = networkInterface.GetPhysicalAddress()) == null
-                || string.IsNullOrEmpty(macAddress = physicalAddr.ToString()))
+         
+            // Second choice: Guid based on the MAC address
+            string macAddress = getMacAddressOrNull();
+            if (!string.IsNullOrEmpty(macAddress))
             {
-                return Guid.NewGuid().ToString();
+                string hex = macAddress.Replace(":", string.Empty);
+                long value = Convert.ToInt64(hex, 16);
+                return GuidExtensions.FromLong(value).ToString();
             }
 
-            string hex = macAddress.Replace(":", string.Empty);
-            var value = Convert.ToInt64(hex, 16);
-            return GuidExtensions.FromLong(value).ToString();
+            // Final resort: a new Guid based on nothing unique to the machine
+            return Guid.NewGuid().ToString();
+        }
+        
+        /// <summary>
+        /// Returns mac address of first up network interface.
+        /// </summary>
+        /// <returns>Mac address or null if network interface is unvailable.</returns>
+        private static string getMacAddressOrNull()
+        {
+#if UNITY_WEBGL   
+            return null;
+#else
+            return NetworkInterface
+                .GetAllNetworkInterfaces()
+                .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
+                .Select(nic => nic.GetPhysicalAddress().ToString())
+                .FirstOrDefault();
+#endif
         }
 
         /// <summary>
