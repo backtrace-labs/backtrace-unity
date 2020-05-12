@@ -7,6 +7,7 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Backtrace.Unity
@@ -247,7 +248,88 @@ namespace Backtrace.Unity
             }
             _reportLimitWatcher.SetClientReportLimit(reportPerMin);
         }
+        #region v3.0.0 obsolete constructors
 
+        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
+        public void Send(
+            Exception exception,
+            List<string> attachmentPaths,
+            Dictionary<string, object> attributes
+            )
+        {
+            Send(
+                exception: exception,
+                attachmentPaths: attachmentPaths,
+                attributes: attributes == null
+                    ? new Dictionary<string, string>()
+                    : attributes.ToDictionary(
+                        n => n.Key,
+                        m => m.Value != null
+                            ? m.Value.ToString()
+                            : string.Empty));
+        }
+
+        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
+        public void Send(
+          Exception exception,
+          Dictionary<string, object> attributes
+          )
+        {
+            Send(
+                exception: exception,
+                attachmentPaths: null,
+                attributes: attributes);
+        }
+
+        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
+        public void Send(
+          string message,
+          Dictionary<string, object> attributes)
+        {
+            Send(
+                message: message,
+                attachmentPaths: null,
+                attributes: attributes);
+
+        }
+
+
+        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
+        public void Send(
+            string message,
+            List<string> attachmentPaths,
+            Dictionary<string, object> attributes)
+        {
+            Send(
+                message: message,
+                attachmentPaths: attachmentPaths,
+                attributes: attributes == null
+                    ? new Dictionary<string, string>()
+                    : attributes.ToDictionary(
+                        n => n.Key,
+                        m => m.Value != null
+                            ? m.Value.ToString()
+                            : string.Empty));
+
+        }
+
+        public void Send(Exception e, List<string> attachments)
+        {
+            Send(e, attributes: new Dictionary<string, string>(), attachmentPaths: attachments);
+        }
+        public void Send(string message, List<string> attachments)
+        {
+            Send(message, attributes: new Dictionary<string, string>(), attachmentPaths: attachments);
+        }
+        public void Send(Exception e)
+        {
+            Send(e, attributes: new Dictionary<string, string>(), attachmentPaths: null);
+        }
+        public void Send(string message)
+        {
+            Send(message, attributes: new Dictionary<string, string>(), attachmentPaths: null);
+        }
+        #endregion
         /// <summary>
         /// Send a message report to Backtrace API
         /// </summary>

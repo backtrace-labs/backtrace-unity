@@ -73,6 +73,71 @@ namespace Backtrace.Unity.Model
         internal string MinidumpFile { get; private set; }
 
 
+        #region v3.0.0 obsolete constructors
+        /// <summary>
+        /// Create new instance of Backtrace report to sending a report with custom client message
+        /// </summary>
+        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
+        public BacktraceReport(
+          string message,
+          Dictionary<string, object> attributes)
+          : this(
+                message: message,
+                attributes: attributes != null
+                    ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
+                    : new Dictionary<string, string>(),
+                attachmentPaths: null)
+        { }
+        /// <summary>
+        /// Create new instance of Backtrace report to sending a report with custom client message
+        /// </summary>
+        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
+        public BacktraceReport(
+         string message,
+         Dictionary<string, object> attributes,
+         List<string> attachmentPaths)
+         : this(
+               message: message,
+               attributes: attributes != null
+                   ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
+                   : new Dictionary<string, string>(),
+               attachmentPaths: attachmentPaths)
+        { }
+
+        /// <summary>
+        /// Create new instance of Backtrace report to sending a report with custom client message
+        /// </summary>
+        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
+        public BacktraceReport(
+            Exception exception,
+            Dictionary<string, object> attributes,
+            List<string> attachmentPaths = null)
+            : this(
+                exception: exception,
+                attributes: attributes != null
+                    ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
+                    : new Dictionary<string, string>(),
+                attachmentPaths: attachmentPaths)
+        { }
+
+        /// <summary>
+        /// Create new instance of Backtrace report to sending a report with custom client message
+        /// </summary>
+        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
+        public BacktraceReport(
+         Exception exception,
+         Dictionary<string, object> attributes)
+         : this(
+             exception: exception,
+             attributes: attributes != null
+                 ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
+                 : new Dictionary<string, string>(),
+             attachmentPaths: null)
+        { }
+
+        #endregion
+
+
         /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>
