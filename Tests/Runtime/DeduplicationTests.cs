@@ -96,8 +96,8 @@ namespace Backtrace.Unity.Tests.Runtime
             var report1 = new BacktraceReport(new Exception("test"));
             var report2 = new BacktraceReport(new ArgumentException("argument test"));
 
-            var deduplicationStrategy1 = new DeduplicationModel(new BacktraceData(report1, null), strategy);
-            var deduplicationStrategy2 = new DeduplicationModel(new BacktraceData(report2, null), strategy);
+            var deduplicationStrategy1 = new DeduplicationModel(new BacktraceData(report1), strategy);
+            var deduplicationStrategy2 = new DeduplicationModel(new BacktraceData(report2), strategy);
 
             var sha1 = deduplicationStrategy1.GetSha();
             var sha2 = deduplicationStrategy2.GetSha();

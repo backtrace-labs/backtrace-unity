@@ -13,7 +13,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public IEnumerator TestDataSerialization_ValidReport_ShouldGenerateValidJsonReport()
         {
             var report = new BacktraceReport(new Exception("test"));
-            var data = new BacktraceData(report, null, 0);
+            var data = new BacktraceData(report, new Dictionary<string, string>(), 0);
             Assert.DoesNotThrow(() => data.ToJson());
             yield return null;
         }
@@ -23,7 +23,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public IEnumerator TestDataSerialization_ValidStringReport_ShouldGenerateValidJsonReport()
         {
             var report = new BacktraceReport("string");
-            var data = new BacktraceData(report, null, 0);
+            var data = new BacktraceData(report, new Dictionary<string, string>(), 0);
             Assert.DoesNotThrow(() => data.ToJson());
             yield return null;
         }

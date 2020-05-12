@@ -45,7 +45,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Application thread details
         /// </summary>
-        internal Dictionary<string, ThreadInformation> ThreadInformations;
+        public Dictionary<string, ThreadInformation> ThreadInformations;
 
         /// <summary>
         /// Get a main thread name
@@ -65,7 +65,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Current BacktraceReport
         /// </summary>
-        internal BacktraceReport Report { get; set; }
+        public BacktraceReport Report { get; set; }
 
         /// <summary>
         /// Get built-in attributes
@@ -85,7 +85,26 @@ namespace Backtrace.Unity.Model
         /// </summary>
         /// <param name="report">Current report</param>
         /// <param name="clientAttributes">BacktraceClient's attributes</param>
-        public BacktraceData(BacktraceReport report, Dictionary<string, string> clientAttributes, int gameObjectDepth = -1)
+        [Obsolete]
+        public BacktraceData(BacktraceReport report, Dictionary<string, object> clientAttributes, int gameObjectDepth = -1)
+            : this(
+                  report,
+                  clientAttributes == null
+                    ? new Dictionary<string, string>()
+                  : clientAttributes.ToDictionary(
+                        n => n.Key,
+                        m => m.Value != null
+                            ? m.Value.ToString()
+                            : string.Empty),
+                  gameObjectDepth)
+        { }
+
+        /// <summary>
+        /// Create instance of report data
+        /// </summary>
+        /// <param name="report">Current report</param>
+        /// <param name="clientAttributes">BacktraceClient's attributes</param>
+        public BacktraceData(BacktraceReport report, Dictionary<string, string> clientAttributes = null, int gameObjectDepth = -1)
         {
             if (report == null)
             {

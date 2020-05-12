@@ -4,8 +4,9 @@
 
 - Removed JSON.NET Dependency - now Backtrace library provide our own serializer just for BacktraceReport usage.
 - BacktraceJObject allowed us to decrease size of Backtrace.Unity assembly.
-- BacktraceClient and BacktraceReport allow our user to pass attributes in dictionary form with string key and string values. Because we want our serializer to be as fast as possible, we will require attributes in Dictionary<string, string> data structure.
+- BacktraceClient, BacktraceReport, BacktraceData and BacktraceDatabase allow our user to pass attributes in dictionary form with string key and string values. Because we want our serializer to be as fast as possible, we will require attributes in Dictionary<string, string> data structure.
 - BacktraceDatabase won't try to deserialize BacktraceReport anymore - because of that, callback api won't return BacktraceReport object in BacktraceResult.
+- new Backtrace methods allow to pass attributes in old dictionary format (`Dictionary<string, object>`) and in new Dictionary attributes. `Dictionary<string, object>` attributes were marked as `obsolete`. We will remove them from the library soon.
 
 ## Version 2.1.1
 

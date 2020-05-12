@@ -140,12 +140,6 @@ namespace Backtrace.Unity
         /// </summary>
         public Action<Exception> OnUnhandledApplicationException = null;
 
-        /// <summary>
-        /// Get custom client attributes. Every argument stored in dictionary will be send to Backtrace API.
-        /// Backtrace unity-plugin allows you to store in attributes only string values. 
-        /// </summary>
-        public readonly Dictionary<string, string> Attributes;
-
 
         /// <summary>
         /// Instance of BacktraceApi that allows to send data to Backtrace API
@@ -436,11 +430,11 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">send callback</param>
         private void SendReport(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            var record = Database != null ? Database.Add(report, Attributes, MiniDumpType) : null;
+            var record = Database != null ? Database.Add(report, null, MiniDumpType) : null;
             //create a JSON payload instance
             BacktraceData data = null;
 
-            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(Attributes, Configuration.GameObjectDepth);
+            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(null, Configuration.GameObjectDepth);
             //valid user custom events
             data = (BeforeSend != null ? BeforeSend.Invoke(data) : null) ?? data;
 

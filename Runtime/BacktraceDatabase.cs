@@ -7,6 +7,7 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Backtrace.Unity
@@ -117,7 +118,6 @@ namespace Backtrace.Unity
             }
             if (Configuration == null || !Configuration.IsValid())
             {
-                Debug.LogWarning("Configuration doesn't exists or provided serverurl/token are invalid");
                 Enable = false;
                 return;
             }
@@ -129,7 +129,10 @@ namespace Backtrace.Unity
             Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
             if (!Enable)
             {
-                Debug.LogWarning("Cannot initialize database - invalid database configuration. Database is disabled");
+                if (Configuration.Enabled)
+                {
+                    Debug.LogWarning("Cannot initialize database - invalid path to database. Database is disabled");
+                }
                 return;
             }
             CreateDatabaseDirectory();
@@ -231,6 +234,18 @@ namespace Backtrace.Unity
                 BacktraceDatabaseFileContext.Clear();
         }
 
+        /// <summary>
+        /// Add new report to BacktraceDatabase
+        /// </summary>
+        [Obsolete("Please use Add method instead with Dictionary<string,string> parameter")]
+        public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, object> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
+        {
+            var internalAttributes = attributes != null
+                ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
+                : new Dictionary<string, string>();
+            return Add(backtraceReport, internalAttributes, miniDumpType);
+
+        }
         /// <summary>
         /// Add new report to BacktraceDatabase
         /// </summary>

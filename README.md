@@ -141,7 +141,7 @@ catch (Exception exception)
 {
     var report = new BacktraceReport(
         exception: exception,
-        attributes: new Dictionary<string, object>() { { "key", "value" } },
+        attributes: new Dictionary<string, string>() { { "key", "value" } },
         attachmentPaths: new List<string>() { @"file_path_1", @"file_path_2" }
     );
     backtraceClient.Send(report);
@@ -233,7 +233,8 @@ Backtrace unity integration allows you to aggregate the same reports and send on
 ![Backtrace deduplicaiton setup](./Documentation/images/deduplication-setup.PNG)
 =======
 ![Backtrace deduplicaiton setup](./Documentation~/images/deduplication-setup.PNG)
->>>>>>> master
+
+> > > > > > > master
 
 Deduplication strategy types:
 
