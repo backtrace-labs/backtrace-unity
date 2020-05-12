@@ -85,7 +85,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         /// <param name="report">Current report</param>
         /// <param name="clientAttributes">BacktraceClient's attributes</param>
-        [Obsolete]
+        [Obsolete("Please use constructor with Dictionary<string,string> attributes")]
         public BacktraceData(BacktraceReport report, Dictionary<string, object> clientAttributes, int gameObjectDepth = -1)
             : this(
                   report,
