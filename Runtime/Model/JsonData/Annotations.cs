@@ -119,7 +119,7 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
-            jGameObject["childrens"] = innerObjects;
+            jGameObject["children"] = innerObjects;
             return jGameObject;
         }
 
@@ -146,7 +146,7 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
-            result["childrens"] = innerObjects;
+            result["children"] = innerObjects;
             return result;
         }
 
