@@ -201,7 +201,10 @@ namespace Backtrace.Unity
 
 #endif
 
-            Annotations.GameObjectDepth = Configuration.GameObjectDepth;
+            // set maximum game object depth
+            Annotations.GameObjectDepth = Configuration.GameObjectDepth == 0 || Configuration.GameObjectDepth > 16
+                ? 16
+                : Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
