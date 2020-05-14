@@ -1,5 +1,11 @@
 # Backtrace Unity Release Notes
 
+## Version 2.1.2
+
+- `BacktraceReport` will generate report fingerprint for exceptions without stack trace.
+- Changed game object depth default property value.
+- Added Exception information to the Annotation object.
+
 ## Version 2.1.1
 
 - UPM modifications - fixed editor assembly definition,
