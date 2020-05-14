@@ -422,7 +422,7 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="message">Log message</param>
         /// <param name="stackTrace">Log stack trace</param>
-        /// <param name="type">log type</param>
+        /// <param name="type">log type</param> 
         private void HandleException(string message, string stackTrace, LogType type)
         {
             if ((type == LogType.Exception || type == LogType.Error)

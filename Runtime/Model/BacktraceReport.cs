@@ -194,7 +194,7 @@ namespace Backtrace.Unity.Model
                 SetReportFingerPrintForEmptyStackTrace();
             }
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
-            SetStacktraceInformation();            
+            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -216,13 +216,13 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal void SetReportFingerPrintForEmptyStackTrace()
         {
-            if (!string.IsNullOrEmpty(Exception.StackTrace) && !(Exception is BacktraceUnhandledException))
+            if (string.IsNullOrEmpty(Exception.StackTrace) && (Exception is BacktraceUnhandledException))
             {
-                return;
+                // set attributes instead of fingerprint to still allow our user to define customer
+                // fingerprints for reports without stack trace and apply deduplication rules in report flow.
+                Attributes["_mod_fingerprint"] = Exception.Message.OnlyLetters().GetSha();
             }
-            // set attributes instead of fingerprint to still allow our user to define customer
-            // fingerprints for reports without stack trace and apply deduplication rules in report flow.
-            Attributes["_mod_fingerprint"] = Exception.Message.OnlyLetters().GetSha();
+
         }
 
         internal BacktraceData ToBacktraceData(Dictionary<string, object> clientAttributes)

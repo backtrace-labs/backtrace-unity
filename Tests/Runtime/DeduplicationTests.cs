@@ -48,10 +48,6 @@ namespace Tests
             _database.DeduplicationStrategy = DeduplicationStrategy.None;
             _database.Clear();
             var report = new BacktraceReport(new Exception("Exception Message"));
-            // in this case we want to avoid self generated fingerprint
-            // because we want to test deduplication rules - not special case for missing stack trace.
-            report.Fingerprint = string.Empty;
-
             // validate total number of reports
             // Count method should return all reports (include reports after deduplicaiton)
             int totalNumberOfReports = 2;
@@ -121,6 +117,31 @@ namespace Tests
             Assert.AreEqual(exception.Message.OnlyLetters().GetSha(), report.Attributes["_mod_fingerprint"]);
             var data = new BacktraceData(report, null);
             Assert.IsNotEmpty(data.Attributes.Attributes["_mod_fingerprint"].ToString());
+        }
+
+
+        [Test]
+        public void TestFingerprintBehavior_ShouldGenerateFingerprintWithOnlyLetters_ShouldIncludeFingerprintInBacktraceReport()
+        {
+            var exception = new BacktraceUnhandledException("00:00:00 00/00/00 Unhandled exception", string.Empty);
+            var report = new BacktraceReport(exception);
+            Assert.AreEqual(exception.Message.OnlyLetters().GetSha(), report.Attributes["_mod_fingerprint"]);
+        }
+
+        [Test]
+        public void TestFingerprintBehavior_ShouldGenerateFingerprintAndShouldntRemoveLetters_ShouldIncludeFingerprintInBacktraceReport()
+        {
+            var exception = new BacktraceUnhandledException("Unhandled exception", string.Empty);
+            var report = new BacktraceReport(exception);
+            Assert.AreEqual(exception.Message.OnlyLetters().GetSha(), report.Attributes["_mod_fingerprint"]);
+        }
+
+        [Test]
+        public void TestFingerprintBehavior_ShouldntGenerateFingerprintForExistingStackTrace_ShouldIgnoreAttributeFingerprint()
+        {
+            var exception = new BacktraceUnhandledException("Unhandled exception", "foo()");
+            var report = new BacktraceReport(exception);
+            Assert.IsFalse(report.Attributes.ContainsKey("_mod_fingerprint"));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Backtrace.Newtonsoft;
 using Backtrace.Newtonsoft.Linq;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -43,10 +44,11 @@ namespace Backtrace.Unity.Model.JsonData
             }
         }
 
+
         /// <summary>
         /// Get built-in complex attributes
         /// </summary>
-        [JsonExtensionData]
+        [JsonProperty(PropertyName = "Custom")]
         public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
 
         public Annotations()
@@ -82,6 +84,12 @@ namespace Backtrace.Unity.Model.JsonData
                 envVariables[envVariable.Key] = envVariable.Value ?? string.Empty;
             }
             annotations[ENVIRONMENT_VARIABLE_KEY] = envVariables;
+
+            foreach (var annotation in ComplexAttributes)
+            {
+                annotations[annotation.Key] = JToken.FromObject(annotation.Value);
+            }
+
 
             if (GameObjectDepth > -1)
             {

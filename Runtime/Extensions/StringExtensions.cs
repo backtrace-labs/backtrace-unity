@@ -41,9 +41,11 @@ namespace Backtrace.Unity.Extensions
         /// <returns>sha256 string</returns>
         internal static string GetSha(this string source)
         {
-            if(source == null)
+            // generate empty sha which represents fingerprint in Backtrace 
+            // for empty string
+            if (string.IsNullOrEmpty(source))
             {
-                return string.Empty;
+                return "0000000000000000000000000000000000000000000000000000000000000000";
             }
             using (var sha256Hash = SHA256.Create())
             {
