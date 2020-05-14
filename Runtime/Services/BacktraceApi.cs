@@ -166,7 +166,6 @@ namespace Backtrace.Unity.Services
                 {
                     string fileName = System.IO.Path.GetFileName(attachment);
                     string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
-                    Debug.Log("Server url = " + serverUrl);
                     using (var request = new UnityWebRequest(serverUrl, "POST"))
                     {
 

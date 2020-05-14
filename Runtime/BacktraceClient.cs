@@ -201,7 +201,10 @@ namespace Backtrace.Unity
 
 #endif
 
-            Annotations.GameObjectDepth = Configuration.GameObjectDepth;
+            // set maximum game object depth
+            Annotations.GameObjectDepth = Configuration.GameObjectDepth == 0
+                ? 16 // default maximum game object size
+                : Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
@@ -422,7 +425,7 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="message">Log message</param>
         /// <param name="stackTrace">Log stack trace</param>
-        /// <param name="type">log type</param>
+        /// <param name="type">log type</param> 
         private void HandleException(string message, string stackTrace, LogType type)
         {
             if ((type == LogType.Exception || type == LogType.Error)

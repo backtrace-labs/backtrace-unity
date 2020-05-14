@@ -5,7 +5,7 @@ namespace Backtrace.Unity.Extensions
     /// <summary>
     /// All extensions available for Thread class
     /// </summary>
-    public static class ThreadExtensions
+    internal static class ThreadExtensions
     {
         /// <summary>
         /// Generate a valid thread name for passed thread

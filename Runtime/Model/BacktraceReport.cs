@@ -1,6 +1,7 @@
 ﻿using Backtrace.Newtonsoft;
 using Backtrace.Newtonsoft.Linq;
 using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -190,6 +191,7 @@ namespace Backtrace.Unity.Model
             if (ExceptionTypeReport)
             {
                 Message = exception.Message;
+                SetReportFingerPrintForEmptyStackTrace();
             }
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
             SetStacktraceInformation();
@@ -207,6 +209,20 @@ namespace Backtrace.Unity.Model
             }
             MinidumpFile = minidumpPath;
             AttachmentPaths.Add(minidumpPath);
+        }
+
+        /// <summary>
+        /// Override default fingerprint for reports without faulting stack trace.
+        /// </summary>
+        internal void SetReportFingerPrintForEmptyStackTrace()
+        {
+            if (string.IsNullOrEmpty(Exception.StackTrace))
+            {
+                // set attributes instead of fingerprint to still allow our user to define customer
+                // fingerprints for reports without stack trace and apply deduplication rules in report flow.
+                Attributes["_mod_fingerprint"] = Exception.Message.OnlyLetters().GetSha();
+            }
+
         }
 
         internal BacktraceData ToBacktraceData(Dictionary<string, object> clientAttributes)
