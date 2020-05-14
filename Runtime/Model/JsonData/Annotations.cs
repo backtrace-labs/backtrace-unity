@@ -48,7 +48,6 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Get built-in complex attributes
         /// </summary>
-        [JsonProperty(PropertyName = "Custom")]
         public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
 
         public Annotations()

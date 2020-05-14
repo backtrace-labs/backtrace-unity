@@ -28,7 +28,6 @@ namespace Backtrace.Unity.Model
                 }
                 if (_backtraceData.Report == null || _backtraceData.Report.DiagnosticStack == null)
                 {
-                    Debug.Log("Report or diagnostic stack is null");
                     return "";
                 }
                 var result = _backtraceData.Report.DiagnosticStack
@@ -58,6 +57,10 @@ namespace Backtrace.Unity.Model
                 {
                     return string.Empty;
                 }
+                if (_backtraceData.Report == null || string.IsNullOrEmpty(_backtraceData.Report.Message))
+                {
+                    return string.Empty;
+                }
                 return _backtraceData.Report.Message.OnlyLetters();
             }
         }
@@ -66,6 +69,10 @@ namespace Backtrace.Unity.Model
         {
             get
             {
+                if(_backtraceData.Report == null)
+                {
+                    return string.Empty;
+                }
                 return _backtraceData.Report.Factor;
             }
         }
