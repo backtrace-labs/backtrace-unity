@@ -87,7 +87,7 @@ namespace Backtrace.Unity.Model.JsonData
 
             foreach (var annotation in ComplexAttributes)
             {
-                annotations[annotation.Key] = JToken.FromObject(annotation.Value);
+                annotations[annotation.Key] = BacktraceJObject.FromObject(annotation.Value);
             }
 
 

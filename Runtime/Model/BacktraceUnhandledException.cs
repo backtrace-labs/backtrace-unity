@@ -5,8 +5,8 @@ using System.Diagnostics;
 namespace Backtrace.Unity.Model
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Usage", 
-        "CA2237:Mark ISerializable types with serializable", 
+        "Usage",
+        "CA2237:Mark ISerializable types with serializable",
         Justification = "Backtrace already implements own serialization to generate report")]
     public class BacktraceUnhandledException : Exception
     {
@@ -39,17 +39,17 @@ namespace Backtrace.Unity.Model
 
         public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
 
-        public BacktraceUnhandledException(string message, string stacktrace): base(message)
+        public BacktraceUnhandledException(string message, string stacktrace) : base(message)
         {
             _stacktrace = stacktrace;
             _message = message;
             ConvertStackFrames();
-
         }
 
         private void ConvertStackFrames()
         {
-            if(string.IsNullOrEmpty(_stacktrace)) {
+            if (string.IsNullOrEmpty(_stacktrace))
+            {
                 return;
             }
             // frame format:

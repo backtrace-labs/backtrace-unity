@@ -216,7 +216,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal void SetReportFingerPrintForEmptyStackTrace()
         {
-            if (string.IsNullOrEmpty(Exception.StackTrace) && (Exception is BacktraceUnhandledException))
+            if (string.IsNullOrEmpty(Exception.StackTrace))
             {
                 // set attributes instead of fingerprint to still allow our user to define customer
                 // fingerprints for reports without stack trace and apply deduplication rules in report flow.

@@ -34,17 +34,17 @@ namespace Backtrace.Unity.Model.JsonData
         /// <param name="clientAttributes">Client's attributes (report and client)</param>
         public BacktraceAttributes(BacktraceReport report, Dictionary<string, object> clientAttributes)
         {
-            if(clientAttributes == null)
+            if (clientAttributes == null)
             {
                 clientAttributes = new Dictionary<string, object>();
             }
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);
-               
+
                 SetExceptionAttributes(report);
             }
-             SetLibraryAttributes(report);
+            SetLibraryAttributes(report);
             //Environment attributes override user attributes            
             SetMachineAttributes();
             SetProcessAttributes();
@@ -176,7 +176,12 @@ namespace Backtrace.Unity.Model.JsonData
             //add exception information to Complex attributes.
             if (report.ExceptionTypeReport)
             {
-                ComplexAttributes.Add("Exception Properties", report.Exception);
+                ComplexAttributes.Add("Exception Properties", new
+                {
+                    Type = report.Classifier,
+                    report.Message,
+                    StackTrace = report.ExceptionTypeReport ? report.Exception.StackTrace : string.Empty
+                });
             }
         }
 
