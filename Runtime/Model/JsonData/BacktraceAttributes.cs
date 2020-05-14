@@ -94,6 +94,12 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 Attributes["_mod_factor"] = report.Factor;
             }
+
+            if (!string.IsNullOrEmpty(report.Fingerprint))
+            {
+                Attributes["_mod_fingerprint"] = report.Fingerprint;
+            }
+
             //A unique identifier of a machine
             Attributes["guid"] = GenerateMachineId();
             //Base name of application generating the report

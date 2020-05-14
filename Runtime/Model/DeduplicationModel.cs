@@ -1,8 +1,7 @@
-﻿using Backtrace.Unity.Types;
-using System;
+﻿using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Types;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 
@@ -59,7 +58,7 @@ namespace Backtrace.Unity.Model
                 {
                     return string.Empty;
                 }
-                return _backtraceData.Report.Message;
+                return _backtraceData.Report.Message.OnlyLetters();
             }
         }
 
@@ -83,11 +82,7 @@ namespace Backtrace.Unity.Model
             stringBuilder.Append(Classifier);
             stringBuilder.Append(StackTrace);
 
-            using (var sha256Hash = SHA256.Create())
-            {
-                var bytes = sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(stringBuilder.ToString()));
-                return Convert.ToBase64String(bytes);
-            }
+            return stringBuilder.GetSha();
         }
     }
 }

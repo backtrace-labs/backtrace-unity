@@ -33,28 +33,25 @@ namespace Backtrace.Unity.Model
         {
             get
             {
-                return base.StackTrace;
+                return _stacktrace;
             }
         }
 
         public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
 
-        public BacktraceUnhandledException(string message, string stacktrace)
+        public BacktraceUnhandledException(string message, string stacktrace): base(message)
         {
             _stacktrace = stacktrace;
             _message = message;
-
-            if (string.IsNullOrEmpty(stacktrace))
-            {
-                _stacktrace = new StackTrace(0, true).ToString();
-                return;
-            }
             ConvertStackFrames();
 
         }
 
         private void ConvertStackFrames()
         {
+            if(string.IsNullOrEmpty(_stacktrace)) {
+                return;
+            }
             // frame format:
             // ClassName.MethodName () (at source/path/file.cs:fileLine)
             var frames = _stacktrace.Trim().Split('\n');
