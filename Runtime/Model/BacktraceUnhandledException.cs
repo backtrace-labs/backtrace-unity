@@ -37,15 +37,12 @@ namespace Backtrace.Unity.Model
             }
         }
 
-        public string RawStackTrace;
-
         public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
 
         public BacktraceUnhandledException(string message, string stacktrace): base(message)
         {
             _stacktrace = stacktrace;
             _message = message;
-            RawStackTrace = RawStackTrace;
             ConvertStackFrames();
 
         }
