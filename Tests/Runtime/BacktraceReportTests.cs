@@ -72,8 +72,33 @@ namespace Tests
             Assert.AreEqual(reportAttributes["test_attribute"], report.Attributes["test_attribute"]);
             Assert.AreEqual(reportAttributes["temporary_attribute"], report.Attributes["temporary_attribute"]);
             Assert.AreEqual(reportAttributes["temporary_attribute_bool"], report.Attributes["temporary_attribute_bool"]);
-            
+
             yield return null;
+        }
+
+        [Test]
+        public void TestReportSourceCode_UnhandledExceptionSourceCode_ExceptionShouldHaveSourceCode()
+        {
+            var message = "message";
+            var stackTrace = "Startup.DoSomethingElse ()";
+            var unhandledExceptionReport = new BacktraceUnhandledException(message, stackTrace);
+            var report = new BacktraceReport(unhandledExceptionReport);
+            var data = report.ToBacktraceData(null);
+            Assert.IsNotNull(data.SourceCode);
+            Assert.AreEqual("Text", data.SourceCode.Type);
+            Assert.AreEqual("Log File", data.SourceCode.Title);
+            // test unhandled exception text - based on unhandled exception text algorithm
+            Assert.AreEqual(string.Format("Unity Exception:\n{0}\n{1}", message, stackTrace), data.SourceCode.Text);
+        }
+
+        [Test]
+        public void TestReportSourceCode_HandledExceptionSourceCode_ReportShouldntHaveReportSourceCode()
+        {
+            var message = "message";
+            var unhandledExceptionReport = new Exception(message);
+            var report = new BacktraceReport(unhandledExceptionReport);
+            var data = report.ToBacktraceData(null);
+            Assert.IsNull(data.SourceCode);
         }
 
         private IEnumerator TestSerialization(BacktraceReport report)

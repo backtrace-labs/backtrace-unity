@@ -61,14 +61,27 @@ namespace Backtrace.Unity.Model
             var stackFrame = new BacktraceJObject
             {
                 {"funcName", FunctionName},
-                {"line", Line},
                 {"il", Il},
                 {"metadata_token", MemberInfo},
-                {"column", Column},
+                
                 {"address", ILOffset},
                 {"library", Library}
             };
-            //todo: source code information
+
+            if(Column != 0)
+            {
+                stackFrame["column"] = Column;
+            }
+
+            if (Line != 0)
+            {
+                stackFrame["line"] = Line;
+            }
+
+            if (!string.IsNullOrEmpty(SourceCode))
+            {
+                stackFrame["sourceCode"] = SourceCode;
+            }
 
             return stackFrame;
         }

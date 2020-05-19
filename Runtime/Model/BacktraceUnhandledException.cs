@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Backtrace.Unity.Model
 {
@@ -38,12 +39,31 @@ namespace Backtrace.Unity.Model
         }
 
         public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
+        public BacktraceSourceCode SourceCode = null;
 
         public BacktraceUnhandledException(string message, string stacktrace) : base(message)
         {
             _stacktrace = stacktrace;
             _message = message;
             ConvertStackFrames();
+            CreateUnhandledExceptionLogInformation();
+        }
+
+        /// <summary>
+        /// Assign source code information to first stack frame of unhandled exception report
+        /// </summary>
+        private void CreateUnhandledExceptionLogInformation()
+        {
+            SourceCode = new BacktraceSourceCode()
+            {
+                Text = string.Format("Unity Exception:\n{0}\n{1}", _message, _stacktrace)
+            };
+            // assign log information to first stack frame
+            if (StackFrames.Count == 0)
+            {
+                return;
+            }
+            StackFrames.First().SourceCode = SourceCode.Id.ToString();
         }
 
         private void ConvertStackFrames()

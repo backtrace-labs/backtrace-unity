@@ -68,6 +68,12 @@ namespace Backtrace.Unity.Model
         public string[] Classifier;
 
         /// <summary>
+        /// Source code information - right now we support source code only for BacktraceUnhandledException exceptions.
+        /// </summary>
+        [JsonProperty(PropertyName = "sourceCode ")]
+        internal BacktraceSourceCode SourceCode;
+
+        /// <summary>
         /// Get a path to report attachments
         /// </summary>
         [JsonIgnore]
@@ -132,7 +138,8 @@ namespace Backtrace.Unity.Model
                 {"classifiers", new JArray(Classifier)},
                 {"attributes", Attributes.ToJson()},
                 {"annotations", Annotation.ToJson()},
-                {"threads", ThreadData == null ? null : ThreadData.ToJson()}
+                {"threads", ThreadData == null ? null : ThreadData.ToJson()},
+                {"sourceCode", SourceCode == null ? null : SourceCode.ToJson()}
             };
             return json.ToString();
         }
@@ -157,7 +164,8 @@ namespace Backtrace.Unity.Model
                 Classifier = classfiers,
                 Annotation = Annotations.Deserialize(@object["annotations"]),
                 Attributes = BacktraceAttributes.Deserialize(@object["attributes"]),
-                ThreadData = ThreadData.DeserializeThreadInformation(@object["threads"])
+                ThreadData = ThreadData.DeserializeThreadInformation(@object["threads"]),
+                SourceCode = BacktraceSourceCode.Deserialize(@object["sourceCode"]),
             };
         }
 
@@ -169,6 +177,10 @@ namespace Backtrace.Unity.Model
             ThreadData = new ThreadData(Report.DiagnosticStack);
             ThreadInformations = ThreadData.ThreadInformations;
             MainThread = ThreadData.MainThread;
+            if (Report.Exception is BacktraceUnhandledException)
+            {
+                SourceCode = (Report.Exception as BacktraceUnhandledException).SourceCode;
+            }
         }
 
         /// <summary>
