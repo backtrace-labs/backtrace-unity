@@ -85,7 +85,6 @@ namespace Backtrace.Unity.Services
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             if (RequestHandler != null)
-
             {
                 yield return RequestHandler.Invoke(_serverurl.ToString(), data);
             }

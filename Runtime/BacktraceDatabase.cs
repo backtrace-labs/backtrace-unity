@@ -237,18 +237,6 @@ namespace Backtrace.Unity
         /// <summary>
         /// Add new report to BacktraceDatabase
         /// </summary>
-        [Obsolete("Please use Add method instead with Dictionary<string,string> parameter")]
-        public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, object> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
-        {
-            var internalAttributes = attributes != null
-                ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
-                : new Dictionary<string, string>();
-            return Add(backtraceReport, internalAttributes, miniDumpType);
-
-        }
-        /// <summary>
-        /// Add new report to BacktraceDatabase
-        /// </summary>
         public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, string> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
         {
             if (!Enable || backtraceReport == null)
