@@ -136,12 +136,12 @@ namespace Backtrace.Unity.Model
             //cleanup function name
             if (stackFrame.FunctionName.StartsWith("(wrapper managed-to-native)"))
             {
-                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper managed-to-native)", string.Empty);
+                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper managed-to-native)", string.Empty).Trim();
             }
 
             if (stackFrame.FunctionName.StartsWith("(wrapper runtime-invoke)"))
             {
-                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper runtime-invoke)", string.Empty);
+                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper runtime-invoke)", string.Empty).Trim();
             }
 
             // try to find source code information

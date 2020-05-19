@@ -223,7 +223,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Line = 0,
                 Library = "Mono JIT Code",
                 Address = "0x00000266BD679AEB",
-                FunctionName = "(wrapper managed-to-native) UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)"
+                FunctionName = "UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)"
             },
             new SampleStackFrame()
             {
