@@ -97,8 +97,8 @@ namespace Backtrace.Unity.Model
                     //invalid stack frame
                     return;
                 }
-                
-                var stackFrame = 
+
+                var stackFrame =
                     frameString.StartsWith("0x")
                         ? SetNativeStackTraceInformation(frameString)
                         : frameString.IndexOf('(', methodNameEndIndex + 1) > -1
@@ -110,10 +110,59 @@ namespace Backtrace.Unity.Model
             }
         }
 
+        /// <summary>
+        /// Try to convert native stack frame
+        /// </summary>
+        /// <param name="frameString">Native stack frame</param>
+        /// <returns>Backtrace stack frame</returns>
         private BacktraceStackFrame SetNativeStackTraceInformation(string frameString)
         {
             var stackFrame = new BacktraceStackFrame();
-            stackFrame.FunctionName = frameString;
+            // parse address
+            var addressSubstringIndex = frameString.IndexOf(' ');
+            stackFrame.Address = frameString.Substring(0, addressSubstringIndex);
+            var indexPointer = addressSubstringIndex + 1;
+
+            // parse library
+            if (frameString[indexPointer] == '(')
+            {
+                indexPointer = indexPointer + 1;
+                var libraryNameSubstringIndex = frameString.IndexOf(')', indexPointer);
+                stackFrame.Library = frameString.Substring(indexPointer, libraryNameSubstringIndex - indexPointer);
+                indexPointer = libraryNameSubstringIndex + 2;
+            }
+
+            stackFrame.FunctionName = frameString.Substring(indexPointer);
+            //cleanup function name
+            if (stackFrame.FunctionName.StartsWith("(wrapper managed-to-native)"))
+            {
+                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper managed-to-native)", string.Empty);
+            }
+
+            if (stackFrame.FunctionName.StartsWith("(wrapper runtime-invoke)"))
+            {
+                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper runtime-invoke)", string.Empty);
+            }
+
+            // try to find source code information
+            int sourceCodeStartIndex = stackFrame.FunctionName.IndexOf('[');
+            int sourceCodeEndIndex = stackFrame.FunctionName.IndexOf(']');
+            if (sourceCodeStartIndex != -1 && sourceCodeEndIndex != -1)
+            {
+                sourceCodeStartIndex = sourceCodeStartIndex + 1;
+                var sourceCodeInformation = stackFrame.FunctionName.Substring(
+                    sourceCodeStartIndex,
+                    sourceCodeEndIndex - sourceCodeStartIndex);
+
+                var sourceCodeParts = sourceCodeInformation.Split(':');
+                if (sourceCodeParts.Length == 2)
+                {
+                    stackFrame.Line = int.Parse(sourceCodeParts[1]);
+                    stackFrame.Library = sourceCodeParts[0];
+                    stackFrame.FunctionName = stackFrame.FunctionName.Substring(sourceCodeEndIndex + 2);
+                }
+            }
+
             return stackFrame;
         }
 

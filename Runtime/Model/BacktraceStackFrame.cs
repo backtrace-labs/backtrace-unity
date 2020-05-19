@@ -49,6 +49,11 @@ namespace Backtrace.Unity.Model
         public string SourceCode;
 
         /// <summary>
+        /// Function address
+        /// </summary>
+        public string Address;
+
+        /// <summary>
         /// Assembly name
         /// </summary>
         public string Assembly;
@@ -62,14 +67,27 @@ namespace Backtrace.Unity.Model
             var stackFrame = new BacktraceJObject
             {
                 ["funcName"] = FunctionName,
-                ["line"] = Line,
                 ["il"] = Il,
                 ["metadata_token"] = MemberInfo,
-                ["column"] = Column,
                 ["address"] = ILOffset,
                 ["library"] = Library,
                 ["assembly"] = Assembly
             };
+
+            if (Line != 0)
+            {
+                stackFrame["line"] = Line;
+            }
+
+            if (Column != 0)
+            {
+                stackFrame["column"] = Column;
+            }
+
+            if (!string.IsNullOrEmpty(Address))
+            {
+                stackFrame["address"] = Address;
+            }
             //todo: source code information
 
             return stackFrame;
@@ -101,18 +119,18 @@ namespace Backtrace.Unity.Model
 
             var declaringType = method.DeclaringType;
             string assembly = "unknown";
-            if(declaringType != null)
+            if (declaringType != null)
             {
                 var assemblyName = declaringType.Assembly.GetName().Name;
-                if (assemblyName!= null)
+                if (assemblyName != null)
                 {
                     assembly = assemblyName;
-                    if(assemblyName == "Backtrace.Unity")
+                    if (assemblyName == "Backtrace.Unity")
                     {
                         InvalidFrame = true;
                         return;
                     }
-                } 
+                }
             }
 
 
