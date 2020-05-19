@@ -39,6 +39,12 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public MiniDumpType MinidumpType = MiniDumpType.None;
 
+#if UNITY_ANDROID
+        /// <summary>
+        /// Handle ANR events - Application not responding
+        /// </summary>
+        public bool HandleANR = true;
+#endif
         /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>

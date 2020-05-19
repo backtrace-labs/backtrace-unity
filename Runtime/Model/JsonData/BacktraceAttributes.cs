@@ -3,8 +3,10 @@ using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Json;
 using System;
 using System.Collections.Generic;
+#if !UNITY_WEBGL
 using System.Linq;
 using System.Net.NetworkInformation;
+#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -49,14 +51,10 @@ namespace Backtrace.Unity.Model.JsonData
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);
-                if (!string.IsNullOrEmpty(report.Factor))
-                {
-                    Attributes["_mod_factor"] = report.Factor;
-                }
                 SetExceptionAttributes(report);
             }
             //Environment attributes override user attributes     
-            SetLibraryAttributes();
+            SetLibraryAttributes(report);
             SetMachineAttributes();
             SetProcessAttributes();
             SetSceneInformation();
@@ -67,13 +65,29 @@ namespace Backtrace.Unity.Model.JsonData
         {
             return new BacktraceJObject(Attributes);
         }
+
+        private void SetScriptingBackend()
+        {
+#if NET_STANDARD_2_0
+            Attributes["scripting.backend"] = ".NET Standard 2.0";
+#elif NET_4_6
+            Attributes["scripting.backend"] = ".NET Framework 4.5";
+#else
+            Attributes["scripting.backend"] = ".NET Framework 3.5 equivalent";
+#endif
+        }
         /// <summary>
         /// Set library attributes
         /// </summary>
-        private void SetLibraryAttributes()
-        {            
-            //A unique identifier of a machine
+        private void SetLibraryAttributes(BacktraceReport report)
+        {
+            if (!string.IsNullOrEmpty(report.Factor))
+            {
+                Attributes["_mod_factor"] = report.Factor;
+            }
             Attributes["guid"] = MachineId;
+            SetScriptingBackend();
+
             //Base name of application generating the report
             Attributes[APPLICATION_ATTRIBUTE_NAME] = Application.productName;
             Attributes["application.version"] = Application.version;
@@ -93,6 +107,7 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.unity.version"] = Application.unityVersion;
             Attributes["application.temporary_cache"] = Application.temporaryCachePath;
             Attributes["application.debug"] = Debug.isDebugBuild;
+
         }
 
         /// <summary>
@@ -106,6 +121,7 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 return SystemInfo.deviceUniqueIdentifier;
             }
+#if !UNITY_WEBGL
             var networkInterface =
                  NetworkInterface.GetAllNetworkInterfaces()
                     .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up);
@@ -122,6 +138,9 @@ namespace Backtrace.Unity.Model.JsonData
             string hex = macAddress.Replace(":", string.Empty);
             var value = Convert.ToInt64(hex, 16);
             return GuidExtensions.FromLong(value).ToString();
+#else
+             return Guid.NewGuid().ToString();
+#endif
         }
 
         /// <summary>
@@ -241,7 +260,6 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["uname.version"] = Environment.OSVersion.Version.ToString();
             Attributes["uname.fullname"] = SystemInfo.operatingSystem;
             Attributes["uname.family"] = SystemInfo.operatingSystemFamily.ToString();
-
             Attributes["cpu.count"] = SystemInfo.processorCount;
             Attributes["cpu.frequency"] = SystemInfo.processorFrequency;
             Attributes["cpu.brand"] = SystemInfo.processorType;
@@ -258,10 +276,13 @@ namespace Backtrace.Unity.Model.JsonData
 
             //The hostname of the crashing system.
             Attributes["hostname"] = Environment.MachineName;
+#if !UNITY_ANDROID
             if (SystemInfo.systemMemorySize != 0)
             {
+                //number of kilobytes that application is using.
                 Attributes["vm.rss.size"] = SystemInfo.systemMemorySize * 1048576L;
             }
+#endif
         }
     }
 }

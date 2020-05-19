@@ -85,10 +85,11 @@ namespace Backtrace.Unity.Model.Database
             {
                 return Record.ToJson();
             }
-            if (string.IsNullOrEmpty(DiagnosticDataPath))
+            if (string.IsNullOrEmpty(DiagnosticDataPath) || !File.Exists(DiagnosticDataPath))
             {
                 return null;
             }
+
             return File.ReadAllText(DiagnosticDataPath);
         }
 
@@ -296,7 +297,9 @@ namespace Backtrace.Unity.Model.Database
             }
         }
         #region dispose
+#pragma warning disable CA1063 // Implement IDisposable Correctly
         public virtual void Dispose()
+#pragma warning restore CA1063 // Implement IDisposable Correctly
         {
             Dispose(true);
             GC.SuppressFinalize(this);

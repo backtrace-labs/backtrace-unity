@@ -72,72 +72,6 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal string MinidumpFile { get; private set; }
 
-
-        #region v3.0.0 obsolete constructors
-        /// <summary>
-        /// Create new instance of Backtrace report to sending a report with custom client message
-        /// </summary>
-        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
-        public BacktraceReport(
-          string message,
-          Dictionary<string, object> attributes)
-          : this(
-                message: message,
-                attributes: attributes != null
-                    ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
-                    : new Dictionary<string, string>(),
-                attachmentPaths: null)
-        { }
-        /// <summary>
-        /// Create new instance of Backtrace report to sending a report with custom client message
-        /// </summary>
-        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
-        public BacktraceReport(
-         string message,
-         Dictionary<string, object> attributes,
-         List<string> attachmentPaths)
-         : this(
-               message: message,
-               attributes: attributes != null
-                   ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
-                   : new Dictionary<string, string>(),
-               attachmentPaths: attachmentPaths)
-        { }
-
-        /// <summary>
-        /// Create new instance of Backtrace report to sending a report with custom client message
-        /// </summary>
-        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
-        public BacktraceReport(
-            Exception exception,
-            Dictionary<string, object> attributes,
-            List<string> attachmentPaths = null)
-            : this(
-                exception: exception,
-                attributes: attributes != null
-                    ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
-                    : new Dictionary<string, string>(),
-                attachmentPaths: attachmentPaths)
-        { }
-
-        /// <summary>
-        /// Create new instance of Backtrace report to sending a report with custom client message
-        /// </summary>
-        [Obsolete("Please use BacktraceReport constructor with attributes type Dictionary<string,string>")]
-        public BacktraceReport(
-         Exception exception,
-         Dictionary<string, object> attributes)
-         : this(
-             exception: exception,
-             attributes: attributes != null
-                 ? attributes.ToDictionary(n => n.Key, m => m.Value != null ? m.Value.ToString() : string.Empty)
-                 : new Dictionary<string, string>(),
-             attachmentPaths: null)
-        { }
-
-        #endregion
-
-
         /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>
@@ -171,9 +105,25 @@ namespace Backtrace.Unity.Model
             if (ExceptionTypeReport)
             {
                 Message = exception.Message;
+                SetClassifier();
             }
-            Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
             SetStacktraceInformation();
+        }
+
+        /// <summary>
+        /// Set report classifier
+        /// </summary>
+        private void SetClassifier()
+        {
+            // ignore classifier for message reports
+            if (!ExceptionTypeReport)
+            {
+                Classifier = string.Empty;
+            }
+
+            Classifier = Exception is BacktraceUnhandledException
+                ? (Exception as BacktraceUnhandledException).Classifier
+                : Exception.GetType().Name;
         }
 
         /// <summary>
@@ -205,10 +155,6 @@ namespace Backtrace.Unity.Model
             BacktraceReport report, Dictionary<string, string> attributes)
         {
             var reportAttributes = report.Attributes;
-            if (attributes == null)
-            {
-                return reportAttributes;
-            };
             return reportAttributes.Merge(attributes);
         }
 

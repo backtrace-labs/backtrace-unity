@@ -16,6 +16,9 @@ namespace Backtrace.Unity.Editor
 #if UNITY_2018_4_OR_NEWER
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
 #endif
+#if UNITY_ANDROID
+        public const string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
+#endif
         public const string LABEL_MINIDUMP_SUPPORT = "Minidump type";
         public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
         public const string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
@@ -44,6 +47,9 @@ namespace Backtrace.Unity.Editor
             settings.IgnoreSslValidation = false;
 #endif
             settings.DeduplicationStrategy = (DeduplicationStrategy)EditorGUILayout.EnumPopup(LABEL_DEDUPLICATION_RULES, settings.DeduplicationStrategy);
+#if UNITY_ANDROID
+            settings.HandleANR = EditorGUILayout.Toggle(LABEL_HANDLE_ANR, settings.HandleANR);
+#endif
             settings.GameObjectDepth = EditorGUILayout.IntField(LABEL_GAME_OBJECT_DEPTH, settings.GameObjectDepth);
         }
     }

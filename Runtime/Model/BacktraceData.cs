@@ -1,4 +1,4 @@
-﻿using Backtrace.Unity.Json;
+using Backtrace.Unity.Json;
 using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
@@ -79,25 +79,6 @@ namespace Backtrace.Unity.Model
         /// Number of deduplications
         /// </summary>
         public int Deduplication = 0;
-
-        /// <summary>
-        /// Create instance of report data
-        /// </summary>
-        /// <param name="report">Current report</param>
-        /// <param name="clientAttributes">BacktraceClient's attributes</param>
-        [Obsolete("Please use constructor with Dictionary<string,string> attributes")]
-        public BacktraceData(BacktraceReport report, Dictionary<string, object> clientAttributes, int gameObjectDepth = -1)
-            : this(
-                  report,
-                  clientAttributes == null
-                    ? new Dictionary<string, string>()
-                  : clientAttributes.ToDictionary(
-                        n => n.Key,
-                        m => m.Value != null
-                            ? m.Value.ToString()
-                            : string.Empty),
-                  gameObjectDepth)
-        { }
 
         /// <summary>
         /// Create instance of report data

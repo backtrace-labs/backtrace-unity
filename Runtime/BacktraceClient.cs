@@ -2,6 +2,7 @@
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Runtime.Native;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -140,6 +141,8 @@ namespace Backtrace.Unity
         /// </summary>
         public Action<Exception> OnUnhandledApplicationException = null;
 
+        private INativeClient _nativeClient;
+
 
         /// <summary>
         /// Instance of BacktraceApi that allows to send data to Backtrace API
@@ -194,11 +197,10 @@ namespace Backtrace.Unity
             MiniDumpType = MiniDumpType.None;
 
 #endif
-
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
-
+            _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
 #if UNITY_2018_4_OR_NEWER
 
             BacktraceApi = new BacktraceApi(
@@ -221,7 +223,6 @@ namespace Backtrace.Unity
             Database.Reload();
             Database.SetApi(BacktraceApi);
             Database.SetReportWatcher(_reportLimitWatcher);
-
         }
 
         private void Awake()
@@ -242,88 +243,6 @@ namespace Backtrace.Unity
             }
             _reportLimitWatcher.SetClientReportLimit(reportPerMin);
         }
-        #region v3.0.0 obsolete constructors
-
-        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
-        public void Send(
-            Exception exception,
-            List<string> attachmentPaths,
-            Dictionary<string, object> attributes
-            )
-        {
-            Send(
-                exception: exception,
-                attachmentPaths: attachmentPaths,
-                attributes: attributes == null
-                    ? new Dictionary<string, string>()
-                    : attributes.ToDictionary(
-                        n => n.Key,
-                        m => m.Value != null
-                            ? m.Value.ToString()
-                            : string.Empty));
-        }
-
-        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
-        public void Send(
-          Exception exception,
-          Dictionary<string, object> attributes
-          )
-        {
-            Send(
-                exception: exception,
-                attachmentPaths: null,
-                attributes: attributes);
-        }
-
-        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
-        public void Send(
-          string message,
-          Dictionary<string, object> attributes)
-        {
-            Send(
-                message: message,
-                attachmentPaths: null,
-                attributes: attributes);
-
-        }
-
-
-        [Obsolete("Please use Send method with attributes type Dictionary<string,string> instead")]
-        public void Send(
-            string message,
-            List<string> attachmentPaths,
-            Dictionary<string, object> attributes)
-        {
-            Send(
-                message: message,
-                attachmentPaths: attachmentPaths,
-                attributes: attributes == null
-                    ? new Dictionary<string, string>()
-                    : attributes.ToDictionary(
-                        n => n.Key,
-                        m => m.Value != null
-                            ? m.Value.ToString()
-                            : string.Empty));
-
-        }
-
-        public void Send(Exception e, List<string> attachments)
-        {
-            Send(e, attributes: new Dictionary<string, string>(), attachmentPaths: attachments);
-        }
-        public void Send(string message, List<string> attachments)
-        {
-            Send(message, attributes: new Dictionary<string, string>(), attachmentPaths: attachments);
-        }
-        public void Send(Exception e)
-        {
-            Send(e, attributes: new Dictionary<string, string>(), attachmentPaths: null);
-        }
-        public void Send(string message)
-        {
-            Send(message, attributes: new Dictionary<string, string>(), attachmentPaths: null);
-        }
-        #endregion
         /// <summary>
         /// Send a message report to Backtrace API
         /// </summary>
@@ -370,7 +289,7 @@ namespace Backtrace.Unity
         {
             if (Enabled == false)
             {
-                Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
+                Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
             //check rate limiting
@@ -430,13 +349,27 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">send callback</param>
         private void SendReport(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            var record = Database != null ? Database.Add(report, null, MiniDumpType) : null;
+            var reportAttributes = new Dictionary<string, string>();
+            // extend client attributes with native attributes
+            if (_nativeClient != null)
+            {
+                reportAttributes = _nativeClient.GetAttributes();
+            }
+
+            var record = Database != null ? Database.Add(report, reportAttributes, MiniDumpType) : null;
             //create a JSON payload instance
             BacktraceData data = null;
 
-            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(null, Configuration.GameObjectDepth);
+            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(reportAttributes, Configuration.GameObjectDepth);
             //valid user custom events
-            data = (BeforeSend != null ? BeforeSend.Invoke(data) : null) ?? data;
+            if (BeforeSend != null)
+            {
+                data = BeforeSend.Invoke(data);
+                if (data == null)
+                {
+                    return;
+                }
+            }
 
             if (BacktraceApi == null)
             {
@@ -453,14 +386,12 @@ namespace Backtrace.Unity
                 if (record != null)
                 {
                     record.Dispose();
-                    //Database?.IncrementRecordRetryLimit(record);
-                }
-                if (result != null)
                     if (result.Status == BacktraceResultStatus.Ok)
                     {
                         if (Database != null)
                             Database.Delete(record);
                     }
+                }
                 //check if there is more errors to send
                 //handle inner exception
                 HandleInnerException(report, (BacktraceResult innerResult) =>
@@ -471,8 +402,18 @@ namespace Backtrace.Unity
                 if (sendCallback != null)
                     sendCallback.Invoke(result);
             }));
-
         }
+
+#if UNITY_ANDROID
+        /// <summary>
+        /// ANR Detection event. This method will be replaced by Backtrace-Android soon native API.
+        /// </summary>
+        /// <param name="stackTrace">Main thread stack trace</param>
+        internal void OnAnrDetected(string stackTrace)
+        {
+            SendUnhandledException("ANRException: Blocked thread detected", stackTrace);
+        }
+#endif
 
         /// <summary>
         /// Handle Untiy unhandled exceptions
@@ -490,9 +431,6 @@ namespace Backtrace.Unity
             }
         }
 
-
-
-
         /// <summary>
         /// Catch Unity logger data and create Backtrace reports for log type that represents exception or error
         /// </summary>
@@ -504,13 +442,18 @@ namespace Backtrace.Unity
             if ((type == LogType.Exception || type == LogType.Error)
                 && (!string.IsNullOrEmpty(message) && !message.StartsWith("[Backtrace]::")))
             {
-                var exception = new BacktraceUnhandledException(message, stackTrace);
-
-                if (OnUnhandledApplicationException != null)
-                    OnUnhandledApplicationException.Invoke(exception);
-
-                Send(exception);
+                SendUnhandledException(message, stackTrace);
             }
+        }
+
+        private void SendUnhandledException(string message, string stackTrace)
+        {
+            var exception = new BacktraceUnhandledException(message, stackTrace);
+
+            if (OnUnhandledApplicationException != null)
+                OnUnhandledApplicationException.Invoke(exception);
+
+            Send(exception);
         }
 
         /// <summary>

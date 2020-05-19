@@ -229,12 +229,8 @@ backtraceDatabase.Clear();
 #### Deduplication
 
 Backtrace unity integration allows you to aggregate the same reports and send only one message to Backtrace Api. As a developer you can choose deduplication options. Please use `DeduplicationStrategy` enum to setup possible deduplication rules in Unity UI:
-<<<<<<< HEAD
-![Backtrace deduplicaiton setup](./Documentation/images/deduplication-setup.PNG)
-=======
-![Backtrace deduplicaiton setup](./Documentation~/images/deduplication-setup.PNG)
 
-> > > > > > > master
+![Backtrace deduplicaiton setup](./Documentation~/images/deduplication-setup.PNG)
 
 Deduplication strategy types:
 

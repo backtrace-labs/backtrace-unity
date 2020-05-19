@@ -1,5 +1,4 @@
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.JsonData;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,6 +16,7 @@ namespace Backtrace.Unity.Editor
         public const string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
 #endif
         public const string LABEL_DEDUPLICATION_RULES = "Deduplication rules";
+        public const string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
         public const string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
 
         public const string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
@@ -53,6 +53,10 @@ namespace Backtrace.Unity.Editor
 #if UNITY_2018_4_OR_NEWER
             SerializedProperty sslValidation = serializedObject.FindProperty("IgnoreSslValidation");
             EditorGUILayout.PropertyField(sslValidation, new GUIContent(LABEL_IGNORE_SSL_VALIDATION));
+#endif
+#if UNITY_ANDROID
+            SerializedProperty handleAnr = serializedObject.FindProperty("HandleANR");
+            EditorGUILayout.PropertyField(handleAnr, new GUIContent(LABEL_HANDLE_ANR));
 #endif
 
             SerializedProperty deduplicationStrategy = serializedObject.FindProperty("DeduplicationStrategy");

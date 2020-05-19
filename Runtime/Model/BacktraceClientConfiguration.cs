@@ -12,6 +12,7 @@ namespace Backtrace.Unity.Model
         public bool HandleUnhandledExceptions = true;
         public bool IgnoreSslValidation = false;
         public bool DestroyOnLoad = true;
+        public bool HandleANR = true;
         public int GameObjectDepth = 0;
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
         public MiniDumpType MinidumpType = MiniDumpType.None;

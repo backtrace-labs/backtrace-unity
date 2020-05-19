@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Backtrace.Unity.Common
 {
@@ -18,13 +17,18 @@ namespace Backtrace.Unity.Common
         internal static Dictionary<string, string> Merge(
             this Dictionary<string, string> source, Dictionary<string, string> toMerge)
         {
+            if(source == null && toMerge == null)
+            {
+                return new Dictionary<string, string>();
+            }
+
             if (source == null)
             {
-                throw new ArgumentException("source");
+                source = new Dictionary<string, string>();
             }
             if (toMerge == null)
             {
-                throw new ArgumentException("toMerge");
+                toMerge = new Dictionary<string, string>();
             }
             var result = new Dictionary<string, string>(source);
             foreach (var record in toMerge)
