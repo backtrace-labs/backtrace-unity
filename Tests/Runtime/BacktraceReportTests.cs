@@ -1,17 +1,14 @@
 ﻿using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
     public class BacktraceReportTests
     {
-        private readonly Exception exception = new DivideByZeroException("fake exception message");
         private readonly Dictionary<string, string> reportAttributes = new Dictionary<string, string>()
             {
                 { "test_attribute", "test_attribute_value" },
@@ -106,6 +103,44 @@ namespace Backtrace.Unity.Tests.Runtime
               attributes: reportAttributes,
               attachmentPaths: attachemnts);
             Assert.AreEqual(expectedExceptionName, report.Classifier);
+        }
+
+        [Test]
+        public void TestReportSourceCode_UnhandledExceptionSourceCode_ExceptionShouldHaveSourceCode()
+        {
+            var message = "message";
+            var stackTrace = "Startup.DoSomethingElse ()";
+            var unhandledExceptionReport = new BacktraceUnhandledException(message, stackTrace);
+            var report = new BacktraceReport(unhandledExceptionReport);
+            var data = report.ToBacktraceData(null, -1);
+            Assert.IsNotNull(data.SourceCode);
+            Assert.AreEqual("Text", data.SourceCode.Type);
+            Assert.AreEqual("Log File", data.SourceCode.Title);
+            // test unhandled exception text - based on unhandled exception text algorithm
+            Assert.AreEqual(string.Format("Unity exception information\nMessage :{0}\nStack trace :{1}", message, stackTrace), data.SourceCode.Text);
+        }
+
+        [Test]
+        public void TestReportSourceCode_HandledExceptionSourceCode_ReportShouldntHaveReportSourceCode()
+        {
+            var message = "message";
+            var unhandledExceptionReport = new Exception(message);
+            var report = new BacktraceReport(unhandledExceptionReport);
+            var data = report.ToBacktraceData(null, -1);
+            Assert.IsNull(data.SourceCode);
+        }
+
+        [Test]
+        public void MissingStackTraceReport_GenerateNotFaultingStackTrace_ReportShouldHaveNotFaultingStackTrace()
+        {
+            var message = "message";
+            // in this case BacktraceUnhandledException should generate environment stack trace
+            var unhandledException = new BacktraceUnhandledException(message, string.Empty);
+            Assert.IsNotEmpty(unhandledException.StackFrames);
+            var report = new BacktraceReport(unhandledException);
+            Assert.IsNotNull(report.Attributes["_mod_fingerprint"]);
+            var data = new BacktraceData(report, null);
+            Assert.IsFalse(data.ThreadData.ThreadInformations.First().Value.Fault);
         }
     }
 }

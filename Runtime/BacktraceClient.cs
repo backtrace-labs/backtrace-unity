@@ -178,6 +178,8 @@ namespace Backtrace.Unity
             }
         }
 
+        private int _gameObjectDepth = 0;
+
         public void OnDisable()
         {
             Enabled = false;
@@ -197,6 +199,11 @@ namespace Backtrace.Unity
             MiniDumpType = MiniDumpType.None;
 
 #endif
+
+            // set maximum game object depth
+            _gameObjectDepth = Configuration.GameObjectDepth == 0
+                ? 16 // default maximum game object size
+                : Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
@@ -248,7 +255,7 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="message">Report message</param>
         /// <param name="attachmentPaths">List of attachments</param>
-        /// <param name="attributes">List of report attributes</param
+        /// <param name="attributes">List of report attributes</param>
         public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, string> attributes = null)
         {
             if (Enabled == false)
@@ -360,7 +367,7 @@ namespace Backtrace.Unity
             //create a JSON payload instance
             BacktraceData data = null;
 
-            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(reportAttributes, Configuration.GameObjectDepth);
+            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(reportAttributes, _gameObjectDepth);
             //valid user custom events
             if (BeforeSend != null)
             {

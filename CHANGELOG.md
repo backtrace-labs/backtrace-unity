@@ -8,6 +8,18 @@
 - BacktraceDatabase won't try to deserialize BacktraceReport anymore - because of that, callback api won't return BacktraceReport object in BacktraceResult.
 - new Backtrace methods allow to pass attributes in old dictionary format (`Dictionary<string, object>`) and in new Dictionary attributes. `Dictionary<string, object>` attributes were marked as `obsolete`. We will remove them from the library soon.
 - Annotation name typo - `children` instead of `childrens`
+## Version 2.1.3
+
+- `BacktraceUnhandledException` will generate environment stack trace if Unity stack trace is empty. BacktraceReport will still generate normalized fingerprint for unhandled exception without stack trace.
+- `BacktraceUnhandledException` will provide information from Unity Error logger in source code property, which should improve error analysis in web debugger.
+- `BacktraceAttributes` won't try to collect `Annotations` anymore.
+- `Annotations` won't use ComplexAttributes property anymore.
+
+## Version 2.1.2
+
+- `BacktraceReport` will generate report fingerprint for exceptions without stack trace.
+- Changed game object depth default property value.
+- Added Exception information to the Annotation object.
 
 ## Version 2.1.1
 

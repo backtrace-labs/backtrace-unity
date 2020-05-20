@@ -59,7 +59,7 @@ Watch this 1 minute silent video to see the Integration and Configuration in act
 
 ## Plugin best practices
 
-Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you would like to include all game objects, please select 0. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box.
+Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
 
 ## Backtrace Client and Offline Database Settings
 

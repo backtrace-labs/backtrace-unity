@@ -88,7 +88,11 @@ namespace Backtrace.Unity.Model
             {
                 stackFrame["address"] = Address;
             }
-            //todo: source code information
+
+            if (!string.IsNullOrEmpty(SourceCode))
+            {
+                stackFrame["sourceCode"] = SourceCode;
+            }
 
             return stackFrame;
         }

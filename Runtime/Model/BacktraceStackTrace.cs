@@ -54,7 +54,7 @@ namespace Backtrace.Unity.Model
 
         private void SetStacktraceInformation(StackFrame[] frames, bool generatedByException = false)
         {
-            if (frames == null)
+            if (frames == null || frames.Length == 0)
             {
                 return;
             }

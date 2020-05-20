@@ -1,4 +1,4 @@
-using Backtrace.Unity.Json;
+﻿using Backtrace.Unity.Json;
 using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
@@ -56,6 +56,11 @@ namespace Backtrace.Unity.Model
         /// Get a report classifiers. If user send custom message, then variable should be null
         /// </summary>
         public string[] Classifier;
+
+        /// <summary>
+        /// Source code information - right now we support source code only for BacktraceUnhandledException exceptions.
+        /// </summary>
+        internal BacktraceSourceCode SourceCode;
 
         /// <summary>
         /// Get a path to report attachments
@@ -116,7 +121,8 @@ namespace Backtrace.Unity.Model
                 ["classifiers"] = Classifier,
                 ["attributes"] = Attributes.ToJson(),
                 ["annotations"] = Annotation.ToJson(),
-                ["threads"] = ThreadData == null ? null : ThreadData.ToJson()
+                ["threads"] = ThreadData == null ? null : ThreadData.ToJson(),
+                ["sourceCode"] = SourceCode == null ? null : SourceCode.ToJson()
             };
             return jObject.ToJson();
         }
@@ -126,9 +132,18 @@ namespace Backtrace.Unity.Model
         /// </summary>
         private void SetThreadInformations()
         {
-            ThreadData = new ThreadData(Report.DiagnosticStack);
+            var faultingThread =
+                Report.Exception is BacktraceUnhandledException
+                && string.IsNullOrEmpty(Report.Exception.StackTrace)
+                ? false
+                : true;
+            ThreadData = new ThreadData(Report.DiagnosticStack, faultingThread);
             ThreadInformations = ThreadData.ThreadInformations;
             MainThread = ThreadData.MainThread;
+            if (Report.Exception is BacktraceUnhandledException)
+            {
+                SourceCode = (Report.Exception as BacktraceUnhandledException).SourceCode;
+            }
         }
 
         /// <summary>
@@ -154,7 +169,7 @@ namespace Backtrace.Unity.Model
             LangVersion = "Mono";
 #endif
 
-            AgentVersion = "3.0.0-alpha1";
+            AgentVersion = "3.0.0-alpha2";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

@@ -416,6 +416,31 @@ namespace Backtrace.Unity.Tests.Runtime
             }
 
         }
+        [Test]
+        public void ExceptionStackTrace_NoStackTraceAvailable_ExceptionShouldHaveEnvironmentStackTrace()
+        {
+            var message = "message";
+            // in this case BacktraceUnhandledException should generate environment stack trace
+            var unhandledExceptionReport = new BacktraceUnhandledException(message, string.Empty);
+            Assert.IsNotEmpty(unhandledExceptionReport.StackFrames);
+        }
+
+
+        [Test]
+        public void ExceptionStackTrace_StackTraceAvailable_ExceptionShouldHaveExceptionStackTrace()
+        {
+            var message = "message";
+            var stackTrace = string.Empty;
+            var stringBuilder = new StringBuilder();
+            foreach (var stackFrame in _simpleStack)
+            {
+                stringBuilder.Append(stackFrame.ToStackFrameString());
+            }
+            stackTrace = stringBuilder.ToString();
+            var unhandledExceptionReport = new BacktraceUnhandledException(message, stackTrace);
+            Assert.AreEqual(_simpleStack.Count, unhandledExceptionReport.StackFrames.Count);
+        }
+
 
         internal string ConvertStackTraceToString(List<SampleStackFrame> data)
         {
