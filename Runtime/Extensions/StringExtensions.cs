@@ -17,7 +17,7 @@ namespace Backtrace.Unity.Extensions
             {
                 return string.Empty;
             }
-            return string.Concat(source.Where(n => char.IsLetter(n)));
+            return new string(source.Where(n => char.IsLetter(n)).ToArray());
         }
 
         /// <summary>

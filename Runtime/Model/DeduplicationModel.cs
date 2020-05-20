@@ -3,7 +3,6 @@ using Backtrace.Unity.Types;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
@@ -69,7 +68,7 @@ namespace Backtrace.Unity.Model
         {
             get
             {
-                if(_backtraceData.Report == null)
+                if (_backtraceData.Report == null)
                 {
                     return string.Empty;
                 }

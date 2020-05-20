@@ -1,33 +1,36 @@
 ﻿using Backtrace.Newtonsoft.Linq;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.Mime;
 
 namespace Backtrace.Unity.Model
 {
     public class BacktraceSourceCode
     {
         public string Id = Guid.NewGuid().ToString();
-        public string Type { get; set; } = "Text";
-        public string Title { get; set; } = "Log File";
+        public readonly string Type = "Text";
+        public readonly string Title = "Log File";
 
         public bool HighlightLine = false;
         public string Text { get; set; }
 
+        public BacktraceSourceCode()
+        {
+            Type = "Text";
+            Title = "Log File";
+        }
+
         internal BacktraceJObject ToJson()
         {
             var json = new BacktraceJObject();
-            json[Id.ToString()] = new BacktraceJObject()
-            {
-                ["id"] = Id,
-                ["type"] = Type,
-                ["title"] = Title,
-                ["highlightLine"] = HighlightLine,
-                ["text"] = Text,
-            };
+            var sourceCode = new BacktraceJObject();
+            sourceCode["id"] = Id;
+            sourceCode["type"] = Type;
+            sourceCode["title"] = Title;
+            sourceCode["highlightLine"] = HighlightLine;
+            sourceCode["text"] = Text;
 
+            json[Id.ToString()] = sourceCode;
             return json;
         }
 
@@ -46,9 +49,7 @@ namespace Backtrace.Unity.Model
             var sourceCode = new BacktraceSourceCode()
             {
                 Id = rawSourceCode.Value<string>("id"),
-                Text = rawSourceCode.Value<string>("text"),
-                Title = rawSourceCode.Value<string>("title"),
-                Type = rawSourceCode.Value<string>("type")
+                Text = rawSourceCode.Value<string>("text")
             };
             return sourceCode;
         }
