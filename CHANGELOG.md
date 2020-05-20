@@ -4,10 +4,12 @@
 
 - Removed JSON.NET Dependency - now Backtrace library provide our own serializer just for BacktraceReport usage.
 - BacktraceJObject allowed us to decrease size of Backtrace.Unity assembly.
-- BacktraceClient, BacktraceReport, BacktraceData and BacktraceDatabase allow our user to pass attributes in dictionary form with string key and string values. Because we want our serializer to be as fast as possible, we will require attributes in Dictionary<string, string> data structure.
-- BacktraceDatabase won't try to deserialize BacktraceReport anymore - because of that, callback api won't return BacktraceReport object in BacktraceResult.
-- new Backtrace methods allow to pass attributes in old dictionary format (`Dictionary<string, object>`) and in new Dictionary attributes. `Dictionary<string, object>` attributes were marked as `obsolete`. We will remove them from the library soon.
+- `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` allow our user to pass attributes in dictionary form with string key and string values. Because we want our serializer to be as fast as possible, we will require attributes in Dictionary<string, string> data structure.
+- `BacktraceDatabase` won't try to deserialize `BacktraceReport` anymore - because of that, callback api won't return `BacktraceReport` object in `BacktraceResult`.
 - Annotation name typo - `children` instead of `childrens`
+- Android native support. Now Backtrace library allows to detect ANR (Application not responding) events, parse Native and Android stack traces and add Android specific attributes to `BacktraceReport`.
+- Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
+
 ## Version 2.1.3
 
 - `BacktraceUnhandledException` will generate environment stack trace if Unity stack trace is empty. BacktraceReport will still generate normalized fingerprint for unhandled exception without stack trace.
