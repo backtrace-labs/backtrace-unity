@@ -88,7 +88,7 @@ namespace Tests
             Assert.AreEqual("Text", data.SourceCode.Type);
             Assert.AreEqual("Log File", data.SourceCode.Title);
             // test unhandled exception text - based on unhandled exception text algorithm
-            Assert.AreEqual(string.Format("Unity Exception:\n{0}\n{1}", message, stackTrace), data.SourceCode.Text);
+            Assert.AreEqual(string.Format("Unity exception information\nMessage :{0}\nStack trace :{1}", message, stackTrace), data.SourceCode.Text);
         }
 
         [Test]
@@ -99,6 +99,19 @@ namespace Tests
             var report = new BacktraceReport(unhandledExceptionReport);
             var data = report.ToBacktraceData(null);
             Assert.IsNull(data.SourceCode);
+        }
+
+        [Test]
+        public void MissingStackTraceReport_GenerateNotFaultingStackTrace_ReportShouldHaveNotFaultingStackTrace()
+        {
+            var message = "message";
+            // in this case BacktraceUnhandledException should generate environment stack trace
+            var unhandledException = new BacktraceUnhandledException(message, string.Empty);
+            Assert.IsNotEmpty(unhandledException.StackFrames);
+            var report = new BacktraceReport(unhandledException);
+            Assert.IsNotNull(report.Attributes["_mod_fingerprint"]);
+            var data = new BacktraceData(report, null);
+            Assert.IsFalse(data.ThreadData.ThreadInformations.First().Value.Fault);
         }
 
         private IEnumerator TestSerialization(BacktraceReport report)

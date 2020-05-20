@@ -1,6 +1,5 @@
 ﻿using Backtrace.Newtonsoft;
 using Backtrace.Newtonsoft.Linq;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -46,21 +45,11 @@ namespace Backtrace.Unity.Model.JsonData
 
 
         /// <summary>
-        /// Get built-in complex attributes
-        /// </summary>
-        public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
-
-        public Annotations()
-        {
-        }
-        /// <summary>
         /// Create new instance of Annotations class
         /// </summary>
-        /// <param name="complexAttributes">Built-in complex attributes</param>
-        public Annotations(Dictionary<string, object> complexAttributes)
+        public Annotations()
         {
             var environment = new EnvironmentVariables();
-            ComplexAttributes = complexAttributes;
             _environmentVariables = environment.Variables;
         }
 
@@ -83,12 +72,6 @@ namespace Backtrace.Unity.Model.JsonData
                 envVariables[envVariable.Key] = envVariable.Value ?? string.Empty;
             }
             annotations[ENVIRONMENT_VARIABLE_KEY] = envVariables;
-
-            foreach (var annotation in ComplexAttributes)
-            {
-                annotations[annotation.Key] = BacktraceJObject.FromObject(annotation.Value);
-            }
-
 
             if (GameObjectDepth > -1)
             {

@@ -1,5 +1,12 @@
 # Backtrace Unity Release Notes
 
+## Version 2.1.3
+
+- `BacktraceUnhandledException` will generate environment stack trace if Unity stack trace is empty. BacktraceReport will still generate normalized fingerprint for unhandled exception without stack trace.
+- `BacktraceUnhandledException` will provide information from Unity Error logger in source code property, which should improve error analysis in web debugger.
+- `BacktraceAttributes` won't try to collect `Annotations` anymore.
+- `Annotations` won't use ComplexAttributes property anymore.
+
 ## Version 2.1.2
 
 - `BacktraceReport` will generate report fingerprint for exceptions without stack trace.

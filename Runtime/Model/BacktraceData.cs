@@ -174,7 +174,12 @@ namespace Backtrace.Unity.Model
         /// </summary>
         private void SetThreadInformations()
         {
-            ThreadData = new ThreadData(Report.DiagnosticStack);
+            var faultingThread = 
+                Report.Exception is BacktraceUnhandledException 
+                && string.IsNullOrEmpty(Report.Exception.StackTrace)
+                ? false
+                : true;
+            ThreadData = new ThreadData(Report.DiagnosticStack, faultingThread);
             ThreadInformations = ThreadData.ThreadInformations;
             MainThread = ThreadData.MainThread;
             if (Report.Exception is BacktraceUnhandledException)
@@ -190,7 +195,7 @@ namespace Backtrace.Unity.Model
         private void SetAttributes(Dictionary<string, object> clientAttributes)
         {
             Attributes = new BacktraceAttributes(Report, clientAttributes);
-            Annotation = new Annotations(Attributes.ComplexAttributes);
+            Annotation = new Annotations();
         }
 
         /// <summary>
@@ -206,7 +211,7 @@ namespace Backtrace.Unity.Model
             LangVersion = "Mono";
 #endif
 
-            AgentVersion = "2.1.2";
+            AgentVersion = "2.1.3";
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }

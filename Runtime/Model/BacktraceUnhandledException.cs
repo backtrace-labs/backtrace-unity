@@ -43,9 +43,17 @@ namespace Backtrace.Unity.Model
 
         public BacktraceUnhandledException(string message, string stacktrace) : base(message)
         {
-            _stacktrace = stacktrace;
             _message = message;
-            ConvertStackFrames();
+            if (!string.IsNullOrEmpty(stacktrace))
+            {
+                _stacktrace = stacktrace;
+                ConvertStackFrames();
+            } else
+            {
+                _stacktrace = string.Empty;
+                var backtraceStackTrace = new BacktraceStackTrace(null);
+                StackFrames = backtraceStackTrace.StackFrames;
+            }
             CreateUnhandledExceptionLogInformation();
         }
 
@@ -56,7 +64,7 @@ namespace Backtrace.Unity.Model
         {
             SourceCode = new BacktraceSourceCode()
             {
-                Text = string.Format("Unity Exception:\n{0}\n{1}", _message, _stacktrace)
+                Text = string.Format("Unity exception information\nMessage :{0}\nStack trace :{1}", _message, _stacktrace)
             };
             // assign log information to first stack frame
             if (StackFrames.Count == 0)

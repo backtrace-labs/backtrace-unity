@@ -23,11 +23,6 @@ namespace Backtrace.Unity.Model.JsonData
         internal const string APPLICATION_ATTRIBUTE_NAME = "application";
 
         /// <summary>
-        /// Get built-in complex attributes
-        /// </summary>
-        public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
-
-        /// <summary>
         /// Create instance of Backtrace Attribute
         /// </summary>
         /// <param name="report">Received report</param>
@@ -168,20 +163,6 @@ namespace Backtrace.Unity.Model.JsonData
                 {
                     Attributes.Add(attribute.Key, attribute.Value);
                 }
-                else
-                {
-                    ComplexAttributes.Add(attribute.Key, attribute.Value);
-                }
-            }
-            //add exception information to Complex attributes.
-            if (report.ExceptionTypeReport)
-            {
-                ComplexAttributes.Add("Exception Properties", new
-                {
-                    Type = report.Classifier,
-                    report.Message,
-                    StackTrace = report.ExceptionTypeReport ? report.Exception.StackTrace : string.Empty
-                });
             }
         }
 

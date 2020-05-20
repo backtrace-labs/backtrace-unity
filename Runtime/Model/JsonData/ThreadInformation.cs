@@ -61,11 +61,11 @@ namespace Backtrace.Unity.Model.JsonData
         /// </summary>
         /// <param name="thread">Thread to analyse</param>
         /// <param name="stack">Exception stack information</param>
-        /// <param name="currentThread">Is current thread flag</param>
-        public ThreadInformation(Thread thread, IEnumerable<BacktraceStackFrame> stack, bool currentThread = false)
+        /// <param name="faultingThread">Faulting thread flag</param>
+        public ThreadInformation(Thread thread, IEnumerable<BacktraceStackFrame> stack, bool faultingThread = false)
             : this(
                  threadName: thread.GenerateValidThreadName().ToLower(),
-                 fault: currentThread, //faulting thread = current thread
+                 fault: faultingThread, 
                  stack: stack)
         { }
 
