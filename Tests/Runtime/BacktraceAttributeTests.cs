@@ -49,7 +49,7 @@ namespace Backtrace.Unity.Tests.Runtime
         {
             var reportAttributeKey = "report_attr";
             var reportAttributeValue = string.Format("{0}-value", reportAttributeKey);
-            var clientAttributes = new Dictionary<string, object>() { { reportAttributeKey,
+            var clientAttributes = new Dictionary<string, string>() { { reportAttributeKey,
                 string.Format("{0}-client", reportAttributeValue)
             } };
             Assert.IsFalse(clientAttributes[reportAttributeKey] as string == reportAttributeValue);

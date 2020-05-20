@@ -1,4 +1,4 @@
-﻿using Backtrace.Unity;
+﻿    
 using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System;
@@ -60,24 +60,5 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(trigger);
             yield return null;
         }
-
-        [UnityTest]
-        public IEnumerator CheckAttributeTypes_MessageReport_ValidAttributeTypes()
-        {
-            var clientMessage = "custom message";
-            client.RequestHandler = (string url, BacktraceData data) =>
-            {
-                var anyBool = data.Attributes.Attributes.Any(n => n.Value is bool);
-                Assert.IsTrue(anyBool);
-                var anyNumber = data.Attributes.Attributes.Any(n => n.Value is int);
-                Assert.IsTrue(anyNumber);
-                var anyString = data.Attributes.Attributes.Any(n => n.Value is string);
-                Assert.IsTrue(anyString);
-                return new BacktraceResult();
-            };
-            client.Send(clientMessage);
-            yield return null;
-        }
-
     }
 }

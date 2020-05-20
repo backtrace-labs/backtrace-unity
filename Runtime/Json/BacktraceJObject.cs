@@ -18,13 +18,14 @@ namespace Backtrace.Unity.Json
         public readonly Dictionary<string, object> Source = new Dictionary<string, object>();
 
         public BacktraceJObject() : this(null) { }
-        public BacktraceJObject(Dictionary<string, object> source)
+
+        public BacktraceJObject(Dictionary<string, string> source)
         {
             if (source == null)
             {
                 return;
             }
-            Source = source;
+            Source = source.ToDictionary(n => n.Key, m => m.Value as object);
         }
 
         public object this[string key]
@@ -48,7 +49,7 @@ namespace Backtrace.Unity.Json
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("{");
 
-            var lines = Source.Select(entry => string.Format("\"{0}\": {1}",EscapeString(entry.Key),ConvertValue(entry.Value)));
+            var lines = Source.Select(entry => string.Format("\"{0}\": {1}", EscapeString(entry.Key), ConvertValue(entry.Value)));
             var content = string.Join(",", lines);
 
             stringBuilder.Append(content);
@@ -114,10 +115,9 @@ namespace Backtrace.Unity.Json
             }
 
             var analysedType = value.GetType();
-
-            if (analysedType == typeof(bool))
+            if (analysedType == typeof(string))
             {
-                return ((bool)value).ToString().ToLower();
+                return string.Format("\"{0}\"", EscapeString(value as string));
             }
             else if (analysedType == typeof(double))
             {
@@ -135,9 +135,9 @@ namespace Backtrace.Unity.Json
             {
                 return Convert.ToInt64(value, CultureInfo.CurrentCulture).ToString();
             }
-            else if (analysedType == typeof(string))
+            else if (analysedType == typeof(bool))
             {
-                return string.Format("\"{0}\"", EscapeString(value as string));
+                return ((bool)value).ToString().ToLower();
             }
             else if (value is IEnumerable && !(value is IDictionary))
             {
