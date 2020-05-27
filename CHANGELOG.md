@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 2.1.4
+
+- `EnvironmentVariable` class now will handle correctly nullable key/values,
+- `BacktraceAttributes` handle correctly nullable values.
+
 ## Version 2.1.3
 
 - `BacktraceUnhandledException` will generate environment stack trace if Unity stack trace is empty. BacktraceReport will still generate normalized fingerprint for unhandled exception without stack trace.

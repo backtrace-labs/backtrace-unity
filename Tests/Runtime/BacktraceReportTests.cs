@@ -33,7 +33,21 @@ namespace Tests
             Assert.DoesNotThrow(() => new BacktraceReport(exception, attachmentPaths: attachemnts));
             yield return null;
         }
+        [Test]
+        public void TestReportCreation_ShouldCreateReportWithNullableAttributes_ReportCreationWorks()
+        {
+            var exception = new FileNotFoundException();
+            string nullableValue = null;
+            string value = "value";
+            var report = new BacktraceReport(exception, new Dictionary<string, object>() { { value, nullableValue } });
+            var data = report.ToBacktraceData(null);
 
+            Assert.AreEqual(data.Attributes.Attributes[value], nullableValue);
+
+            Assert.DoesNotThrow(() => data.ToJson());
+
+
+        }
         [UnityTest]
         public IEnumerator TestReportSerialization_SerializeValidReport_ExceptionReport()
         {

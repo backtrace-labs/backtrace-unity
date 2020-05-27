@@ -65,11 +65,20 @@ namespace Backtrace.Unity.Model.JsonData
             var attr = new BacktraceJObject();
             foreach (var attribute in Attributes)
             {
-                if (attribute.Value != null && attribute.Value.GetType() == typeof(bool))
+                if(attribute.Key == null)
+                {
+                    continue;
+                }
+                if(attribute.Value == null)
+                {
+                    attr[attribute.Key] = "null";
+                    continue;
+                }
+                if (attribute.Value.GetType() == typeof(bool))
                 {
                     attr[attribute.Key] = (bool)attribute.Value;
                 }
-                else if (attribute.Value != null && TypeHelper.IsNumeric(attribute.Value.GetType()))
+                else if (TypeHelper.IsNumeric(attribute.Value.GetType()))
                 {
                     attr[attribute.Key] = Convert.ToInt64(attribute.Value);
                 }
@@ -158,6 +167,16 @@ namespace Backtrace.Unity.Model.JsonData
             var attributes = BacktraceReport.ConcatAttributes(report, clientAttributes);
             foreach (var attribute in attributes)
             {
+                if (attribute.Key == null)
+                {
+                    continue;
+                }
+                if (attribute.Value == null)
+                {
+                    Attributes.Add(attribute.Key, null);
+                    continue;
+                }
+
                 var type = attribute.Value.GetType();
                 if (type.IsPrimitive || type == typeof(string) || type.IsEnum)
                 {
