@@ -81,6 +81,22 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsFalse(report.Classifier.Any());
         }
 
+        [Test]
+        public void TestReportCreation_ShouldCreateReportWithNullableAttributes_ReportCreationWorks()
+        {
+            var exception = new FileNotFoundException();
+            string nullableValue = null;
+            string value = "value";
+            var report = new BacktraceReport(exception, new Dictionary<string, string>() { { value, nullableValue } });
+            var data = report.ToBacktraceData(null, -1);
+
+            Assert.AreEqual(data.Attributes.Attributes[value], nullableValue);
+
+            Assert.DoesNotThrow(() => data.ToJson());
+
+
+        }
+
 
         [Test]
         public void TestReportClassifier_ShouldSetErrorClassifier_SetCorrectExceptionReportClassifier()

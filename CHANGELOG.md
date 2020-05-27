@@ -9,6 +9,10 @@
 - Annotation name typo - `children` instead of `childrens`
 - Android native support. Now Backtrace library allows to detect ANR (Application not responding) events, parse Native and Android stack traces and add Android specific attributes to `BacktraceReport`.
 - Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
+## Version 2.1.4
+
+- `EnvironmentVariable` class now will handle correctly nullable key/values,
+- `BacktraceAttributes` handle correctly nullable values.
 
 ## Version 2.1.3
 

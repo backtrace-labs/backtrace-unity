@@ -102,14 +102,22 @@ namespace Backtrace.Unity.Model
 
                 // validate if stack trace has exception header 
                 int methodNameEndIndex = frameString.IndexOf(')');
-                if (methodNameEndIndex == -1 && frameIndex == 0)
+                if (methodNameEndIndex == -1)
                 {
-                    if (string.IsNullOrEmpty(_message))
+                    // apply error message
+                    if (frameIndex == 0)
                     {
-                        _message = frameString;
+                        if (string.IsNullOrEmpty(_message))
+                        {
+                            _message = frameString;
+                        }
+                        _header = true;
+                        continue;
+                    } else
+                    {
+                        //invalid stack frame
+                        continue;
                     }
-                    _header = true;
-                    continue;
                 }
 
                 //methodname index should be greater than 0 AND '(' should be before ')'
@@ -320,7 +328,6 @@ namespace Backtrace.Unity.Model
                 {
                     Classifier = guessedClassifier;
                 }
-                return;
             }
         }
     }
