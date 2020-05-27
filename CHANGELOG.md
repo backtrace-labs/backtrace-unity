@@ -7,8 +7,8 @@
 - `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` allow our user to pass attributes in dictionary form with string key and string values. Because we want our serializer to be as fast as possible, we will require attributes in Dictionary<string, string> data structure.
 - `BacktraceDatabase` won't try to deserialize `BacktraceReport` anymore - because of that, callback api won't return `BacktraceReport` object in `BacktraceResult`.
 - Annotation name typo - `children` instead of `childrens`
-- Android native support. Now Backtrace library allows to detect ANR (Application not responding) events, parse Native and Android stack traces and add Android specific attributes to `BacktraceReport`.
-- Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
+- Backtrace plugin allows to detect ANR (Application not responding) events,
+- Support has been improved for parsing unhandled exception output from the Unity runtime and Untiy executables,
 
 ## Version 2.1.3
 
