@@ -2,14 +2,20 @@
 
 ## Version 3.0.0
 
-- Removed JSON.NET Dependency - now Backtrace library provide our own serializer just for BacktraceReport usage.
-- BacktraceJObject allowed us to decrease size of Backtrace.Unity assembly.
-- `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` allow our user to pass attributes in dictionary form with string key and string values. Because we want our serializer to be as fast as possible, we will require attributes in Dictionary<string, string> data structure.
-- `BacktraceDatabase` won't try to deserialize `BacktraceReport` anymore - because of that, callback api won't return `BacktraceReport` object in `BacktraceResult`.
-- Annotation name typo - `children` instead of `childrens`
-- Backtrace plugin allows to detect ANR (Application not responding) events on Android devices,
-- Support has been improved for parsing unhandled exception output from the Unity runtime and Untiy executables,
+*New Features*
+- The backtrace-unity library now allows detection of ANR (Application not responding) events on Android devices.
+- Unhandled exception output from the Unity runtime and executables is now prominently displayed in the Debugger.
 - Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
+
+*General Improvements*
+- Removed dependancy on 3rd party JSON.NET library to reduce the size of the package. Backtrace-unity now provides it's own serializer for BacktraceReport usage.
+- Further reduction in size of Backtrace.Unity assembly with BacktraceJObject.
+- `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` now allow users to pass attributes in dictionary form with string key and string values. Attributes must now be provided with the Dictionary<string, string> data structure to allow the serializer to be as fast as possible.
+- `BacktraceDatabase` won't try to deserialize `BacktraceReport` anymore - because of that, callback api won't return `BacktraceReport` object in `BacktraceResult`.
+- Support has been improved for parsing unhandled exception output from the Unity runtime and Unity executables,
+
+*Bug Fixes*
+- Annotation name typo - updated `children` from `childrens`
 
 ## Version 2.1.4
 
