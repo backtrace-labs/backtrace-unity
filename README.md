@@ -253,7 +253,7 @@ Notes:
 The backtrace-unity library includes support for capturing additional Android Native information, from underlying Android OS (Memory and process related), JNI, and NDK layers.
 
 ## Native process and memory related information
-system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included
+system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
 
 ## ANR
 When configuring the nacktrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds. 
