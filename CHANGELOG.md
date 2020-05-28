@@ -8,11 +8,17 @@
 - Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
 
 *General Improvements*
+- `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` now allow users to pass attributes in dictionary form with string key and string values. Attributes must now be provided with the Dictionary<string, string> data structure to allow the serializer to be as fast as possible. 
 - Removed dependancy on 3rd party JSON.NET library to reduce the size of the package. Backtrace-unity now provides it's own serializer for BacktraceReport usage.
 - Further reduction in size of Backtrace.Unity assembly with BacktraceJObject.
-- `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` now allow users to pass attributes in dictionary form with string key and string values. Attributes must now be provided with the Dictionary<string, string> data structure to allow the serializer to be as fast as possible.
 - `BacktraceDatabase` won't try to deserialize `BacktraceReport` anymore - because of that, callback api won't return `BacktraceReport` object in `BacktraceResult`.
 - Support has been improved for parsing unhandled exception output from the Unity runtime and Unity executables,
+
+**NOTE:** When migrating from previous releases, there is an API change that developers will want to uptake for attribute submission. Specifically, attribute definitions previously used a signature
+attributes: `new Dictionary<string, object>() { { "key", "value" } }`, 
+In this release, we made a change to require a string for the value instead of an object for faster performance.
+attributes: `new Dictionary<string, string>() { { "key", "value" } }`, 
+
 
 *Bug Fixes*
 - Annotation name typo - updated `children` from `childrens`
