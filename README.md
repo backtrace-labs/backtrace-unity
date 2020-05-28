@@ -71,7 +71,7 @@ The following is a reference guide to the Backtrace Client fields:
 - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
 - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
-- Handle ANR (Application not responding) - this options is available only in Android build. It allows to catch ANR (application not responding) events happened to your game in Android devices.
+- Handle ANR (Application not responding) - this options is available only in Android build. It allows to catch ANR (application not responding) events happened to your game in Android devices. In this release, ANR is set to detect after 5 seconds. This will be configurable in a future release.
 - Deduplication rules: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
 - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
 - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
