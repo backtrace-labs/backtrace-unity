@@ -81,6 +81,11 @@ namespace Backtrace.Unity.Model
         internal string MinidumpFile { get; private set; }
 
         /// <summary>
+        /// Source code
+        /// </summary>
+        public BacktraceSourceCode SourceCode = null;
+
+        /// <summary>
         /// Convert Backtrace report to JSON
         /// </summary>
         /// <returns>Backtrace report JSON representation</returns>
@@ -171,6 +176,9 @@ namespace Backtrace.Unity.Model
             : this(null as Exception, attributes, attachmentPaths)
         {
             Message = message;
+            // analyse stack trace information in both constructor 
+            // to include error message in both source code properties.
+            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -192,9 +200,9 @@ namespace Backtrace.Unity.Model
             {
                 Message = exception.Message;
                 SetReportFingerPrintForEmptyStackTrace();
+                SetStacktraceInformation();
             }
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
-            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -227,6 +235,7 @@ namespace Backtrace.Unity.Model
 
         internal BacktraceData ToBacktraceData(Dictionary<string, object> clientAttributes)
         {
+            SetStacktraceInformation();
             return new BacktraceData(this, clientAttributes);
         }
 
@@ -249,8 +258,9 @@ namespace Backtrace.Unity.Model
 
         internal void SetStacktraceInformation()
         {
-            var stacktrace = new BacktraceStackTrace(Exception);
+            var stacktrace = new BacktraceStackTrace(Message, Exception);
             DiagnosticStack = stacktrace.StackFrames;
+            SourceCode = stacktrace.SourceCode;
         }
         /// <summary>
         /// create a copy of BacktraceReport for inner exception object inside exception

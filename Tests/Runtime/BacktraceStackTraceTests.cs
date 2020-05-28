@@ -114,7 +114,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator TestStackTraceCreation_EmptyStackTrace_ValidStackTraceObject()
         {
-            var backtraceStackTrace = new BacktraceStackTrace(new Exception());
+            var backtraceStackTrace = new BacktraceStackTrace(string.Empty, new Exception());
             Assert.IsTrue(backtraceStackTrace.StackFrames.Count == 0);
             yield return null;
         }
@@ -134,7 +134,7 @@ namespace Tests
 
                 string message = "message";
                 var exception = new BacktraceUnhandledException(message, stackTrace);
-                var backtraceStackTrace = new BacktraceStackTrace(exception);
+                var backtraceStackTrace = new BacktraceStackTrace(string.Empty, exception);
 
                 //skip first frame
                 int startIndex = exception.Header ? 1 : 0;

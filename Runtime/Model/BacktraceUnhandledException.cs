@@ -51,7 +51,7 @@ namespace Backtrace.Unity.Model
             } else
             {
                 _stacktrace = string.Empty;
-                var backtraceStackTrace = new BacktraceStackTrace(null);
+                var backtraceStackTrace = new BacktraceStackTrace(message, null);
                 StackFrames = backtraceStackTrace.StackFrames;
             }
             CreateUnhandledExceptionLogInformation();
