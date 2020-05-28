@@ -18,6 +18,7 @@ import java.util.Calendar;
 public class BacktraceANRWatchdog extends Thread {
 
     private static BacktraceANRWatchdog _instance;
+    //todo: set anr timeout based on backtrace-unity configuration 
     static public void watch (String gameObjectName, String methodName){
         BacktraceANRWatchdog._instance = new BacktraceANRWatchdog(gameObjectName,methodName);
     }
