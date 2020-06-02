@@ -1,5 +1,6 @@
 ﻿using Backtrace.Unity;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Types;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -8,7 +9,7 @@ using UnityEngine.TestTools;
 
 namespace Tests
 {
-    public class BacktraceClientTests: BacktraceBaseTest
+    public class BacktraceClientTests : BacktraceBaseTest
     {
         [SetUp]
         public void Setup()
@@ -16,7 +17,7 @@ namespace Tests
             BeforeSetup();
             AfterSetup(false);
         }
-        
+
         [UnityTest]
         public IEnumerator TestClientCreation_ValidBacktraceConfiguration_ValidClientCreation()
         {
@@ -27,7 +28,7 @@ namespace Tests
             yield return null;
         }
 
-        
+
         [UnityTest]
         public IEnumerator TestClientCreation_EmptyConfiguration_DisabledClientCreation()
         {
@@ -59,6 +60,33 @@ namespace Tests
             BacktraceClient.BeforeSend = (BacktraceData d) => d;
             BacktraceClient.OnUnhandledApplicationException = (Exception e) => { };
 
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator TestBeforeSendEvent_UpdateReportAttributesForUnhandledException_ShouldUpdateReportAttributes()
+        {
+            var clientConfiguration = GetValidClientConfiguration();
+            BacktraceClient.Configuration = clientConfiguration;
+            BacktraceClient.Refresh();
+            var attributeName = "foo";
+            var attributeValue = "bar";
+            BacktraceClient.BeforeSend = (BacktraceData d) =>
+             {
+                 d.Attributes.Attributes[attributeName] = attributeValue;
+                 return d;
+             };
+            BacktraceClient.RequestHandler = (string url, BacktraceData d) =>
+             {
+                 Assert.AreEqual(d.Attributes.Attributes[attributeName], attributeValue);
+                 return new BacktraceResult
+                 {
+                     Status = BacktraceResultStatus.Ok
+                 };
+             };
+
+            var unhandledException = new BacktraceUnhandledException("foo", string.Empty);
+            BacktraceClient.Send(unhandledException);
             yield return null;
         }
 
