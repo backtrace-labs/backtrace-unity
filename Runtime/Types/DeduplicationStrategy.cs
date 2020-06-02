@@ -14,7 +14,7 @@ namespace Backtrace.Unity.Types
         /// Ignore deduplication strategy
         /// </summary>
         [Tooltip("Deduplication rules are disabled.")]
-        [InspectorName("Disabled")]
+        [InspectorName("Disable")]
         None = 0,
 
         /// <summary>

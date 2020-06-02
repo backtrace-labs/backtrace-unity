@@ -40,6 +40,30 @@ namespace Backtrace.Unity.Model
         public bool IgnoreSslValidation = false;
 
         /// <summary>
+        /// Destroy Backtrace instances on new scene load.
+        /// </summary>
+        [Tooltip("Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true.")]
+        public bool DestroyOnLoad = false;
+
+        /// <summary>
+        /// Game object depth in Backtrace report
+        /// </summary>
+        [Tooltip("Allows developer to filter number of game object childrens in Backtrace report.")]
+        public int GameObjectDepth = -1;
+
+        /// <summary>
+        /// Backtrace client deduplication strategy. 
+        /// </summary>
+        [Tooltip("Client side deduplication allows the backtrace-unity library to group multiple error reports into a single one based on various factors. Factors include:\n\n" +
+            "* Disable - Client side deduplication rules are disabled.\n" +
+            "* Everything - Use all the options as a factor in client side deduplication.\n" +
+            "* Faulting callstack - Use the faulting callstack as a factor in client side deduplication.\n" +
+            "* Exception type - Use the exception type as a factor in client side deduplication.\n" +
+            "* Exception message - Use the exception message as a factor in client side deduplication.")]
+
+        public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+
+        /// <summary>
         /// Determine minidump type support - minidump generation is supported on Windows.
         /// </summary>
         [Tooltip("Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.")]
@@ -92,30 +116,6 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
         public int RetryLimit = 3;
-
-        /// <summary>
-        /// Destroy Backtrace instances on new scene load.
-        /// </summary>
-        [Tooltip("Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true.")]
-        public bool DestroyOnLoad = false;
-
-        /// <summary>
-        /// Game object depth in Backtrace report
-        /// </summary>
-        [Tooltip("Allows developer to filter number of game object childrens in Backtrace report.")]
-        public int GameObjectDepth = -1;
-
-        /// <summary>
-        /// Backtrace client deduplication strategy. 
-        /// </summary>
-        [Tooltip("Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports. Possible options\n\n" +
-            "* Disabled - Deduplication rules are disabled.\n" +
-            "* Faulting callstack - use the faulting callstack as a factor in client-side rate limiting.\n" +
-            "* Exception message - include the normalized exception message as a factor in client-side rate limiting.\n" +
-            "* Exception type - include the exception type as a factor in client-side rate limiting.")]
-
-        public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
-
 
         /// <summary>
         /// Retry order
