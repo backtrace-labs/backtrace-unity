@@ -116,14 +116,14 @@ namespace Tests
         }
 
         [Test]
-        public void MissingStackTraceReport_GenerateNotFaultingStackTrace_ReportShouldHaveNotFaultingStackTrace()
+        public void MissingStackTraceReport_GenerateNotFaultingStackTrace_ReportShouldntHaveFaultingThread()
         {
             var message = "message";
             // in this case BacktraceUnhandledException should generate environment stack trace
             var unhandledException = new BacktraceUnhandledException(message, string.Empty);
             Assert.IsNotEmpty(unhandledException.StackFrames);
+
             var report = new BacktraceReport(unhandledException);
-            Assert.IsNotNull(report.Attributes["_mod_fingerprint"]);
             var data = new BacktraceData(report, null);
             Assert.IsFalse(data.ThreadData.ThreadInformations.First().Value.Fault);
         }

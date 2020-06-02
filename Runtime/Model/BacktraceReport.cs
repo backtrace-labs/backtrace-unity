@@ -199,7 +199,6 @@ namespace Backtrace.Unity.Model
             if (ExceptionTypeReport)
             {
                 Message = exception.Message;
-                SetReportFingerPrintForEmptyStackTrace();
                 SetStacktraceInformation();
             }
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;

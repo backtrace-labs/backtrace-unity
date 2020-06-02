@@ -54,7 +54,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Backtrace client deduplication strategy. 
         /// </summary>
-        [Tooltip("Client side deduplication allows the backtrace-unity library to group multiple error reports into a single one based on various factors. Factors include:\n\n" +
+        [Tooltip("Client-side deduplication allows the backtrace-unity library to group multiple error reports into a single one based on various factors. Factors include:\n\n" +
             "* Disable - Client side deduplication rules are disabled.\n" +
             "* Everything - Use all the options as a factor in client side deduplication.\n" +
             "* Faulting callstack - Use the faulting callstack as a factor in client side deduplication.\n" +
@@ -62,6 +62,12 @@ namespace Backtrace.Unity.Model
             "* Exception message - Use the exception message as a factor in client side deduplication.")]
 
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+
+        /// <summary>
+        /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
+        /// </summary>
+        [Tooltip("Use normalized exception message instead environment stack trace, when exception doesn't have stack trace")]
+        public bool UseNormalizedExceptionMessage = false;
 
         /// <summary>
         /// Determine minidump type support - minidump generation is supported on Windows.

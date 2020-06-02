@@ -43,6 +43,10 @@ namespace Backtrace.Unity.Editor
 #endif
 
                 EditorGUILayout.PropertyField(
+                   serializedObject.FindProperty("UseNormalizedExceptionMessage"),
+                   new GUIContent(BacktraceConfigurationLabels.LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE));
+
+                EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
 

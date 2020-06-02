@@ -10,6 +10,7 @@
 #if UNITY_2018_4_OR_NEWER
         internal static string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
 #endif
+        internal static string LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE = "Use normalized exception message";
         internal static string LABEL_DEDUPLICATION_RULES = "Client-Side deduplication";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
 
