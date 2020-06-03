@@ -165,5 +165,10 @@ namespace Backtrace.Unity.Model
             string fullMethodName = string.Format("{0}.{1}()", method.DeclaringType == null ? null : method.DeclaringType.ToString(), methodName);
             return fullMethodName;
         }
+
+        public override string ToString()
+        {
+            return string.Format("{0} (at {1}:{2})", FunctionName, Library, Line);
+        }
     }
 }
