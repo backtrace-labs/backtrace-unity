@@ -75,7 +75,7 @@ namespace Backtrace.Unity.Model
                 SetStacktraceInformation(frames, generateExceptionInformation);
                 if (StackFrames.Any())
                 {
-                    _stackTrace = string.Join("\n", StackFrames.Select(n => n.ToString()));
+                    _stackTrace = string.Join("\n", StackFrames.Select(n => n.ToString()).ToArray());
                 }
             }
             CreateUnhandledExceptionLogInformation();
