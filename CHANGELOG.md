@@ -4,7 +4,7 @@
 
 - Backtrace Unity plugin UI improvements - added tooltips, headers and collapsible menu for advanced options.
 - Changed Client side deduplication menu,
-- `BacktraceClient` now allows you to choose what type of fingerprint Backtrace should generate for reports without stack trace. You can use `Use normalized exception message` to use normalized exception message to generate fingerprint. By default we will use exception stack trace or (if exception stack trace is not available) environment stack trace.
+- `BacktraceClient` now allows you to choose what type of fingerprint Backtrace should generate for reports without stack trace. `Use normalized exception message` allows you to use a normalized exception message to generate fingerprint, instead of stack trace.
 
 ## Version 2.1.4
 

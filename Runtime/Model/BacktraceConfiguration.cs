@@ -66,7 +66,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
         /// </summary>
-        [Tooltip("Use normalized exception message instead environment stack trace, when exception doesn't have stack trace")]
+        [Tooltip("If exception does not have a stack trace, use a normalized exception message to generate fingerprint.")]
         public bool UseNormalizedExceptionMessage = false;
 
         /// <summary>
