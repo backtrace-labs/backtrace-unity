@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+## Version 2.1.5
+
+- Added exception source code information to exception and message type of reports.
+
 ## Version 2.1.4
 
 - `EnvironmentVariable` class now will handle correctly nullable key/values,
