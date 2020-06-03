@@ -55,11 +55,11 @@ namespace Backtrace.Unity.Model
         /// Backtrace client deduplication strategy. 
         /// </summary>
         [Tooltip("Client-side deduplication allows the backtrace-unity library to group multiple error reports into a single one based on various factors. Factors include:\n\n" +
-            "* Disable - Client side deduplication rules are disabled.\n" +
-            "* Everything - Use all the options as a factor in client side deduplication.\n" +
-            "* Faulting callstack - Use the faulting callstack as a factor in client side deduplication.\n" +
-            "* Exception type - Use the exception type as a factor in client side deduplication.\n" +
-            "* Exception message - Use the exception message as a factor in client side deduplication.")]
+            "* Disable - Client-side deduplication rules are disabled.\n" +
+            "* Everything - Use all the options as a factor in client-side deduplication.\n" +
+            "* Faulting callstack - Use the faulting callstack as a factor in client-side deduplication.\n" +
+            "* Exception type - Use the exception type as a factor in client-side deduplication.\n" +
+            "* Exception message - Use the exception message as a factor in client-side deduplication.")]
 
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
