@@ -167,15 +167,24 @@ namespace Tests
         public void ExceptionStackTrace_StackTraceAvailable_ExceptionShouldHaveExceptionStackTrace()
         {
             var message = "message";
-            var stackTrace = string.Empty;
             var stringBuilder = new StringBuilder();
             foreach (var stackFrame in _simpleStack)
             {
                 stringBuilder.Append(stackFrame.ToStackFrameString());
             }
-            stackTrace = stringBuilder.ToString();
-            var unhandledExceptionReport = new BacktraceUnhandledException(message, stackTrace);
-            Assert.AreEqual(_simpleStack.Count, unhandledExceptionReport.StackFrames.Count);
+            var stackTrace = stringBuilder.ToString();
+            var error = new BacktraceUnhandledException(message, stackTrace);
+            Assert.AreEqual(_simpleStack.Count, error.StackFrames.Count);
+        }
+
+
+        [Test]
+        public void ExceptionStackTrace_ShouldGenerateEnvStackTraceIfExStackTraceIsInvalid_ExceptionShouldHaveExceptionStackTrace()
+        {
+            var invalidStackTrace = "--";
+            var error = new BacktraceUnhandledException("error message", invalidStackTrace);
+            Assert.AreEqual(error.StackTrace, invalidStackTrace);
+            Assert.IsTrue(error.StackFrames.Any());
         }
     }
 

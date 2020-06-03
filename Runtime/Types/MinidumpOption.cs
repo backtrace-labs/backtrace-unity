@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Backtrace.Unity.Types
+﻿namespace Backtrace.Unity.Types
 {
     /// <summary>
     /// Minidump generation options. These values are available in dbghelp.h and you can get more information here: http://blog.kalmbach-software.de/2008/12/13/writing-minidumps-in-c/

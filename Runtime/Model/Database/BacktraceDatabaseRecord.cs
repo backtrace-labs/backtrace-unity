@@ -329,7 +329,7 @@ namespace Backtrace.Unity.Model.Database
                 {
                     return Deserialize(json);
                 }
-                catch (SerializationException)
+                catch (Exception)
                 {
                     //handle invalid json 
                     return null;

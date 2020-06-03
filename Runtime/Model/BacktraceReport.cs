@@ -199,7 +199,6 @@ namespace Backtrace.Unity.Model
             if (ExceptionTypeReport)
             {
                 Message = exception.Message;
-                SetReportFingerPrintForEmptyStackTrace();
                 SetStacktraceInformation();
             }
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
@@ -235,6 +234,7 @@ namespace Backtrace.Unity.Model
 
         internal BacktraceData ToBacktraceData(Dictionary<string, object> clientAttributes)
         {
+            SetStacktraceInformation();
             return new BacktraceData(this, clientAttributes);
         }
 
