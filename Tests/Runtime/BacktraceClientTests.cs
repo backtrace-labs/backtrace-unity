@@ -173,7 +173,6 @@ namespace Tests
             // invalid game object setting or via weird crash
             // exception below has empty exception stack trace
             var exception = new BacktraceUnhandledException("00:00:00 00/00/00 Unhandled exception", string.Empty);
-            var expectedNormalizedMessage = "Unhandledexception";
             var report = new BacktraceReport(exception);
 
             bool eventFired = false;

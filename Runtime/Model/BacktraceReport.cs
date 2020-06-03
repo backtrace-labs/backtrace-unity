@@ -234,7 +234,6 @@ namespace Backtrace.Unity.Model
 
         internal BacktraceData ToBacktraceData(Dictionary<string, object> clientAttributes)
         {
-            SetStacktraceInformation();
             return new BacktraceData(this, clientAttributes);
         }
 

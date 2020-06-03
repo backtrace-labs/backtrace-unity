@@ -106,16 +106,6 @@ namespace Tests
         }
 
         [Test]
-        public void TestReportSourceCode_HandledExceptionSourceCode_ReportShouldntHaveReportSourceCode()
-        {
-            var message = "message";
-            var unhandledExceptionReport = new Exception(message);
-            var report = new BacktraceReport(unhandledExceptionReport);
-            var data = report.ToBacktraceData(null);
-            Assert.IsNull(data.SourceCode);
-        }
-
-        [Test]
         public void MissingStackTraceReport_GenerateNotFaultingStackTrace_ReportShouldntHaveFaultingThread()
         {
             var message = "message";

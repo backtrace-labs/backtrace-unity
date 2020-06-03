@@ -59,6 +59,10 @@ namespace Backtrace.Unity.Model
                 {
                     var exceptionStackTrace = new StackTrace(_exception, true);
                     var exceptionFrames = exceptionStackTrace.GetFrames();
+                    if(exceptionFrames == null || exceptionFrames.Length == 0)
+                    {
+                        exceptionFrames = new StackTrace(true).GetFrames();
+                    }
                     SetStacktraceInformation(exceptionFrames, true);
                 }
             }
