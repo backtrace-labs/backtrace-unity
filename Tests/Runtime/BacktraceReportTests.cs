@@ -102,7 +102,7 @@ namespace Tests
             Assert.AreEqual("Text", data.SourceCode.Type);
             Assert.AreEqual("Log File", data.SourceCode.Title);
             // test unhandled exception text - based on unhandled exception text algorithm
-            Assert.AreEqual(string.Format("Unity exception information\nMessage :{0}\nStack trace :{1}", message, stackTrace), data.SourceCode.Text);
+            Assert.AreEqual(string.Format("Unity exception information\nMessage: {0}\nStack trace: {1}", message, stackTrace), data.SourceCode.Text);
         }
 
         [Test]
