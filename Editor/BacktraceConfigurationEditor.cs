@@ -98,6 +98,10 @@ namespace Backtrace.Unity.Editor
                     SerializedProperty createDatabase = serializedObject.FindProperty("CreateDatabase");
                     EditorGUILayout.PropertyField(createDatabase, new GUIContent(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY));
 
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("GenerateScreenshotOnException"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION));
+
                     SerializedProperty maxRecordCount = serializedObject.FindProperty("MaxRecordCount");
                     EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT));
 

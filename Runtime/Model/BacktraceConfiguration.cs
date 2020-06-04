@@ -85,6 +85,12 @@ namespace Backtrace.Unity.Model
         public MiniDumpType MinidumpType = MiniDumpType.None;
 
         /// <summary>
+         /// Generate game screen shot when exception happen
+        /// </summary>
+        [Tooltip("Generate game screenshot when exception happened")]
+        public bool GenerateScreenshotOnException = false;
+
+        /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]

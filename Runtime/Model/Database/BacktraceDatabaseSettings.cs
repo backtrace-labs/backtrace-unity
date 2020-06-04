@@ -23,6 +23,7 @@ namespace Backtrace.Unity.Model.Database
             RetryLimit = Convert.ToUInt32(configuration.RetryLimit);
             RetryOrder = configuration.RetryOrder;
             DeduplicationStrategy = configuration.DeduplicationStrategy;
+            GenerateScreenshotOnException = configuration.GenerateScreenshotOnException;
         }
         /// <summary>
         /// Directory path where reports and minidumps are stored
@@ -79,6 +80,11 @@ namespace Backtrace.Unity.Model.Database
         /// Deduplication strategy
         /// </summary>
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+
+        /// <summary>
+        /// Generate screenshot on exception
+        /// </summary>
+        public bool GenerateScreenshotOnException;
 
         public RetryOrder RetryOrder = RetryOrder.Queue;
     }

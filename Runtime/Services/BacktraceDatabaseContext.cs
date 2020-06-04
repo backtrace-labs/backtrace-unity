@@ -40,6 +40,8 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly int _retryNumber;
 
+        private readonly bool _generateScreenshotOnException;
+
         /// <summary>
         /// Record order
         /// </summary>
@@ -69,10 +71,12 @@ namespace Backtrace.Unity.Services
            string path,
            uint retryNumber,
            RetryOrder retryOrder,
-           DeduplicationStrategy deduplicationStrategy = DeduplicationStrategy.None)
+           DeduplicationStrategy deduplicationStrategy = DeduplicationStrategy.None,
+           bool generateScreenshotOnException = false)
         {
             _path = path;
             _retryNumber = checked((int)retryNumber);
+            _generateScreenshotOnException = generateScreenshotOnException;
             RetryOrder = retryOrder;
             DeduplicationStrategy = deduplicationStrategy;
             SetupBatch();
@@ -138,6 +142,17 @@ namespace Backtrace.Unity.Services
                     existRecord.Increment();
                     TotalRecords++;
                     return existRecord;
+                }
+            }
+
+            if (_generateScreenshotOnException)
+            {
+                var screenshotPath = Path.Combine(_path, string.Format("{0}.png", backtraceData.Uuid));
+                UnityEngine.ScreenCapture.CaptureScreenshot(screenshotPath);
+                backtraceData.Attachments.Add(screenshotPath);
+                if (backtraceData.Report.AttachmentPaths != null)
+                {
+                    backtraceData.Report.AttachmentPaths.Add(screenshotPath);
                 }
             }
 

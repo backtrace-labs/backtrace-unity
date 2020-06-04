@@ -121,7 +121,7 @@ namespace Backtrace.Unity.Services
                     request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
                 }
 #endif
-
+                request.timeout = 15000;
                 byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
                 request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();

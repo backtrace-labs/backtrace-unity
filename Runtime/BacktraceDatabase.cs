@@ -140,7 +140,7 @@ namespace Backtrace.Unity
             _lastConnection = Time.time;
 
             //Setup database context
-            BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder, DatabaseSettings.DeduplicationStrategy);
+            BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder, DatabaseSettings.DeduplicationStrategy, DatabaseSettings.GenerateScreenshotOnException);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
