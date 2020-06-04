@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+## Version 2.1.6
+
+- Handling special case for string reports fingerprint when stack trace is empty.
+
 ## Version 2.1.5
 
 - Backtrace Unity plugin UI improvements - added tooltips, headers and collapsible menu for advanced options.
