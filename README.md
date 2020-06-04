@@ -57,6 +57,10 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 Watch this 1 minute silent video to see the Integration and Configuration in action. The first 20 seconds of the video shows the above Integrating steps, and the second part shows details of the below Client and Database Settings - https://player.vimeo.com/video/300051476
 
+## Plugin best practices
+
+Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
+
 ## Backtrace Client and Offline Database Settings
 
 The following is a reference guide to the Backtrace Client fields:
@@ -79,10 +83,6 @@ The following is a reference guide to the Backtrace Client fields:
 - Retry interval: If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries.
 - Maximum retries: If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.
 - Retry order: This specifies in which order records are sent to the Backtrace server.
-
-## Best Practices
-
-The backtrace-unity library allows you to define maximum depth of collected game object information. You can set game object depth to *n*, where *n* is an integer between -1 and 30. -1 is the default and disables collection. An integer between 1 and 30 can be specified to collect game objects *n* levels deep. If you set to 0, the system will collect the game object limit (typically 16).
 
 # API Overview
 
@@ -250,13 +250,16 @@ Notes:
 - `BacktarceDatabase` `Delete` method will remove record (with multiple deduplicated records) at the same time.
 
 # Android Specific information
+
 The backtrace-unity library includes support for capturing additional Android Native information, from underlying Android OS (Memory and process related), JNI, and NDK layers.
 
 ## Native process and memory related information
+
 system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
 
 ## ANR
-When configuring the nacktrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds. 
+
+When configuring the nacktrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds.
 
 # Architecture description
 
@@ -315,5 +318,3 @@ The developer who is debugging the error may find it useful to view more details
 
 Below we see more details above the Environment Variables from the Web Debugger to further assist with investigation.
 ![Backtrace attributes](https://downloads.intercomcdn.com/i/o/85088535/c84ebd2b96f1d5423b36482d/Screen+Shot+2018-11-10+at+12.22.56+PM.png)
-
-

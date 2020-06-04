@@ -121,5 +121,4 @@ namespace Backtrace.Unity.Editor
             serializedObject.ApplyModifiedProperties();
         }
     }
-
 }

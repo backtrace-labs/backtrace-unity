@@ -23,6 +23,9 @@ attributes: `new Dictionary<string, string>() { { "key", "value" } }`,
 *Bug Fixes*
 - Annotation name typo - updated `children` from `childrens`
 
+## Version 2.1.5
+
+- Added exception source code information to exception and message type of reports.
 ## Version 2.1.4
 
 - `EnvironmentVariable` class now will handle correctly nullable key/values,

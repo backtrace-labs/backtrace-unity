@@ -132,18 +132,13 @@ namespace Backtrace.Unity.Model
         /// </summary>
         private void SetThreadInformations()
         {
-            var faultingThread =
-                Report.Exception is BacktraceUnhandledException
-                && string.IsNullOrEmpty(Report.Exception.StackTrace)
-                ? false
-                : true;
+            var faultingThread = !(Report.Exception is BacktraceUnhandledException
+                && string.IsNullOrEmpty(Report.Exception.StackTrace));
+
             ThreadData = new ThreadData(Report.DiagnosticStack, faultingThread);
             ThreadInformations = ThreadData.ThreadInformations;
             MainThread = ThreadData.MainThread;
-            if (Report.Exception is BacktraceUnhandledException)
-            {
-                SourceCode = (Report.Exception as BacktraceUnhandledException).SourceCode;
-            }
+            SourceCode = Report.SourceCode;
         }
 
         /// <summary>

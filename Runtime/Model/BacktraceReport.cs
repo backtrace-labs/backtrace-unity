@@ -72,6 +72,11 @@ namespace Backtrace.Unity.Model
         internal string MinidumpFile { get; private set; }
 
         /// <summary>
+        /// Source code
+        /// </summary>
+        public BacktraceSourceCode SourceCode = null;
+
+        /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>
         /// <param name="message">Custom client message</param>
@@ -84,6 +89,9 @@ namespace Backtrace.Unity.Model
             : this(null as Exception, attributes, attachmentPaths)
         {
             Message = message;
+            // analyse stack trace information in both constructor 
+            // to include error message in both source code properties.
+            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -106,8 +114,8 @@ namespace Backtrace.Unity.Model
                 Message = exception.Message;
                 SetClassifier();
                 SetReportFingerPrintForEmptyStackTrace();
+                SetStacktraceInformation();
             }
-            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -174,8 +182,9 @@ namespace Backtrace.Unity.Model
 
         internal void SetStacktraceInformation()
         {
-            var stacktrace = new BacktraceStackTrace(Exception);
+            var stacktrace = new BacktraceStackTrace(Message, Exception);
             DiagnosticStack = stacktrace.StackFrames;
+            SourceCode = stacktrace.SourceCode;
         }
         /// <summary>
         /// create a copy of BacktraceReport for inner exception object inside exception

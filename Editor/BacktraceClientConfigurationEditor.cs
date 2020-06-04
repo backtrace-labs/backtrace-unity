@@ -1,8 +1,6 @@
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Types;
-using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace Backtrace.Unity.Editor
 {
@@ -53,5 +51,4 @@ namespace Backtrace.Unity.Editor
             settings.GameObjectDepth = EditorGUILayout.IntField(LABEL_GAME_OBJECT_DEPTH, settings.GameObjectDepth);
         }
     }
-
 }
