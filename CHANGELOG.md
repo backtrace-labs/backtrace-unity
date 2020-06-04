@@ -6,6 +6,8 @@
 - The backtrace-unity library now allows detection of ANR (Application not responding) events on Android devices.
 - Unhandled exception output from the Unity runtime and executables is now prominently displayed in the Debugger.
 - Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
+- Backtrace now allows you to capture screenshot when exception occured.
+- Backtrace will send native Unity exception that caused crash of your game on Windows OS.
 
 *General Improvements*
 - `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` now allow users to pass attributes in dictionary form with string key and string values. Attributes must now be provided with the Dictionary<string, string> data structure to allow the serializer to be as fast as possible. 
