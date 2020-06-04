@@ -25,7 +25,11 @@ attributes: `new Dictionary<string, string>() { { "key", "value" } }`,
 
 ## Version 2.1.5
 
+- Backtrace Unity plugin UI improvements - added tooltips, headers and collapsible menu for advanced options.
+- Changed Client-side deduplication menu,
+- `BacktraceClient` now allows you to choose what type of fingerprint Backtrace should generate for reports without stack trace. `Use normalized exception message` allows you to use a normalized exception message to generate fingerprint, instead of stack trace.
 - Added exception source code information to exception and message type of reports.
+
 ## Version 2.1.4
 
 - `EnvironmentVariable` class now will handle correctly nullable key/values,
@@ -95,7 +99,7 @@ attributes: `new Dictionary<string, string>() { { "key", "value" } }`,
 - `BacktraceDatabase` retry method now respect correctly `BacktraceDatabase` `retryInterval` property,
 - New `Backtrace Configuration` won't override existing `Backtrace Configuration` in configuration directory.
 - Backtrace-Unity plugin tests now won't override some files in Backtrace-Database unit tests,
-- Backtrace-Unity plugin now allows you to setup client side deduplication rules via `Fingerprint`. By using this field you can limit reporting of an error that occurs many times over a few frames.
+- Backtrace-Unity plugin now allows you to setup client-side deduplication rules via `Fingerprint`. By using this field you can limit reporting of an error that occurs many times over a few frames.
 - Backtrace report limit watcher feature now will validate limits before BacktraceReport creation.
 - `BacktraceClient` and `BacktraceDatabase` now expose `Reload` method. You can use this method do dynamically change `BacktraceClient`/`BacktraceDatabase` configurations.
 

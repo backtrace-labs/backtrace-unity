@@ -356,6 +356,19 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">send callback</param>
         private void SendReport(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
+              if (BacktraceApi == null)
+            {
+                Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
+                return;
+            }
+
+            // apply _mod fingerprint attribute when client should use
+            // normalized exception message instead environment stack trace
+            // for exceptions without stack trace.
+            if (Configuration.UseNormalizedExceptionMessage)
+            {
+                report.SetReportFingerPrintForEmptyStackTrace();
+            }
             var reportAttributes = new Dictionary<string, string>();
             // extend client attributes with native attributes
             if (_nativeClient != null)
@@ -378,16 +391,6 @@ namespace Backtrace.Unity
                 }
             }
 
-            if (BacktraceApi == null)
-            {
-                if (record != null)
-                {
-                    record.Dispose();
-                }
-
-                Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
-                return;
-            }
             StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
             {
                 if (record != null)

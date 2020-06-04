@@ -113,7 +113,6 @@ namespace Backtrace.Unity.Model
             {
                 Message = exception.Message;
                 SetClassifier();
-                SetReportFingerPrintForEmptyStackTrace();
                 SetStacktraceInformation();
             }
         }

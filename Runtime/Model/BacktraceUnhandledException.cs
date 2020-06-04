@@ -50,14 +50,17 @@ namespace Backtrace.Unity.Model
         public BacktraceUnhandledException(string message, string stacktrace) : base(message)
         {
             _message = message;
+            _stacktrace = stacktrace;
             if (!string.IsNullOrEmpty(stacktrace))
             {
-                _stacktrace = stacktrace;
                 ConvertStackFrames();
             }
-            else
+            
+            if (string.IsNullOrEmpty(stacktrace) || !StackFrames.Any())
             {
-                _stacktrace = string.Empty;
+                // make sure that for this kind of exception, this exception message will be always the same
+                // error message might be overriden by ConvertStackFrames method.
+                _message = message;
                 var backtraceStackTrace = new BacktraceStackTrace(message, null);
                 StackFrames = backtraceStackTrace.StackFrames;
             }
