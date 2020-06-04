@@ -59,6 +59,10 @@ namespace Backtrace.Unity.Model
                 {
                     var exceptionStackTrace = new StackTrace(_exception, true);
                     var exceptionFrames = exceptionStackTrace.GetFrames();
+                    if(exceptionFrames == null || exceptionFrames.Length == 0)
+                    {
+                        exceptionFrames = new StackTrace(true).GetFrames();
+                    }
                     SetStacktraceInformation(exceptionFrames, true);
                 }
             }
@@ -71,7 +75,7 @@ namespace Backtrace.Unity.Model
                 SetStacktraceInformation(frames, generateExceptionInformation);
                 if (StackFrames.Any())
                 {
-                    _stackTrace = string.Join("\n", StackFrames.Select(n => n.ToString()));
+                    _stackTrace = string.Join("\n", StackFrames.Select(n => n.ToString()).ToArray());
                 }
             }
             CreateUnhandledExceptionLogInformation();

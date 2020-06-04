@@ -76,7 +76,7 @@ namespace Backtrace.Unity.Model
         {
             SourceCode = new BacktraceSourceCode()
             {
-                Text = string.Format("Unity exception information\nMessage :{0}\nStack trace :{1}", _message, _stacktrace)
+                Text = string.Format("Unity exception information\nMessage: {0}\nStack trace: {1}", _message, _stacktrace)
             };
             // assign log information to first stack frame
             if (StackFrames.Count == 0)

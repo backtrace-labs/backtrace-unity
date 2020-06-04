@@ -133,17 +133,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual("Text", data.SourceCode.Type);
             Assert.AreEqual("Log File", data.SourceCode.Title);
             // test unhandled exception text - based on unhandled exception text algorithm
-            Assert.AreEqual(string.Format("Unity exception information\nMessage :{0}\nStack trace :{1}", message, stackTrace), data.SourceCode.Text);
-        }
-
-        [Test]
-        public void TestReportSourceCode_HandledExceptionSourceCode_ReportShouldntHaveReportSourceCode()
-        {
-            var message = "message";
-            var unhandledExceptionReport = new Exception(message);
-            var report = new BacktraceReport(unhandledExceptionReport);
-            var data = report.ToBacktraceData(null, -1);
-            Assert.IsNull(data.SourceCode);
+            Assert.AreEqual(string.Format("Unity exception information\nMessage: {0}\nStack trace: {1}", message, stackTrace), data.SourceCode.Text);
         }
 
         [Test]

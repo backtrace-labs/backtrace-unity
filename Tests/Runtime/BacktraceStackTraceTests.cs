@@ -259,9 +259,20 @@ namespace Backtrace.Unity.Tests.Runtime
         [UnityTest]
         public IEnumerator TestReportStackTrace_StackTraceShouldBeTheSameLikeExceptionStackTrace_ShouldReturnCorrectStackTrace()
         {
-            var exception = new Exception("exception");
-            var report = new BacktraceReport(exception);
-            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace == null ? 0 : exception.StackTrace.Count());
+            try
+            {
+                //simulate real exception with real stack trace
+                System.IO.File.ReadAllText("not existing file");
+            }
+            catch (Exception exception)
+            {
+                var report = new BacktraceReport(exception);
+                var errorStackFramesCount = new StackTrace(exception, true)
+                    .GetFrames()
+                    .Count(n => n.GetMethod() != null);
+
+                Assert.AreEqual(report.DiagnosticStack.Count, errorStackFramesCount);
+            }
             yield return null;
         }
 
@@ -277,10 +288,10 @@ namespace Backtrace.Unity.Tests.Runtime
 
 
         [UnityTest]
-        public IEnumerator TestStackTraceCreation_EmptyStackTrace_ValidStackTraceObject()
+        public IEnumerator TestStackTraceCreation_ShouldUseEnvStackTraceWhenExStackTraceIsEmpty_ValidStackTraceObject()
         {
             var backtraceStackTrace = new BacktraceStackTrace(string.Empty, new Exception());
-            Assert.IsTrue(backtraceStackTrace.StackFrames.Count == 0);
+            Assert.IsNotEmpty(backtraceStackTrace.StackFrames);
             yield return null;
         }
 
