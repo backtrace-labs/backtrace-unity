@@ -41,5 +41,13 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
+         /// <summary>
+        /// Upload minidump to server
+        /// </summary>
+        /// <param name="minidumpPath">Minidump path</param>
+        /// <param name="attachments">attachment path</param>
+        /// <param name="callback">Result callback</param>
+        /// <returns>Server response</returns>
+        IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null);
     }
 }

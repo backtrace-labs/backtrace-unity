@@ -49,7 +49,11 @@ namespace Backtrace.Unity.Editor
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),
                    new GUIContent(BacktraceConfigurationLabels.LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE));
-
+#if UNITY_STANDALONE_WIN
+                EditorGUILayout.PropertyField(
+                 serializedObject.FindProperty("SendUnhandledGameCrashesOnGameStartup"),
+                 new GUIContent(BacktraceConfigurationLabels.LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP));
+#endif
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
@@ -86,7 +90,6 @@ namespace Backtrace.Unity.Editor
                        new GUIContent(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES));
 
 #if UNITY_STANDALONE_WIN
-                    EditorGUILayout.HelpBox("Minidump support works only on Windows machines.", MessageType.Warning);
                     SerializedProperty miniDumpType = serializedObject.FindProperty("MinidumpType");
                     EditorGUILayout.PropertyField(miniDumpType, new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
 #endif

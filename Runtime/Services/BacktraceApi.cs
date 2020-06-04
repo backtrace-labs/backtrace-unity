@@ -3,6 +3,7 @@ using Backtrace.Unity.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -76,6 +77,67 @@ namespace Backtrace.Unity.Services
         
 #endif
 
+ /// <summary>
+        /// Send minidump to Backtrace
+        /// </summary>
+        /// <param name="minidumpPath">Path to minidump</param>
+        /// <param name="attachments">List of attachments</param>
+        /// <param name="callback">Callback</param>
+        /// <returns>Server response</returns>
+        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null)
+        {
+            if (attachments == null)
+            {
+                attachments = new List<string>();
+            }
+
+            var jsonServerUrl = _serverurl.ToString();
+            var minidumpServerUrl = jsonServerUrl.IndexOf("submit.backtrace.io") != -1
+                ? jsonServerUrl.Replace("/json", "/minidump")
+                : jsonServerUrl.Replace("format=json", "format=minidump");
+
+            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
+            {
+                new MultipartFormFileSection("upload_file", File.ReadAllBytes(minidumpPath))
+            };
+
+            foreach (var file in attachments)
+            {
+                 if (File.Exists(file) && new FileInfo(file).Length > 10000000)
+                {
+                    formData.Add(new MultipartFormFileSection(
+                        string.Format("attachment__{0}", Path.GetFileName(file)),
+                        File.ReadAllBytes(file)));
+                }
+            }
+
+            yield return new WaitForEndOfFrame();
+
+            var boundaryId = string.Format("----------{0:N}", Guid.NewGuid());
+            var boundaryIdBytes = Encoding.ASCII.GetBytes(boundaryId);
+
+            using (var request = UnityWebRequest.Post(minidumpServerUrl, formData, boundaryIdBytes))
+            {
+                request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundaryId);
+
+                yield return request.SendWebRequest();
+                var result = request.isNetworkError || request.isHttpError
+                    ? new BacktraceResult()
+                    {
+                        Message = request.error,
+                        Status = Types.BacktraceResultStatus.ServerError
+                    }
+                    : BacktraceResult.FromJson(request.downloadHandler.text);
+
+                if (callback != null)
+                {
+                    callback.Invoke(result);
+                }
+
+                yield return result;
+            }
+        }
+
         /// <summary>
         /// Sending a diagnostic report data to server API. 
         /// </summary>
@@ -88,9 +150,9 @@ namespace Backtrace.Unity.Services
             {
                 yield return RequestHandler.Invoke(_serverurl.ToString(), data);
             }
-            else
+            else if (data != null)
             {
-                string json = data.ToJson();
+                var json = data.ToJson();
                 yield return Send(json, data.Attachments, data.Deduplication, callback);
             }
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -113,6 +175,7 @@ namespace Backtrace.Unity.Services
                 var startingChar = string.IsNullOrEmpty(_serverurl.Query) ? "?" : "&";
                 requestUrl += string.Format("{0}_mod_duplicate={1}", startingChar, deduplication);
             }
+            yield return new WaitForEndOfFrame();
             using (var request = new UnityWebRequest(requestUrl, "POST"))
             {
 #if UNITY_2018_4_OR_NEWER

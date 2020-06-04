@@ -51,6 +51,11 @@ namespace Backtrace.Unity.Model
         [Tooltip("Allows developer to filter number of game object childrens in Backtrace report.")]
         public int GameObjectDepth = -1;
 
+        /// <summary>
+        /// Try to find game native crashes and send them on Game startup
+        /// </summary>
+        [Tooltip("Try to find game native crashes and send them on Game startup")]
+        public bool SendUnhandledGameCrashesOnGameStartup = true;
 
 #if UNITY_ANDROID
         /// <summary>

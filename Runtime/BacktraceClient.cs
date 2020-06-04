@@ -217,7 +217,7 @@ namespace Backtrace.Unity
             BacktraceApi = new BacktraceApi(new BacktraceCredentials(Configuration.GetValidServerUrl()));
 #endif
 
-            if (Configuration.DestroyOnLoad == false)
+            if (!Configuration.DestroyOnLoad)
             {
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
@@ -230,6 +230,12 @@ namespace Backtrace.Unity
             Database.Reload();
             Database.SetApi(BacktraceApi);
             Database.SetReportWatcher(_reportLimitWatcher);
+            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
+            {
+                var nativeCrashUplaoder = new NativeCrashUploader();
+                nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
+                StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
+            }
         }
 
         private void Awake()
@@ -243,7 +249,7 @@ namespace Backtrace.Unity
         /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
         public void SetClientReportLimit(uint reportPerMin)
         {
-            if (Enabled == false)
+            if (!Enabled)
             {
                 Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
                 return;
@@ -258,14 +264,14 @@ namespace Backtrace.Unity
         /// <param name="attributes">List of report attributes</param>
         public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, string> attributes = null)
         {
-            if (Enabled == false)
+            if (!Enabled)
             {
                 Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
                 return;
             }
             //check rate limiting
             bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit == false && _onClientReportLimitReached == null)
+            if (!limitHit && _onClientReportLimitReached == null)
             {
                 _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
@@ -294,14 +300,14 @@ namespace Backtrace.Unity
         /// <param name="attributes">List of report attributes</param
         public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, string> attributes = null)
         {
-            if (Enabled == false)
+            if (!Enabled)
             {
                 Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
             //check rate limiting
             bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit == false && _onClientReportLimitReached == null)
+            if (!limitHit && _onClientReportLimitReached == null)
             {
                 _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
@@ -313,7 +319,9 @@ namespace Backtrace.Unity
             if (!limitHit)
             {
                 if (_onClientReportLimitReached != null)
+                {
                     _onClientReportLimitReached.Invoke(report);
+                }
 
                 _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
@@ -328,7 +336,7 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">Send report callback</param>
         public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            if (Enabled == false)
+            if (!Enabled)
             {
                 Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
                 return;
@@ -430,7 +438,7 @@ namespace Backtrace.Unity
         /// </summary>
         public void HandleUnhandledExceptions()
         {
-            if (Enabled == false)
+            if (!Enabled)
             {
                 Debug.LogWarning("Cannot set unhandled exception handler for not enabled Backtrace client instance");
                 return;
