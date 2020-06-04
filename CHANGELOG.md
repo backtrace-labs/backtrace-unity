@@ -23,6 +23,10 @@ attributes: `new Dictionary<string, string>() { { "key", "value" } }`,
 *Bug Fixes*
 - Annotation name typo - updated `children` from `childrens`
 
+## Version 2.1.6
+
+- Handling special case for string reports fingerprint when stack trace is empty.
+
 ## Version 2.1.5
 
 - Backtrace Unity plugin UI improvements - added tooltips, headers and collapsible menu for advanced options.
