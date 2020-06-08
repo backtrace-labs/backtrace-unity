@@ -55,7 +55,7 @@ namespace Backtrace.Unity.Model
             {
                 ConvertStackFrames();
             }
-            
+
             if (string.IsNullOrEmpty(stacktrace) || !StackFrames.Any())
             {
                 // make sure that for this kind of exception, this exception message will be always the same
@@ -116,7 +116,8 @@ namespace Backtrace.Unity.Model
                         }
                         _header = true;
                         continue;
-                    } else
+                    }
+                    else
                     {
                         //invalid stack frame
                         continue;
@@ -130,14 +131,24 @@ namespace Backtrace.Unity.Model
                     return;
                 }
 
-                var stackFrame =
-                    frameString.StartsWith("0x")
-                        ? SetNativeStackTraceInformation(frameString)
-                        : frameString.IndexOf('(', methodNameEndIndex + 1) > -1
-                            ? SetDefaultStackTraceInformation(frameString)
-                            : SetAndroidStackTraceInformation(frameString);
+                BacktraceStackFrame stackFrame = null;
+                if (frameString.StartsWith("0x"))
+                {
+                    stackFrame = SetNativeStackTraceInformation(frameString);
+                }
+                else if (frameString.IndexOf('(', methodNameEndIndex + 1) > -1)
+                {
+                    stackFrame = SetDefaultStackTraceInformation(frameString);
+                }
+                else
+                {
+                    stackFrame = SetAndroidStackTraceInformation(frameString);
+                }
 
-                StackFrames.Add(stackFrame);
+                if (stackFrame != null)
+                {
+                    StackFrames.Add(stackFrame);
+                }
 
             }
         }

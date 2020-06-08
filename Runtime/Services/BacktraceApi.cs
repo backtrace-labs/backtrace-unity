@@ -270,7 +270,7 @@ namespace Backtrace.Unity.Services
 
         private string GetAttachmentUploadUrl(string rxId, string attachmentName)
         {
-            return _credentials == null || string.IsNullOrEmpty(_credentials.Token)
+            return string.IsNullOrEmpty(_credentials.Token)
                 ? string.Format("{0}&object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId,
                     UrlEncode(attachmentName))
                 : string.Format("{0}/api/post?token={1}&object={2}&attachment_name={3}",

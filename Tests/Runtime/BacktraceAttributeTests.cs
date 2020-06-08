@@ -39,8 +39,8 @@ namespace Backtrace.Unity.Tests.Runtime
             var testObject = new BacktraceAttributes(exceptionReport, clientAttributes);
             Assert.IsTrue(testObject.Attributes.Keys.Any(n => n == clientAttributeKey));
             Assert.IsTrue(testObject.Attributes.Keys.Any(n => n == reportAttributeKey));
-            Assert.IsTrue(testObject.Attributes[clientAttributeKey] as string == clientAttributeValue);
-            Assert.IsTrue(testObject.Attributes[reportAttributeKey] as string == reportAttributeValue);
+            Assert.IsTrue(testObject.Attributes[clientAttributeKey]== clientAttributeValue);
+            Assert.IsTrue(testObject.Attributes[reportAttributeKey]== reportAttributeValue);
             yield return null;
         }
 
@@ -52,7 +52,7 @@ namespace Backtrace.Unity.Tests.Runtime
             var clientAttributes = new Dictionary<string, string>() { { reportAttributeKey,
                 string.Format("{0}-client", reportAttributeValue)
             } };
-            Assert.IsFalse(clientAttributes[reportAttributeKey] as string == reportAttributeValue);
+            Assert.IsFalse(clientAttributes[reportAttributeKey] == reportAttributeValue);
             yield return null;
         }
     }

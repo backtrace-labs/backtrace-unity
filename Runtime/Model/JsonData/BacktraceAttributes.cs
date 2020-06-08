@@ -221,7 +221,6 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["graphic.vendor.id"] = SystemInfo.graphicsDeviceVendorID.ToString();
 
             Attributes["graphic.driver.version"] = SystemInfo.graphicsDeviceVersion;
-            Attributes["graphic.driver.version"] = SystemInfo.graphicsDeviceVersion;
 
             Attributes["graphic.memory"] = SystemInfo.graphicsMemorySize.ToString();
             Attributes["graphic.multithreaded"] = SystemInfo.graphicsMultiThreaded.ToString();

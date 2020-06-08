@@ -24,17 +24,17 @@ namespace Backtrace.Unity.Model
         /// 16 bytes of randomness in human readable UUID format
         /// server will reject request if uuid is already found
         /// </summary>s
-        public Guid Uuid = Guid.NewGuid();
+        public readonly Guid Uuid = Guid.NewGuid();
 
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
-        public long Timestamp = new DateTime().Timestamp();
+        public readonly long Timestamp = new DateTime().Timestamp();
 
         /// <summary>
         /// Get information aboout report type. If value is true the BacktraceReport has an error information
         /// </summary>
-        public bool ExceptionTypeReport = false;
+        public readonly bool ExceptionTypeReport = false;
 
         /// <summary>
         /// Get a report classification 

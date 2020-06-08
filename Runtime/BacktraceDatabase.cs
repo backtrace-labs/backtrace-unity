@@ -7,7 +7,6 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 
 namespace Backtrace.Unity
@@ -87,6 +86,12 @@ namespace Backtrace.Unity
         /// </summary>
         internal IBacktraceDatabaseFileContext BacktraceDatabaseFileContext { get; set; }
 
+
+        /// <summary>
+        /// Get or set minidump type
+        /// </summary>
+        public MiniDumpType MiniDumpType = MiniDumpType.None;
+
         /// <summary>
         /// Database path
         /// </summary>
@@ -138,6 +143,13 @@ namespace Backtrace.Unity
             CreateDatabaseDirectory();
             SetupMultisceneSupport();
             _lastConnection = Time.time;
+
+#if UNITY_STANDALONE_WIN
+            MiniDumpType = Configuration.MinidumpType;
+#else
+            MiniDumpType = MiniDumpType.None;
+
+#endif
 
             //Setup database context
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder, DatabaseSettings.DeduplicationStrategy, DatabaseSettings.GenerateScreenshotOnException);
@@ -237,6 +249,26 @@ namespace Backtrace.Unity
         /// <summary>
         /// Add new report to BacktraceDatabase
         /// </summary>
+        public BacktraceDatabaseRecord Add(BacktraceData data)
+        {
+            if(data == null)
+            {
+                return null;
+            }
+            //remove old reports (if database is full)
+            //and check database health state
+            var validationResult = ValidateDatabaseSize();
+            if (!validationResult)
+            {
+                return null;
+            }
+            return BacktraceDatabaseContext.Add(data, MiniDumpType);
+        }
+
+        /// <summary>
+        /// Add new report to BacktraceDatabase
+        /// </summary>
+        [Obsolete("Please use Add method with Backtrace data parameter instead")]
         public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, string> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
         {
             if (!Enable || backtraceReport == null)
@@ -251,7 +283,7 @@ namespace Backtrace.Unity
                 return null;
             }
             var data = backtraceReport.ToBacktraceData(attributes, Configuration.GameObjectDepth);
-            return BacktraceDatabaseContext.Add(data, miniDumpType);
+            return BacktraceDatabaseContext.Add(data, MiniDumpType);
         }
 
 
@@ -368,7 +400,7 @@ namespace Backtrace.Unity
         /// </summary>
         protected virtual void SetupMultisceneSupport()
         {
-            if (Configuration.DestroyOnLoad == true)
+            if (Configuration.DestroyOnLoad)
             {
                 return;
             }
@@ -382,7 +414,7 @@ namespace Backtrace.Unity
         /// </summary>
         protected virtual void CreateDatabaseDirectory()
         {
-            if (Configuration.CreateDatabase != true)
+            if (!Configuration.CreateDatabase)
             {
                 return;
             }

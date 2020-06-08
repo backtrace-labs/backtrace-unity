@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Backtrace.Unity.Extensions;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
@@ -47,13 +46,14 @@ namespace Backtrace.Unity.Tests.Runtime
             _database.DeduplicationStrategy = DeduplicationStrategy.None;
             _database.Clear();
             var report = new BacktraceReport(new Exception("Exception Message"));
+            var data = report.ToBacktraceData(null, -1);
 
             // validate total number of reports
             // Count method should return all reports (include reports after deduplicaiton)
             int totalNumberOfReports = 2;
             for (int i = 0; i < totalNumberOfReports; i++)
             {
-                _database.Add(report, new Dictionary<string, string>(), MiniDumpType.None);
+                _database.Add(data);
             }
             Assert.AreEqual(totalNumberOfReports, _database.Count());
             Assert.AreEqual(totalNumberOfReports, _database.Get().Count());
@@ -70,13 +70,13 @@ namespace Backtrace.Unity.Tests.Runtime
             _database.DeduplicationStrategy = deduplicationStrategy;
             _database.Clear();
             var report = new BacktraceReport(new Exception("Exception Message"));
-
+            var data = report.ToBacktraceData(null, -1);
             // validate total number of reports
             // Count method should return all reports (include reports after deduplicaiton)
             int totalNumberOfReports = 2;
             for (int i = 0; i < totalNumberOfReports; i++)
             {
-                _database.Add(report, new Dictionary<string, string>(), MiniDumpType.None);
+                _database.Add(data);
             }
             Assert.AreEqual(totalNumberOfReports, _database.Count());
             var records = _database.Get();

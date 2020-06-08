@@ -1,11 +1,9 @@
-﻿using Backtrace.Unity;
-using Backtrace.Unity.Extensions;
+﻿using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Types;
 using NUnit.Framework;
 using System;
 using System.Collections;
-using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime
