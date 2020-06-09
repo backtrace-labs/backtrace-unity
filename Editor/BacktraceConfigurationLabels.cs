@@ -10,7 +10,7 @@
         internal static string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
         internal static string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
         internal static string LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP= "Send unhandled native game crashes on startup";
-        internal static string LABEL_NUMBER_OF_LOGS = "Collect last n number of logs";
+        internal static string LABEL_NUMBER_OF_LOGS = "Collect last n game logs";
         internal static string LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE = "Use normalized exception message";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
         internal static string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
