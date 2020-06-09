@@ -18,7 +18,7 @@
 - Further reduction in size of Backtrace.Unity assembly with BacktraceJObject.
 - `BacktraceDatabase` won't try to deserialize `BacktraceReport` anymore - because of that, callback api won't return `BacktraceReport` object in `BacktraceResult`.
 - `BacktraceDatabase` won't use anymore `Add` method with BacktraceReport parameter. Instead, `BacktraceDaatabase` will use `Add` method with BacktraceData parameter. Previous `Add` method is deprecated and will be removed in next major release.
-- Support has been improved for parsing unhandled exception output from the Unity runtime and Unity executables,
+- Support has been improved for parsing unhandled exception output from the Unity runtime and Unity executables.
 
 **NOTE:** When migrating from previous releases, there is an API change that developers will want to uptake for attribute submission. Specifically, attribute definitions previously used a signature
 attributes: `new Dictionary<string, object>() { { "key", "value" } }`, 
