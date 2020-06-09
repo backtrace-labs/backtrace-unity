@@ -8,12 +8,15 @@
 - Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
 - Backtrace now allows you to capture screenshot when exception occured.
 - Backtrace will send native Unity exception that caused crash of your game on Windows OS.
+- Backtrace allows you to skip reports by using BeforeSend event. If you will return from BeforeSend event, Backtrace won't send report anymore.
+- Backtrace will add Unity log file to the report attachment. 
 
 *General Improvements*
 - `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` now allow users to pass attributes in dictionary form with string key and string values. Attributes must now be provided with the Dictionary<string, string> data structure to allow the serializer to be as fast as possible. 
 - Removed dependancy on 3rd party JSON.NET library to reduce the size of the package. Backtrace-unity now provides it's own serializer for BacktraceReport usage.
 - Further reduction in size of Backtrace.Unity assembly with BacktraceJObject.
 - `BacktraceDatabase` won't try to deserialize `BacktraceReport` anymore - because of that, callback api won't return `BacktraceReport` object in `BacktraceResult`.
+- `BacktraceDatabase` won't use anymore `Add` method with BacktraceReport parameter. Instead, `BacktraceDaatabase` will use `Add` method with BacktraceData parameter. Previous `Add` method is deprecated and will be removed in next major release.
 - Support has been improved for parsing unhandled exception output from the Unity runtime and Unity executables,
 
 **NOTE:** When migrating from previous releases, there is an API change that developers will want to uptake for attribute submission. Specifically, attribute definitions previously used a signature

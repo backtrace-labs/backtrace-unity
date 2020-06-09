@@ -15,12 +15,12 @@ namespace Backtrace.Unity.Model
         /// 16 bytes of randomness in human readable UUID format
         /// server will reject request if uuid is already found
         /// </summary>
-        public Guid Uuid { get; set; }
+        public Guid Uuid { get; private set; }
 
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
-        public long Timestamp { get; set; }
+        public long Timestamp { get; private set; }
 
         /// <summary>
         /// Name of programming language/environment this error comes from.
@@ -30,7 +30,12 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Version of programming language/environment this error comes from.
         /// </summary>
-        public string LangVersion;
+        public readonly string LangVersion =
+#if ENABLE_IL2CPP
+             "IL2CPP";
+#else
+             "Mono";
+#endif
 
         /// <summary>
         /// Name of the client that is sending this error report.
@@ -40,7 +45,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Version of the C# library
         /// </summary>
-        public string AgentVersion;
+        public const string AgentVersion = "3.0.0-alpha2";
 
         /// <summary>
         /// Application thread details
@@ -60,7 +65,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Source code information - right now we support source code only for BacktraceUnhandledException exceptions.
         /// </summary>
-        internal BacktraceSourceCode SourceCode;
+        public BacktraceSourceCode SourceCode;
 
         /// <summary>
         /// Get a path to report attachments
@@ -97,7 +102,10 @@ namespace Backtrace.Unity.Model
                 return;
             }
             Report = report;
-            SetReportInformation();
+            Uuid = Report.Uuid;
+            Timestamp = Report.Timestamp;
+            Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
+
             SetAttributes(clientAttributes, gameObjectDepth);
             SetThreadInformations();
             Attachments = Report.AttachmentPaths.Distinct().ToList();
@@ -149,23 +157,6 @@ namespace Backtrace.Unity.Model
         {
             Attributes = new BacktraceAttributes(Report, clientAttributes);
             Annotation = new Annotations(Report.ExceptionTypeReport ? Report.Exception : null, gameObjectDepth);
-        }
-
-        /// <summary>
-        /// Set default exception/agent information
-        /// </summary>
-        private void SetReportInformation()
-        {
-            Uuid = Report.Uuid;
-            Timestamp = Report.Timestamp;
-#if ENABLE_IL2CPP
-            LangVersion = "IL2CPP";
-#else
-            LangVersion = "Mono";
-#endif
-
-            AgentVersion = "3.0.0-alpha2";
-            Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
         }
     }
 }

@@ -1,9 +1,7 @@
-﻿    
-using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System;
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -49,6 +47,7 @@ namespace Backtrace.Unity.Tests.Runtime
         {
             var trigger = false;
             var clientMessage = "custom message";
+            var report = new BacktraceReport(clientMessage);
             client.RequestHandler = (string url, BacktraceData data) =>
             {
                 trigger = true;
@@ -56,7 +55,10 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsTrue(message == clientMessage);
                 return new BacktraceResult();
             };
-            client.Send(clientMessage);
+            client.Send(report, sendCallback: (BacktraceResult _) =>
+            {
+                trigger = true;
+            });
             Assert.IsTrue(trigger);
             yield return null;
         }

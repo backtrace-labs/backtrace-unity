@@ -21,6 +21,8 @@ namespace Backtrace.Unity
 
         public BacktraceConfiguration Configuration;
 
+        internal static float LastFrameTime = 0;
+
 
         /// <summary>
         /// Backtrace database instance.
@@ -86,12 +88,6 @@ namespace Backtrace.Unity
         /// </summary>
         internal IBacktraceDatabaseFileContext BacktraceDatabaseFileContext { get; set; }
 
-
-        /// <summary>
-        /// Get or set minidump type
-        /// </summary>
-        public MiniDumpType MiniDumpType = MiniDumpType.None;
-
         /// <summary>
         /// Database path
         /// </summary>
@@ -143,16 +139,9 @@ namespace Backtrace.Unity
             CreateDatabaseDirectory();
             SetupMultisceneSupport();
             _lastConnection = Time.time;
-
-#if UNITY_STANDALONE_WIN
-            MiniDumpType = Configuration.MinidumpType;
-#else
-            MiniDumpType = MiniDumpType.None;
-
-#endif
-
+            LastFrameTime = Time.time;
             //Setup database context
-            BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabasePath, DatabaseSettings.RetryLimit, DatabaseSettings.RetryOrder, DatabaseSettings.DeduplicationStrategy, DatabaseSettings.GenerateScreenshotOnException);
+            BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabaseSettings);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
@@ -184,6 +173,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
+            LastFrameTime = Time.time;
             if (Time.time - _lastConnection > DatabaseSettings.RetryInterval)
             {
                 _lastConnection = Time.time;
@@ -195,7 +185,7 @@ namespace Backtrace.Unity
                 _timerBackgroundWork = true;
                 SendData(BacktraceDatabaseContext.FirstOrDefault());
                 _timerBackgroundWork = false;
-            }
+            }            
         }
 
         private void Start()
@@ -251,7 +241,7 @@ namespace Backtrace.Unity
         /// </summary>
         public BacktraceDatabaseRecord Add(BacktraceData data)
         {
-            if(data == null)
+            if (data == null)
             {
                 return null;
             }
@@ -262,14 +252,14 @@ namespace Backtrace.Unity
             {
                 return null;
             }
-            return BacktraceDatabaseContext.Add(data, MiniDumpType);
+            return BacktraceDatabaseContext.Add(data);
         }
 
         /// <summary>
         /// Add new report to BacktraceDatabase
         /// </summary>
         [Obsolete("Please use Add method with Backtrace data parameter instead")]
-        public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, string> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal)
+        public BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, string> attributes, MiniDumpType miniDumpType)
         {
             if (!Enable || backtraceReport == null)
             {
@@ -283,7 +273,7 @@ namespace Backtrace.Unity
                 return null;
             }
             var data = backtraceReport.ToBacktraceData(attributes, Configuration.GameObjectDepth);
-            return BacktraceDatabaseContext.Add(data, MiniDumpType);
+            return BacktraceDatabaseContext.Add(data);
         }
 
 

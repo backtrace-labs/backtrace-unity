@@ -119,7 +119,7 @@ namespace Backtrace.Unity.Services
             using (var request = UnityWebRequest.Post(minidumpServerUrl, formData, boundaryIdBytes))
             {
                 request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundaryId);
-
+                request.timeout = 15000;
                 yield return request.SendWebRequest();
                 var result = request.isNetworkError || request.isHttpError
                     ? new BacktraceResult()
@@ -175,7 +175,6 @@ namespace Backtrace.Unity.Services
                 var startingChar = string.IsNullOrEmpty(_serverurl.Query) ? "?" : "&";
                 requestUrl += string.Format("{0}_mod_duplicate={1}", startingChar, deduplication);
             }
-            yield return new WaitForEndOfFrame();
             using (var request = new UnityWebRequest(requestUrl, "POST"))
             {
 #if UNITY_2018_4_OR_NEWER
@@ -239,9 +238,9 @@ namespace Backtrace.Unity.Services
             if (attachments != null && attachments.Count > 0)
             {
                 var attachment = attachments.Pop();
-                if (System.IO.File.Exists(attachment))
+                if (File.Exists(attachment))
                 {
-                    string fileName = System.IO.Path.GetFileName(attachment);
+                    string fileName = Path.GetFileName(attachment);
                     string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
                     using (var request = new UnityWebRequest(serverUrl, "POST"))
                     {
@@ -252,7 +251,8 @@ namespace Backtrace.Unity.Services
                             request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
                         }
 #endif
-                        byte[] bodyRaw = System.IO.File.ReadAllBytes(attachment);
+                        request.timeout = 45000;
+                        byte[] bodyRaw = File.ReadAllBytes(attachment);
                         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                         request.SetRequestHeader("Content-Type", "application/json");

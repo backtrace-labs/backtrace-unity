@@ -367,22 +367,31 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
                 return;
             }
+            StartCoroutine(CollectDataAndSend(report, sendCallback));
+        }
 
+        private IEnumerator CollectDataAndSend(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
+        {
             BacktraceData data = SetupBacktraceData(report);
             if (BeforeSend != null)
             {
                 data = BeforeSend.Invoke(data);
                 if (data == null)
                 {
-                    return;
+                    yield break;
                 }
             }
             BacktraceDatabaseRecord record = null;
             if (Database != null)
             {
+                yield return new WaitForEndOfFrame();
                 record = Database.Add(data);
                 //Extend backtrace data with additional attachments from backtrace database
                 data = record.BacktraceData;
+                if (record.Duplicated)
+                {
+                    yield break;
+                }
             }
 
             StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>

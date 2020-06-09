@@ -109,6 +109,12 @@ namespace Backtrace.Unity.Model
         public bool Enabled;
 
         /// <summary>
+        /// Add Unity log file to Backtrace report
+        /// </summary>
+        [Tooltip("Add Unity player log file to Backtrace report")]
+        public bool AddUnityLogToReport = false;
+
+        /// <summary>
         /// Resend report when http client throw exception
         /// </summary>
         [Tooltip("When toggled on, the database will send automatically reports to Backtrace server based on the Retry Settings below. When toggled off, the developer will need to use the Flush method to attempt to send and clear. Recommend that this is toggled on.")]

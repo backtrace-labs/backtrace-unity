@@ -90,16 +90,24 @@ namespace Backtrace.Unity.Editor
                        new GUIContent(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES));
 
 #if UNITY_STANDALONE_WIN
-                    SerializedProperty miniDumpType = serializedObject.FindProperty("MinidumpType");
-                    EditorGUILayout.PropertyField(miniDumpType, new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("MinidumpType"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
 #endif
 
-                    SerializedProperty autoSendMode = serializedObject.FindProperty("AutoSendMode");
-                    EditorGUILayout.PropertyField(autoSendMode, new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
+#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("AddUnityLogToReport"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));
 
+#endif
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("AutoSendMode"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
 
-                    SerializedProperty createDatabase = serializedObject.FindProperty("CreateDatabase");
-                    EditorGUILayout.PropertyField(createDatabase, new GUIContent(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("CreateDatabase"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY));
 
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("GenerateScreenshotOnException"),

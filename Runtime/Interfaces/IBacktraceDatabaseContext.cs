@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Interfaces
         /// Add new data to database
         /// </summary>
         /// <param name="backtraceDatabaseRecord">Database record</param>
-        BacktraceDatabaseRecord Add(BacktraceData backtraceData, MiniDumpType miniDumpType = MiniDumpType.None);
+        BacktraceDatabaseRecord Add(BacktraceData backtraceData);
 
         /// <summary>
         /// Add new data to database

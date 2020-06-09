@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -63,6 +63,14 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         public List<string> Attachments { get; private set; }
 
+        public bool Duplicated
+        {
+            get
+            {
+                return _count != 1;
+            }
+        }
+
         private int _count = 1;
 
         public int Count
@@ -119,7 +127,7 @@ namespace Backtrace.Unity.Model.Database
                 minidumpPath = MiniDumpPath,
                 size = Size,
                 hash = Hash,
-                attachments = Record.Report.AttachmentPaths
+                attachments = Attachments
             };
             return JsonUtility.ToJson(rawRecord, true);
         }
@@ -153,6 +161,7 @@ namespace Backtrace.Unity.Model.Database
             Id = data.Uuid;
             Record = data;
             _path = path;
+            Attachments = data.Attachments;
             RecordWriter = new BacktraceDatabaseRecordWriter(path);
         }
 
@@ -167,12 +176,16 @@ namespace Backtrace.Unity.Model.Database
                 var diagnosticDataJson = Record.ToJson();
                 DiagnosticDataPath = Save(diagnosticDataJson, string.Format("{0}-attachment", Id));
 
-                // get minidump information
-                MiniDumpPath = Record.Report != null
-                    ? Record.Report.MinidumpFile ?? string.Empty
-                    : string.Empty;
-                Size += MiniDumpPath == string.Empty ? 0 : new FileInfo(MiniDumpPath).Length;
-
+                if (Attachments != null && Attachments.Any())
+                {
+                    foreach (var attachment in Attachments)
+                    {
+                        if (IsInsideDatabaseDirectory(attachment))
+                        {
+                            Size += new FileInfo(attachment).Length;
+                        }
+                    }
+                }
                 //save record
                 RecordPath = Path.Combine(_path, string.Format("{0}-record.json", Id));
                 //check current record size
@@ -250,6 +263,18 @@ namespace Backtrace.Unity.Model.Database
             Delete(MiniDumpPath);
             Delete(DiagnosticDataPath);
             Delete(RecordPath);
+
+            //remove database attachments
+            if (Attachments != null && Attachments.Any())
+            {
+                foreach (var attachment in Attachments)
+                {
+                    if (IsInsideDatabaseDirectory(attachment))
+                    {
+                        Delete(attachment);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -296,6 +321,20 @@ namespace Backtrace.Unity.Model.Database
                 }
             }
         }
+
+        /// <summary>
+        /// Validate if attachment is placed in Backtrace database.
+        /// </summary>
+        /// <param name="path">Path to attachment</param>
+        /// <returns>True if attachment is in backtrace-database directory. Otherwise false.</returns>
+        private bool IsInsideDatabaseDirectory(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                return false;
+            }
+            return Path.GetDirectoryName(path) == _path;
+        }
         #region dispose
 #pragma warning disable CA1063 // Implement IDisposable Correctly
         public virtual void Dispose()
@@ -313,6 +352,7 @@ namespace Backtrace.Unity.Model.Database
                 Record = null;
             }
         }
+
         #endregion
 
         [Serializable]
