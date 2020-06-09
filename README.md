@@ -232,7 +232,7 @@ You can clear all data from database without sending it to server by using `Clea
 backtraceDatabase.Clear();
 ```
 
-#### Deduplication
+#### Client side Deduplication
 
 Backtrace unity integration allows you to aggregate the same reports and send only one message to Backtrace Api. As a developer you can choose deduplication options. Please use `DeduplicationStrategy` enum to setup possible deduplication rules in Unity UI:
 ![Backtrace deduplicaiton setup](./Documentation~/images/deduplication-setup.PNG)
