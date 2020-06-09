@@ -10,6 +10,7 @@
 - Backtrace will send native Unity exception that caused crash of your game on Windows OS.
 - Backtrace allows you to skip reports by using BeforeSend event. If you will return from BeforeSend event, Backtrace won't send report anymore.
 - Backtrace will add Unity log file to the report attachment. 
+- Plugin will capture now last n game logs. You can define how many logs plugin should store by settings `Collect last n number of logs` property. 
 
 *General Improvements*
 - `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` now allow users to pass attributes in dictionary form with string key and string values. Attributes must now be provided with the Dictionary<string, string> data structure to allow the serializer to be as fast as possible. 

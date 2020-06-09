@@ -54,6 +54,11 @@ namespace Backtrace.Unity.Editor
                  serializedObject.FindProperty("SendUnhandledGameCrashesOnGameStartup"),
                  new GUIContent(BacktraceConfigurationLabels.LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP));
 #endif
+
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("NumberOfLogs"),
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
+
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));

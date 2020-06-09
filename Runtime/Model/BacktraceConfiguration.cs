@@ -52,6 +52,12 @@ namespace Backtrace.Unity.Model
         public int GameObjectDepth = -1;
 
         /// <summary>
+        /// Number of logs collected by Backtrace-Unity
+        /// </summary>
+        [Tooltip("Number of logs collected by Backtrace-Unity")]
+        public uint NumberOfLogs = 10;
+
+        /// <summary>
         /// Try to find game native crashes and send them on Game startup
         /// </summary>
         [Tooltip("Try to find game native crashes and send them on Game startup")]

@@ -178,6 +178,8 @@ namespace Backtrace.Unity
 
         private int _gameObjectDepth = 0;
 
+        private BacktraceLogManager _backtraceLogManager;
+
         public void OnDisable()
         {
             Enabled = false;
@@ -208,7 +210,7 @@ namespace Backtrace.Unity
 #else
             BacktraceApi = new BacktraceApi(new BacktraceCredentials(Configuration.GetValidServerUrl()));
 #endif
-
+            _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
             if (!Configuration.DestroyOnLoad)
             {
                 DontDestroyOnLoad(gameObject);
@@ -478,19 +480,20 @@ namespace Backtrace.Unity
         /// <param name="type">log type</param>
         private void HandleException(string message, string stackTrace, LogType type)
         {
-            if ((type == LogType.Exception || type == LogType.Error)
-                && (!string.IsNullOrEmpty(message) && !message.StartsWith("[Backtrace]::")))
+            var unityMessage = _backtraceLogManager.Enqueue(message, stackTrace, type);
+            if (unityMessage.IsUnhandledException())
             {
-                SendUnhandledException(message, stackTrace);
+                SendUnhandledException(unityMessage);
             }
         }
 
-        private void SendUnhandledException(string message, string stackTrace)
+        private void SendUnhandledException(BacktraceUnityMessage unityMessage)
         {
-            var exception = new BacktraceUnhandledException(message, stackTrace);
-
+            var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
             if (OnUnhandledApplicationException != null)
+            {
                 OnUnhandledApplicationException.Invoke(exception);
+            }
 
             Send(exception);
         }
