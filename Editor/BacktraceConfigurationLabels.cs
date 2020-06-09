@@ -18,8 +18,8 @@
         internal static string LABEL_ENABLE_DATABASE = "Enable Database";
         internal static string LABEL_PATH = "Backtrace database path";
         internal static string LABEL_MINIDUMP_SUPPORT = "Minidump type";
-        internal static string LABEL_ADD_UNITY_LOG = "Add Unity player log to report";
-        internal static string LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION = "Generate Screenshot when exception happened";
+        internal static string LABEL_ADD_UNITY_LOG = "Attach Unity Player.log";
+        internal static string LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION = "Attach screenshot";
         internal static string LABEL_DEDUPLICATION_RULES = "Client-Side deduplication";
         internal static string LABEL_AUTO_SEND_MODE = "Auto send mode";
         internal static string LABEL_CREATE_DATABASE_DIRECTORY = "Create database directory";

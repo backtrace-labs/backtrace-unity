@@ -45,7 +45,8 @@ namespace Backtrace.Unity.Model
                 {
                     return "";
                 }
-                return string.Join(",", _backtraceData.Classifier);
+                var classifier = _backtraceData.Classifier ?? System.Array.Empty<string>();
+                return string.Join(",", classifier);
             }
         }
         public string ExceptionMessage

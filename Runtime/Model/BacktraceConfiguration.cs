@@ -92,7 +92,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
          /// Generate game screen shot when exception happen
         /// </summary>
-        [Tooltip("Generate game screenshot when exception happened")]
+        [Tooltip("Generate and attach screenshot of frame as exception occurs")]
         public bool GenerateScreenshotOnException = false;
 
         /// <summary>
