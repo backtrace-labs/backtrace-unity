@@ -3,14 +3,14 @@
 ## Version 3.0.0
 
 *New Features*
-- The backtrace-unity library now allows detection of ANR (Application not responding) events on Android devices.
+- The backtrace-unity library (Backtrace) now allows detection of ANR (Application not responding) events on Android devices.
 - Unhandled exception output from the Unity runtime and executables is now prominently displayed in the Debugger.
-- Backtrace library will try to guess unhandled exception classifier based on exception message/stack trace.
-- Backtrace now allows you to capture screenshot when exception occured.
-- Backtrace will send native Unity exception that caused crash of your game on Windows OS.
-- Backtrace allows you to skip reports by using BeforeSend event. If you will return from BeforeSend event, Backtrace won't send report anymore.
-- Backtrace will add Unity log file to the report attachment. 
-- Plugin will capture now last n game logs. You can define how many logs plugin should store by settings `Collect last n number of logs` property. 
+- Backtrace will try to guess unhandled exception classifier based on exception message/stack trace.
+- Backtrace now allows you to add Unity player.log file as an attachment.
+- Backtrace now allows you to add a screenshot as an attachment when an exception occured.
+- Backtrace will now allow you to capture last n lines of game logs. You can define how many lines of logs Backtrace should store by settings `Collect last n number of logs` property in the Unity editor.
+- Backtrace will send the native Unity exception that caused a crash of game on Windows OS.
+- Backtrace allows you control whether or not a report should send via the BeforeSend event. If you return a null value from a BeforeSend event, Backtrace will discard the report and not send.
 
 *General Improvements*
 - `BacktraceClient`, `BacktraceReport`, `BacktraceData`, `BacktraceData` and `BacktraceDatabase` now allow users to pass attributes in dictionary form with string key and string values. Attributes must now be provided with the Dictionary<string, string> data structure to allow the serializer to be as fast as possible. 
