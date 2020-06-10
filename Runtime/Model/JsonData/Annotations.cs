@@ -1,183 +1,95 @@
-using Backtrace.Unity.Json;
-using System;
-using System.Collections;
+﻿using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Types;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using System.Linq;
+using System.Text;
 
-namespace Backtrace.Unity.Model.JsonData
+namespace Backtrace.Unity.Model
 {
-    /// <summary>
-    /// Get report annotations - environment variables
-    /// </summary>
-    public class Annotations
+    public class DeduplicationModel
     {
-
-        private static Dictionary<string, string> _variables;
-
-        /// <summary>
-        /// System environment values dictionary
-        /// </summary>
-        internal static Dictionary<string, string> Variables
+        private readonly BacktraceData _backtraceData;
+        private readonly DeduplicationStrategy _strategy;
+        public DeduplicationModel(
+            BacktraceData backtraceData,
+            DeduplicationStrategy strategy)
+        {
+            _backtraceData = backtraceData;
+            _strategy = strategy;
+        }
+        public string StackTrace
         {
             get
             {
-                if (_variables == null)
+                if (_strategy == DeduplicationStrategy.None)
                 {
-                    _variables = new Dictionary<string, string>();
-                    foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
-                    {
-                        _variables.Add(variable.Key.ToString(), Regex.Escape(variable.Value.ToString() ?? "NULL"));
-                    }
+                    return "";
                 }
-
-                return _variables;
-            }
-        }
-
-        /// <summary>
-        /// Set maximum number of game objects in Backtrace report
-        /// </summary>
-        private readonly int _gameObjectDepth;
-
-        /// <summary>
-        /// Exception object
-        /// </summary>
-        private Exception _exception { get; set; }
-
-        public Annotations()
-        {
-        }
-        /// <summary>
-        /// Create new instance of Annotations class
-        /// </summary>
-        /// <param name="exception">Current exception</param>
-        /// <param name="gameObjectDepth">Game object depth</param>
-        public Annotations(Exception exception, int gameObjectDepth)
-        {
-            _gameObjectDepth = gameObjectDepth;
-            _exception = exception;
-        }
-
-        public BacktraceJObject ToJson()
-        {
-            var annotations = new BacktraceJObject();
-            var envVariables = new BacktraceJObject();
-
-            foreach (var envVariable in Variables)
-            {
-                envVariables[envVariable.Key] = envVariable.Value;
-            }
-            annotations["Environment Variables"] = envVariables;
-
-            if (_exception != null)
-            {
-                annotations["Exception properties"] = new BacktraceJObject()
+                if (_backtraceData.Report == null || _backtraceData.Report.DiagnosticStack == null)
                 {
-                    ["message"] = _exception.Message,
-                    ["stackTrace"] = _exception.StackTrace,
-                    ["type"] = _exception.GetType().FullName,
-                    ["source"] = _exception.Source
-                };
-            }
-
-            if (_gameObjectDepth > -1)
-            {
-                var activeScene = SceneManager.GetActiveScene();
-
-                var gameObjects = new List<BacktraceJObject>();
-
-                var rootObjects = new List<GameObject>();
-                activeScene.GetRootGameObjects(rootObjects);
-                foreach (var gameObject in rootObjects)
-                {
-                    gameObjects.Add(ConvertGameObject(gameObject));
+                    return "";
                 }
-                annotations["Game objects"] = gameObjects;
+                var result = _backtraceData.Report.DiagnosticStack
+                    .Select(n => n.FunctionName)
+                    .OrderByDescending(n => n);
+
+                var stackTrace = new HashSet<string>(result).ToArray();
+                return string.Join(",", stackTrace);
             }
-
-
-            return annotations;
         }
-
-        private BacktraceJObject ConvertGameObject(GameObject gameObject, int depth = 0)
+        public string Classifier
         {
-            if (gameObject == null)
+            get
             {
-                return new BacktraceJObject();
-            }
-            var jGameObject = GetJObject(gameObject);
-            var innerObjects = new List<BacktraceJObject>();
-
-            foreach (var childObject in gameObject.transform)
-            {
-                var transformChildObject = childObject as Component;
-                if (transformChildObject == null)
+                if ((_strategy & DeduplicationStrategy.Classifier) == 0)
                 {
-                    continue;
+                    return "";
                 }
-                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
+                var classifier = _backtraceData.Classifier ?? System.Array.Empty<string>();
+                return string.Join(",", classifier);
             }
-            jGameObject["children"] = innerObjects;
-            return jGameObject;
         }
-
-        private BacktraceJObject ConvertGameObject(Component gameObject, string parentName, int depth)
+        public string ExceptionMessage
         {
-            if (_gameObjectDepth > 0 && depth > _gameObjectDepth)
+            get
             {
-                return new BacktraceJObject();
-            }
-            var result = GetJObject(gameObject, parentName);
-            if (_gameObjectDepth > 0 && depth + 1 >= _gameObjectDepth)
-            {
-                return result;
-            }
-            var innerObjects = new List<BacktraceJObject>();
-
-
-            foreach (var childObject in gameObject.transform)
-            {
-                var transformChildObject = childObject as Component;
-                if (transformChildObject == null)
+                if ((_strategy & DeduplicationStrategy.Message) == 0)
                 {
-                    continue;
+                    return string.Empty;
                 }
-                innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
+                if (_backtraceData.Report == null || string.IsNullOrEmpty(_backtraceData.Report.Message))
+                {
+                    return string.Empty;
+                }
+                return _backtraceData.Report.Message.OnlyLetters();
             }
-            result["children"] = innerObjects;
-            return result;
         }
 
-        private BacktraceJObject GetJObject(GameObject gameObject, string parentName = "")
+        public string Factor
         {
-            var o = new BacktraceJObject();
-            o["name"] = gameObject.name;
-            o["isStatic"] = gameObject.isStatic;
-            o["layer"] = gameObject.layer;
-            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
-            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
-            o["tag"] = gameObject.tag;
-            o["activeInHierarchy"] = gameObject.activeInHierarchy;
-            o["activeSelf"] = gameObject.activeSelf;
-            o["hideFlags"] = (int)gameObject.hideFlags;
-            o["instanceId"] = gameObject.GetInstanceID();
-            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
-            return o;
+            get
+            {
+                if (_backtraceData.Report == null)
+                {
+                    return string.Empty;
+                }
+                return _backtraceData.Report.Factor;
+            }
         }
 
-        private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
+        public string GetSha()
         {
-            var o = new BacktraceJObject();
-            o["name"] = gameObject.name;
-            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
-            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
-            o["tag"] = gameObject.tag;
-            o["hideFlags"] = (int)gameObject.hideFlags;
-            o["instanceId"] = gameObject.GetInstanceID();
-            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
-            return o;
+            if (!string.IsNullOrEmpty(_backtraceData.Report.Fingerprint))
+            {
+                return _backtraceData.Report.Fingerprint;
+            }
+
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append(ExceptionMessage);
+            stringBuilder.Append(Classifier);
+            stringBuilder.Append(StackTrace);
+
+            return stringBuilder.GetSha();
         }
     }
 }

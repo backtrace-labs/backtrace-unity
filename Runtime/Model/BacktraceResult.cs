@@ -1,5 +1,5 @@
-﻿using System;
-using Backtrace.Unity.Types;
+﻿using Backtrace.Unity.Types;
+using System;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model

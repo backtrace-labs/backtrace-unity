@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Backtrace.Unity.Model
 {
@@ -20,7 +19,7 @@ namespace Backtrace.Unity.Model
         /// Current exception
         /// </summary>
         private readonly Exception _exception;
-        
+
         public BacktraceStackTrace(Exception exception)
         {
             _exception = exception;
@@ -41,7 +40,7 @@ namespace Backtrace.Unity.Model
                 {
                     var exceptionStackTrace = new StackTrace(_exception, true);
                     var exceptionFrames = exceptionStackTrace.GetFrames();
-                    if(exceptionFrames == null || exceptionFrames.Length == 0)
+                    if (exceptionFrames == null || exceptionFrames.Length == 0)
                     {
                         exceptionFrames = new StackTrace(true).GetFrames();
                     }
