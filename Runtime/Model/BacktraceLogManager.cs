@@ -88,7 +88,7 @@ namespace Backtrace.Unity.Model
             LogQueue.Enqueue(unityMessage);
             lock (lockObject)
             {
-                while (LogQueue.Count > _limit && LogQueue.TryDequeue(out BacktraceUnityMessage _)) ;
+                while (LogQueue.Count > _limit && LogQueue.TryDequeue(out BacktraceUnityMessage _));
             }
             return true;
         }

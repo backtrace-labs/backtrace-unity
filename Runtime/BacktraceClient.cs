@@ -421,7 +421,8 @@ namespace Backtrace.Unity
         /// <param name="stackTrace">Main thread stack trace</param>
         internal void OnAnrDetected(string stackTrace)
         {
-            SendUnhandledException("ANRException: Blocked thread detected", stackTrace);
+            const string anrMessage = "ANRException: Blocked thread detected";
+            SendUnhandledException(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
         }
 #endif
 
