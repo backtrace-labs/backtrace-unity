@@ -525,14 +525,10 @@ namespace Backtrace.Unity
         /// if inner exception exists, client should send report twice - one with current exception, one with inner exception
         /// </summary>
         /// <param name="report">current report</param>
-        private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
+        private void HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
         {
             var innerExceptionReport = report.CreateInnerReport();
-            if (innerExceptionReport == null)
-            {
-                yield return null;
-            }
-            if (ShouldSendReport(innerExceptionReport))
+            if (innerExceptionReport != null && ShouldSendReport(innerExceptionReport))
             {
                 SendReport(innerExceptionReport, callback);
             }
