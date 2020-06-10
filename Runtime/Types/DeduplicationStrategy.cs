@@ -1,149 +1,49 @@
-﻿using Backtrace.Unity.Model;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
-namespace Backtrace.Unity.Services
+namespace Backtrace.Unity.Types
 {
+
     /// <summary>
-    /// Report watcher class. Watcher controls number of reports sending per one minute. If value reportPerMin is equal to zero, there is no request sending to API. Value has to be greater than or equal to 0
+    /// Determine deduplication strategy
     /// </summary>
-    public class ReportLimitWatcher
+    [Flags]
+    public enum DeduplicationStrategy
     {
         /// <summary>
-        /// Report timestamp queue. ReportLimitWatcher store events timestamp in _reportQueue
-        /// to validate number of reports that Backtarce integration will send per minute.
+        /// Ignore deduplication strategy
         /// </summary>
-        internal readonly Queue<long> _reportQueue;
+        [Tooltip("Deduplication rules are disabled.")]
+#if UNITY_2019_2_OR_NEWER
+        [InspectorName("Disable")]
+#endif
+        None = 0,
 
         /// <summary>
-        /// Time period used to clear values from report queue.
+        /// Only stack trace
         /// </summary>
-        private readonly long _queueReportTime = 60;
+        [Tooltip("Faulting callstack - use the faulting callstack as a factor in client-side rate limiting.")]
+#if UNITY_2019_2_OR_NEWER
+        [InspectorName("Faulting callstack")]
+#endif
+        Default = 1,
 
         /// <summary>
-        /// Determine if watcher is enabled.
+        /// Stack trace and exception type
         /// </summary>
-        private bool _watcherEnable;
-        /// <summary>
-        /// Determine how many reports class instance can store in report queue.
-        /// </summary>
-        private int _reportPerMin;
-
-
-        /// <summary>
-        /// Determine if ReportLimitWatcher class should display warning message
-        /// </summary>
-        private bool _displayMessage = false;
+        [Tooltip("Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.", order = 0)]
+#if UNITY_2019_2_OR_NEWER
+        [InspectorName("Exception type")]
+#endif
+        Classifier = 2,
 
         /// <summary>
-        /// Determine if BacktraceClient/BacktraceDatabase hit report limit 
+        /// Stack trace and exception message
         /// </summary>
-        private bool _limitHit = false;
-
-        /// <summary>
-        /// Create new instance of background watcher
-        /// </summary>
-        /// <param name="reportPerMin">How many times per minute watcher can send a report</param>
-        internal ReportLimitWatcher(uint reportPerMin)
-        {
-            if (reportPerMin < 0)
-            {
-                throw new ArgumentException(string.Format((string)"{0} have to be greater than or equal to zero",
-                    (object)"reportPerMin"));
-            }
-            int reportNumber = checked((int)reportPerMin);
-            _reportQueue = new Queue<long>(reportNumber);
-            _reportPerMin = reportNumber;
-            _watcherEnable = reportPerMin != 0;
-        }
-
-        internal void SetClientReportLimit(uint reportPerMin)
-        {
-            int reportNumber = checked((int)reportPerMin);
-            _reportPerMin = reportNumber;
-            _watcherEnable = reportPerMin != 0;
-        }
-
-
-        /// <summary>
-        /// Check if user can send new report to a Backtrace API
-        /// </summary>
-        /// <param name="report">Current report</param>
-        /// <returns>true if user can add a new report</returns>
-        public bool WatchReport(long timestamp, bool displayMessageOnLimitHit = true)
-        {
-            if (!_watcherEnable)
-            {
-                return true;
-            }
-            //clear all reports older than _queReportTime
-            Clear();
-            if (_reportQueue.Count + 1 > _reportPerMin)
-            {
-                _limitHit = true;
-                if (displayMessageOnLimitHit)
-                {
-                    DisplayReportLimitHitMessage();
-                }
-                return false;
-            }
-            _limitHit = false;
-            _displayMessage = true;
-            _reportQueue.Enqueue(timestamp);
-            return true;
-        }
-
-        /// <summary>
-        /// Check if user can send new report to a Backtrace API
-        /// </summary>
-        /// <param name="report">Current report</param>
-        /// <returns>true if user can add a new report</returns>
-        public bool WatchReport(BacktraceReport report, bool displayMessageOnLimitHit = true)
-        {
-            return WatchReport(report.Timestamp, displayMessageOnLimitHit);
-        }
-
-
-        /// <summary>
-        /// Display report limit hit 
-        /// </summary>
-        private void DisplayReportLimitHitMessage()
-        {
-            if (_limitHit && _displayMessage)
-            {
-                _displayMessage = false;
-                Debug.LogWarning(string.Format("Backtrace report limit hit({0}/min) – Ignoring errors for 1 minute",
-                    _reportPerMin));
-            }
-        }
-
-
-        /// <summary>
-        /// Remove all records with timestamp older than one minute from now
-        /// </summary>
-        private void Clear()
-        {
-            long currentTime = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            bool clear = false;
-            while (!clear && _reportQueue.Count != 0)
-            {
-                var item = _reportQueue.Peek();
-                clear = !(currentTime - item >= _queueReportTime);
-                if (!clear)
-                {
-                    _reportQueue.Dequeue();
-                }
-            }
-        }
-
-        /// <summary>
-        /// This method only is used in test class project. Use Reset method to reset current counter and available reports
-        /// </summary>
-        internal void Reset()
-        {
-            _reportQueue.Clear();
-        }
-
+        [Tooltip("Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.", order = 0)]
+#if UNITY_2019_2_OR_NEWER
+        [InspectorName("Exception message")]
+#endif
+        Message = 4
     }
 }
