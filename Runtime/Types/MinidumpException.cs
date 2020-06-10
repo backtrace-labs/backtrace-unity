@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Backtrace.Unity.Types
+﻿namespace Backtrace.Unity.Types
 {
     /// <summary>
     /// Set information if exception present

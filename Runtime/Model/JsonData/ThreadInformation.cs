@@ -1,8 +1,7 @@
 ﻿using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Json;
 using System.Collections.Generic;
 using System.Threading;
-using System;
-using Backtrace.Unity.Json;
 
 namespace Backtrace.Unity.Model.JsonData
 {

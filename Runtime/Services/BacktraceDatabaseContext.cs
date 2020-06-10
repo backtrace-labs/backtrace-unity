@@ -5,7 +5,6 @@ using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
