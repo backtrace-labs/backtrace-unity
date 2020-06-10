@@ -469,42 +469,38 @@ namespace Backtrace.Unity
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
             //check rate limiting
-            bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit)
+            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            if (shouldProcess)
             {
                 return true;
             }
-            if (OnClientReportLimitReached == null)
+            if (OnClientReportLimitReached != null)
             {
-                return false;
+                var report = new BacktraceReport(
+                  exception: exception,
+                  attachmentPaths: attachmentPaths,
+                  attributes: attributes);
+                _onClientReportLimitReached.Invoke(report);
             }
-            var report = new BacktraceReport(
-              exception: exception,
-              attachmentPaths: attachmentPaths,
-              attributes: attributes);
-            _onClientReportLimitReached.Invoke(report);
-
             return false;
         }
 
         private bool ShouldSendReport(string message, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
             //check rate limiting
-            bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit)
+            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            if (shouldProcess)
             {
                 return true;
             }
-            if (OnClientReportLimitReached == null)
+            if (OnClientReportLimitReached != null)
             {
-                return false;
+                var report = new BacktraceReport(
+                  message: message,
+                  attachmentPaths: attachmentPaths,
+                  attributes: attributes);
+                _onClientReportLimitReached.Invoke(report);
             }
-            var report = new BacktraceReport(
-              message: message,
-              attachmentPaths: attachmentPaths,
-              attributes: attributes);
-            _onClientReportLimitReached.Invoke(report);
-
             return false;
         }
 
@@ -516,12 +512,10 @@ namespace Backtrace.Unity
             {
                 return true;
             }
-            if (OnClientReportLimitReached == null)
+            if (OnClientReportLimitReached != null)
             {
-                return false;
+                _onClientReportLimitReached.Invoke(report);
             }
-            _onClientReportLimitReached.Invoke(report);
-
             return false;
         }
 
