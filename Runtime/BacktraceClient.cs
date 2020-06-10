@@ -225,6 +225,12 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
+            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
+            {
+                var nativeCrashUplaoder = new NativeCrashUploader();
+                nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
+                StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
+            }
             Database = GetComponent<BacktraceDatabase>();
             if (Database == null)
             {
@@ -233,12 +239,7 @@ namespace Backtrace.Unity
             Database.Reload();
             Database.SetApi(BacktraceApi);
             Database.SetReportWatcher(_reportLimitWatcher);
-            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
-            {
-                var nativeCrashUplaoder = new NativeCrashUploader();
-                nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
-                StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
-            }
+           
         }
 
         private void Awake()
@@ -443,7 +444,7 @@ namespace Backtrace.Unity
         /// <param name="message">Log message</param>
         /// <param name="stackTrace">Log stack trace</param>
         /// <param name="type">log type</param>
-        private void HandleUnityMessage(string message, string stackTrace, LogType type)
+        internal void HandleUnityMessage(string message, string stackTrace, LogType type)
         {
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
             _backtraceLogManager.Enqueue(unityMessage);

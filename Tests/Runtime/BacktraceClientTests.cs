@@ -131,7 +131,7 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
-           [Test]
+       [Test]
         public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintForExceptionReportWithoutStackTrace_ShouldIncludeFingerprintInBacktraceReport()
         {
             BacktraceClient.Configuration = GetValidClientConfiguration();
@@ -254,16 +254,6 @@ namespace Backtrace.Unity.Tests.Runtime
             };
             BacktraceClient.Send(report);
             Assert.IsTrue(eventFired);
-        }
-
-        private BacktraceConfiguration GetValidClientConfiguration()
-        {
-            var configuration = GetBasicConfiguration();
-            BacktraceClient.RequestHandler = (string url, BacktraceData backtraceData) =>
-            {
-                return new BacktraceResult();
-            };
-            return configuration;
         }
     }
 }

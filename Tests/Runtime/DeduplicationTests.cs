@@ -3,7 +3,6 @@ using Backtrace.Unity.Types;
 using NUnit.Framework;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -103,6 +102,36 @@ namespace Backtrace.Unity.Tests.Runtime
             var sha2 = deduplicationStrategy2.GetSha();
 
             Assert.AreNotEqual(sha1, sha2);
+        }
+
+        [Test]
+        public void TestDeduplicaiton_EmptyExceptionMessage_ShouldGenerateCorrectSha()
+        {
+            var report1 = new BacktraceReport(new Exception(string.Empty));
+            var deduplicationStrategy1 = new DeduplicationModel(new BacktraceData(report1), DeduplicationStrategy.Message);
+
+            var sha1 = deduplicationStrategy1.GetSha();
+            Assert.IsNotEmpty(sha1);
+        }
+
+        [Test]
+        public void TestDeduplicaiton_EmptyStackTraceMessage_ShouldGenerateCorrectSha()
+        {
+            var report1 = new BacktraceReport(new BacktraceUnhandledException(string.Empty, string.Empty));
+            var deduplicationStrategy1 = new DeduplicationModel(new BacktraceData(report1), DeduplicationStrategy.Default);
+
+            var sha1 = deduplicationStrategy1.GetSha();
+            Assert.IsNotEmpty(sha1);
+        }
+
+        [Test]
+        public void TestDeduplicaiton_NoClassifier_ShouldGenerateCorrectSha()
+        {
+            var report1 = new BacktraceReport(string.Empty);
+            var deduplicationStrategy1 = new DeduplicationModel(new BacktraceData(report1), DeduplicationStrategy.Classifier);
+
+            var sha1 = deduplicationStrategy1.GetSha();
+            Assert.IsNotEmpty(sha1);
         }
     }
 }

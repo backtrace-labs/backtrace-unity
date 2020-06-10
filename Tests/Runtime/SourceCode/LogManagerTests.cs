@@ -136,5 +136,22 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(sourceCodeText.Contains(message));
             Assert.IsTrue(sourceCodeText.Contains(stackTrace));
         }
+
+        [Test]
+        public void TestLogManagerSourceCodeGeneration_ShouldReturnStringSourceCodeForEmptyValues_CorrectSourceCodeGenerationWithStackTraceForException()
+        {
+            var message = string.Empty;
+            var stackTrace = string.Empty;
+            var type = LogType.Log;
+            var backtraceUnityLogManager = new BacktraceLogManager(1);
+            backtraceUnityLogManager.Enqueue(message, stackTrace, type);
+            string sourceCodeText = string.Empty;
+            Assert.DoesNotThrow(() =>
+            {
+                sourceCodeText = backtraceUnityLogManager.ToSourceCode();
+            });
+
+            Assert.IsNotEmpty(sourceCodeText);
+        }
     }
 }

@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
-    public class BacktraceBaseTest : MonoBehaviour
+    public class BacktraceBaseTest
     {
         protected GameObject GameObject;
         protected BacktraceClient BacktraceClient;
@@ -33,10 +33,20 @@ namespace Backtrace.Unity.Tests.Runtime
             return configuration;
         }
 
-        [TearDown]
+        protected BacktraceConfiguration GetValidClientConfiguration()
+        {
+            var configuration = GetBasicConfiguration();
+            BacktraceClient.RequestHandler = (string url, BacktraceData backtraceData) =>
+            {
+                return new BacktraceResult();
+            };
+            return configuration;
+        }
+
+        [OneTimeTearDown]
         public void Cleanup()
         {
-            DestroyImmediate(GameObject);
+            Object.DestroyImmediate(GameObject);
         }
     }
 }
