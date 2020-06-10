@@ -126,7 +126,7 @@ namespace Backtrace.Unity.Model
 
             SourceCode = new BacktraceSourceCode()
             {
-                Text = string.Format(text)
+                Text = text
             };
             // assign log information to first stack frame
             DiagnosticStack.First().SourceCode = SourceCode.Id.ToString();

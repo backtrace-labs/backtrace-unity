@@ -2,7 +2,7 @@
 
 namespace Backtrace.Unity.Runtime.Native
 {
-    internal class NativeClientFactory
+    internal static class NativeClientFactory
     {
         internal static INativeClient GetNativeClient(BacktraceConfiguration configuration, string gameObjectName)
         {

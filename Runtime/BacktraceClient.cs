@@ -239,7 +239,7 @@ namespace Backtrace.Unity
             Database.Reload();
             Database.SetApi(BacktraceApi);
             Database.SetReportWatcher(_reportLimitWatcher);
-           
+
         }
 
         private void Awake()
@@ -350,12 +350,17 @@ namespace Backtrace.Unity
             {
                 yield return new WaitForEndOfFrame();
                 record = Database.Add(data);
-                //Extend backtrace data with additional attachments from backtrace database
-                data = record.BacktraceData;
-                if (record.Duplicated)
+                // handle situation when database refuse to store report.
+                if (record != null)
                 {
-                    yield break;
+                    //Extend backtrace data with additional attachments from backtrace database
+                    data = record.BacktraceData;
+                    if (record.Duplicated)
+                    {
+                        yield break;
+                    }
                 }
+
             }
 
             StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>

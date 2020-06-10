@@ -185,7 +185,7 @@ namespace Backtrace.Unity
                 _timerBackgroundWork = true;
                 SendData(BacktraceDatabaseContext.FirstOrDefault());
                 _timerBackgroundWork = false;
-            }            
+            }
         }
 
         private void Start()
@@ -245,7 +245,7 @@ namespace Backtrace.Unity
         /// </summary>
         public BacktraceDatabaseRecord Add(BacktraceData data)
         {
-            if (data == null)
+            if (data == null || !Enable)
             {
                 return null;
             }
@@ -361,7 +361,7 @@ namespace Backtrace.Unity
                          }
                          bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
                          if (!shouldProcess)
-                         { 
+                         {
                              return;
                          }
                          record = BacktraceDatabaseContext.FirstOrDefault();
@@ -424,6 +424,10 @@ namespace Backtrace.Unity
         /// </summary>
         protected virtual void LoadReports()
         {
+            if (!Enable)
+            {
+                return;
+            }
             var files = BacktraceDatabaseFileContext.GetRecords();
             foreach (var file in files)
             {

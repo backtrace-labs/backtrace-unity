@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Types;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -25,7 +24,9 @@ namespace Backtrace.Unity.Model.Database
         {
             return new List<string>()
             {
-                GetScreenshotPath(data), GetUnityPlayerLogFile(data), GetMinidumpPath(data)
+                GetScreenshotPath(data),
+                GetUnityPlayerLogFile(data), 
+                GetMinidumpPath(data)
             };
         }
 
@@ -81,7 +82,7 @@ namespace Backtrace.Unity.Model.Database
                     return _lastScreenPath;
                 }
                 else
-                {                 
+                {
                     // Create a texture the size of the screen, RGB24 format
                     int width = Screen.width;
                     int height = Screen.height;

@@ -125,10 +125,17 @@ namespace Backtrace.Unity.Model
                     stackFrame = SetAndroidStackTraceInformation(frameString);
                 }
 
-                if (stackFrame != null)
+                // if function name is null - try to apply default parser
+                if (stackFrame == null || string.IsNullOrEmpty(stackFrame.FunctionName))
                 {
-                    StackFrames.Add(stackFrame);
+                    stackFrame = new BacktraceStackFrame()
+                    {
+                        FunctionName = frameString
+                    };
                 }
+
+                StackFrames.Add(stackFrame);
+
 
             }
         }
@@ -237,6 +244,13 @@ namespace Backtrace.Unity.Model
 
             // find source code start based on method parameter start index
             int sourceInformationStartIndex = frameString.IndexOf('(', methodNameEndIndex + 1);
+            if (sourceInformationStartIndex == -1)
+            {
+                return new BacktraceStackFrame()
+                {
+                    FunctionName = frameString
+                };
+            }
 
             // get source code information substring
             int sourceStringLength = frameString.Length - sourceInformationStartIndex;

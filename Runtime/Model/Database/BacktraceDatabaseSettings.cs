@@ -113,7 +113,11 @@ namespace Backtrace.Unity.Model.Database
         {
             get
             {
+#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
                 return _configuration.AddUnityLogToReport;
+#else
+                return false;
+#endif
             }
         }
 
