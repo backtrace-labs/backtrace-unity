@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Unity message queue 
         /// </summary>
-        private readonly ConcurrentQueue<BacktraceUnityMessage> _logQueue;
+        internal readonly ConcurrentQueue<BacktraceUnityMessage> LogQueue;
 
         /// <summary>
         /// Lock object
@@ -27,7 +27,7 @@ namespace Backtrace.Unity.Model
         public BacktraceLogManager(uint numberOfLogs)
         {
             _limit = numberOfLogs;
-            _logQueue = new ConcurrentQueue<BacktraceUnityMessage>();
+            LogQueue = new ConcurrentQueue<BacktraceUnityMessage>();
         }
 
         /// <summary>
@@ -37,29 +37,60 @@ namespace Backtrace.Unity.Model
         {
             get
             {
-                return _logQueue.Count;
+                return LogQueue.Count;
             }
         }
+
+        /// <summary>
+        /// Validate if log manager is enabled. Log manager might be disabled
+        /// if Log count is equal to 0.
+        /// </summary>
+        public bool Disabled
+        {
+            get
+            {
+                return _limit == 0;
+            }
+        }
+
+        /// <summary>
+        /// Enqueue user message
+        /// </summary>
+        /// <param name="report">Backtrace reprot</param>
+        /// <returns>Message stored in the log manager</returns>
+        public bool Enqueue(BacktraceReport report)
+        {
+            return Enqueue(new BacktraceUnityMessage(report));
+
+        }
+
         /// <summary>
         /// Enqueue new unity message
         /// </summary>
         /// <param name="message">Unity message</param>
-        /// <param name="stacktrace">Unity Stack trace</param>
+        /// <param name="stackTrace">Unity Stack trace</param>
         /// <param name="type">Log type</param>
-        public BacktraceUnityMessage Enqueue(string message, string stacktrace, LogType type)
+        public bool Enqueue(string message, string stackTrace, LogType type)
         {
-            var unityMessage = new BacktraceUnityMessage(message, stacktrace, type);
-            if(_limit == 0)
+            return Enqueue(new BacktraceUnityMessage(message, stackTrace, type));
+        }
+
+        /// <summary>
+        /// Enqueue new unity message
+        /// </summary>
+        public bool Enqueue(BacktraceUnityMessage unityMessage)
+        {
+            if (Disabled)
             {
-                return unityMessage;
+                return false;
             }
 
-            _logQueue.Enqueue(unityMessage);
+            LogQueue.Enqueue(unityMessage);
             lock (lockObject)
             {
-                while (_logQueue.Count > _limit && _logQueue.TryDequeue(out BacktraceUnityMessage _)) ;
+                while (LogQueue.Count > _limit && LogQueue.TryDequeue(out BacktraceUnityMessage _)) ;
             }
-            return unityMessage;
+            return true;
         }
 
         /// <summary>
@@ -69,18 +100,9 @@ namespace Backtrace.Unity.Model
         public string ToSourceCode()
         {
             var stringBuilder = new StringBuilder();
-            foreach (var item in _logQueue)
+            foreach (var item in LogQueue)
             {
-                stringBuilder.AppendLine(
-                    string.Format(
-                        "[{0}] {1}: {2}",
-                        item.Date.ToLongDateString(), item.Type.ToString(), item.Message));
-
-                if (!string.IsNullOrEmpty(item.StackTrace) 
-                    && (item.Type == LogType.Exception || item.Type == LogType.Error))
-                {
-                    stringBuilder.AppendLine(item.StackTrace);
-                }
+                stringBuilder.AppendLine(item.ToString());
             }
             return stringBuilder.ToString();
         }

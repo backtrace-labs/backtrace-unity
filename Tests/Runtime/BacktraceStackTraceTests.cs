@@ -290,7 +290,7 @@ namespace Backtrace.Unity.Tests.Runtime
         [UnityTest]
         public IEnumerator TestStackTraceCreation_ShouldUseEnvStackTraceWhenExStackTraceIsEmpty_ValidStackTraceObject()
         {
-            var backtraceStackTrace = new BacktraceStackTrace(string.Empty, new Exception());
+            var backtraceStackTrace = new BacktraceStackTrace(new Exception());
             Assert.IsNotEmpty(backtraceStackTrace.StackFrames);
             yield return null;
         }
@@ -300,7 +300,7 @@ namespace Backtrace.Unity.Tests.Runtime
         {
             var stackTrace = ConvertStackTraceToString(_anrStackTrace);
             var exception = new BacktraceUnhandledException(string.Empty, stackTrace);
-            var backtraceStackTrace = new BacktraceStackTrace(string.Empty, exception);
+            var backtraceStackTrace = new BacktraceStackTrace(exception);
             for (int i = 0; i < _anrStackTrace.Count; i++)
             {
                 var anrStackFrame = _anrStackTrace.ElementAt(i);
@@ -317,7 +317,7 @@ namespace Backtrace.Unity.Tests.Runtime
         {
             var stackTrace = ConvertStackTraceToString(_mixModeCallStack);
             var exception = new BacktraceUnhandledException(string.Empty, stackTrace);
-            var backtraceStackTrace = new BacktraceStackTrace(string.Empty, exception);
+            var backtraceStackTrace = new BacktraceStackTrace(exception);
             //skip first frame
             int startIndex = exception.Header ? 1 : 0;
             for (int i = startIndex; i < _mixModeCallStack.Count; i++)
@@ -340,7 +340,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
                 string message = "message";
                 var exception = new BacktraceUnhandledException(message, stackTrace);
-                var backtraceStackTrace = new BacktraceStackTrace(string.Empty, exception);
+                var backtraceStackTrace = new BacktraceStackTrace(exception);
 
                 //skip first frame
                 int startIndex = exception.Header ? 1 : 0;

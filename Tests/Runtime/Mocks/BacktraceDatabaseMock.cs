@@ -1,5 +1,4 @@
-﻿using Backtrace.Unity.Interfaces;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
@@ -24,20 +23,6 @@ namespace Backtrace.Unity.Tests.Runtime
         protected override void CreateDatabaseDirectory()
         {
             Debug.Log("Creating database directory");
-        }
-
-        protected override IBacktraceDatabaseContext BacktraceDatabaseContext
-        {
-            get
-            {
-                return base.BacktraceDatabaseContext;
-            }
-
-            set
-            {
-                // mock should only create one type of backtrace database context.
-                base.BacktraceDatabaseContext = new BacktraceDatabaseContextMock(DatabaseSettings);
-            }
         }
     }
 }

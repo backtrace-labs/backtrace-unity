@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Backtrace.Unity.Model
@@ -44,7 +43,6 @@ namespace Backtrace.Unity.Model
         /// Unhandled exception stack frames
         /// </summary>
         public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
-        public BacktraceSourceCode SourceCode = null;
 
 
         public BacktraceUnhandledException(string message, string stacktrace) : base(message)
@@ -61,29 +59,11 @@ namespace Backtrace.Unity.Model
                 // make sure that for this kind of exception, this exception message will be always the same
                 // error message might be overriden by ConvertStackFrames method.
                 _message = message;
-                var backtraceStackTrace = new BacktraceStackTrace(message, null);
+                var backtraceStackTrace = new BacktraceStackTrace(null);
                 StackFrames = backtraceStackTrace.StackFrames;
             }
-            CreateUnhandledExceptionLogInformation();
             TrySetClassifier();
 
-        }
-
-        /// <summary>
-        /// Assign source code information to first stack frame of unhandled exception report
-        /// </summary>
-        private void CreateUnhandledExceptionLogInformation()
-        {
-            SourceCode = new BacktraceSourceCode()
-            {
-                Text = string.Format("Unity exception information\nMessage: {0}\nStack trace: {1}", _message, _stacktrace)
-            };
-            // assign log information to first stack frame
-            if (StackFrames.Count == 0)
-            {
-                return;
-            }
-            StackFrames.First().SourceCode = SourceCode.Id.ToString();
         }
 
         /// <summary>

@@ -33,7 +33,7 @@ namespace Backtrace.Unity.Tests.Runtime
             {
                 trigger = true;
                 Assert.IsTrue(data.Classifier[0] == exception.GetType().Name);
-                string message = data.Attributes.Attributes["error.message"] as string;
+                string message = data.Attributes.Attributes["error.message"];
                 Assert.IsTrue(message == exception.Message);
                 return new BacktraceResult();
             };
@@ -51,7 +51,7 @@ namespace Backtrace.Unity.Tests.Runtime
             client.RequestHandler = (string url, BacktraceData data) =>
             {
                 trigger = true;
-                string message = data.Attributes.Attributes["error.message"] as string;
+                string message = data.Attributes.Attributes["error.message"];
                 Assert.IsTrue(message == clientMessage);
                 return new BacktraceResult();
             };

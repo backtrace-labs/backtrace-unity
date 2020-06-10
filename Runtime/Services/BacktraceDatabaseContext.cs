@@ -136,9 +136,9 @@ namespace Backtrace.Unity.Services
             var attachments = _attachmentManager.GetReportAttachments(backtraceData);
             foreach (var attachment in attachments)
             {
-                backtraceData.Report.SetMinidumpPath(attachment);
                 if (!string.IsNullOrEmpty(attachment))
                 {
+                    backtraceData.Report.AttachmentPaths.Add(attachment);
                     backtraceData.Attachments.Add(attachment);
                 }
             }

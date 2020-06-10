@@ -230,10 +230,14 @@ namespace Backtrace.Unity
         public void Clear()
         {
             if (BacktraceDatabaseContext != null)
+            {
                 BacktraceDatabaseContext.Clear();
+            }
 
             if (BacktraceDatabaseContext != null)
+            {
                 BacktraceDatabaseFileContext.Clear();
+            }
         }
 
         /// <summary>
@@ -355,10 +359,9 @@ namespace Backtrace.Unity
                              BacktraceDatabaseContext.IncrementBatchRetry();
                              return;
                          }
-                         bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-                         if (!limitHit)
-                         {
-                             _reportLimitWatcher.DisplayReportLimitHitMessage();
+                         bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+                         if (!shouldProcess)
+                         { 
                              return;
                          }
                          record = BacktraceDatabaseContext.FirstOrDefault();

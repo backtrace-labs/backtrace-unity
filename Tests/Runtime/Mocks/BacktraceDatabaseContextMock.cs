@@ -6,7 +6,7 @@ namespace Backtrace.Unity.Tests.Runtime
 {
     internal class BacktraceDatabaseContextMock : BacktraceDatabaseContext
     {
-        private BacktraceDatabaseSettings _settings;
+        private readonly BacktraceDatabaseSettings _settings;
         public BacktraceDatabaseContextMock(BacktraceDatabaseSettings settings) : base(settings)
         {
             _settings = settings;

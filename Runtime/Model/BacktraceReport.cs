@@ -2,6 +2,7 @@
 using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Backtrace.Unity.Model
 {
@@ -67,11 +68,6 @@ namespace Backtrace.Unity.Model
         public List<BacktraceStackFrame> DiagnosticStack { get; set; }
 
         /// <summary>
-        /// Get or set minidump attachment path
-        /// </summary>
-        internal string MinidumpFile { get; private set; }
-
-        /// <summary>
         /// Source code
         /// </summary>
         public BacktraceSourceCode SourceCode = null;
@@ -118,6 +114,25 @@ namespace Backtrace.Unity.Model
         }
 
         /// <summary>
+        /// Assign source code to Backtrace report - text available in the right panel in web debugger.
+        /// </summary>
+        /// <param name="text"></param>
+        internal void AssignSourceCodeToReport(string text)
+        {
+            if (!DiagnosticStack.Any())
+            {
+                return;
+            }
+
+            SourceCode = new BacktraceSourceCode()
+            {
+                Text = string.Format(text)
+            };
+            // assign log information to first stack frame
+            DiagnosticStack.First().SourceCode = SourceCode.Id.ToString();
+        }
+
+        /// <summary>
         /// Set report classifier
         /// </summary>
         private void SetClassifier()
@@ -131,20 +146,6 @@ namespace Backtrace.Unity.Model
             Classifier = Exception is BacktraceUnhandledException
                 ? (Exception as BacktraceUnhandledException).Classifier
                 : Exception.GetType().Name;
-        }
-
-        /// <summary>
-        /// Set a path to report minidump
-        /// </summary>
-        /// <param name="minidumpPath">Path to generated minidump file</param>
-        internal void SetMinidumpPath(string minidumpPath)
-        {
-            if (string.IsNullOrEmpty(minidumpPath))
-            {
-                return;
-            }
-            MinidumpFile = minidumpPath;
-            AttachmentPaths.Add(minidumpPath);
         }
 
         /// <summary>
@@ -180,9 +181,8 @@ namespace Backtrace.Unity.Model
 
         internal void SetStacktraceInformation()
         {
-            var stacktrace = new BacktraceStackTrace(Message, Exception);
+            var stacktrace = new BacktraceStackTrace(Exception);
             DiagnosticStack = stacktrace.StackFrames;
-            SourceCode = stacktrace.SourceCode;
         }
         /// <summary>
         /// create a copy of BacktraceReport for inner exception object inside exception

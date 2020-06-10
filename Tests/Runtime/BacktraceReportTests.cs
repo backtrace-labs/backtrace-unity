@@ -122,21 +122,6 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
-        public void TestReportSourceCode_UnhandledExceptionSourceCode_ExceptionShouldHaveSourceCode()
-        {
-            var message = "message";
-            var stackTrace = "Startup.DoSomethingElse ()";
-            var unhandledExceptionReport = new BacktraceUnhandledException(message, stackTrace);
-            var report = new BacktraceReport(unhandledExceptionReport);
-            var data = report.ToBacktraceData(null, -1);
-            Assert.IsNotNull(data.SourceCode);
-            Assert.AreEqual("Text", data.SourceCode.Type);
-            Assert.AreEqual("Log File", data.SourceCode.Title);
-            // test unhandled exception text - based on unhandled exception text algorithm
-            Assert.AreEqual(string.Format("Unity exception information\nMessage: {0}\nStack trace: {1}", message, stackTrace), data.SourceCode.Text);
-        }
-
-        [Test]
         public void MissingStackTraceReport_GenerateNotFaultingStackTrace_ReportShouldntHaveFaultingThread()
         {
             var message = "message";

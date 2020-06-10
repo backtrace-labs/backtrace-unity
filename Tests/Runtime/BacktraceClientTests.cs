@@ -39,8 +39,6 @@ namespace Backtrace.Unity.Tests.Runtime
         public IEnumerator TestClientEvents_EmptyConfiguration_ShouldntThrowExceptionForDisabledClient()
         {
             Assert.IsFalse(BacktraceClient.Enabled);
-
-            BacktraceClient.HandleUnhandledExceptions();
             Assert.IsNull(BacktraceClient.OnServerError);
             Assert.IsNull(BacktraceClient.OnServerResponse);
             Assert.IsNull(BacktraceClient.BeforeSend);

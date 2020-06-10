@@ -34,11 +34,6 @@ namespace Backtrace.Unity.Model.Database
         internal string DiagnosticDataPath { get; set; }
 
         /// <summary>
-        /// Path to minidump file
-        /// </summary>
-        internal string MiniDumpPath { get; set; }
-
-        /// <summary>
         /// Total size of record
         /// </summary>
         internal long Size { get; set; }
@@ -124,7 +119,6 @@ namespace Backtrace.Unity.Model.Database
                 Id = Id.ToString(),
                 recordName = RecordPath,
                 dataPath = DiagnosticDataPath,
-                minidumpPath = MiniDumpPath,
                 size = Size,
                 hash = Hash,
                 attachments = Attachments
@@ -145,7 +139,6 @@ namespace Backtrace.Unity.Model.Database
             Id = Guid.Parse(rawRecord.Id);
             RecordPath = rawRecord.recordName;
             DiagnosticDataPath = rawRecord.dataPath;
-            MiniDumpPath = rawRecord.minidumpPath;
             Size = rawRecord.size;
             Hash = rawRecord.hash;
             Attachments = rawRecord.attachments;
@@ -260,7 +253,6 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         internal void Delete()
         {
-            Delete(MiniDumpPath);
             Delete(DiagnosticDataPath);
             Delete(RecordPath);
 
@@ -361,7 +353,6 @@ namespace Backtrace.Unity.Model.Database
             public string Id;
             public string recordName;
             public string dataPath;
-            public string minidumpPath;
             public long size;
             public string hash;
             public List<string> attachments;
