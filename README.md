@@ -55,8 +55,6 @@ List of steps necessary to setup full Backtrace Unity integration.
 - Provide valid Backtrace client configuration and start using library!
   ![Full Backtrace configuration](./Documentation~/images/client-setup.PNG)
 
-Watch this 1 minute silent video to see the Integration and Configuration in action. The first 20 seconds of the video shows the above Integrating steps, and the second part shows details of the below Client and Database Settings - https://player.vimeo.com/video/300051476
-
 ## Plugin best practices
 
 Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
