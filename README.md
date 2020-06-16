@@ -43,7 +43,7 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 - Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded from https://github.com/backtrace-labs/backtrace-unity/releases
 - Open your Unity project
-- Copy the unzipped folder to your project's asset folder in the Windows File Explorer. The Unity editor will refresh and the Backtrace Plugin should become available in the editor.
+- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk)
 
 ## Integrating into your project
 
@@ -54,8 +54,6 @@ List of steps necessary to setup full Backtrace Unity integration.
   ![Backtrace configuration window](./Documentation~/images/unity-basic-configuration.PNG)
 - Provide valid Backtrace client configuration and start using library!
   ![Full Backtrace configuration](./Documentation~/images/client-setup.PNG)
-
-Watch this 1 minute silent video to see the Integration and Configuration in action. The first 20 seconds of the video shows the above Integrating steps, and the second part shows details of the below Client and Database Settings - https://player.vimeo.com/video/300051476
 
 ## Plugin best practices
 

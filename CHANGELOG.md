@@ -8,8 +8,8 @@
 - Backtrace will try to guess unhandled exception classifier based on exception message/stack trace.
 - Backtrace now allows you to add Unity player.log file as an attachment.
 - Backtrace now allows you to add a screenshot as an attachment when an exception occured.
-- Backtrace will now allow you to capture last n lines of game logs. You can define how many lines of logs Backtrace should store by settings `Collect last n number of logs` property in the Unity editor.
-- Backtrace will send the native Unity exception that caused a crash of game on Windows OS.
+- Backtrace now allows you to capture last n lines of game logs. You can define how many lines of logs Backtrace should store by settings `Collect last n number of logs` property in the Unity editor.
+- Backtrace will capture any native Unity Engine crash dumps on Windows OS.
 - Backtrace allows you control whether or not a report should send via the BeforeSend event. If you return a null value from a BeforeSend event, Backtrace will discard the report and not send.
 
 *General Improvements*
