@@ -4,6 +4,8 @@
 
 [github release]: (https://github.com/backtrace-labs/backtrace-labs/)
 
+This branch is provided as early access for WebGL support.
+
 ## Usage
 
 ```csharp
@@ -25,6 +27,7 @@ catch(Exception exception){
   - Can include callstack, system metadata, custom metadata, custom attributes and file attachments if needed
 - Supports a wide range of unity version and environments
 - Supports .NET 2.0/3.5/4.5/Standard 2.0 Backend, IL2CPP and Mono environments
+- Supports iOS, Android, Windows, Mac, Xbox, PS4. This branch introduces support for WebGL.
 - Supports offline database for error report storage and re-submission in case of network outage
 - Fully customizable and extendable event handlers
 - Custom IDE integrations
