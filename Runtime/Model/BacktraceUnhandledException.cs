@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Backtrace.Unity.Model
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Usage", 
-        "CA2237:Mark ISerializable types with serializable", 
+        "Usage",
+        "CA2237:Mark ISerializable types with serializable",
         Justification = "Backtrace already implements own serialization to generate report")]
     public class BacktraceUnhandledException : Exception
     {
@@ -33,28 +34,56 @@ namespace Backtrace.Unity.Model
         {
             get
             {
-                return base.StackTrace;
+                return _stacktrace;
             }
         }
 
         public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
+        public BacktraceSourceCode SourceCode = null;
 
-        public BacktraceUnhandledException(string message, string stacktrace)
+        public BacktraceUnhandledException(string message, string stacktrace) : base(message)
         {
-            _stacktrace = stacktrace;
             _message = message;
-
-            if (string.IsNullOrEmpty(stacktrace))
+            _stacktrace = stacktrace;
+            if (!string.IsNullOrEmpty(stacktrace))
             {
-                _stacktrace = new StackTrace(0, true).ToString();
+                ConvertStackFrames();
+            }
+
+            if (string.IsNullOrEmpty(stacktrace) || !StackFrames.Any())
+            {
+                // make sure that for this kind of exception, this exception message will be always the same
+                // error message might be overriden by ConvertStackFrames method.
+                _message = message;
+                var backtraceStackTrace = new BacktraceStackTrace(message, null);
+                StackFrames = backtraceStackTrace.StackFrames;
+            }
+            CreateUnhandledExceptionLogInformation();
+        }
+
+        /// <summary>
+        /// Assign source code information to first stack frame of unhandled exception report
+        /// </summary>
+        private void CreateUnhandledExceptionLogInformation()
+        {
+            SourceCode = new BacktraceSourceCode()
+            {
+                Text = string.Format("Unity exception information\nMessage: {0}\nStack trace: {1}", _message, _stacktrace)
+            };
+            // assign log information to first stack frame
+            if (StackFrames.Count == 0)
+            {
                 return;
             }
-            ConvertStackFrames();
-
+            StackFrames.First().SourceCode = SourceCode.Id.ToString();
         }
 
         private void ConvertStackFrames()
         {
+            if (string.IsNullOrEmpty(_stacktrace))
+            {
+                return;
+            }
             // frame format:
             // ClassName.MethodName () (at source/path/file.cs:fileLine)
             var frames = _stacktrace.Trim().Split('\n');

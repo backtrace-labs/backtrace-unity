@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Model;
 using UnityEditor;
-using UnityEngine;
 
 namespace Backtrace.Unity.Editor
 {

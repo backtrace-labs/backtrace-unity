@@ -1,6 +1,7 @@
 ﻿using Backtrace.Newtonsoft;
 using Backtrace.Newtonsoft.Linq;
 using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,6 +79,11 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [JsonProperty(PropertyName = "minidumpFile")]
         internal string MinidumpFile { get; private set; }
+
+        /// <summary>
+        /// Source code
+        /// </summary>
+        public BacktraceSourceCode SourceCode = null;
 
         /// <summary>
         /// Convert Backtrace report to JSON
@@ -170,6 +176,9 @@ namespace Backtrace.Unity.Model
             : this(null as Exception, attributes, attachmentPaths)
         {
             Message = message;
+            // analyse stack trace information in both constructor 
+            // to include error message in both source code properties.
+            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -190,9 +199,9 @@ namespace Backtrace.Unity.Model
             if (ExceptionTypeReport)
             {
                 Message = exception.Message;
+                SetStacktraceInformation();
             }
             Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
-            SetStacktraceInformation();
         }
 
         /// <summary>
@@ -207,6 +216,20 @@ namespace Backtrace.Unity.Model
             }
             MinidumpFile = minidumpPath;
             AttachmentPaths.Add(minidumpPath);
+        }
+
+        /// <summary>
+        /// Override default fingerprint for reports without faulting stack trace.
+        /// </summary>
+        internal void SetReportFingerPrintForEmptyStackTrace()
+        {
+            if (Exception != null && string.IsNullOrEmpty(Exception.StackTrace))
+            {
+                // set attributes instead of fingerprint to still allow our user to define customer
+                // fingerprints for reports without stack trace and apply deduplication rules in report flow.
+                Attributes["_mod_fingerprint"] = Message.OnlyLetters().GetSha();
+            }
+
         }
 
         internal BacktraceData ToBacktraceData(Dictionary<string, object> clientAttributes)
@@ -233,8 +256,9 @@ namespace Backtrace.Unity.Model
 
         internal void SetStacktraceInformation()
         {
-            var stacktrace = new BacktraceStackTrace(Exception);
+            var stacktrace = new BacktraceStackTrace(Message, Exception);
             DiagnosticStack = stacktrace.StackFrames;
+            SourceCode = stacktrace.SourceCode;
         }
         /// <summary>
         /// create a copy of BacktraceReport for inner exception object inside exception

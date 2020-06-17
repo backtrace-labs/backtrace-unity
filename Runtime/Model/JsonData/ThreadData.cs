@@ -24,14 +24,14 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Create instance of ThreadData class to collect information about used threads
         /// </summary>
-        internal ThreadData(IEnumerable<BacktraceStackFrame> exceptionStack)
+        internal ThreadData(IEnumerable<BacktraceStackFrame> exceptionStack, bool faultingThread)
         {
 
             var current = Thread.CurrentThread;
             //get current thread id
             string generatedMainThreadId = current.GenerateValidThreadName().ToLower();
 
-            ThreadInformations[generatedMainThreadId] = new ThreadInformation(current, exceptionStack, true);
+            ThreadInformations[generatedMainThreadId] = new ThreadInformation(current, exceptionStack, faultingThread);
             //set currentThreadId
             MainThread = generatedMainThreadId;
         }

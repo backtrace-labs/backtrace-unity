@@ -201,7 +201,10 @@ namespace Backtrace.Unity
 
 #endif
 
-            Annotations.GameObjectDepth = Configuration.GameObjectDepth;
+            // set maximum game object depth
+            Annotations.GameObjectDepth = Configuration.GameObjectDepth == 0
+                ? 16 // default maximum game object size
+                : Configuration.GameObjectDepth;
             HandleUnhandledExceptions();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
@@ -356,6 +359,19 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">send callback</param>
         private void SendReport(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
+            if (BacktraceApi == null)
+            {
+                Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
+                return;
+            }
+
+            // apply _mod fingerprint attribute when client should use
+            // normalized exception message instead environment stack trace
+            // for exceptions without stack trace.
+            if (Configuration.UseNormalizedExceptionMessage)
+            {
+                report.SetReportFingerPrintForEmptyStackTrace();
+            }
             var record = Database != null ? Database.Add(report, Attributes, MiniDumpType) : null;
             //create a JSON payload instance
             BacktraceData data = null;
@@ -364,14 +380,6 @@ namespace Backtrace.Unity
             //valid user custom events
             data = (BeforeSend != null ? BeforeSend.Invoke(data) : null) ?? data;
 
-            if (BacktraceApi == null)
-            {
-                if (record != null)
-                    record.Dispose();
-
-                Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
-                return;
-            }
             StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
             {
                 if (record != null)
@@ -422,7 +430,7 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="message">Log message</param>
         /// <param name="stackTrace">Log stack trace</param>
-        /// <param name="type">log type</param>
+        /// <param name="type">log type</param> 
         private void HandleException(string message, string stackTrace, LogType type)
         {
             if ((type == LogType.Exception || type == LogType.Error)

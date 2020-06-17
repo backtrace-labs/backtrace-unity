@@ -94,9 +94,15 @@ namespace Tests
         [UnityTest]
         public IEnumerator TestReportStackTrace_StackTraceShouldBeTheSameLikeExceptionStackTrace_ShouldReturnCorrectStackTrace()
         {
-            var exception = new Exception("exception");
-            var report = new BacktraceReport(exception);
-            Assert.AreEqual(report.DiagnosticStack.Count, exception.StackTrace == null ? 0 : exception.StackTrace.Count());
+            try
+            {
+                System.IO.File.ReadAllText("not existing file");
+            }
+            catch (Exception exception)
+            {
+                var report = new BacktraceReport(exception);
+                Assert.AreEqual(report.DiagnosticStack.Count, new StackTrace(exception, true).GetFrames().Length);
+            }
             yield return null;
         }
 
@@ -112,10 +118,10 @@ namespace Tests
 
 
         [UnityTest]
-        public IEnumerator TestStackTraceCreation_EmptyStackTrace_ValidStackTraceObject()
+        public IEnumerator TestStackTraceCreation_ShouldUseEnvStackTraceWhenExStackTraceIsEmpty_ValidStackTraceObject()
         {
-            var backtraceStackTrace = new BacktraceStackTrace(new Exception());
-            Assert.IsTrue(backtraceStackTrace.StackFrames.Count == 0);
+            var backtraceStackTrace = new BacktraceStackTrace(string.Empty, new Exception());
+            Assert.IsNotEmpty(backtraceStackTrace.StackFrames);
             yield return null;
         }
 
@@ -134,7 +140,7 @@ namespace Tests
 
                 string message = "message";
                 var exception = new BacktraceUnhandledException(message, stackTrace);
-                var backtraceStackTrace = new BacktraceStackTrace(exception);
+                var backtraceStackTrace = new BacktraceStackTrace(string.Empty, exception);
 
                 //skip first frame
                 int startIndex = exception.Header ? 1 : 0;
@@ -150,6 +156,41 @@ namespace Tests
                 Assert.AreEqual(data.Count - startIndex, backtraceStackTrace.StackFrames.Count);
             }
             yield return null;
+        }
+
+
+        [Test]
+        public void ExceptionStackTrace_NoStackTraceAvailable_ExceptionShouldHaveEnvironmentStackTrace()
+        {
+            var message = "message";
+            // in this case BacktraceUnhandledException should generate environment stack trace
+            var unhandledExceptionReport = new BacktraceUnhandledException(message, string.Empty);
+            Assert.IsNotEmpty(unhandledExceptionReport.StackFrames);
+        }
+
+
+        [Test]
+        public void ExceptionStackTrace_StackTraceAvailable_ExceptionShouldHaveExceptionStackTrace()
+        {
+            var message = "message";
+            var stringBuilder = new StringBuilder();
+            foreach (var stackFrame in _simpleStack)
+            {
+                stringBuilder.Append(stackFrame.ToStackFrameString());
+            }
+            var stackTrace = stringBuilder.ToString();
+            var error = new BacktraceUnhandledException(message, stackTrace);
+            Assert.AreEqual(_simpleStack.Count, error.StackFrames.Count);
+        }
+
+
+        [Test]
+        public void ExceptionStackTrace_ShouldGenerateEnvStackTraceIfExStackTraceIsInvalid_ExceptionShouldHaveExceptionStackTrace()
+        {
+            var invalidStackTrace = "--";
+            var error = new BacktraceUnhandledException("error message", invalidStackTrace);
+            Assert.AreEqual(error.StackTrace, invalidStackTrace);
+            Assert.IsTrue(error.StackFrames.Any());
         }
     }
 

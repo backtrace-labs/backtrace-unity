@@ -43,23 +43,13 @@ namespace Backtrace.Unity.Model.JsonData
             }
         }
 
-        /// <summary>
-        /// Get built-in complex attributes
-        /// </summary>
-        [JsonExtensionData]
-        public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
 
-        public Annotations()
-        {
-        }
         /// <summary>
         /// Create new instance of Annotations class
         /// </summary>
-        /// <param name="complexAttributes">Built-in complex attributes</param>
-        public Annotations(Dictionary<string, object> complexAttributes)
+        public Annotations()
         {
             var environment = new EnvironmentVariables();
-            ComplexAttributes = complexAttributes;
             _environmentVariables = environment.Variables;
         }
 

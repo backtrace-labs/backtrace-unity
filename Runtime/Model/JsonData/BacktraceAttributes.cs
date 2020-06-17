@@ -23,28 +23,23 @@ namespace Backtrace.Unity.Model.JsonData
         internal const string APPLICATION_ATTRIBUTE_NAME = "application";
 
         /// <summary>
-        /// Get built-in complex attributes
-        /// </summary>
-        public Dictionary<string, object> ComplexAttributes = new Dictionary<string, object>();
-
-        /// <summary>
         /// Create instance of Backtrace Attribute
         /// </summary>
         /// <param name="report">Received report</param>
         /// <param name="clientAttributes">Client's attributes (report and client)</param>
         public BacktraceAttributes(BacktraceReport report, Dictionary<string, object> clientAttributes)
         {
-            if(clientAttributes == null)
+            if (clientAttributes == null)
             {
                 clientAttributes = new Dictionary<string, object>();
             }
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);
-               
+
                 SetExceptionAttributes(report);
             }
-             SetLibraryAttributes(report);
+            SetLibraryAttributes(report);
             //Environment attributes override user attributes            
             SetMachineAttributes();
             SetProcessAttributes();
@@ -70,11 +65,20 @@ namespace Backtrace.Unity.Model.JsonData
             var attr = new BacktraceJObject();
             foreach (var attribute in Attributes)
             {
-                if (attribute.Value != null && attribute.Value.GetType() == typeof(bool))
+                if(attribute.Key == null)
+                {
+                    continue;
+                }
+                if(attribute.Value == null)
+                {
+                    attr[attribute.Key] = "null";
+                    continue;
+                }
+                if (attribute.Value.GetType() == typeof(bool))
                 {
                     attr[attribute.Key] = (bool)attribute.Value;
                 }
-                else if (attribute.Value != null && TypeHelper.IsNumeric(attribute.Value.GetType()))
+                else if (TypeHelper.IsNumeric(attribute.Value.GetType()))
                 {
                     attr[attribute.Key] = Convert.ToInt64(attribute.Value);
                 }
@@ -94,6 +98,12 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 Attributes["_mod_factor"] = report.Factor;
             }
+
+            if (!string.IsNullOrEmpty(report.Fingerprint))
+            {
+                Attributes["_mod_fingerprint"] = report.Fingerprint;
+            }
+
             //A unique identifier of a machine
             Attributes["guid"] = GetDeviceUniqueId();
             //Base name of application generating the report
@@ -179,20 +189,21 @@ namespace Backtrace.Unity.Model.JsonData
             var attributes = BacktraceReport.ConcatAttributes(report, clientAttributes);
             foreach (var attribute in attributes)
             {
+                if (attribute.Key == null)
+                {
+                    continue;
+                }
+                if (attribute.Value == null)
+                {
+                    Attributes.Add(attribute.Key, null);
+                    continue;
+                }
+
                 var type = attribute.Value.GetType();
                 if (type.IsPrimitive || type == typeof(string) || type.IsEnum)
                 {
                     Attributes.Add(attribute.Key, attribute.Value);
                 }
-                else
-                {
-                    ComplexAttributes.Add(attribute.Key, attribute.Value);
-                }
-            }
-            //add exception information to Complex attributes.
-            if (report.ExceptionTypeReport)
-            {
-                ComplexAttributes.Add("Exception Properties", report.Exception);
             }
         }
 

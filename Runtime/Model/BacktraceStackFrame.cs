@@ -61,14 +61,27 @@ namespace Backtrace.Unity.Model
             var stackFrame = new BacktraceJObject
             {
                 {"funcName", FunctionName},
-                {"line", Line},
                 {"il", Il},
                 {"metadata_token", MemberInfo},
-                {"column", Column},
+                
                 {"address", ILOffset},
                 {"library", Library}
             };
-            //todo: source code information
+
+            if(Column != 0)
+            {
+                stackFrame["column"] = Column;
+            }
+
+            if (Line != 0)
+            {
+                stackFrame["line"] = Line;
+            }
+
+            if (!string.IsNullOrEmpty(SourceCode))
+            {
+                stackFrame["sourceCode"] = SourceCode;
+            }
 
             return stackFrame;
         }
@@ -151,6 +164,11 @@ namespace Backtrace.Unity.Model
             var methodName = method.Name.StartsWith(".") ? method.Name.Substring(1, method.Name.Length - 1) : method.Name;
             string fullMethodName = string.Format("{0}.{1}()", method.DeclaringType == null ? null : method.DeclaringType.ToString(), methodName);
             return fullMethodName;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0} (at {1}:{2})", FunctionName, Library, Line);
         }
     }
 }

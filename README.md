@@ -62,7 +62,7 @@ Watch this 1 minute silent video to see the Integration and Configuration in act
 
 ## Plugin best practices
 
-Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you would like to include all game objects, please select 0. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box.
+Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
 
 ## Backtrace Client and Offline Database Settings
 
@@ -71,10 +71,11 @@ The following is a reference guide to the Backtrace Client fields:
 - Server Address: This field is required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve this value for your instance is our docs at What is a submission URL and What is a submission token? NOTE: the backtrace-unity plugin will expect full URL with token to your Backtrace instance,
 - Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
 - Destroy client on new scene load - Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true.
+- Use normalized exception message: If exception does not have a stack trace, use a normalized exception message to generate fingerprint.
 - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
 - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
-- Deduplication rules: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
+- Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
 - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
 - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
 - Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start

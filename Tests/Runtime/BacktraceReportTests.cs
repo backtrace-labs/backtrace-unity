@@ -33,7 +33,21 @@ namespace Tests
             Assert.DoesNotThrow(() => new BacktraceReport(exception, attachmentPaths: attachemnts));
             yield return null;
         }
+        [Test]
+        public void TestReportCreation_ShouldCreateReportWithNullableAttributes_ReportCreationWorks()
+        {
+            var exception = new FileNotFoundException();
+            string nullableValue = null;
+            string value = "value";
+            var report = new BacktraceReport(exception, new Dictionary<string, object>() { { value, nullableValue } });
+            var data = report.ToBacktraceData(null);
 
+            Assert.AreEqual(data.Attributes.Attributes[value], nullableValue);
+
+            Assert.DoesNotThrow(() => data.ToJson());
+
+
+        }
         [UnityTest]
         public IEnumerator TestReportSerialization_SerializeValidReport_ExceptionReport()
         {
@@ -72,8 +86,36 @@ namespace Tests
             Assert.AreEqual(reportAttributes["test_attribute"], report.Attributes["test_attribute"]);
             Assert.AreEqual(reportAttributes["temporary_attribute"], report.Attributes["temporary_attribute"]);
             Assert.AreEqual(reportAttributes["temporary_attribute_bool"], report.Attributes["temporary_attribute_bool"]);
-            
+
             yield return null;
+        }
+
+        [Test]
+        public void TestReportSourceCode_UnhandledExceptionSourceCode_ExceptionShouldHaveSourceCode()
+        {
+            var message = "message";
+            var stackTrace = "Startup.DoSomethingElse ()";
+            var unhandledExceptionReport = new BacktraceUnhandledException(message, stackTrace);
+            var report = new BacktraceReport(unhandledExceptionReport);
+            var data = report.ToBacktraceData(null);
+            Assert.IsNotNull(data.SourceCode);
+            Assert.AreEqual("Text", data.SourceCode.Type);
+            Assert.AreEqual("Log File", data.SourceCode.Title);
+            // test unhandled exception text - based on unhandled exception text algorithm
+            Assert.AreEqual(string.Format("Unity exception information\nMessage: {0}\nStack trace: {1}", message, stackTrace), data.SourceCode.Text);
+        }
+
+        [Test]
+        public void MissingStackTraceReport_GenerateNotFaultingStackTrace_ReportShouldntHaveFaultingThread()
+        {
+            var message = "message";
+            // in this case BacktraceUnhandledException should generate environment stack trace
+            var unhandledException = new BacktraceUnhandledException(message, string.Empty);
+            Assert.IsNotEmpty(unhandledException.StackFrames);
+
+            var report = new BacktraceReport(unhandledException);
+            var data = new BacktraceData(report, null);
+            Assert.IsFalse(data.ThreadData.ThreadInformations.First().Value.Fault);
         }
 
         private IEnumerator TestSerialization(BacktraceReport report)

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Backtrace.Unity.Extensions;
 
 namespace Tests
 {
@@ -47,7 +48,6 @@ namespace Tests
             _database.DeduplicationStrategy = DeduplicationStrategy.None;
             _database.Clear();
             var report = new BacktraceReport(new Exception("Exception Message"));
-
             // validate total number of reports
             // Count method should return all reports (include reports after deduplicaiton)
             int totalNumberOfReports = 2;
