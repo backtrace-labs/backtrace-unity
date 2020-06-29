@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using System;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
     internal class BacktraceCredentialsTests
     {

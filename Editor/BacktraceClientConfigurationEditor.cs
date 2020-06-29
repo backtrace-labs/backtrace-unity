@@ -1,4 +1,4 @@
-﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model;
 using UnityEditor;
 
 namespace Backtrace.Unity.Editor
@@ -26,8 +26,10 @@ namespace Backtrace.Unity.Editor
 #else
             settings.IgnoreSslValidation = false;
 #endif
+#if UNITY_ANDROID
+            settings.HandleANR = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_HANDLE_ANR, settings.HandleANR);
+#endif
             settings.GameObjectDepth = EditorGUILayout.IntField(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH, settings.GameObjectDepth);
         }
     }
-
 }

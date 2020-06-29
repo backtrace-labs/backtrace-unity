@@ -1,7 +1,5 @@
-﻿using Backtrace.Newtonsoft.Linq;
+﻿using Backtrace.Unity.Json;
 using System;
-using System.Linq;
-using System.Net.Mime;
 
 namespace Backtrace.Unity.Model
 {
@@ -32,26 +30,6 @@ namespace Backtrace.Unity.Model
 
             json[Id.ToString()] = sourceCode;
             return json;
-        }
-
-        internal static BacktraceSourceCode Deserialize(JToken token)
-        {
-            if (token == null)
-            {
-                return null;
-            }
-            var data = token.FirstOrDefault();
-            if (data == null)
-            {
-                return null;
-            }
-            var rawSourceCode = data.FirstOrDefault();
-            var sourceCode = new BacktraceSourceCode()
-            {
-                Id = rawSourceCode.Value<string>("id"),
-                Text = rawSourceCode.Value<string>("text")
-            };
-            return sourceCode;
         }
     }
 }

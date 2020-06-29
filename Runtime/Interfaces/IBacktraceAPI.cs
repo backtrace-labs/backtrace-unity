@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Model;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
 {
@@ -16,6 +17,16 @@ namespace Backtrace.Unity.Interfaces
         IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null);
 
         /// <summary>
+        /// Send diagnostic report to Backtrace API
+        /// </summary>
+        /// <param name="json">Library diagnostic data in JSON format</param>
+        /// <param name="attachments">List of report attachments</param>
+        /// /// <param name="deduplication">Deduplication count</param>
+        /// <param name="callback">Coroutine callback</param>
+        /// <returns></returns>
+        IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback);
+
+        /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
         /// </summary>
         Action<Exception> OnServerError { get; set; }
@@ -29,5 +40,14 @@ namespace Backtrace.Unity.Interfaces
         /// Setup custom request method
         /// </summary>
         Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
+
+         /// <summary>
+        /// Upload minidump to server
+        /// </summary>
+        /// <param name="minidumpPath">Minidump path</param>
+        /// <param name="attachments">attachment path</param>
+        /// <param name="callback">Result callback</param>
+        /// <returns>Server response</returns>
+        IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null);
     }
 }

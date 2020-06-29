@@ -2,6 +2,7 @@
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
+using System;
 using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
@@ -12,11 +13,6 @@ namespace Backtrace.Unity.Interfaces
     /// </summary>
     public interface IBacktraceDatabase
     {
-        /// <summary>
-        /// Start all database tasks - data storage, timers, file loading
-        /// </summary>
-        //void Start();
-
         /// <summary>
         /// Send all reports stored in BacktraceDatabase and clean database
         /// </summary>
@@ -43,7 +39,8 @@ namespace Backtrace.Unity.Interfaces
         /// <summary>
         /// Add new report to Database
         /// </summary>
-        BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, object> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal);
+        [Obsolete("Please use Add method with Backtrace data parameter instead")]
+        BacktraceDatabaseRecord Add(BacktraceReport backtraceReport, Dictionary<string, string> attributes, MiniDumpType miniDumpType = MiniDumpType.Normal);
 
         /// <summary>
         /// Get all records stored in Database
@@ -78,5 +75,12 @@ namespace Backtrace.Unity.Interfaces
         /// BacktraceDatabase configuration options.
         /// </summary>
         void Reload();
+
+        /// <summary>
+        /// Add Backtrace data to database
+        /// </summary>
+        /// <param name="data">Backtrace data</param>
+        /// <returns>Backtrace record</returns>
+        BacktraceDatabaseRecord Add(BacktraceData data);
     }
 }

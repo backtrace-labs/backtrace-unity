@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -50,7 +49,13 @@ namespace Backtrace.Unity.Extensions
             using (var sha256Hash = SHA256.Create())
             {
                 var bytes = sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(source));
-                return Convert.ToBase64String(bytes);
+                // Convert byte array to a string   
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
             }
         }
     }

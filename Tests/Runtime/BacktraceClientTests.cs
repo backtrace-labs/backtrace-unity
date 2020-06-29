@@ -1,16 +1,14 @@
-﻿using Backtrace.Unity;
-using Backtrace.Unity.Extensions;
+﻿using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Types;
 using NUnit.Framework;
 using System;
 using System.Collections;
-using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
-    public class BacktraceClientTests : BacktraceBaseTest
+    public class BacktraceClientTests: BacktraceBaseTest
     {
         [SetUp]
         public void Setup()
@@ -18,7 +16,7 @@ namespace Tests
             BeforeSetup();
             AfterSetup(false);
         }
-
+        
         [UnityTest]
         public IEnumerator TestClientCreation_ValidBacktraceConfiguration_ValidClientCreation()
         {
@@ -29,7 +27,7 @@ namespace Tests
             yield return null;
         }
 
-
+        
         [UnityTest]
         public IEnumerator TestClientCreation_EmptyConfiguration_DisabledClientCreation()
         {
@@ -41,8 +39,6 @@ namespace Tests
         public IEnumerator TestClientEvents_EmptyConfiguration_ShouldntThrowExceptionForDisabledClient()
         {
             Assert.IsFalse(BacktraceClient.Enabled);
-
-            BacktraceClient.HandleUnhandledExceptions();
             Assert.IsNull(BacktraceClient.OnServerError);
             Assert.IsNull(BacktraceClient.OnServerResponse);
             Assert.IsNull(BacktraceClient.BeforeSend);
@@ -61,6 +57,15 @@ namespace Tests
             BacktraceClient.BeforeSend = (BacktraceData d) => d;
             BacktraceClient.OnUnhandledApplicationException = (Exception e) => { };
 
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator TestSendEvent_DisabledApi_NotSendingEvent()
+        {
+            BacktraceClient.Configuration = GetValidClientConfiguration();
+            BacktraceClient.Refresh();
+            Assert.DoesNotThrow(() => BacktraceClient.Send(new Exception("test exception")));
             yield return null;
         }
 
@@ -88,15 +93,6 @@ namespace Tests
 
             var unhandledException = new BacktraceUnhandledException("foo", string.Empty);
             BacktraceClient.Send(unhandledException);
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator TestSendEvent_DisabledApi_NotSendingEvent()
-        {
-            BacktraceClient.Configuration = GetValidClientConfiguration();
-            BacktraceClient.Refresh();
-            Assert.DoesNotThrow(() => BacktraceClient.Send(new Exception("test exception")));
             yield return null;
         }
 
@@ -135,8 +131,7 @@ namespace Tests
             yield return null;
         }
 
-
-        [Test]
+       [Test]
         public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintForExceptionReportWithoutStackTrace_ShouldIncludeFingerprintInBacktraceReport()
         {
             BacktraceClient.Configuration = GetValidClientConfiguration();
@@ -214,6 +209,19 @@ namespace Tests
             Assert.IsTrue(eventFired);
         }
 
+        [Test]
+        public void TestFingerprintBehaviorForNormalizedMesssage_ShouldGenerateFingerprintForMessageReportWithoutStackTrace_ShouldIncludeFingerprintInBacktraceReport()
+        {
+            string message = "Backtrace report fake message";
+            var report = new BacktraceReport(message)
+            {
+                DiagnosticStack = new System.Collections.Generic.List<BacktraceStackFrame>()
+            };
+            report.SetReportFingerPrintForEmptyStackTrace();
+
+            Assert.AreEqual(message.OnlyLetters().GetSha(), report.Attributes["_mod_fingerprint"]);
+        }
+
 
         [Test]
         public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintAndShouldntRemoveAnyLetter_ShouldIncludeFingerprintInBacktraceReport()
@@ -259,16 +267,6 @@ namespace Tests
             };
             BacktraceClient.Send(report);
             Assert.IsTrue(eventFired);
-        }
-
-        private BacktraceConfiguration GetValidClientConfiguration()
-        {
-            var configuration = GetBasicConfiguration();
-            BacktraceClient.RequestHandler = (string url, BacktraceData backtraceData) =>
-            {
-                return new BacktraceResult();
-            };
-            return configuration;
         }
     }
 }

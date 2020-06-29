@@ -1,41 +1,28 @@
-﻿using Backtrace.Unity;
-using Backtrace.Unity.Interfaces;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class BacktraceDatabaseMock : BacktraceDatabase
+namespace Backtrace.Unity.Tests.Runtime
 {
-    /// <summary>
-    /// Make sure we won't remove any file/directory from unit-test code.
-    /// </summary>
-    protected override void RemoveOrphaned()
+    public class BacktraceDatabaseMock : BacktraceDatabase
     {
-        Debug.Log("Removing old reports");
-    }
-
-    protected override void LoadReports()
-    {
-        Debug.Log("Loading reports");
-    }
-
-    /// <summary>
-    /// Make sure we don't store any data on hard drive.
-    /// </summary>
-    protected override void CreateDatabaseDirectory()
-    {
-        Debug.Log("Creating database directory");
-    }
-
-    protected override IBacktraceDatabaseContext BacktraceDatabaseContext
-    {
-        get
+        /// <summary>
+        /// Make sure we won't remove any file/directory from unit-test code.
+        /// </summary>
+        protected override void RemoveOrphaned()
         {
-            return base.BacktraceDatabaseContext;
+            Debug.Log("Removing old reports");
         }
 
-        set
+        protected override void LoadReports()
         {
-            // mock should only create one type of backtrace database context.
-            base.BacktraceDatabaseContext = new BacktraceDatabaseContextMock(DatabaseSettings);
+            Debug.Log("Loading reports");
+        }
+
+        /// <summary>
+        /// Make sure we don't store any data on hard drive.
+        /// </summary>
+        protected override void CreateDatabaseDirectory()
+        {
+            Debug.Log("Creating database directory");
         }
     }
 }

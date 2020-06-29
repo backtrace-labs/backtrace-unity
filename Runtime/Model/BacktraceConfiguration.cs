@@ -52,6 +52,26 @@ namespace Backtrace.Unity.Model
         public int GameObjectDepth = -1;
 
         /// <summary>
+        /// Number of logs collected by Backtrace-Unity
+        /// </summary>
+        [Tooltip("Number of logs collected by Backtrace-Unity")]
+        public uint NumberOfLogs = 10;
+
+        /// <summary>
+        /// Try to find game native crashes and send them on Game startup
+        /// </summary>
+        [Tooltip("Try to find game native crashes and send them on Game startup")]
+        public bool SendUnhandledGameCrashesOnGameStartup = true;
+
+#if UNITY_ANDROID
+        /// <summary>
+        /// Handle ANR events - Application not responding
+        /// </summary>
+        [Tooltip("Handle ANR events - Application not responding")]
+        public bool HandleANR = true;
+#endif
+
+        /// <summary>
         /// Backtrace client deduplication strategy. 
         /// </summary>
         [Tooltip("Client-side deduplication allows the backtrace-unity library to group multiple error reports into a single one based on various factors. Factors include:\n\n" +
@@ -76,6 +96,12 @@ namespace Backtrace.Unity.Model
         public MiniDumpType MinidumpType = MiniDumpType.None;
 
         /// <summary>
+         /// Generate game screen shot when exception happen
+        /// </summary>
+        [Tooltip("Generate and attach screenshot of frame as exception occurs")]
+        public bool GenerateScreenshotOnException = false;
+
+        /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]
@@ -87,6 +113,12 @@ namespace Backtrace.Unity.Model
         [Header("Backtrace database configuration")]
         [Tooltip("When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.")]
         public bool Enabled;
+
+        /// <summary>
+        /// Add Unity log file to Backtrace report
+        /// </summary>
+        [Tooltip("Add Unity player log file to Backtrace report")]
+        public bool AddUnityLogToReport = false;
 
         /// <summary>
         /// Resend report when http client throw exception
@@ -119,7 +151,6 @@ namespace Backtrace.Unity.Model
 
         /// <summary>
         /// Maximum number of retries
-        /// </summary>
         [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
         public int RetryLimit = 3;
 

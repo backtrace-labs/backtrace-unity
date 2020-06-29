@@ -1,6 +1,4 @@
-﻿using Backtrace.Newtonsoft;
-using Backtrace.Newtonsoft.Linq;
-using Backtrace.Unity.Common;
+﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
@@ -27,17 +25,17 @@ namespace Backtrace.Unity.Model
         /// 16 bytes of randomness in human readable UUID format
         /// server will reject request if uuid is already found
         /// </summary>s
-        public Guid Uuid = Guid.NewGuid();
+        public readonly Guid Uuid = Guid.NewGuid();
 
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
-        public long Timestamp = new DateTime().Timestamp();
+        public readonly long Timestamp = new DateTime().Timestamp();
 
         /// <summary>
         /// Get information aboout report type. If value is true the BacktraceReport has an error information
         /// </summary>
-        public bool ExceptionTypeReport = false;
+        public readonly bool ExceptionTypeReport = false;
 
         /// <summary>
         /// Get a report classification 
@@ -47,38 +45,27 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Get an report attributes
         /// </summary>
-        [JsonProperty(PropertyName = "attributes")]
-        public Dictionary<string, object> Attributes { get; private set; }
+        public Dictionary<string, string> Attributes { get; private set; }
 
         /// <summary>
         /// Get a custom client message
         /// </summary>
-        [JsonProperty(PropertyName = "message")]
         public string Message { get; private set; }
 
         /// <summary>
         /// Get a report exception
         /// </summary>
-        [JsonIgnore]
         public Exception Exception { get; private set; }
 
         /// <summary>
         /// Get all paths to attachments
         /// </summary>
-        [JsonProperty(PropertyName = "attachmentPaths")]
         public List<string> AttachmentPaths { get; set; }
 
         /// <summary>
         /// Current report exception stack
         /// </summary>
-        [JsonProperty(PropertyName = "diagnosticStack")]
         public List<BacktraceStackFrame> DiagnosticStack { get; set; }
-
-        /// <summary>
-        /// Get or set minidump attachment path
-        /// </summary>
-        [JsonProperty(PropertyName = "minidumpFile")]
-        internal string MinidumpFile { get; private set; }
 
         /// <summary>
         /// Source code
@@ -86,92 +73,14 @@ namespace Backtrace.Unity.Model
         public BacktraceSourceCode SourceCode = null;
 
         /// <summary>
-        /// Convert Backtrace report to JSON
-        /// </summary>
-        /// <returns>Backtrace report JSON representation</returns>
-        public string ToJson()
-        {
-            var reportStackTrace = new JArray();
-            foreach (var diagnosticFrame in DiagnosticStack)
-            {
-                reportStackTrace.Add(diagnosticFrame.ToJson());
-            }
-
-            var attributes = new BacktraceJObject();
-            foreach (var value in Attributes)
-            {
-                attributes[value.Key] = value.Value.ToString();
-            }
-
-            var report = new BacktraceJObject()
-            {
-                {"Fingerprint", Fingerprint},
-                {"Factor", Factor},
-                {"Uuid", Uuid.ToString()},
-                {"Timestamp", Timestamp},
-                {"ExceptionTypeReport", ExceptionTypeReport},
-                {"Classifier", Classifier},
-                {"message", Message},
-                {"minidumpFile", MinidumpFile},
-                {"attachmentPaths", new JArray(AttachmentPaths)},
-                {"diagnosticStack", reportStackTrace},
-                {"attributes", attributes}
-            };
-            return report.ToString();
-        }
-
-        /// <summary>
-        /// Convert JSON to Backtrace Report
-        /// </summary>
-        /// <param name="json">Backtrace Report JSON</param>
-        /// <returns>Backtrace report instance</returns>
-        public static BacktraceReport Deserialize(string json)
-        {
-            var @object = BacktraceJObject.Parse(json);
-            var attributesObject = @object["attributes"];
-            var attributes = new Dictionary<string, object>();
-            foreach (BacktraceJProperty keys in attributesObject)
-            {
-                attributes.Add(keys.Name, keys.Value.Value<string>());
-            }
-
-            var exceptionStack = @object["diagnosticStack"];
-            var resultStack = new List<BacktraceStackFrame>();
-            foreach (var stack in exceptionStack)
-            {
-                var deserializedStack = BacktraceStackFrame.FromJson(stack.ToString());
-                resultStack.Add(deserializedStack);
-            }
-            var attachmentJson = @object["attachmentPaths"];
-            var attachments = attachmentJson.Select(n => n.Value<string>()).ToList();
-
-
-            return new BacktraceReport(string.Empty)
-            {
-                Fingerprint = @object.Value<string>("Fingerprint"),
-                Factor = @object.Value<string>("Factor"),
-                Uuid = new Guid(@object.Value<string>("Uuid")),
-                Timestamp = @object.Value<long>("Timestamp"),
-                ExceptionTypeReport = @object.Value<bool>("ExceptionTypeReport"),
-                Classifier = @object.Value<string>("Classifier"),
-                Message = @object.Value<string>("message"),
-                MinidumpFile = @object.Value<string>("minidumpFile"),
-                Attributes = attributes,
-                DiagnosticStack = resultStack,
-                AttachmentPaths = attachments
-            };
-        }
-
-        /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>
         /// <param name="message">Custom client message</param>
         /// <param name="attributes">Additional information about application state</param>
         /// <param name="attachmentPaths">Path to all report attachments</param>
-        [JsonConstructor]
         public BacktraceReport(
             string message,
-            Dictionary<string, object> attributes = null,
+            Dictionary<string, string> attributes = null,
             List<string> attachmentPaths = null)
             : this(null as Exception, attributes, attachmentPaths)
         {
@@ -189,33 +98,54 @@ namespace Backtrace.Unity.Model
         /// <param name="attachmentPaths">Path to all report attachments</param>
         public BacktraceReport(
             Exception exception,
-            Dictionary<string, object> attributes = null,
+            Dictionary<string, string> attributes = null,
             List<string> attachmentPaths = null)
         {
-            Attributes = attributes ?? new Dictionary<string, object>();
+            Attributes = attributes ?? new Dictionary<string, string>();
             AttachmentPaths = attachmentPaths ?? new List<string>();
             Exception = exception;
             ExceptionTypeReport = exception != null;
             if (ExceptionTypeReport)
             {
                 Message = exception.Message;
+                SetClassifier();
                 SetStacktraceInformation();
             }
-            Classifier = ExceptionTypeReport ? exception.GetType().Name : string.Empty;
         }
 
         /// <summary>
-        /// Set a path to report minidump
+        /// Assign source code to Backtrace report - text available in the right panel in web debugger.
         /// </summary>
-        /// <param name="minidumpPath">Path to generated minidump file</param>
-        internal void SetMinidumpPath(string minidumpPath)
+        /// <param name="text"></param>
+        internal void AssignSourceCodeToReport(string text)
         {
-            if (string.IsNullOrEmpty(minidumpPath))
+            if (!DiagnosticStack.Any())
             {
                 return;
             }
-            MinidumpFile = minidumpPath;
-            AttachmentPaths.Add(minidumpPath);
+
+            SourceCode = new BacktraceSourceCode()
+            {
+                Text = text
+            };
+            // assign log information to first stack frame
+            DiagnosticStack.First().SourceCode = SourceCode.Id.ToString();
+        }
+
+        /// <summary>
+        /// Set report classifier
+        /// </summary>
+        private void SetClassifier()
+        {
+            // ignore classifier for message reports
+            if (!ExceptionTypeReport)
+            {
+                Classifier = string.Empty;
+            }
+
+            Classifier = Exception is BacktraceUnhandledException
+                ? (Exception as BacktraceUnhandledException).Classifier
+                : Exception.GetType().Name;
         }
 
         /// <summary>
@@ -223,18 +153,17 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal void SetReportFingerPrintForEmptyStackTrace()
         {
-            if (Exception != null && string.IsNullOrEmpty(Exception.StackTrace))
+            if ((Exception != null && string.IsNullOrEmpty(Exception.StackTrace)) || !DiagnosticStack.Any() )
             {
                 // set attributes instead of fingerprint to still allow our user to define customer
                 // fingerprints for reports without stack trace and apply deduplication rules in report flow.
                 Attributes["_mod_fingerprint"] = Message.OnlyLetters().GetSha();
             }
-
         }
 
-        internal BacktraceData ToBacktraceData(Dictionary<string, object> clientAttributes)
+        internal BacktraceData ToBacktraceData(Dictionary<string, string> clientAttributes, int gameObjectDepth)
         {
-            return new BacktraceData(this, clientAttributes);
+            return new BacktraceData(this, clientAttributes, gameObjectDepth);
         }
 
         /// <summary>
@@ -243,22 +172,17 @@ namespace Backtrace.Unity.Model
         /// <param name="report">Current report</param>
         /// <param name="attributes">Attributes to concatenate</param>
         /// <returns></returns>
-        internal static Dictionary<string, object> ConcatAttributes(
-            BacktraceReport report, Dictionary<string, object> attributes)
+        internal static Dictionary<string, string> ConcatAttributes(
+            BacktraceReport report, Dictionary<string, string> attributes)
         {
             var reportAttributes = report.Attributes;
-            if (attributes == null)
-            {
-                return reportAttributes;
-            };
             return reportAttributes.Merge(attributes);
         }
 
         internal void SetStacktraceInformation()
         {
-            var stacktrace = new BacktraceStackTrace(Message, Exception);
+            var stacktrace = new BacktraceStackTrace(Exception);
             DiagnosticStack = stacktrace.StackFrames;
-            SourceCode = stacktrace.SourceCode;
         }
         /// <summary>
         /// create a copy of BacktraceReport for inner exception object inside exception

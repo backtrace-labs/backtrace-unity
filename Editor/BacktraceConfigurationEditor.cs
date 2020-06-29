@@ -1,4 +1,4 @@
-﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model;
 using UnityEditor;
 using UnityEngine;
 
@@ -41,10 +41,23 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("IgnoreSslValidation"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_IGNORE_SSL_VALIDATION));
 #endif
-
+#if UNITY_ANDROID
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("HandleANR"),
+                 new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
+#endif
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),
                    new GUIContent(BacktraceConfigurationLabels.LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE));
+#if UNITY_STANDALONE_WIN
+                EditorGUILayout.PropertyField(
+                 serializedObject.FindProperty("SendUnhandledGameCrashesOnGameStartup"),
+                 new GUIContent(BacktraceConfigurationLabels.LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP));
+#endif
+
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("NumberOfLogs"),
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
 
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),
@@ -82,17 +95,28 @@ namespace Backtrace.Unity.Editor
                        new GUIContent(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES));
 
 #if UNITY_STANDALONE_WIN
-                    EditorGUILayout.HelpBox("Minidump support works only on Windows machines.", MessageType.Warning);
-                    SerializedProperty miniDumpType = serializedObject.FindProperty("MinidumpType");
-                    EditorGUILayout.PropertyField(miniDumpType, new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("MinidumpType"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
 #endif
 
-                    SerializedProperty autoSendMode = serializedObject.FindProperty("AutoSendMode");
-                    EditorGUILayout.PropertyField(autoSendMode, new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
+#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("AddUnityLogToReport"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));
 
+#endif
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("AutoSendMode"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
 
-                    SerializedProperty createDatabase = serializedObject.FindProperty("CreateDatabase");
-                    EditorGUILayout.PropertyField(createDatabase, new GUIContent(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("CreateDatabase"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY));
+
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("GenerateScreenshotOnException"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION));
 
                     SerializedProperty maxRecordCount = serializedObject.FindProperty("MaxRecordCount");
                     EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT));

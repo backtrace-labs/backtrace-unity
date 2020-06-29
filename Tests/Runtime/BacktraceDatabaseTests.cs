@@ -1,17 +1,15 @@
-﻿using Backtrace.Unity;
-using Backtrace.Unity.Model;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Backtrace.Unity.Tests.Runtime
 {
     public class BacktraceDatabaseTests: BacktraceBaseTest
     {
         private BacktraceDatabase database;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             BeforeSetup();

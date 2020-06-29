@@ -28,7 +28,10 @@ namespace Backtrace.Unity.Editor
 #endif
 
             settings.DeduplicationStrategy = (DeduplicationStrategy)EditorGUILayout.EnumFlagsField(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES, settings.DeduplicationStrategy);
-
+            settings.GenerateScreenshotOnException = EditorGUILayout.Toggle(
+                BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION, 
+                settings.GenerateScreenshotOnException);
+                
             settings.AutoSendMode = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE, settings.AutoSendMode);
             settings.CreateDatabase = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY, settings.CreateDatabase);
             settings.MaxRecordCount = EditorGUILayout.IntField(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT, settings.MaxRecordCount);
