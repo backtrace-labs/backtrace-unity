@@ -1,6 +1,6 @@
 # Backtrace Unity support
 
-[Backtrace](http://backtrace.io/)'s integration with unity games allows customers to capture and report handled and unhandled Unity exceptions to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
+[Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report handled and unhandled Unity exceptions and crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
 [github release]: (https://github.com/backtrace-labs/backtrace-labs/)
 
