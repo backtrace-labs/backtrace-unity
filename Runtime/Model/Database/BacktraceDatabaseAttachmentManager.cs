@@ -65,11 +65,13 @@ namespace Backtrace.Unity.Model.Database
         /// <returns>Path to game screenshot</returns>
         private string GetScreenshotPath(BacktraceData backtraceData)
         {
+            Debug.Log("_settings.GenerateScreenshotOnException: " + _settings.GenerateScreenshotOnException);
             if (!_settings.GenerateScreenshotOnException)
             {
                 return string.Empty;
             }
-            var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}.png", backtraceData.Uuid));
+            var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}.jpg", backtraceData.Uuid));
+            Debug.Log("screenshotPath: " + screenshotPath);
 
             lock (_lock)
             {
@@ -94,7 +96,7 @@ namespace Backtrace.Unity.Model.Database
                     tex.Apply();
 
                     // Encode texture into PNG
-                    byte[] bytes = tex.EncodeToPNG();
+                    byte[] bytes = tex.EncodeToJPG();
 
                     // For testing purposes, also write to a file in the project folder
                     File.WriteAllBytes(screenshotPath, bytes);

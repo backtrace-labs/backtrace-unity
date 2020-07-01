@@ -111,32 +111,41 @@ namespace Backtrace.Unity
         /// </summary>
         public void Reload()
         {
+            Debug.LogWarning("Reload");
 
             // validate configuration
             if (Configuration == null)
             {
                 Configuration = GetComponent<BacktraceClient>().Configuration;
             }
-            if (Configuration == null || !Configuration.IsValid())
+            if (Configuration == null || !Configuration.IsValid() || !Configuration.Enabled)
             {
                 Enable = false;
                 return;
             }
 
-
             //setup database object
             DatabaseSettings = new BacktraceDatabaseSettings(Configuration);
 
-            Enable = Configuration.Enabled && BacktraceConfiguration.ValidateDatabasePath(Configuration.DatabasePath);
-            if (!Enable)
+            if (string.IsNullOrEmpty(Configuration.DatabasePath))
             {
-                if (Configuration.Enabled)
-                {
-                    Debug.LogWarning("Cannot initialize database - invalid path to database. Database is disabled");
-                }
+                Enable = false;
+                Debug.LogWarning("Cannot create Backtrace datase directory. Database directory is null or empty");
                 return;
             }
-            CreateDatabaseDirectory();
+
+            if (Configuration.CreateDatabase)
+            {
+                Directory.CreateDirectory(DatabaseSettings.DatabasePath);
+            }
+            else if (!BacktraceConfiguration.ValidateDatabasePath(DatabaseSettings.DatabasePath)) 
+            {
+                Enable = false;
+                Debug.LogWarning("Cannot initialize database - invalid path to database. Database is disabled");
+                return;
+            }
+
+            Enable = true;
             SetupMultisceneSupport();
             _lastConnection = Time.time;
             LastFrameTime = Time.time;
@@ -411,7 +420,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            if (string.IsNullOrEmpty(Configuration.DatabasePath))
+            if (string.IsNullOrEmpty(Configuration.DatabasePath) || string.IsNullOrEmpty(Path.GetFullPath(Configuration.DatabasePath)))
             {
                 Enable = false;
                 throw new InvalidOperationException("Cannot create Backtrace datase directory. Database directory is null or empty");

@@ -32,12 +32,8 @@ namespace Backtrace.Unity.Model
                 return false;
             }
 
-            string databasePathCopy = DatabasePath;
-            if (!Path.IsPathRooted(databasePathCopy))
-            {
-                databasePathCopy = Path.GetFullPath(Path.Combine(Application.dataPath, databasePathCopy));
-            }
-            Enabled = Directory.Exists(databasePathCopy);
+            // side effect, changing state != validate
+            Enabled = Directory.Exists(DatabasePath);
             return true;
         }
 

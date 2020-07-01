@@ -217,12 +217,7 @@ namespace Backtrace.Unity.Model
                 return false;
             }
 
-            string databasePathCopy = value;
-            if (!Path.IsPathRooted(databasePathCopy))
-            {
-                databasePathCopy = Path.GetFullPath(Path.Combine(Application.dataPath, databasePathCopy));
-            }
-            return Directory.Exists(databasePathCopy);
+            return Directory.Exists(value);
         }
     }
 }

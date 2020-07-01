@@ -1,5 +1,7 @@
 ﻿using Backtrace.Unity.Types;
 using System;
+using System.IO;
+using UnityEngine;
 
 namespace Backtrace.Unity.Model.Database
 {
@@ -9,6 +11,8 @@ namespace Backtrace.Unity.Model.Database
     public class BacktraceDatabaseSettings
     {
         private readonly BacktraceConfiguration _configuration;
+
+        private string _databasePath;
         public BacktraceDatabaseSettings(BacktraceConfiguration configuration)
         {
             if (configuration == null)
@@ -16,7 +20,17 @@ namespace Backtrace.Unity.Model.Database
                 return;
             }
             _configuration = configuration;
+            
+            if (Path.IsPathRooted(_configuration.DatabasePath))
+            {
+                _databasePath = _configuration.DatabasePath;
+            }
+            else
+            {
+                _databasePath = Path.GetFullPath(Path.Combine(Application.temporaryCachePath, _configuration.DatabasePath));
+            }
         }
+        
         /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
@@ -24,7 +38,8 @@ namespace Backtrace.Unity.Model.Database
         {
             get
             {
-                return _configuration.DatabasePath;
+                Debug.LogWarning("path Database: " + _databasePath);
+                return _databasePath;
             }
         }
 

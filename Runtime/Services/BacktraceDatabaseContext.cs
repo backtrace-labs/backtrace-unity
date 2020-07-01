@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Services
@@ -112,6 +113,7 @@ namespace Backtrace.Unity.Services
         /// <returns>New instance of DatabaseRecordy</returns>
         public BacktraceDatabaseRecord Add(BacktraceData backtraceData)
         {
+            Debug.Log("BacktraceDatabaseRecord#Add");
             if (backtraceData == null)
             {
                 throw new NullReferenceException("backtraceData");
