@@ -18,10 +18,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// </summary>
         private readonly bool _enabled = Application.platform == RuntimePlatform.Android;
 
-        /// <summary>
-        /// Anr watcher object
-        /// </summary>
-        private AndroidJavaObject _anrWatcher;
         public NativeClient(string gameObjectName, bool detectAnrs)
         {
             if (detectAnrs && _enabled)
@@ -71,8 +67,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
-            _anrWatcher = new AndroidJavaObject(_anrPath);
-            _anrWatcher.CallStatic("watch", gameObjectName, callbackName);
+            new AndroidJavaClass(_anrPath).CallStatic("watch", gameObjectName, callbackName);
         }
     }
 }
