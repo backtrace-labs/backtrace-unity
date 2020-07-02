@@ -65,13 +65,11 @@ namespace Backtrace.Unity.Model.Database
         /// <returns>Path to game screenshot</returns>
         private string GetScreenshotPath(BacktraceData backtraceData)
         {
-            Debug.Log("_settings.GenerateScreenshotOnException: " + _settings.GenerateScreenshotOnException);
             if (!_settings.GenerateScreenshotOnException)
             {
                 return string.Empty;
             }
             var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}.jpg", backtraceData.Uuid));
-            Debug.Log("screenshotPath: " + screenshotPath);
 
             lock (_lock)
             {

@@ -38,7 +38,6 @@ namespace Backtrace.Unity.Model.Database
         {
             get
             {
-                Debug.LogWarning("path Database: " + _databasePath);
                 return _databasePath;
             }
         }
