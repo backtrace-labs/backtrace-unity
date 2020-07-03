@@ -1,4 +1,4 @@
-﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
@@ -196,6 +196,7 @@ namespace Backtrace.Unity
 
         public void Refresh()
         {
+            Debug.Log("here1");
             if (Configuration == null || !Configuration.IsValid())
             {
                 return;
@@ -231,17 +232,18 @@ namespace Backtrace.Unity
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
-            Database = GetComponent<BacktraceDatabase>();
-            if (Database == null)
-            {
-                return;
-            }
-            Database.Reload();
-            Database.SetApi(BacktraceApi);
-            Database.SetReportWatcher(_reportLimitWatcher);
-
+            
             _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
             CaptureUnityMessages();
+
+            Database = GetComponent<BacktraceDatabase>();
+            if (Database != null)
+            {
+                Database.Reload();
+                Database.SetApi(BacktraceApi);
+                Database.SetReportWatcher(_reportLimitWatcher);
+            }
+            
         }
 
         private void Awake()
