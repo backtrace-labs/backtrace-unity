@@ -9,12 +9,14 @@ namespace Backtrace.Unity.Model.Database
     public class BacktraceDatabaseSettings
     {
         private readonly BacktraceConfiguration _configuration;
-        public BacktraceDatabaseSettings(BacktraceConfiguration configuration)
+        public BacktraceDatabaseSettings(string databasePath, BacktraceConfiguration configuration)
         {
-            if (configuration == null)
+            if (configuration == null || string.IsNullOrEmpty(databasePath))
             {
                 return;
             }
+
+            DatabasePath = databasePath;
             _configuration = configuration;
         }
         /// <summary>
@@ -22,10 +24,7 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         public string DatabasePath
         {
-            get
-            {
-                return _configuration.DatabasePath;
-            }
+            get; private set;
         }
 
         /// <summary>

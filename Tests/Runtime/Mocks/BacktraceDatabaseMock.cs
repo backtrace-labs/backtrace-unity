@@ -20,9 +20,11 @@ namespace Backtrace.Unity.Tests.Runtime
         /// <summary>
         /// Make sure we don't store any data on hard drive.
         /// </summary>
-        protected override void CreateDatabaseDirectory()
+        protected override bool InitializeDatabasePaths()
         {
-            Debug.Log("Creating database directory");
+            DatabasePath = Configuration.DatabasePath;
+            Debug.Log("Setting up Backtrace database directories");
+            return true;
         }
     }
 }

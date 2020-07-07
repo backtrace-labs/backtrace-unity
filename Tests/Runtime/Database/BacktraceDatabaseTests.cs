@@ -5,7 +5,7 @@ using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
-    public class BacktraceDatabaseTests: BacktraceBaseTest
+    public class BacktraceDatabaseTests : BacktraceBaseTest
     {
         private BacktraceDatabase database;
 
@@ -40,6 +40,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(database.Enable);
             yield return null;
         }
+
 
     }
 }
