@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void TestDbPath_ShouldtTryToParseInterpolatedString_PathShouldntBeEmpty()
         {
 
-            var expectedDatabasePath = Path.Combine(Application.dataPath, "foo", "bar");
+            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo", "bar");
             var actualDatabasePath = DatabasePathHelper.GetFullDatabasePath(expectedDatabasePath);
             Assert.AreEqual(new DirectoryInfo(expectedDatabasePath).FullName, actualDatabasePath);
         }
@@ -50,7 +50,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void TestDbPath_ShouldTryToEscapeRootedDir_PathShouldntBeEmpty()
         {
             var testedPath = "./test";
-            var expectedDatabasePath = Path.Combine(Application.dataPath, testedPath);
+            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, testedPath);
             var actualDatabasePath = DatabasePathHelper.GetFullDatabasePath(testedPath);
             Assert.AreEqual(new DirectoryInfo(expectedDatabasePath).FullName, actualDatabasePath);
         }
@@ -90,7 +90,7 @@ namespace Backtrace.Unity.Tests.Runtime
             var testedInvalidPath = "${application.persistentDataPath/foo/bar";
             // beacuse ${ will point to root dir of project, we will try to extend this path
             // with application.dataPath
-            var expectedInvalidPath = Path.Combine(Application.dataPath, testedInvalidPath);
+            var expectedInvalidPath = Path.Combine(Application.persistentDataPath, testedInvalidPath);
             var actualDatabasePath = DatabasePathHelper.GetFullDatabasePath(testedInvalidPath);
             Assert.AreEqual(Path.GetFullPath(expectedInvalidPath), actualDatabasePath);
         }
@@ -101,7 +101,7 @@ namespace Backtrace.Unity.Tests.Runtime
             var testedInvalidPath = "$application.persistentDataPath/foo/bar";
             // beacuse ${ will point to root dir of project, we will try to extend this path
             // with application.dataPath
-            var expectedInvalidPath = Path.Combine(Application.dataPath, testedInvalidPath);
+            var expectedInvalidPath = Path.Combine(Application.persistentDataPath, testedInvalidPath);
             var actualDatabasePath = DatabasePathHelper.GetFullDatabasePath(testedInvalidPath);
             Assert.AreEqual(Path.GetFullPath(expectedInvalidPath), actualDatabasePath);
         }
@@ -113,7 +113,7 @@ namespace Backtrace.Unity.Tests.Runtime
             var testedInvalidPath = "application.persistentDataPath}/foo/bar";
             // beacuse ${ will point to root dir of project, we will try to extend this path
             // with application.dataPath
-            var expectedInvalidPath = Path.Combine(Application.dataPath, testedInvalidPath);
+            var expectedInvalidPath = Path.Combine(Application.persistentDataPath, testedInvalidPath);
             var actualDatabasePath = DatabasePathHelper.GetFullDatabasePath(testedInvalidPath);
             Assert.AreEqual(Path.GetFullPath(expectedInvalidPath), actualDatabasePath);
         }
