@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.1
+- `BacktraceLogManager` (class responsible for storing log data) will be initialized in `CaptureUnityMessages` method to prevent situation, when custom log from `BacktraceClient` can throw an unhandled exception.
+
 ## Version 3.0.0
 
 *New Features*
