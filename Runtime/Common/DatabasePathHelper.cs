@@ -57,7 +57,7 @@ namespace Backtrace.Unity.Common
         {
             if (!Path.IsPathRooted(databasePath))
             {
-                databasePath = Path.Combine(Application.dataPath, databasePath);
+                databasePath = Path.Combine(Application.persistentDataPath, databasePath);
             }
             return Path.GetFullPath(databasePath);
 

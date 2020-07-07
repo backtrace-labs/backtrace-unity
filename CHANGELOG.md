@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.1
+- the `BacktraceDatabase` class will now create database directory, before final database validation. Previously, when directory didn't exist, BacktraceDatabase was disabled.
+- `BacktraceDatabase` now allows to pass interpolated string in Database options. Developer can use `Application.dataPath` or `Application.persistendDataPath` to set path to database. 
+
 ## Version 3.0.0
 
 *New Features*
