@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.1
+- The backtrace-unity library (Backtrace) will generate new image files in .jpg format. 
+
 ## Version 3.0.0
 
 *New Features*
