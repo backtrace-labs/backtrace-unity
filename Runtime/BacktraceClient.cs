@@ -208,7 +208,7 @@ namespace Backtrace.Unity
                 ? 16 // default maximum game object size
                 : Configuration.GameObjectDepth;
 
-            _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
+            
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
@@ -438,6 +438,7 @@ namespace Backtrace.Unity
         /// </summary>
         private void CaptureUnityMessages()
         {
+            _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
             if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
             {
                 Application.logMessageReceived += HandleUnityMessage;
