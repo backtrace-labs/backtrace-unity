@@ -208,11 +208,9 @@ namespace Backtrace.Unity
                 ? 16 // default maximum game object size
                 : Configuration.GameObjectDepth;
 
-            
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
-            _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
 #if UNITY_2018_4_OR_NEWER
 
             BacktraceApi = new BacktraceApi(
@@ -226,21 +224,22 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
+            Database = GetComponent<BacktraceDatabase>();
+            if (Database != null)
+            {
+                Database.Reload();
+                Database.SetApi(BacktraceApi);
+                Database.SetReportWatcher(_reportLimitWatcher);
+            }
+
+            _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
+
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
                 var nativeCrashUplaoder = new NativeCrashUploader();
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
-            Database = GetComponent<BacktraceDatabase>();
-            if (Database == null)
-            {
-                return;
-            }
-            Database.Reload();
-            Database.SetApi(BacktraceApi);
-            Database.SetReportWatcher(_reportLimitWatcher);
-
         }
 
         private void Awake()
@@ -429,6 +428,7 @@ namespace Backtrace.Unity
         internal void OnAnrDetected(string stackTrace)
         {
             const string anrMessage = "ANRException: Blocked thread detected";
+            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
             SendUnhandledException(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
         }
 #endif

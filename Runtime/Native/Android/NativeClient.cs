@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native.Android
@@ -16,7 +17,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Determine if android integration should be enabled
         /// </summary>
-        private readonly bool _enabled = Application.platform == RuntimePlatform.Android;
+        private bool _enabled = Application.platform == RuntimePlatform.Android;
 
         /// <summary>
         /// Anr watcher object
@@ -71,8 +72,15 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
-            _anrWatcher = new AndroidJavaObject(_anrPath);
-            _anrWatcher.CallStatic("watch", gameObjectName, callbackName);
+            try
+            {
+                _anrWatcher = new AndroidJavaObject(_anrPath, gameObjectName, callbackName);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Cannot initialize ANR watchdog - reason: {0}", e.Message));
+                _enabled = false;
+            }
         }
     }
 }
