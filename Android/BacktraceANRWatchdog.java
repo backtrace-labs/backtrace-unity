@@ -63,14 +63,11 @@ public class BacktraceANRWatchdog extends Thread {
      * Initialize new instance of BacktraceANRWatchdog with default timeout
      */
     public BacktraceANRWatchdog(String gameObjectName, String methodName) {
-        Log.d(LOG_TAG, "Backtrace::inside constructor");
         Log.d(LOG_TAG, "Initializing ANR watchdog");
         this.methodName = methodName;
         this.gameObjectName = gameObjectName;
-
         this.timeout = DEFAULT_ANR_TIMEOUT;
         this.debug = false;
-        Log.d(LOG_TAG, "Backtrace::Starting watcher");
         BacktraceANRWatchdog._instance = this;
         this.start();
     }
