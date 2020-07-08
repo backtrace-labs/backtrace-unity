@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Types;
 using System;
-using System.IO;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model
@@ -200,29 +199,10 @@ namespace Backtrace.Unity.Model
             return ValidateServerUrl(ServerUrl);
         }
 
-        public static bool ValidateToken(string value)
-        {
-            return !(string.IsNullOrEmpty(value) || value.Length != 64);
-        }
 
         public BacktraceCredentials ToCredentials()
         {
             return new BacktraceCredentials(ServerUrl);
-        }
-
-        public static bool ValidateDatabasePath(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return false;
-            }
-
-            string databasePathCopy = value;
-            if (!Path.IsPathRooted(databasePathCopy))
-            {
-                databasePathCopy = Path.GetFullPath(Path.Combine(Application.dataPath, databasePathCopy));
-            }
-            return Directory.Exists(databasePathCopy);
         }
     }
 }
