@@ -1,6 +1,7 @@
 # Backtrace Unity Release Notes
 
 ## Version 3.0.1
+- `BacktraceLogManager` (class responsible for storing log data) will be initialized in `CaptureUnityMessages` method to prevent situation, when custom log from `BacktraceClient` can throw an unhandled exception.
 - The backtrace-unity library (Backtrace) will generate new image files in .jpg format. 
 
 ## Version 3.0.0
