@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.1
+- Fixed ANR watchdog initialization - right now Backtrace native client will create class instance of `BacktraceAnrWatchdog` class, instead of creating instance via static class method.
+
 ## Version 3.0.0
 
 *New Features*
