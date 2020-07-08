@@ -2,6 +2,7 @@
 
 ## Version 3.0.1
 - Fixed ANR watchdog initialization - right now Backtrace native client will create class instance of `BacktraceAnrWatchdog` class, instead of creating instance via static class method.
+- The backtrace-unity library (Backtrace) will generate new image files in .jpg format. 
 
 ## Version 3.0.0
 

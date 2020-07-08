@@ -69,7 +69,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 return string.Empty;
             }
-            var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}.png", backtraceData.Uuid));
+            var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}.jpg", backtraceData.Uuid));
 
             lock (_lock)
             {
@@ -93,8 +93,8 @@ namespace Backtrace.Unity.Model.Database
                     tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                     tex.Apply();
 
-                    // Encode texture into PNG
-                    byte[] bytes = tex.EncodeToPNG();
+                    // Encode texture into JPG
+                    byte[] bytes = tex.EncodeToJPG();
 
                     // For testing purposes, also write to a file in the project folder
                     File.WriteAllBytes(screenshotPath, bytes);
