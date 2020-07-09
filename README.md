@@ -74,7 +74,8 @@ The following is a reference guide to the Backtrace Client fields:
 - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
 - Handle ANR (Application not responding) - this options is available only in Android build. It allows to catch ANR (application not responding) events happened to your game in Android devices. In this release, ANR is set to detect after 5 seconds. This will be configurable in a future release.
 - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
-- Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start
+- Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS 
+${Application.persistentDataPath}/backtrace/database to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
 - Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
 - Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
 - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
