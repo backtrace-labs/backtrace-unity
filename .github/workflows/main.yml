@@ -1,7 +1,6 @@
 name: Actions 😎
 
 on:
-  pull_request: {}
   push: { branches: [feature/githubAction] }
 
 env:
