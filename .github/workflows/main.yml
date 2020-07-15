@@ -13,8 +13,11 @@ jobs:
     name: Build my project ✨
     runs-on: ubuntu-latest
     steps:
-      - name: Unity - Activate
-        uses: webbertakken/unity-activate@v1.2
+     - name: Request manual activation file
+        id: getManualLicenseFile
+        uses: webbertakken/unity-request-manual-activation-file@v1.1
+        with:
+          unityVersion: 2019.2.11f1
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v2
