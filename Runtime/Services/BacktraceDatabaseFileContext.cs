@@ -12,12 +12,8 @@ namespace Backtrace.Unity.Services
     /// <summary>
     /// BacktraceDatabase class for file collection operations
     /// </summary>
-    public class BacktraceDatabaseFileContext : IBacktraceDatabaseFileContext
+    internal class BacktraceDatabaseFileContext : IBacktraceDatabaseFileContext
     {
-        /// <summary>
-        /// Database directory path
-        /// </summary>
-        private readonly string _databasePath;
 
         /// <summary>
         /// Maximum database size
@@ -43,10 +39,9 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public BacktraceDatabaseFileContext(string databasePath, long maxDatabaseSize, uint maxRecordNumber)
         {
-            _databasePath = databasePath;
             _maxDatabaseSize = maxDatabaseSize;
             _maxRecordNumber = maxRecordNumber;
-            _databaseDirectoryInfo = new DirectoryInfo(_databasePath);
+            _databaseDirectoryInfo = new DirectoryInfo(databasePath);
         }
 
         /// <summary>
@@ -104,6 +99,7 @@ namespace Backtrace.Unity.Services
                         file.Delete();
                     }
                 }
+#pragma warning disable CS0168
                 catch (Exception e)
                 {
 #if DEBUG
@@ -111,6 +107,7 @@ namespace Backtrace.Unity.Services
 #endif
                     Debug.LogWarning(string.Format("Cannot remove file in path: {0}", file.FullName));
                 }
+#pragma warning restore CS0168
             }
         }
 

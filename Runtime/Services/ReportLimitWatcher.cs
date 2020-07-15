@@ -49,8 +49,8 @@ namespace Backtrace.Unity.Services
         {
             if (reportPerMin < 0)
             {
-                throw new ArgumentException(string.Format((string) "{0} have to be greater than or equal to zero",
-                    (object) "reportPerMin"));
+                throw new ArgumentException(string.Format((string)"{0} have to be greater than or equal to zero",
+                    (object)"reportPerMin"));
             }
             int reportNumber = checked((int)reportPerMin);
             _reportQueue = new Queue<long>(reportNumber);
@@ -65,13 +65,13 @@ namespace Backtrace.Unity.Services
             _watcherEnable = reportPerMin != 0;
         }
 
-     
+
         /// <summary>
         /// Check if user can send new report to a Backtrace API
         /// </summary>
         /// <param name="report">Current report</param>
         /// <returns>true if user can add a new report</returns>
-        public bool WatchReport(long timestamp)
+        public bool WatchReport(long timestamp, bool displayMessageOnLimitHit = true)
         {
             if (!_watcherEnable)
             {
@@ -82,6 +82,10 @@ namespace Backtrace.Unity.Services
             if (_reportQueue.Count + 1 > _reportPerMin)
             {
                 _limitHit = true;
+                if (displayMessageOnLimitHit)
+                {
+                    DisplayReportLimitHitMessage();
+                }
                 return false;
             }
             _limitHit = false;
@@ -95,18 +99,18 @@ namespace Backtrace.Unity.Services
         /// </summary>
         /// <param name="report">Current report</param>
         /// <returns>true if user can add a new report</returns>
-        public bool WatchReport(BacktraceReport report)
+        public bool WatchReport(BacktraceReport report, bool displayMessageOnLimitHit = true)
         {
-            return WatchReport(report.Timestamp);
+            return WatchReport(report.Timestamp, displayMessageOnLimitHit);
         }
 
 
         /// <summary>
         /// Display report limit hit 
         /// </summary>
-        public void DisplayReportLimitHitMessage()
+        private void DisplayReportLimitHitMessage()
         {
-            if(_limitHit == true && _displayMessage == true)
+            if (_limitHit && _displayMessage)
             {
                 _displayMessage = false;
                 Debug.LogWarning(string.Format("Backtrace report limit hit({0}/min) – Ignoring errors for 1 minute",

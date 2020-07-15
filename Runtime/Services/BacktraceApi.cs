@@ -3,6 +3,7 @@ using Backtrace.Unity.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -17,6 +18,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// User custom request method
         /// </summary>
+        [Obsolete("RequestHandler is obsolete. BacktraceApi won't be able to provide BacktraceData in every situation")]
         public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
         /// <summary>
@@ -75,6 +77,67 @@ namespace Backtrace.Unity.Services
         
 #endif
 
+ /// <summary>
+        /// Send minidump to Backtrace
+        /// </summary>
+        /// <param name="minidumpPath">Path to minidump</param>
+        /// <param name="attachments">List of attachments</param>
+        /// <param name="callback">Callback</param>
+        /// <returns>Server response</returns>
+        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null)
+        {
+            if (attachments == null)
+            {
+                attachments = new List<string>();
+            }
+
+            var jsonServerUrl = _serverurl.ToString();
+            var minidumpServerUrl = jsonServerUrl.IndexOf("submit.backtrace.io") != -1
+                ? jsonServerUrl.Replace("/json", "/minidump")
+                : jsonServerUrl.Replace("format=json", "format=minidump");
+
+            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
+            {
+                new MultipartFormFileSection("upload_file", File.ReadAllBytes(minidumpPath))
+            };
+
+            foreach (var file in attachments)
+            {
+                 if (File.Exists(file) && new FileInfo(file).Length > 10000000)
+                {
+                    formData.Add(new MultipartFormFileSection(
+                        string.Format("attachment__{0}", Path.GetFileName(file)),
+                        File.ReadAllBytes(file)));
+                }
+            }
+
+            yield return new WaitForEndOfFrame();
+
+            var boundaryId = string.Format("----------{0:N}", Guid.NewGuid());
+            var boundaryIdBytes = Encoding.ASCII.GetBytes(boundaryId);
+
+            using (var request = UnityWebRequest.Post(minidumpServerUrl, formData, boundaryIdBytes))
+            {
+                request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundaryId);
+                request.timeout = 15000;
+                yield return request.SendWebRequest();
+                var result = request.isNetworkError || request.isHttpError
+                    ? new BacktraceResult()
+                    {
+                        Message = request.error,
+                        Status = Types.BacktraceResultStatus.ServerError
+                    }
+                    : BacktraceResult.FromJson(request.downloadHandler.text);
+
+                if (callback != null)
+                {
+                    callback.Invoke(result);
+                }
+
+                yield return result;
+            }
+        }
+
         /// <summary>
         /// Sending a diagnostic report data to server API. 
         /// </summary>
@@ -82,25 +145,29 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
-            if (data == null)
-            {
-                yield return new BacktraceResult()
-                {
-                    Status = Types.BacktraceResultStatus.LimitReached
-                };
-            }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (RequestHandler != null)
             {
                 yield return RequestHandler.Invoke(_serverurl.ToString(), data);
             }
-            else
+            else if (data != null)
             {
-                string json = data.ToJson();
-                yield return Send(json, data.Attachments, data.Report, data.Deduplication, callback);
+                var json = data.ToJson();
+                yield return Send(json, data.Attachments, data.Deduplication, callback);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private IEnumerator Send(string json, List<string> attachments, BacktraceReport report, int deduplication, Action<BacktraceResult> callback)
+
+        /// <summary>
+        /// Sending diagnostic report to Backtrace
+        /// </summary>
+        /// <param name="json">diagnostic data JSON</param>
+        /// <param name="attachments">List of report attachments</param>
+        /// <param name="deduplication">Deduplication count</param>
+        /// <param name="callback">coroutine callback</param>
+        /// <returns>Server response</returns>
+        public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
             var requestUrl = _serverurl.ToString();
             if (deduplication > 0)
@@ -116,7 +183,7 @@ namespace Backtrace.Unity.Services
                     request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
                 }
 #endif
-
+                request.timeout = 15000;
                 byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
                 request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                 request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
@@ -126,24 +193,33 @@ namespace Backtrace.Unity.Services
                 BacktraceResult result;
                 if (request.responseCode == 200)
                 {
-                    result = new BacktraceResult();
-                    if (OnServerResponse != null) OnServerResponse.Invoke(result);
-                    var response = BacktraceResult.FromJson(request.downloadHandler.text);
+                    result = BacktraceResult.FromJson(request.downloadHandler.text);
+
+                    if (OnServerResponse != null)
+                    {
+                        OnServerResponse.Invoke(result);
+                    }
                     if (attachments != null && attachments.Count > 0)
                     {
                         var stack = new Stack<string>(attachments);
-                        yield return SendAttachment(response.RxId, stack);
+                        yield return SendAttachment(result.RxId, stack);
                     }
                 }
                 else
                 {
                     PrintLog(request);
                     var exception = new Exception(request.error);
-                    result = BacktraceResult.OnError(report, exception);
-                    if (OnServerError != null) OnServerError.Invoke(exception);
+                    result = BacktraceResult.OnError(exception);
+                    if (OnServerError != null)
+                    {
+                        OnServerError.Invoke(exception);
+                    }
                 }
 
-                if (callback != null) callback.Invoke(result);
+                if (callback != null)
+                {
+                    callback.Invoke(result);
+                }
                 yield return result;
             }
         }
@@ -162,11 +238,10 @@ namespace Backtrace.Unity.Services
             if (attachments != null && attachments.Count > 0)
             {
                 var attachment = attachments.Pop();
-                if (System.IO.File.Exists(attachment))
+                if (File.Exists(attachment))
                 {
-                    string fileName = System.IO.Path.GetFileName(attachment);
+                    string fileName = Path.GetFileName(attachment);
                     string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
-                    Debug.Log("Server url = " + serverUrl);
                     using (var request = new UnityWebRequest(serverUrl, "POST"))
                     {
 
@@ -176,7 +251,8 @@ namespace Backtrace.Unity.Services
                             request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
                         }
 #endif
-                        byte[] bodyRaw = System.IO.File.ReadAllBytes(attachment);
+                        request.timeout = 45000;
+                        byte[] bodyRaw = File.ReadAllBytes(attachment);
                         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
                         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
                         request.SetRequestHeader("Content-Type", "application/json");
@@ -194,7 +270,7 @@ namespace Backtrace.Unity.Services
 
         private string GetAttachmentUploadUrl(string rxId, string attachmentName)
         {
-            return _credentials == null || string.IsNullOrEmpty(_credentials.Token)
+            return string.IsNullOrEmpty(_credentials.Token)
                 ? string.Format("{0}&object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId,
                     UrlEncode(attachmentName))
                 : string.Format("{0}/api/post?token={1}&object={2}&attachment_name={3}",

@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Model;
 using System;
-using System.Reflection;
 
 namespace Backtrace.Unity.Common
 {

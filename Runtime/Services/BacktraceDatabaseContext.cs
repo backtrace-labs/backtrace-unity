@@ -8,12 +8,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Services
 {
     /// <summary>
     /// Backtrace Database Context
     /// </summary>
-    public class BacktraceDatabaseContext : IBacktraceDatabaseContext
+    internal class BacktraceDatabaseContext : IBacktraceDatabaseContext
     {
         /// <summary>
         /// Database cache
@@ -50,33 +51,23 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public DeduplicationStrategy DeduplicationStrategy { get; set; }
 
+        private readonly BacktraceDatabaseAttachmentManager _attachmentManager;
+
 
         /// <summary>
         /// Initialize new instance of Backtrace Database Context
         /// </summary>
         /// <param name="settings">Database settings</param>
         public BacktraceDatabaseContext(BacktraceDatabaseSettings settings)
-            : this(settings.DatabasePath, settings.RetryLimit, settings.RetryOrder, settings.DeduplicationStrategy)
-        { }
-
-        /// <summary>
-        /// Initialize new instance of Backtrace Database Context
-        /// </summary>
-        /// <param name="path">Path to database directory</param>
-        /// <param name="retryNumber">Total number of retries</param>
-        /// <param name="retryOrder">Record order</param>
-        public BacktraceDatabaseContext(
-           string path,
-           uint retryNumber,
-           RetryOrder retryOrder,
-           DeduplicationStrategy deduplicationStrategy = DeduplicationStrategy.None)
         {
-            _path = path;
-            _retryNumber = checked((int)retryNumber);
-            RetryOrder = retryOrder;
-            DeduplicationStrategy = deduplicationStrategy;
+            _path = settings.DatabasePath;
+            _retryNumber = checked((int)settings.RetryLimit);
+            _attachmentManager = new BacktraceDatabaseAttachmentManager(settings);
+            RetryOrder = settings.RetryOrder;
+            DeduplicationStrategy = settings.DeduplicationStrategy;
             SetupBatch();
         }
+
 
         /// <summary>
         /// Setup cache 
@@ -119,7 +110,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         /// <param name="backtraceData">Diagnostic data that should be stored in database</param>
         /// <returns>New instance of DatabaseRecordy</returns>
-        public BacktraceDatabaseRecord Add(BacktraceData backtraceData, MiniDumpType miniDumpType = MiniDumpType.None)
+        public BacktraceDatabaseRecord Add(BacktraceData backtraceData)
         {
             if (backtraceData == null)
             {
@@ -140,12 +131,15 @@ namespace Backtrace.Unity.Services
                     return existRecord;
                 }
             }
-
-            string minidumpPath = GenerateMiniDump(backtraceData.Report, miniDumpType);
-            backtraceData.Report.SetMinidumpPath(minidumpPath);
-            if (!string.IsNullOrEmpty(minidumpPath))
+            //add built-in attachments
+            var attachments = _attachmentManager.GetReportAttachments(backtraceData);
+            foreach (var attachment in attachments)
             {
-                backtraceData.Attachments.Add(minidumpPath);
+                if (!string.IsNullOrEmpty(attachment))
+                {
+                    backtraceData.Report.AttachmentPaths.Add(attachment);
+                    backtraceData.Attachments.Add(attachment);
+                }
             }
 
             var record = ConvertToRecord(backtraceData, hash);
@@ -247,7 +241,6 @@ namespace Backtrace.Unity.Services
                     }
                 }
             }
-            return;
         }
 
         /// <summary>

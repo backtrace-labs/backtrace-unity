@@ -1,7 +1,8 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Model.Database;
+using Backtrace.Unity.Runtime.Native;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -54,7 +55,9 @@ namespace Backtrace.Unity
             get
             {
                 if (BacktraceApi != null)
+                {
                     return BacktraceApi.OnServerError;
+                }
                 return null;
             }
 
@@ -72,7 +75,9 @@ namespace Backtrace.Unity
             get
             {
                 if (BacktraceApi != null)
+                {
                     return BacktraceApi.RequestHandler;
+                }
                 return null;
             }
             set
@@ -92,7 +97,9 @@ namespace Backtrace.Unity
             get
             {
                 if (BacktraceApi != null)
+                {
                     return BacktraceApi.OnServerResponse;
+                }
                 return null;
             }
 
@@ -104,11 +111,6 @@ namespace Backtrace.Unity
                 }
             }
         }
-
-        /// <summary>
-        /// Get or set minidump type
-        /// </summary>
-        public MiniDumpType MiniDumpType = MiniDumpType.None;
 
         /// <summary>
         /// Set event executed when client site report limit reached
@@ -127,6 +129,10 @@ namespace Backtrace.Unity
                     _onClientReportLimitReached = value;
                 }
             }
+            get
+            {
+                return _onClientReportLimitReached;
+            }
         }
 
         /// <summary>
@@ -139,12 +145,7 @@ namespace Backtrace.Unity
         /// </summary>
         public Action<Exception> OnUnhandledApplicationException = null;
 
-        /// <summary>
-        /// Get custom client attributes. Every argument stored in dictionary will be send to Backtrace API.
-        /// Backtrace unity-plugin allows you to store in attributes only primitive values. Plugin will skip loading 
-        /// complex object.
-        /// </summary>
-        public readonly Dictionary<string, object> Attributes;
+        private INativeClient _nativeClient;
 
 
         /// <summary>
@@ -162,7 +163,9 @@ namespace Backtrace.Unity
                 _backtraceApi = value;
 
                 if (Database != null)
+                {
                     Database.SetApi(_backtraceApi);
+                }
             }
         }
 
@@ -175,11 +178,16 @@ namespace Backtrace.Unity
             set
             {
                 _reportLimitWatcher = value;
-
                 if (Database != null)
+                {
                     Database.SetReportWatcher(_reportLimitWatcher);
+                }
             }
         }
+
+        private int _gameObjectDepth = 0;
+
+        private BacktraceLogManager _backtraceLogManager;
 
         public void OnDisable()
         {
@@ -194,17 +202,14 @@ namespace Backtrace.Unity
             }
 
             Enabled = true;
-#if UNITY_STANDALONE_WIN
-            MiniDumpType = Configuration.MinidumpType;
-#else
-            MiniDumpType = MiniDumpType.None;
 
-#endif
+            // set maximum game object depth
+            _gameObjectDepth = Configuration.GameObjectDepth == 0
+                ? 16 // default maximum game object size
+                : Configuration.GameObjectDepth;
 
-            Annotations.GameObjectDepth = Configuration.GameObjectDepth;
-            HandleUnhandledExceptions();
+            CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
-
 
 #if UNITY_2018_4_OR_NEWER
 
@@ -214,21 +219,27 @@ namespace Backtrace.Unity
 #else
             BacktraceApi = new BacktraceApi(new BacktraceCredentials(Configuration.GetValidServerUrl()));
 #endif
-
-            if (Configuration.DestroyOnLoad == false)
+            if (!Configuration.DestroyOnLoad)
             {
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
             Database = GetComponent<BacktraceDatabase>();
-            if (Database == null)
+            if (Database != null)
             {
-                return;
+                Database.Reload();
+                Database.SetApi(BacktraceApi);
+                Database.SetReportWatcher(_reportLimitWatcher);
             }
-            Database.Reload();
-            Database.SetApi(BacktraceApi);
-            Database.SetReportWatcher(_reportLimitWatcher);
 
+            _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
+
+            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
+            {
+                var nativeCrashUplaoder = new NativeCrashUploader();
+                nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
+                StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
+            }
         }
 
         private void Awake()
@@ -242,7 +253,7 @@ namespace Backtrace.Unity
         /// <param name="reportPerMin">Number of reports sending per one minute. If value is equal to zero, there is no request sending to API. Value have to be greater than or equal to 0</param>
         public void SetClientReportLimit(uint reportPerMin)
         {
-            if (Enabled == false)
+            if (!Enabled)
             {
                 Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
                 return;
@@ -255,34 +266,18 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="message">Report message</param>
         /// <param name="attachmentPaths">List of attachments</param>
-        /// <param name="attributes">List of report attributes</param
-        public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
+        /// <param name="attributes">List of report attributes</param>
+        public void Send(string message, List<string> attachmentPaths = null, Dictionary<string, string> attributes = null)
         {
-            if (Enabled == false)
+            if (!ShouldSendReport(message, attachmentPaths, attributes))
             {
-                Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
-                return;
-            }
-            //check rate limiting
-            bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit == false && _onClientReportLimitReached == null)
-            {
-                _reportLimitWatcher.DisplayReportLimitHitMessage();
                 return;
             }
             var report = new BacktraceReport(
               message: message,
               attachmentPaths: attachmentPaths,
               attributes: attributes);
-            if (!limitHit)
-            {
-                if (_onClientReportLimitReached != null)
-                    _onClientReportLimitReached.Invoke(report);
-
-                _reportLimitWatcher.DisplayReportLimitHitMessage();
-                return;
-            }
-
+            _backtraceLogManager.Enqueue(report);
             SendReport(report);
         }
 
@@ -292,32 +287,14 @@ namespace Backtrace.Unity
         /// <param name="exception">Report exception</param>
         /// <param name="attachmentPaths">List of attachments</param>
         /// <param name="attributes">List of report attributes</param
-        public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, object> attributes = null)
+        public void Send(Exception exception, List<string> attachmentPaths = null, Dictionary<string, string> attributes = null)
         {
-            if (Enabled == false)
+            if (!ShouldSendReport(exception, attachmentPaths, attributes))
             {
-                Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
                 return;
             }
-            //check rate limiting
-            bool limitHit = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
-            if (limitHit == false && _onClientReportLimitReached == null)
-            {
-                _reportLimitWatcher.DisplayReportLimitHitMessage();
-                return;
-            }
-            var report = new BacktraceReport(
-              exception: exception,
-              attachmentPaths: attachmentPaths,
-              attributes: attributes);
-            if (!limitHit)
-            {
-                if (_onClientReportLimitReached != null)
-                    _onClientReportLimitReached.Invoke(report);
-
-                _reportLimitWatcher.DisplayReportLimitHitMessage();
-                return;
-            }
+            var report = new BacktraceReport(exception, attributes, attachmentPaths);
+            _backtraceLogManager.Enqueue(report);
             SendReport(report);
         }
 
@@ -328,24 +305,11 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">Send report callback</param>
         public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            if (Enabled == false)
+            if (!ShouldSendReport(report))
             {
-                Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
                 return;
             }
-            //check rate limiting
-            bool limitHit = _reportLimitWatcher.WatchReport(report);
-            if (!limitHit)
-            {
-                if (_onClientReportLimitReached != null)
-                    _onClientReportLimitReached.Invoke(report);
-
-                if (sendCallback != null)
-                    sendCallback.Invoke(BacktraceResult.OnLimitReached(report));
-
-                _reportLimitWatcher.DisplayReportLimitHitMessage();
-                return;
-            }
+            _backtraceLogManager.Enqueue(report);
             SendReport(report, sendCallback);
         }
 
@@ -356,35 +320,59 @@ namespace Backtrace.Unity
         /// <param name="sendCallback">send callback</param>
         private void SendReport(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
-            var record = Database != null ? Database.Add(report, Attributes, MiniDumpType) : null;
-            //create a JSON payload instance
-            BacktraceData data = null;
-
-            data = (record != null ? record.BacktraceData : null) ?? report.ToBacktraceData(Attributes);
-            //valid user custom events
-            data = (BeforeSend != null ? BeforeSend.Invoke(data) : null) ?? data;
-
             if (BacktraceApi == null)
             {
-                if (record != null)
-                    record.Dispose();
-
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
                 return;
             }
+            StartCoroutine(CollectDataAndSend(report, sendCallback));
+        }
+
+        /// <summary>
+        /// Collect diagnostic data and send to API
+        /// </summary>
+        /// <param name="report">Backtrace Report</param>
+        /// <param name="sendCallback">Coroutine callback</param>
+        /// <returns>IEnumerator</returns>
+        private IEnumerator CollectDataAndSend(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
+        {
+            BacktraceData data = SetupBacktraceData(report);
+            if (BeforeSend != null)
+            {
+                data = BeforeSend.Invoke(data);
+                if (data == null)
+                {
+                    yield break;
+                }
+            }
+            BacktraceDatabaseRecord record = null;
+            if (Database != null)
+            {
+                yield return new WaitForEndOfFrame();
+                record = Database.Add(data);
+                // handle situation when database refuse to store report.
+                if (record != null)
+                {
+                    //Extend backtrace data with additional attachments from backtrace database
+                    data = record.BacktraceData;
+                    if (record.Duplicated)
+                    {
+                        yield break;
+                    }
+                }
+
+            }
+
             StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
             {
                 if (record != null)
                 {
                     record.Dispose();
-                    //Database?.IncrementRecordRetryLimit(record);
-                }
-                if (result != null)
-                    if (result.Status == BacktraceResultStatus.Ok)
+                    if (result.Status == BacktraceResultStatus.Ok && Database != null)
                     {
-                        if (Database != null)
-                            Database.Delete(record);
+                        Database.Delete(record);
                     }
+                }
                 //check if there is more errors to send
                 //handle inner exception
                 HandleInnerException(report, (BacktraceResult innerResult) =>
@@ -393,29 +381,69 @@ namespace Backtrace.Unity
                 });
 
                 if (sendCallback != null)
+                {
                     sendCallback.Invoke(result);
+                }
             }));
-
         }
+
+        /// <summary>
+        /// Collect additional report information from client and convert report to backtrace data
+        /// </summary>
+        /// <param name="report">Backtrace report</param>
+        /// <returns>Backtrace data</returns>
+        private BacktraceData SetupBacktraceData(BacktraceReport report)
+        {
+            // apply _mod fingerprint attribute when client should use
+            // normalized exception message instead environment stack trace
+            // for exceptions without stack trace.
+            if (Configuration.UseNormalizedExceptionMessage)
+            {
+                report.SetReportFingerPrintForEmptyStackTrace();
+            }
+
+            // add environment information to backtrace report
+            var sourceCode = _backtraceLogManager.Disabled
+                ? new BacktraceUnityMessage(report).ToString()
+                : _backtraceLogManager.ToSourceCode();
+
+            report.AssignSourceCodeToReport(sourceCode);
+
+            var reportAttributes = new Dictionary<string, string>();
+            // extend client attributes with native attributes
+            if (_nativeClient != null)
+            {
+                reportAttributes = _nativeClient.GetAttributes();
+            }
+
+            var data = report.ToBacktraceData(reportAttributes, _gameObjectDepth);
+            return data;
+        }
+
+#if UNITY_ANDROID
+        /// <summary>
+        /// ANR Detection event. This method will be replaced by Backtrace-Android soon native API.
+        /// </summary>
+        /// <param name="stackTrace">Main thread stack trace</param>
+        internal void OnAnrDetected(string stackTrace)
+        {
+            const string anrMessage = "ANRException: Blocked thread detected";
+            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
+            SendUnhandledException(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
+        }
+#endif
 
         /// <summary>
         /// Handle Untiy unhandled exceptions
         /// </summary>
-        public void HandleUnhandledExceptions()
+        private void CaptureUnityMessages()
         {
-            if (Enabled == false)
+            _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
+            if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
             {
-                Debug.LogWarning("Cannot set unhandled exception handler for not enabled Backtrace client instance");
-                return;
-            }
-            if (Configuration.HandleUnhandledExceptions)
-            {
-                Application.logMessageReceived += HandleException;
+                Application.logMessageReceived += HandleUnityMessage;
             }
         }
-
-
-
 
         /// <summary>
         /// Catch Unity logger data and create Backtrace reports for log type that represents exception or error
@@ -423,33 +451,95 @@ namespace Backtrace.Unity
         /// <param name="message">Log message</param>
         /// <param name="stackTrace">Log stack trace</param>
         /// <param name="type">log type</param>
-        private void HandleException(string message, string stackTrace, LogType type)
+        internal void HandleUnityMessage(string message, string stackTrace, LogType type)
         {
-            if ((type == LogType.Exception || type == LogType.Error)
-                && (!string.IsNullOrEmpty(message) && !message.StartsWith("[Backtrace]::")))
+            var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
+            _backtraceLogManager.Enqueue(unityMessage);
+            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
             {
-                var exception = new BacktraceUnhandledException(message, stackTrace);
-
-                if (OnUnhandledApplicationException != null)
-                    OnUnhandledApplicationException.Invoke(exception);
-
-                Send(exception);
+                SendUnhandledException(unityMessage);
             }
         }
+
+        private void SendUnhandledException(BacktraceUnityMessage unityMessage)
+        {
+            var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
+            if (OnUnhandledApplicationException != null)
+            {
+                OnUnhandledApplicationException.Invoke(exception);
+            }
+            if (ShouldSendReport(exception, null, null))
+            {
+                SendReport(new BacktraceReport(exception));
+            }
+        }
+
+        private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
+        {
+            //check rate limiting
+            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            if (shouldProcess)
+            {
+                return true;
+            }
+            if (OnClientReportLimitReached != null)
+            {
+                var report = new BacktraceReport(
+                  exception: exception,
+                  attachmentPaths: attachmentPaths,
+                  attributes: attributes);
+                _onClientReportLimitReached.Invoke(report);
+            }
+            return false;
+        }
+
+        private bool ShouldSendReport(string message, List<string> attachmentPaths, Dictionary<string, string> attributes)
+        {
+            //check rate limiting
+            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            if (shouldProcess)
+            {
+                return true;
+            }
+            if (OnClientReportLimitReached != null)
+            {
+                var report = new BacktraceReport(
+                  message: message,
+                  attachmentPaths: attachmentPaths,
+                  attributes: attributes);
+                _onClientReportLimitReached.Invoke(report);
+            }
+            return false;
+        }
+
+        private bool ShouldSendReport(BacktraceReport report)
+        {
+            //check rate limiting
+            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            if (shouldProcess)
+            {
+                return true;
+            }
+            if (OnClientReportLimitReached != null)
+            {
+                _onClientReportLimitReached.Invoke(report);
+            }
+            return false;
+        }
+
 
         /// <summary>
         /// Handle inner exception in current backtrace report
         /// if inner exception exists, client should send report twice - one with current exception, one with inner exception
         /// </summary>
         /// <param name="report">current report</param>
-        private IEnumerator HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
+        private void HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
         {
             var innerExceptionReport = report.CreateInnerReport();
-            if (innerExceptionReport == null)
+            if (innerExceptionReport != null && ShouldSendReport(innerExceptionReport))
             {
-                yield return null;
+                SendReport(innerExceptionReport, callback);
             }
-            Send(innerExceptionReport, callback);
         }
 
         /// <summary>

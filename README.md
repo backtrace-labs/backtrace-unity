@@ -1,6 +1,6 @@
 # Backtrace Unity support
 
-[Backtrace](http://backtrace.io/)'s integration with unity games allows customers to capture and report handled and unhandled Unity exceptions to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
+[Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report handled and unhandled Unity exceptions and crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
 [github release]: (https://github.com/backtrace-labs/backtrace-labs/)
 
@@ -43,23 +43,21 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 - Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded from https://github.com/backtrace-labs/backtrace-unity/releases
 - Open your Unity project
-- Copy the unzipped folder to your project's asset folder in the Windows File Explorer. The Unity editor will refresh and the Backtrace Plugin should become available in the editor.
+- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk)
 
 ## Integrating into your project
 
-- Under the Assets Menu, there is now a Backtrace -> Configuration option. Choose that option (or Right click on empty space and select from the menu box) to have a Backtrace Configuration is generated in the Assets folder. You can drag and drop generated asset file into Backtrace Client configuration window.
-  ![Backtrace menu dialog box](./Documentation/images/dialog-box.PNG)
+- Under the Assets Menu "Create" option, there is now a Backtrace -> Configuration option. Choose that option (or Right click on empty space and select from the menu box) to have a Backtrace Configuration is generated in the Assets folder. You can drag and drop generated asset file into Backtrace Client configuration window.
+  ![Backtrace menu dialog box](./Documentation~/images/dialog-box.PNG)
 - Next, select an object from the Scene Hierarchy to associate the Backtrace reporting client to. In the example below, we use the Manager object., Using the Inspector panel, click the Add Component button and search for the Backtrace Client object.
 - Within the Backtrace Client panel, there is a Backtrace Configuration field. Drag and drop the Backtrace Configuration from the Assets folder to that field. More fields will appear for you to fill in to configure the Backtrace Client and Offline Database options.
-  ![Backtrace configuration window](./Documentation/images/unity-basic-configuration.PNG)
+  ![Backtrace configuration window](./Documentation~/images/unity-basic-configuration.PNG)
 - Provide valid Backtrace client configuration and start using library!
-  ![Full Backtrace configuration](./Documentation/images/client-setup.PNG)
-
-Watch this 1 minute silent video to see the Integration and Configuration in action. The first 20 seconds of the video shows the above Integrating steps, and the second part shows details of the below Client and Database Settings - https://player.vimeo.com/video/300051476
+  ![Full Backtrace configuration](./Documentation~/images/client-setup.PNG)
 
 ## Plugin best practices
 
-Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you would like to include all game objects, please select 0. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box.
+Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
 
 ## Backtrace Client and Offline Database Settings
 
@@ -68,14 +66,21 @@ The following is a reference guide to the Backtrace Client fields:
 - Server Address: This field is required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve this value for your instance is our docs at What is a submission URL and What is a submission token? NOTE: the backtrace-unity plugin will expect full URL with token to your Backtrace instance,
 - Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
 - Destroy client on new scene load - Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true.
+- Use normalized exception message: If exception does not have a stack trace, use a normalized exception message to generate fingerprint.
+- Send unhandled native game crashes on startup: Try to find game native crashes and send them on Game startup.
 - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
+- Collect last n game logs: Collect last n number of logs generated by game. 
 - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
-- Deduplication rules: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
-- Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
+- Handle ANR (Application not responding) - this options is available only in Android build. It allows to catch ANR (application not responding) events happened to your game in Android devices. In this release, ANR is set to detect after 5 seconds. This will be configurable in a future release.
 - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
-- Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start
+- Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS 
+${Application.persistentDataPath}/backtrace/database to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
 - Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
+- Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
+- Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
+- Attach Unity Player.log: Add Unity player log file to Backtrace report. NOTE: This feature is available only on desktop - Windows/MacOS/Linux.
+- Attach screenshot: Generate and attach screenshot of frame as exception occurs.
 - Auto Send Mode: When toggled on, the database will send automatically reports to Backtrace server based on the Retry Settings below. When toggled off, the developer will need to use the Flush method to attempt to send and clear. Recommend that this is toggled on.
 - Maximum number of records: This is one of two limits you can impose for controlling the growth of the offline store. This setting is the maximum number of stored reports in database. If value is equal to zero, then limit not exists, When the limit is reached, the database will remove the oldest entries.
 - Maximum database size: This is the second limit you can impose for controlling the growth of the offline store. This setting is the maximum database size in MB. If value is equal to zero, then size is unlimited, When the limit is reached, the database will remove the oldest entries.
@@ -141,7 +146,7 @@ catch (Exception exception)
 {
     var report = new BacktraceReport(
         exception: exception,
-        attributes: new Dictionary<string, object>() { { "key", "value" } },
+        attributes: new Dictionary<string, string>() { { "key", "value" } },
         attachmentPaths: new List<string>() { @"file_path_1", @"file_path_2" }
     );
     backtraceClient.Send(report);
@@ -226,10 +231,10 @@ You can clear all data from database without sending it to server by using `Clea
 backtraceDatabase.Clear();
 ```
 
-#### Deduplication
+#### Client side Deduplication
 
 Backtrace unity integration allows you to aggregate the same reports and send only one message to Backtrace Api. As a developer you can choose deduplication options. Please use `DeduplicationStrategy` enum to setup possible deduplication rules in Unity UI:
-![Backtrace deduplicaiton setup](./Documentation/images/deduplication-setup.PNG)
+![Backtrace deduplicaiton setup](./Documentation~/images/deduplication-setup.PNG)
 
 Deduplication strategy types:
 
@@ -246,6 +251,18 @@ Notes:
 - `BacktraceDatabase` methods allows you to use aggregated diagnostic data together. You can check `Hash` property of `BacktraceDatabaseRecord` to check generated hash for diagnostic data and `Counter` to check how much the same records we detect.
 - `BacktraceDatabase` `Count` method will return number of all records stored in database (included deduplicated records),
 - `BacktarceDatabase` `Delete` method will remove record (with multiple deduplicated records) at the same time.
+
+# Android Specific information
+
+The backtrace-unity library includes support for capturing additional Android Native information, from underlying Android OS (Memory and process related), JNI, and NDK layers.
+
+## Native process and memory related information
+
+system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
+
+## ANR
+
+When configuring the nacktrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds.
 
 # Architecture description
 
@@ -304,7 +321,3 @@ The developer who is debugging the error may find it useful to view more details
 
 Below we see more details above the Environment Variables from the Web Debugger to further assist with investigation.
 ![Backtrace attributes](https://downloads.intercomcdn.com/i/o/85088535/c84ebd2b96f1d5423b36482d/Screen+Shot+2018-11-10+at+12.22.56+PM.png)
-
-# Nice to know
-
-- Backtrace Unity integration use JSON.NET library to create diagnostic JSON. JSON.NET Source code is available in `src` directory. JSON.NET was modified for Backtrace-plugin purpose.

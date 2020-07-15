@@ -1,10 +1,8 @@
-﻿using Backtrace.Unity.Types;
-using System;
+﻿using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Types;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
@@ -29,7 +27,6 @@ namespace Backtrace.Unity.Model
                 }
                 if (_backtraceData.Report == null || _backtraceData.Report.DiagnosticStack == null)
                 {
-                    Debug.Log("Report or diagnostic stack is null");
                     return "";
                 }
                 var result = _backtraceData.Report.DiagnosticStack
@@ -48,7 +45,8 @@ namespace Backtrace.Unity.Model
                 {
                     return "";
                 }
-                return string.Join(",", _backtraceData.Classifier);
+                var classifier = _backtraceData.Classifier ?? System.Array.Empty<string>();
+                return string.Join(",", classifier);
             }
         }
         public string ExceptionMessage
@@ -59,7 +57,11 @@ namespace Backtrace.Unity.Model
                 {
                     return string.Empty;
                 }
-                return _backtraceData.Report.Message;
+                if (_backtraceData.Report == null || string.IsNullOrEmpty(_backtraceData.Report.Message))
+                {
+                    return string.Empty;
+                }
+                return _backtraceData.Report.Message.OnlyLetters();
             }
         }
 
@@ -67,6 +69,10 @@ namespace Backtrace.Unity.Model
         {
             get
             {
+                if (_backtraceData.Report == null)
+                {
+                    return string.Empty;
+                }
                 return _backtraceData.Report.Factor;
             }
         }
@@ -83,11 +89,7 @@ namespace Backtrace.Unity.Model
             stringBuilder.Append(Classifier);
             stringBuilder.Append(StackTrace);
 
-            using (var sha256Hash = SHA256.Create())
-            {
-                var bytes = sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(stringBuilder.ToString()));
-                return Convert.ToBase64String(bytes);
-            }
+            return stringBuilder.GetSha();
         }
     }
 }

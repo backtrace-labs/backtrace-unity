@@ -21,6 +21,10 @@ namespace Backtrace.Unity.Model
 
         public bool CreateDatabase = false;
 
+        public bool GenerateScreenshotOnException = false;
+        
+        public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+
         public bool ValidDatabasePath()
         {
             if (string.IsNullOrEmpty(DatabasePath))
