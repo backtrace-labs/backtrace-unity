@@ -5,6 +5,7 @@
 - `BacktraceClient` will try to reuse database JSON - if Backtrace client has acccess to Backtrace database,
 - `BacktraceDatabase` `AutoSend` property improvements - now we will discard any calculations in `Update` method,
 - `BacktraceClient` by default will generate configuraiton file with client rate limit equal to 50.
+- Fixed invalid meta file.
 
 ## Version 3.0.1
 - The `BacktraceDatabase` class will now create database directory before final database validation. Previously, when directory didn't exist, BacktraceDatabase was disabled.
