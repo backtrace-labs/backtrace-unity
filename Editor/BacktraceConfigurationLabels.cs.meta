@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD:Runtime/Common/StackFrameHelper.cs.meta
 guid: 6418a5b01b0792e4da8a23b9c207c09c
-=======
-guid: 81af1b5bf4a7292469f7fd6c0bacfed1
->>>>>>> feature/fingerprintBehavior:Editor/BacktraceConfigurationLabels.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

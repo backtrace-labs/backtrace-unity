@@ -15,7 +15,7 @@ namespace Backtrace.Unity.Model
         public string DatabasePath;
 
         /// <summary>
-        /// Resend report when http client throw exception
+        /// When toggled on, the database will send automatically reports to Backtrace server based on the Retry Settings below. When toggled off, the developer will need to use the Flush method to attempt to send and clear. Recommend that this is toggled on.
         /// </summary>
         public bool AutoSendMode = true;
 

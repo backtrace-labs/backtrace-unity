@@ -337,6 +337,7 @@ namespace Backtrace.Unity
         private IEnumerator CollectDataAndSend(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
             BacktraceData data = SetupBacktraceData(report);
+            yield return new WaitForEndOfFrame();
             if (BeforeSend != null)
             {
                 data = BeforeSend.Invoke(data);
@@ -346,6 +347,11 @@ namespace Backtrace.Unity
                 }
             }
             BacktraceDatabaseRecord record = null;
+
+            // avoid serializing data twice
+            // if record is here we should try to send json data that are available in record
+            // otherwise we can still use BacktraceData.ToJson().
+            string json = string.Empty;
             if (Database != null)
             {
                 yield return new WaitForEndOfFrame();
@@ -359,11 +365,21 @@ namespace Backtrace.Unity
                     {
                         yield break;
                     }
+                    json = record.BacktraceDataJson();
                 }
-
+            }
+            if (string.IsNullOrEmpty(json))
+            {
+                json = data.ToJson();
+            }
+            //backward compatibility 
+            if (RequestHandler != null)
+            {
+                yield return RequestHandler.Invoke(BacktraceApi.ServerUrl, data);
+                yield break;
             }
 
-            StartCoroutine(BacktraceApi.Send(data, (BacktraceResult result) =>
+            StartCoroutine(BacktraceApi.Send(json, data.Attachments, data.Deduplication, (BacktraceResult result) =>
             {
                 if (record != null)
                 {

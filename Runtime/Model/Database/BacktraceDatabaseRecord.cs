@@ -58,6 +58,8 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         public List<string> Attachments { get; private set; }
 
+        private string _diagnosticDataJson;
+
         public bool Duplicated
         {
             get
@@ -84,6 +86,11 @@ namespace Backtrace.Unity.Model.Database
 
         public string BacktraceDataJson()
         {
+            if (!string.IsNullOrEmpty(_diagnosticDataJson))
+            {
+                return _diagnosticDataJson;
+            }
+
             if (Record != null)
             {
                 return Record.ToJson();
@@ -166,8 +173,8 @@ namespace Backtrace.Unity.Model.Database
         {
             try
             {
-                var diagnosticDataJson = Record.ToJson();
-                DiagnosticDataPath = Save(diagnosticDataJson, string.Format("{0}-attachment", Id));
+                _diagnosticDataJson = Record.ToJson();
+                DiagnosticDataPath = Save(_diagnosticDataJson, string.Format("{0}-attachment", Id));
 
                 if (Attachments != null && Attachments.Any())
                 {
@@ -342,6 +349,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 Locked = false;
                 Record = null;
+                _diagnosticDataJson = string.Empty;
             }
         }
 

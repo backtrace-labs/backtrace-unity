@@ -4,6 +4,7 @@ using Backtrace.Unity.Types;
 using NUnit.Framework;
 using System;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime
@@ -108,6 +109,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return backtraceData;
             };
             BacktraceClient.Send(new Exception("test exception"));
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(trigger);
             yield return null;
         }
@@ -127,12 +129,13 @@ namespace Backtrace.Unity.Tests.Runtime
                 return new BacktraceResult();
             };
             BacktraceClient.Send(new Exception("test exception"));
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(trigger);
             yield return null;
         }
 
-       [Test]
-        public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintForExceptionReportWithoutStackTrace_ShouldIncludeFingerprintInBacktraceReport()
+       [UnityTest]
+        public IEnumerator TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintForExceptionReportWithoutStackTrace_ShouldIncludeFingerprintInBacktraceReport()
         {
             BacktraceClient.Configuration = GetValidClientConfiguration();
             BacktraceClient.Configuration.UseNormalizedExceptionMessage = true;
@@ -154,11 +157,12 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(eventFired);
         }
 
-        [Test]
-        public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldntGenerateFingerprintForDisabledOption_FingerprintDoesntExist()
+        [UnityTest]
+        public IEnumerator TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldntGenerateFingerprintForDisabledOption_FingerprintDoesntExist()
         {
             BacktraceClient.Configuration = GetValidClientConfiguration();
             BacktraceClient.Configuration.UseNormalizedExceptionMessage = false;
@@ -179,11 +183,12 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(eventFired);
         }
 
-        [Test]
-        public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldUseReportFingerprint_ReportFingerprintInAttributes()
+        [UnityTest]
+        public IEnumerator TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldUseReportFingerprint_ReportFingerprintInAttributes()
         {
             BacktraceClient.Configuration = GetValidClientConfiguration();
             BacktraceClient.Configuration.UseNormalizedExceptionMessage = true;
@@ -206,6 +211,8 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
+            yield return new WaitForEndOfFrame();
+
             Assert.IsTrue(eventFired);
         }
 
@@ -223,8 +230,8 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
 
-        [Test]
-        public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintAndShouldntRemoveAnyLetter_ShouldIncludeFingerprintInBacktraceReport()
+        [UnityTest]
+        public IEnumerator TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintAndShouldntRemoveAnyLetter_ShouldIncludeFingerprintInBacktraceReport()
         {
             BacktraceClient.Configuration = GetValidClientConfiguration();
             BacktraceClient.Configuration.UseNormalizedExceptionMessage = true;
@@ -243,11 +250,12 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(eventFired);
         }
 
-        [Test]
-        public void TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldntGenerateFingerprintForExistingStackTrace_ShouldIgnoreAttributeFingerprint()
+        [UnityTest]
+        public IEnumerator TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldntGenerateFingerprintForExistingStackTrace_ShouldIgnoreAttributeFingerprint()
         {
 
             BacktraceClient.Configuration = GetValidClientConfiguration();
@@ -266,6 +274,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(eventFired);
         }
     }

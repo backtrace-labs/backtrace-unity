@@ -51,7 +51,7 @@ namespace Backtrace.Unity.Model.Database
         }
 
         /// <summary>
-        /// Resend report when http client throw exception
+        /// Automatically send data from Backtrace database
         /// </summary>
         public bool AutoSendMode
         {

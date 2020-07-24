@@ -38,6 +38,8 @@ namespace Backtrace.Unity.Tests.Runtime
                 return new BacktraceResult();
             };
             client.Send(exception);
+
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(trigger);
             yield return null;
         }
@@ -59,6 +61,7 @@ namespace Backtrace.Unity.Tests.Runtime
             {
                 trigger = true;
             });
+            yield return new WaitForEndOfFrame();
             Assert.IsTrue(trigger);
             yield return null;
         }
