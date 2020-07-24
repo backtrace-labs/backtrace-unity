@@ -1,10 +1,10 @@
 # Backtrace Unity Release Notes
 
 ## Version 3.0.2
-- `BacktraceDatabase` now allows to send object via `Send` method. This method will try to send all objects from database - with all respects to the Database settings.
-- `BacktraceClient` will try to reuse database JSON - if Backtrace client has acccess to Backtrace database,
-- `BacktraceDatabase` `AutoSend` property improvements - now we will discard any calculations in `Update` method,
-- `BacktraceClient` by default will generate configuraiton file with client rate limit equal to 50.
+- `BacktraceDatabase` now provides a new `Send` method. This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.
+- `BacktraceClient` has been optimized to only serialize data as needed.
+- `BacktraceDatabase` `AutoSend` function has been optimized for performance improvements.
+- `BacktraceClient` by default will generate configuration file with client rate limit equal to 50.
 - Fixed invalid meta file.
 
 ## Version 3.0.1
