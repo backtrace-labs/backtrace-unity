@@ -37,6 +37,17 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private readonly Uri _serverurl;
 
+        /// <summary>
+        /// Url to server
+        /// </summary>
+        public string ServerUrl
+        {
+            get
+            {
+                return _serverurl.ToString();
+            }
+        }
+
 
         private readonly BacktraceCredentials _credentials;
 
@@ -77,7 +88,7 @@ namespace Backtrace.Unity.Services
         
 #endif
 
- /// <summary>
+        /// <summary>
         /// Send minidump to Backtrace
         /// </summary>
         /// <param name="minidumpPath">Path to minidump</param>
@@ -91,7 +102,7 @@ namespace Backtrace.Unity.Services
                 attachments = new List<string>();
             }
 
-            var jsonServerUrl = _serverurl.ToString();
+            var jsonServerUrl = ServerUrl;
             var minidumpServerUrl = jsonServerUrl.IndexOf("submit.backtrace.io") != -1
                 ? jsonServerUrl.Replace("/json", "/minidump")
                 : jsonServerUrl.Replace("format=json", "format=minidump");
@@ -103,7 +114,7 @@ namespace Backtrace.Unity.Services
 
             foreach (var file in attachments)
             {
-                 if (File.Exists(file) && new FileInfo(file).Length > 10000000)
+                if (File.Exists(file) && new FileInfo(file).Length > 10000000)
                 {
                     formData.Add(new MultipartFormFileSection(
                         string.Format("attachment__{0}", Path.GetFileName(file)),
@@ -148,7 +159,7 @@ namespace Backtrace.Unity.Services
 #pragma warning disable CS0618 // Type or member is obsolete
             if (RequestHandler != null)
             {
-                yield return RequestHandler.Invoke(_serverurl.ToString(), data);
+                yield return RequestHandler.Invoke(ServerUrl, data);
             }
             else if (data != null)
             {
@@ -169,7 +180,7 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
-            var requestUrl = _serverurl.ToString();
+            var requestUrl = ServerUrl;
             if (deduplication > 0)
             {
                 var startingChar = string.IsNullOrEmpty(_serverurl.Query) ? "?" : "&";

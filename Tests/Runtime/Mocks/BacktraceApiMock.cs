@@ -13,6 +13,14 @@ namespace Backtrace.Unity.Tests.Runtime
         public Action<BacktraceResult> OnServerResponse { get; set; }
         public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
+        public string ServerUrl
+        {
+            get
+            {
+                return string.Empty;
+            }
+        }
+
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
             LastData = data;
@@ -25,6 +33,10 @@ namespace Backtrace.Unity.Tests.Runtime
 
         public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
+            if (callback != null)
+            {
+                callback.Invoke(new BacktraceResult() { Status = Types.BacktraceResultStatus.Ok });
+            }
             yield return null;
         }
 

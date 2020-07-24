@@ -1,7 +1,10 @@
 ﻿using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
@@ -10,7 +13,7 @@ namespace Backtrace.Unity.Tests.Runtime
         private readonly BacktraceApiMock api = new BacktraceApiMock();
         private readonly int _numberOfLogs = 10;
 
-        [OneTimeSetUp]
+        [SetUp]
         public void Setup()
         {
             BeforeSetup();
@@ -22,12 +25,20 @@ namespace Backtrace.Unity.Tests.Runtime
             BacktraceClient.BacktraceApi = api;
         }
 
-        [Test]
-        public void TestSourceCodeAssignment_EnabledLogManagerAndSendExceptionReport_SourceCodeAvailable()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_EnabledLogManagerAndSendExceptionReport_SourceCodeAvailable()
         {
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
+
             BacktraceClient.Send(new Exception("foo"));
+            yield return new WaitForEndOfFrame();
 
-            var lastData = api.LastData;
+
             Assert.IsNotNull(lastData.SourceCode);
 
             var threadName = lastData.ThreadData.MainThread;
@@ -35,12 +46,19 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
 
-        [Test]
-        public void TestSourceCodeAssignment_EnabledLogManagerAndSendMessageReport_SourceCodeAvailable()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_EnabledLogManagerAndSendMessageReport_SourceCodeAvailable()
         {
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
+
             BacktraceClient.Send("foo");
+            yield return new WaitForEndOfFrame();
 
-            var lastData = api.LastData;
             Assert.IsNotNull(lastData.SourceCode);
 
             var threadName = lastData.ThreadData.MainThread;
@@ -48,44 +66,62 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
 
-        [Test]
-        public void TestSourceCodeAssignment_EnabledLogManagerAndSendUnhandledException_SourceCodeAvailable()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_EnabledLogManagerAndSendUnhandledException_SourceCodeAvailable()
         {
-            BacktraceClient.HandleUnityMessage("foo", string.Empty, UnityEngine.LogType.Exception);
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
 
-            var lastData = api.LastData;
+            BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Exception);
+            yield return new WaitForEndOfFrame();
+
             Assert.IsNotNull(lastData.SourceCode);
 
             var threadName = lastData.ThreadData.MainThread;
             Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
         }
 
-        [Test]
-        public void TestSourceCodeAssignment_EnabledLogManagerAndSendUnhandledError_SourceCodeAvailable()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_EnabledLogManagerAndSendUnhandledError_SourceCodeAvailable()
         {
-            BacktraceClient.HandleUnityMessage("foo", string.Empty, UnityEngine.LogType.Error);
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
 
-            var lastData = api.LastData;
+            BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Error);
+            yield return new WaitForEndOfFrame();
             Assert.IsNotNull(lastData.SourceCode);
 
             var threadName = lastData.ThreadData.MainThread;
             Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
         }
 
-        [Test]
-        public void TestSourceCodeAssignment_EnabledLogManagerWithMultipleLogMessage_SourceCodeAvailable()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_EnabledLogManagerWithMultipleLogMessage_SourceCodeAvailable()
         {
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
             //fake messages
             var fakeLogMessage = "log";
-            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, UnityEngine.LogType.Log);
+            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
             var fakeWarningMessage = "warning message";
-            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, UnityEngine.LogType.Warning);
+            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
 
             // real exception
             var expectedExceptionMessage = "Exception message";
-            BacktraceClient.HandleUnityMessage(expectedExceptionMessage, string.Empty, UnityEngine.LogType.Exception);
-
-            var lastData = api.LastData;
+            BacktraceClient.HandleUnityMessage(expectedExceptionMessage, string.Empty, LogType.Exception);
+            yield return new WaitForEndOfFrame();
             Assert.IsNotNull(lastData.SourceCode);
 
             var generatedText = lastData.SourceCode.Text;
@@ -94,20 +130,28 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(fakeWarningMessage));
         }
 
-        [Test]
-        public void TestSourceCodeAssignment_EnabledLogManagerWithMultipleLogMessageAndExceptionReport_SourceCodeAvailable()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_EnabledLogManagerWithMultipleLogMessageAndExceptionReport_SourceCodeAvailable()
         {
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
             //fake messages
             var fakeLogMessage = "log";
-            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, UnityEngine.LogType.Log);
+            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
+            yield return new WaitForEndOfFrame();
             var fakeWarningMessage = "warning message";
-            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, UnityEngine.LogType.Warning);
+            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
+            yield return new WaitForEndOfFrame();
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.Send(new Exception(expectedExceptionMessage));
+            yield return new WaitForEndOfFrame();
 
-            var lastData = api.LastData;
             Assert.IsNotNull(lastData.SourceCode);
 
             var generatedText = lastData.SourceCode.Text;
@@ -117,20 +161,27 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
 
-        [Test]
-        public void TestSourceCodeAssignment_EnabledLogManagerWithMultipleLogMessageAndMessageReport_SourceCodeAvailable()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_EnabledLogManagerWithMultipleLogMessageAndMessageReport_SourceCodeAvailable()
         {
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
             //fake messages
             var fakeLogMessage = "log";
-            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, UnityEngine.LogType.Log);
+            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
+            yield return new WaitForEndOfFrame();
             var fakeWarningMessage = "warning message";
-            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, UnityEngine.LogType.Warning);
+            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
+            yield return new WaitForEndOfFrame();
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.Send(expectedExceptionMessage);
-
-            var lastData = api.LastData;
+            yield return new WaitForEndOfFrame();
             Assert.IsNotNull(lastData.SourceCode);
 
             var generatedText = lastData.SourceCode.Text;
@@ -139,28 +190,37 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(fakeWarningMessage));
         }
 
-        [Test]
-        public void TestSourceCodeAssignment_DisabledUnhandledException_ShouldStoreUnhandledExceptionInfo()
+        [UnityTest]
+        public IEnumerator TestSourceCodeAssignment_DisabledUnhandledException_ShouldStoreUnhandledExceptionInfo()
         {
             BacktraceClient.Configuration.HandleUnhandledExceptions = false;
 
-            api.LastData = null;
+            BacktraceData lastData = null;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                lastData = data;
+                return data;
+            };
 
             //fake messages
             var fakeLogMessage = "log";
-            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, UnityEngine.LogType.Log);
+            BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
+            yield return new WaitForEndOfFrame();
+
             var fakeWarningMessage = "warning message";
-            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, UnityEngine.LogType.Warning);
+            BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
+            yield return new WaitForEndOfFrame();
 
             // real exception
             var expectedExceptionMessage = "Exception message";
-            BacktraceClient.HandleUnityMessage(expectedExceptionMessage, string.Empty, UnityEngine.LogType.Exception);
+            BacktraceClient.HandleUnityMessage(expectedExceptionMessage, string.Empty, LogType.Exception);
+            yield return new WaitForEndOfFrame();
             Assert.IsNull(api.LastData);
 
             var expectedReportMessage = "Report message";
             var report = new BacktraceReport(new Exception(expectedReportMessage));
             BacktraceClient.Send(report);
-            var lastData = api.LastData;
+            yield return new WaitForEndOfFrame();
             Assert.IsNotNull(lastData.SourceCode);
 
             var generatedText = lastData.SourceCode.Text;

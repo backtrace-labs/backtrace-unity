@@ -11,6 +11,10 @@ namespace Backtrace.Unity.Interfaces
     public interface IBacktraceApi
     {
         /// <summary>
+        /// Server url
+        /// </summary>
+        string ServerUrl { get; }
+        /// <summary>
         /// Send a Backtrace report to Backtrace API
         /// </summary>
         /// <param name="data">Library diagnostic data</param>

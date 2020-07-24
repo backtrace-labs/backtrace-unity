@@ -23,8 +23,8 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Maximum number reports per minute
         /// </summary>
-        [Tooltip("Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute.")]
-        public int ReportPerMin;
+        [Tooltip("Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Default: 50")]
+        public int ReportPerMin = 50;
 
         /// <summary>
         /// Determine if client should catch unhandled exceptions

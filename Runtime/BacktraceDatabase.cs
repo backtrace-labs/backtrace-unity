@@ -106,7 +106,7 @@ namespace Backtrace.Unity
         /// </summary>
         public void Reload()
         {
-
+            
             // validate configuration
             if (Configuration == null)
             {
@@ -169,6 +169,11 @@ namespace Backtrace.Unity
                 return;
             }
             LastFrameTime = Time.time;
+            if (!DatabaseSettings.AutoSendMode)
+            {
+                return;
+            }
+
             if (Time.time - _lastConnection > DatabaseSettings.RetryInterval)
             {
                 _lastConnection = Time.time;
@@ -189,15 +194,15 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            if (DatabaseSettings.AutoSendMode)
-            {
-                _lastConnection = Time.time;
-            }
             // load reports from hard drive
             LoadReports();
             // remove orphaned files
             RemoveOrphaned();
-            SendData(BacktraceDatabaseContext.FirstOrDefault());
+            if (DatabaseSettings.AutoSendMode)
+            {
+                _lastConnection = Time.time;
+                SendData(BacktraceDatabaseContext.FirstOrDefault());
+            }
         }
 
         /// <summary>
@@ -238,7 +243,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Add new report to BacktraceDatabase
         /// </summary>
-        public BacktraceDatabaseRecord Add(BacktraceData data)
+        public BacktraceDatabaseRecord Add(BacktraceData data, bool @lock = true)
         {
             if (data == null || !Enable)
             {
@@ -251,7 +256,12 @@ namespace Backtrace.Unity
             {
                 return null;
             }
-            return BacktraceDatabaseContext.Add(data);
+            var record = BacktraceDatabaseContext.Add(data);
+            if(!@lock)
+            {
+                record.Dispose();
+            }
+            return record;
         }
 
         /// <summary>
@@ -308,6 +318,19 @@ namespace Backtrace.Unity
                 return;
             }
             FlushRecord(BacktraceDatabaseContext.FirstOrDefault());
+        }
+
+        /// <summary>
+        /// Try to send all data from database
+        /// </summary>
+        public void Send()
+        {
+            if(!Enable || !BacktraceDatabaseContext.Any())
+            {
+                return;
+            }
+
+            SendData(BacktraceDatabaseContext.FirstOrDefault());
         }
 
         private void FlushRecord(BacktraceDatabaseRecord record)
@@ -408,7 +431,7 @@ namespace Backtrace.Unity
             {
                 return false;
             }
-            
+
             var databaseDirExists = Directory.Exists(DatabasePath);
 
             // handle situation when Backtrace plugin should create database directory
