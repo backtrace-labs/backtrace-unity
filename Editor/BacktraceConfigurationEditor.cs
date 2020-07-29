@@ -60,6 +60,10 @@ namespace Backtrace.Unity.Editor
                     new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
 
                 EditorGUILayout.PropertyField(
+                 serializedObject.FindProperty("PerformanceStatistics"),
+                 new GUIContent(BacktraceConfigurationLabels.LABEL_PERFORMANCE_STATISTICS));
+
+                EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
 

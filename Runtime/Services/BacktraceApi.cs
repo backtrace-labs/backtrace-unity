@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Web;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -169,7 +170,6 @@ namespace Backtrace.Unity.Services
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-
         /// <summary>
         /// Sending diagnostic report to Backtrace
         /// </summary>
@@ -180,12 +180,30 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
-            var requestUrl = ServerUrl;
+            var queryAttributes = new Dictionary<string, string>();
             if (deduplication > 0)
             {
-                var startingChar = string.IsNullOrEmpty(_serverurl.Query) ? "?" : "&";
-                requestUrl += string.Format("{0}_mod_duplicate={1}", startingChar, deduplication);
+                queryAttributes["_mod_duplicate"] = deduplication.ToString();
             }
+            yield return Send(json, attachments, queryAttributes, callback);
+
+        }
+
+        /// <summary>
+        /// Sending diagnostic report to Backtrace
+        /// </summary>
+        /// <param name="json">diagnostic data JSON</param>
+        /// <param name="attachments">List of report attachments</param>
+        /// <param name="queryAttributes">Query string attributes</param>
+        /// <param name="callback">coroutine callback</param>
+        /// <returns>Server response</returns>
+        public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        {
+            var requestUrl = queryAttributes != null
+                ? GetParametrizedQuery(queryAttributes)
+                : ServerUrl;
+            Debug.Log($"Sending data to Backtrace.URL: {requestUrl}");
+
             using (var request = new UnityWebRequest(requestUrl, "POST"))
             {
 #if UNITY_2018_4_OR_NEWER
@@ -290,6 +308,19 @@ namespace Backtrace.Unity.Services
         }
 
         private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
+
+        private string GetParametrizedQuery(Dictionary<string, string> queryAttributes)
+        {
+            Debug.Log("IN parametrized query ");
+            var uriBuilder = new UriBuilder(_serverurl);
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            foreach (var queryAttribute in queryAttributes)
+            {
+                query[queryAttribute.Key] = UrlEncode(queryAttribute.Value);
+            }
+            uriBuilder.Query = query.ToString();
+            return uriBuilder.Uri.ToString();
+        }
 
         private static string UrlEncode(string value)
         {

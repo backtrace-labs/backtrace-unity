@@ -14,6 +14,7 @@
         internal static string LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE = "Use normalized exception message";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
         internal static string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
+        internal static string LABEL_PERFORMANCE_STATISTICS = "Enable performance statistics";
 
         // database labels
         internal static string LABEL_ENABLE_DATABASE = "Enable Database";
