@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity
 {
     /// <summary>
@@ -139,6 +140,9 @@ namespace Backtrace.Unity
         /// Set event executed before sending data to Backtrace API
         /// </summary>
         public Func<BacktraceData, BacktraceData> BeforeSend = null;
+
+
+        public Func<ReportFilterType, Exception, string, bool> FilterReport = null;
 
         /// <summary>
         /// Set event executed when unhandled application exception event catch exception
@@ -273,6 +277,10 @@ namespace Backtrace.Unity
             {
                 return;
             }
+            if (FilterReport != null && FilterReport.Invoke(ReportFilterType.Exception, null, message))
+            {
+                return;
+            }
             var report = new BacktraceReport(
               message: message,
               attachmentPaths: attachmentPaths,
@@ -293,6 +301,10 @@ namespace Backtrace.Unity
             {
                 return;
             }
+            if (FilterReport != null && FilterReport.Invoke(ReportFilterType.Exception, exception, null))
+            {
+                return;
+            }
             var report = new BacktraceReport(exception, attributes, attachmentPaths);
             _backtraceLogManager.Enqueue(report);
             SendReport(report);
@@ -306,6 +318,14 @@ namespace Backtrace.Unity
         public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
             if (!ShouldSendReport(report))
+            {
+                return;
+            }
+            if (FilterReport != null &&
+                FilterReport.Invoke(
+                    report.ExceptionTypeReport ? ReportFilterType.Exception : ReportFilterType.Message,
+                    report.Exception,
+                    report.Message))
             {
                 return;
             }
@@ -445,7 +465,8 @@ namespace Backtrace.Unity
         {
             const string anrMessage = "ANRException: Blocked thread detected";
             _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
-            SendUnhandledException(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
+            var hang = new BacktraceUnhandledException(anrMessage, stackTrace);
+            SendUnhandledException(hang);
         }
 #endif
 
@@ -473,13 +494,13 @@ namespace Backtrace.Unity
             _backtraceLogManager.Enqueue(unityMessage);
             if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
             {
-                SendUnhandledException(unityMessage);
+                var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
+                SendUnhandledException(exception);
             }
         }
 
-        private void SendUnhandledException(BacktraceUnityMessage unityMessage)
+        private void SendUnhandledException(BacktraceUnhandledException exception)
         {
-            var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
             if (OnUnhandledApplicationException != null)
             {
                 OnUnhandledApplicationException.Invoke(exception);
@@ -492,6 +513,20 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
+            // guess report type
+            var filterType = ReportFilterType.Exception;
+            if (exception is BacktraceUnhandledException)
+            {
+                filterType = (exception as BacktraceUnhandledException).Classifier == "ANRException"
+                    ? ReportFilterType.Hang
+                    : ReportFilterType.UnhandledException;
+            }
+
+
+            if (ShouldFilterReport(filterType, exception, string.Empty))
+            {
+                return false;
+            }
             //check rate limiting
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
@@ -511,6 +546,11 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(string message, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
+            if (ShouldFilterReport(ReportFilterType.Message, null, message))
+            {
+                return false;
+            }
+
             //check rate limiting
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
@@ -530,6 +570,15 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(BacktraceReport report)
         {
+            if (ShouldFilterReport(
+                    report.ExceptionTypeReport
+                        ? ReportFilterType.Exception
+                        : ReportFilterType.Message,
+                    report.Exception,
+                    report.Message))
+            {
+                return false;
+            }
             //check rate limiting
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
@@ -572,6 +621,20 @@ namespace Backtrace.Unity
             return !invalidConfiguration;
         }
 
+
+        /// <summary>
+        /// Check if client should skip current report
+        /// </summary>
+        /// <param name="type">Report type</param>
+        /// <param name="exception">Exception object</param>
+        /// <param name="message">String message</param>
+        /// <returns>true if client should skip report. Otherwise false.</returns>
+        private bool ShouldFilterReport(ReportFilterType type, Exception exception, string message)
+        {
+            return Configuration.ReportFilterType == type
+                || (FilterReport != null && FilterReport.Invoke(type, exception, message));
+
+        }
 
     }
 }
