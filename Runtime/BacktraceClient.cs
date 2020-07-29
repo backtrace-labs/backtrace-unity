@@ -222,14 +222,16 @@ namespace Backtrace.Unity
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
-#if UNITY_2018_4_OR_NEWER
 
             BacktraceApi = new BacktraceApi(
                 credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
-                ignoreSslValidation: Configuration.IgnoreSslValidation);
-#else
-            BacktraceApi = new BacktraceApi(new BacktraceCredentials(Configuration.GetValidServerUrl()));
+
+#if UNITY_2018_4_OR_NEWER
+                ignoreSslValidation: Configuration.IgnoreSslValidation
 #endif
+                );
+            BacktraceApi.EnablePerformanceStatistics = Configuration.PerformanceStatistics;
+
             if (!Configuration.DestroyOnLoad)
             {
                 DontDestroyOnLoad(gameObject);
@@ -425,7 +427,7 @@ namespace Backtrace.Unity
                 yield break;
             }
 
-            if(data.Deduplication != 0)
+            if (data.Deduplication != 0)
             {
                 queryAttributes["_mod_duplicate"] = data.Deduplication.ToString();
             }

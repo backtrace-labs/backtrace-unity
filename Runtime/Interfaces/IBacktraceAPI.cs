@@ -64,5 +64,10 @@ namespace Backtrace.Unity.Interfaces
         /// <param name="callback">Result callback</param>
         /// <returns>Server response</returns>
         IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null);
+
+        /// <summary>
+        /// Enable performance statistics in Backtrace API
+        /// </summary>
+        bool EnablePerformanceStatistics { get; set; }
     }
 }

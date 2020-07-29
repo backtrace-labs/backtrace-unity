@@ -21,6 +21,8 @@ namespace Backtrace.Unity.Tests.Runtime
             }
         }
 
+        public bool EnablePerformanceStatistics { get; set; } = false;
+
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
             LastData = data;

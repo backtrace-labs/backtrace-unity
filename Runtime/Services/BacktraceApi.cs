@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
 using System.Collections;
@@ -39,6 +40,11 @@ namespace Backtrace.Unity.Services
         private readonly Uri _serverurl;
 
         /// <summary>
+        /// Enable performance statistics
+        /// </summary>
+        public bool EnablePerformanceStatistics { get; set; } = false;
+
+        /// <summary>
         /// Url to server
         /// </summary>
         public string ServerUrl
@@ -53,14 +59,15 @@ namespace Backtrace.Unity.Services
         private readonly BacktraceCredentials _credentials;
 
 
-#if UNITY_2018_4_OR_NEWER
 
         private readonly bool _ignoreSslValidation;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
         /// <param name="credentials">API credentials</param>
-        public BacktraceApi(BacktraceCredentials credentials, bool ignoreSslValidation = false)
+        public BacktraceApi(
+            BacktraceCredentials credentials, 
+            bool ignoreSslValidation = false)
         {
             _credentials = credentials;
             if (_credentials == null)
@@ -71,23 +78,6 @@ namespace Backtrace.Unity.Services
             _ignoreSslValidation = ignoreSslValidation;
             _serverurl = credentials.GetSubmissionUrl();
         }
-#else
-        /// <summary>
-        /// Create a new instance of Backtrace API
-        /// </summary>
-        /// <param name="credentials">API credentials</param>
-        public BacktraceApi(BacktraceCredentials credentials)
-        {
-            _credentials = credentials;
-            if (_credentials == null)
-            {
-                throw new ArgumentException(string.Format("{0} cannot be null", "BacktraceCredentials"));
-            }
-
-            _serverurl = credentials.GetSubmissionUrl();
-        }
-        
-#endif
 
         /// <summary>
         /// Send minidump to Backtrace
@@ -102,6 +92,10 @@ namespace Backtrace.Unity.Services
             {
                 attachments = new List<string>();
             }
+
+            var stopWatch = EnablePerformanceStatistics
+               ? System.Diagnostics.Stopwatch.StartNew()
+               : new System.Diagnostics.Stopwatch();
 
             var jsonServerUrl = ServerUrl;
             var minidumpServerUrl = jsonServerUrl.IndexOf("submit.backtrace.io") != -1
@@ -144,6 +138,11 @@ namespace Backtrace.Unity.Services
                 if (callback != null)
                 {
                     callback.Invoke(result);
+                }
+                if (EnablePerformanceStatistics)
+                {
+                    stopWatch.Stop();
+                    Debug.Log(string.Format("Backtrace - minidump send time: {0}ms", MetricsHelper.GetPerformanceInfo(stopWatch)));
                 }
 
                 yield return result;
@@ -199,10 +198,14 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
         {
+            var stopWatch = EnablePerformanceStatistics
+              ? System.Diagnostics.Stopwatch.StartNew()
+              : new System.Diagnostics.Stopwatch();
+
             var requestUrl = queryAttributes != null
                 ? GetParametrizedQuery(queryAttributes)
                 : ServerUrl;
-            Debug.Log($"Sending data to Backtrace.URL: {requestUrl}");
+
 
             using (var request = new UnityWebRequest(requestUrl, "POST"))
             {
@@ -248,6 +251,12 @@ namespace Backtrace.Unity.Services
                 if (callback != null)
                 {
                     callback.Invoke(result);
+                }
+
+                if (EnablePerformanceStatistics)
+                {
+                    stopWatch.Stop();
+                    Debug.Log(string.Format("Backtrace - JSON send time: {0}ms", MetricsHelper.GetPerformanceInfo(stopWatch)));
                 }
                 yield return result;
             }
@@ -311,7 +320,6 @@ namespace Backtrace.Unity.Services
 
         private string GetParametrizedQuery(Dictionary<string, string> queryAttributes)
         {
-            Debug.Log("IN parametrized query ");
             var uriBuilder = new UriBuilder(_serverurl);
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryAttribute in queryAttributes)
