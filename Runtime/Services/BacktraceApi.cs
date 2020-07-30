@@ -1,9 +1,11 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -38,6 +40,11 @@ namespace Backtrace.Unity.Services
         private readonly Uri _serverurl;
 
         /// <summary>
+        /// Enable performance statistics
+        /// </summary>
+        public bool EnablePerformanceStatistics { get; set; } = false;
+
+        /// <summary>
         /// Url to server
         /// </summary>
         public string ServerUrl
@@ -52,14 +59,15 @@ namespace Backtrace.Unity.Services
         private readonly BacktraceCredentials _credentials;
 
 
-#if UNITY_2018_4_OR_NEWER
 
         private readonly bool _ignoreSslValidation;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
         /// <param name="credentials">API credentials</param>
-        public BacktraceApi(BacktraceCredentials credentials, bool ignoreSslValidation = false)
+        public BacktraceApi(
+            BacktraceCredentials credentials,
+            bool ignoreSslValidation = false)
         {
             _credentials = credentials;
             if (_credentials == null)
@@ -70,23 +78,6 @@ namespace Backtrace.Unity.Services
             _ignoreSslValidation = ignoreSslValidation;
             _serverurl = credentials.GetSubmissionUrl();
         }
-#else
-        /// <summary>
-        /// Create a new instance of Backtrace API
-        /// </summary>
-        /// <param name="credentials">API credentials</param>
-        public BacktraceApi(BacktraceCredentials credentials)
-        {
-            _credentials = credentials;
-            if (_credentials == null)
-            {
-                throw new ArgumentException(string.Format("{0} cannot be null", "BacktraceCredentials"));
-            }
-
-            _serverurl = credentials.GetSubmissionUrl();
-        }
-        
-#endif
 
         /// <summary>
         /// Send minidump to Backtrace
@@ -101,6 +92,10 @@ namespace Backtrace.Unity.Services
             {
                 attachments = new List<string>();
             }
+
+            var stopWatch = EnablePerformanceStatistics
+               ? System.Diagnostics.Stopwatch.StartNew()
+               : new System.Diagnostics.Stopwatch();
 
             var jsonServerUrl = ServerUrl;
             var minidumpServerUrl = jsonServerUrl.IndexOf("submit.backtrace.io") != -1
@@ -144,6 +139,11 @@ namespace Backtrace.Unity.Services
                 {
                     callback.Invoke(result);
                 }
+                if (EnablePerformanceStatistics)
+                {
+                    stopWatch.Stop();
+                    Debug.Log(string.Format("Backtrace - minidump send time: {0}μs", stopWatch.GetMicroseconds()));
+                }
 
                 yield return result;
             }
@@ -169,7 +169,6 @@ namespace Backtrace.Unity.Services
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-
         /// <summary>
         /// Sending diagnostic report to Backtrace
         /// </summary>
@@ -180,12 +179,34 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
-            var requestUrl = ServerUrl;
+            var queryAttributes = new Dictionary<string, string>();
             if (deduplication > 0)
             {
-                var startingChar = string.IsNullOrEmpty(_serverurl.Query) ? "?" : "&";
-                requestUrl += string.Format("{0}_mod_duplicate={1}", startingChar, deduplication);
+                queryAttributes["_mod_duplicate"] = deduplication.ToString();
             }
+            yield return Send(json, attachments, queryAttributes, callback);
+
+        }
+
+        /// <summary>
+        /// Sending diagnostic report to Backtrace
+        /// </summary>
+        /// <param name="json">diagnostic data JSON</param>
+        /// <param name="attachments">List of report attachments</param>
+        /// <param name="queryAttributes">Query string attributes</param>
+        /// <param name="callback">coroutine callback</param>
+        /// <returns>Server response</returns>
+        public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        {
+            var stopWatch = EnablePerformanceStatistics
+              ? System.Diagnostics.Stopwatch.StartNew()
+              : new System.Diagnostics.Stopwatch();
+
+            var requestUrl = queryAttributes != null
+                ? GetParametrizedQuery(queryAttributes)
+                : ServerUrl;
+
+
             using (var request = new UnityWebRequest(requestUrl, "POST"))
             {
 #if UNITY_2018_4_OR_NEWER
@@ -230,6 +251,12 @@ namespace Backtrace.Unity.Services
                 if (callback != null)
                 {
                     callback.Invoke(result);
+                }
+
+                if (EnablePerformanceStatistics)
+                {
+                    stopWatch.Stop();
+                    Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
             }
@@ -290,6 +317,36 @@ namespace Backtrace.Unity.Services
         }
 
         private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
+
+        private string GetParametrizedQuery(Dictionary<string, string> queryAttributes)
+        {
+            var uriBuilder = new UriBuilder(_serverurl);
+            if (queryAttributes == null || !queryAttributes.Any())
+            {
+                return uriBuilder.Uri.ToString();
+            }
+
+
+            StringBuilder builder = new StringBuilder();
+            var shouldStartWithAnd = true;
+            if (string.IsNullOrEmpty(uriBuilder.Query))
+            {
+                shouldStartWithAnd = false;
+                builder.Append("?");
+            }
+
+            for (int queryIndex = 0; queryIndex < queryAttributes.Count; queryIndex++)
+            {
+                if (queryIndex != 0 || shouldStartWithAnd)
+                {
+                    builder.Append("&");
+                }
+                var queryAttribute = queryAttributes.ElementAt(queryIndex);
+                builder.AppendFormat("{0}={1}", queryAttribute.Key, UrlEncode(queryAttribute.Value));
+            }
+            uriBuilder.Query += builder.ToString();
+            return uriBuilder.Uri.ToString();
+        }
 
         private static string UrlEncode(string value)
         {

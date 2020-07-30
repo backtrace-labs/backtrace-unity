@@ -21,6 +21,8 @@ namespace Backtrace.Unity.Tests.Runtime
             }
         }
 
+        public bool EnablePerformanceStatistics { get; set; } = false;
+
         public IEnumerator Send(BacktraceData data, Action<BacktraceResult> callback = null)
         {
             LastData = data;
@@ -40,6 +42,14 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
+        public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        {
+            if (callback != null)
+            {
+                callback.Invoke(new BacktraceResult() { Status = Types.BacktraceResultStatus.Ok });
+            }
+            yield return null;
+        }
         public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null)
         {
             yield return null;

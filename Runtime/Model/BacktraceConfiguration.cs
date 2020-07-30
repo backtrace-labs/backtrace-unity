@@ -45,6 +45,17 @@ namespace Backtrace.Unity.Model
         public bool DestroyOnLoad = false;
 
         /// <summary>
+        /// Backtrace report filter type
+        /// </summary>
+        [Tooltip("Report filter allows to filter specific type of reports. Possible options:\n" +
+            "* Disable - Disable report filtering - send every type of report.\n" +
+            "* Message - Prevent message reports.\n" +
+            "* Exception - Prevent exception reports.\n" +
+            "* Unhandled exception- Prevent unhandled exception reports.\n" +
+            "* Hang - Prevent sending reports when game hang.")]
+
+        public ReportFilterType ReportFilterType = ReportFilterType.None;
+        /// <summary>
         /// Game object depth in Backtrace report
         /// </summary>
         [Tooltip("Allows developer to filter number of game object childrens in Backtrace report.")]
@@ -56,6 +67,11 @@ namespace Backtrace.Unity.Model
         [Tooltip("Number of logs collected by Backtrace-Unity")]
         public uint NumberOfLogs = 10;
 
+        /// <summary>
+        /// Flag that allows to include performance statistics in Backtrace report
+        /// </summary>
+        [Tooltip("Enable performance statistics")]
+        public bool PerformanceStatistics = false;
         /// <summary>
         /// Try to find game native crashes and send them on Game startup
         /// </summary>
@@ -95,7 +111,7 @@ namespace Backtrace.Unity.Model
         public MiniDumpType MinidumpType = MiniDumpType.None;
 
         /// <summary>
-         /// Generate game screen shot when exception happen
+        /// Generate game screen shot when exception happen
         /// </summary>
         [Tooltip("Generate and attach screenshot of frame as exception occurs")]
         public bool GenerateScreenshotOnException = false;

@@ -28,7 +28,7 @@ namespace Backtrace.Unity.Tests.Runtime
         /// <summary>
         /// Generate specific backtrace configuration object for deduplication testing
         /// </summary>
-        private BacktraceConfiguration GenerateDefaultConfiguration()
+        protected override BacktraceConfiguration GenerateDefaultConfiguration()
         {
             var configuration = GetBasicConfiguration();
             configuration.DatabasePath = Application.temporaryCachePath;

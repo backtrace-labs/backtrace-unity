@@ -56,8 +56,16 @@ namespace Backtrace.Unity.Editor
 #endif
 
                 EditorGUILayout.PropertyField(
+                       serializedObject.FindProperty("ReportFilterType"),
+                       new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_FILTER));
+
+                EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("NumberOfLogs"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
+
+                EditorGUILayout.PropertyField(
+                 serializedObject.FindProperty("PerformanceStatistics"),
+                 new GUIContent(BacktraceConfigurationLabels.LABEL_PERFORMANCE_STATISTICS));
 
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),

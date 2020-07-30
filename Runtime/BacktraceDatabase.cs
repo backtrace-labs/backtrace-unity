@@ -106,7 +106,7 @@ namespace Backtrace.Unity
         /// </summary>
         public void Reload()
         {
-            
+
             // validate configuration
             if (Configuration == null)
             {
@@ -257,7 +257,7 @@ namespace Backtrace.Unity
                 return null;
             }
             var record = BacktraceDatabaseContext.Add(data);
-            if(!@lock)
+            if (!@lock)
             {
                 record.Dispose();
             }
@@ -325,7 +325,7 @@ namespace Backtrace.Unity
         /// </summary>
         public void Send()
         {
-            if(!Enable || !BacktraceDatabaseContext.Any())
+            if (!Enable || !BacktraceDatabaseContext.Any())
             {
                 return;
             }
@@ -339,14 +339,28 @@ namespace Backtrace.Unity
             {
                 return;
             }
+            var stopWatch = Configuration.PerformanceStatistics
+                ? new System.Diagnostics.Stopwatch()
+                : System.Diagnostics.Stopwatch.StartNew();
+
             var backtraceData = record.BacktraceDataJson();
             Delete(record);
+            var queryAttributes = new Dictionary<string, string>();
+            if (Configuration.PerformanceStatistics)
+            {
+                stopWatch.Stop();
+                queryAttributes["performance.database.flush"] = stopWatch.GetMicroseconds();
+            }
+
             if (backtraceData == null)
             {
                 return;
             }
+
+            queryAttributes["_mod_duplicate"] = record.Count.ToString();
+
             StartCoroutine(
-                BacktraceApi.Send(backtraceData, record.Attachments, record.Count, (BacktraceResult result) =>
+                BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult result) =>
                 {
                     record = BacktraceDatabaseContext.FirstOrDefault();
                     FlushRecord(record);
@@ -355,6 +369,10 @@ namespace Backtrace.Unity
 
         private void SendData(BacktraceDatabaseRecord record)
         {
+            var stopWatch = Configuration.PerformanceStatistics
+               ? System.Diagnostics.Stopwatch.StartNew()
+               : new System.Diagnostics.Stopwatch();
+
             var backtraceData = record != null ? record.BacktraceDataJson() : null;
             //check if report exists on hard drive 
             // to avoid situation when someone manually remove data
@@ -364,8 +382,16 @@ namespace Backtrace.Unity
             }
             else
             {
+                var queryAttributes = new Dictionary<string, string>();
+                if (Configuration.PerformanceStatistics)
+                {
+                    stopWatch.Stop();
+                    queryAttributes["performance.database.send"] = stopWatch.GetMicroseconds();
+                }
+                queryAttributes["_mod_duplicate"] = record.Count.ToString();
+
                 StartCoroutine(
-                     BacktraceApi.Send(backtraceData, record.Attachments, record.Count, (BacktraceResult sendResult) =>
+                     BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>
                      {
                          if (sendResult.Status == BacktraceResultStatus.Ok)
                          {

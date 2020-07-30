@@ -43,6 +43,21 @@ namespace Backtrace.Unity.Tests.Runtime
             return configuration;
         }
 
+
+        /// <summary>
+        /// Generate specific backtrace configuration object for deduplication testing
+        /// </summary>
+        protected virtual BacktraceConfiguration GenerateDefaultConfiguration()
+        {
+            var configuration = GetBasicConfiguration();
+            configuration.DatabasePath = Application.temporaryCachePath;
+            configuration.CreateDatabase = false;
+            configuration.AutoSendMode = false;
+            configuration.Enabled = true;
+
+            return configuration;
+        }
+
         [OneTimeTearDown]
         public void Cleanup()
         {
