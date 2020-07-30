@@ -1,26 +1,29 @@
 # Backtrace Unity Release Notes
 
 ## Version 3.0.3
-- `BacktraceClient` now allows developer to filter reports by using filters. You can filter reports by using `Filter reports` option available in the Backtrace configuration UI or via `FilterReport` delegate available in the BacktraceClient.
-
+This release includes significant improvements to performance by way of report filtering as well as improved performance diagnostics. Learn more below.
+ 
+- `BacktraceClient` now supports report filtering. Report filtering is enabled by using the `Filter reports` option in the user interface or for more advanced use-cases, the `SkipReport` delegate available in the BacktraceClient.
+ 
 Sample code: 
-
 ```csharp
-    BacktraceClient.FilterReport = (ReportFilterType type, Exception exception, string message) =>
-            {
-                // to recognize filter type us ReportFilterType flag
-                // available options None,  Message, Exception, UnhandledException, Hang
-                // in case if you would like to skip all message reports you can check 
-                // if type is ReportFilterType.Message
+  // Return true to ignore a report, return false to handle the report
+  // and generate one for the error.
+  BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+  {
+    // ReportFilterType is one of None, Message, Exception,
+    // UnhandledException or Hang. It is also possible to
+    // to filter based on the exception and exception message.
 
-                // to learn more about exception object or report message please check exception/message properties
-
-                // return true if you would like to filter report
-                // otherwise return false and let Backtrace handle a report
-                return true;
-            };
+    // Report hangs and crashes only.
+    return type != ReportFilterType.Hang && type != ReportFilterType.UnhandledException;
+  };
 ```
-- `BacktraceReport` now will check if stack trace is null - previously we checked only if stack trace is empty via `Any` method
+ 
+For example, to only get error reporting for hangs or crashes then only return false for Hang or UnhandledException or set the corresponding options in the user interface as shown below.
+
+![Sample report filter](./Documentation~/images/report-filter.PNG)
+
 
 ## Version 3.0.2
 - `BacktraceDatabase` now provides a new `Send` method. This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.

@@ -28,7 +28,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 eventCalled = true;
                 return null;
             };
-            BacktraceClient.FilterReport = (ReportFilterType type, Exception e, string msg) =>
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
             {
                 eventCalled = true;
                 return false;
@@ -55,7 +55,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 eventCalled = true;
                 return null;
             };
-            BacktraceClient.FilterReport = (ReportFilterType type, Exception e, string message) =>
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string message) =>
             {
                 eventCalled = true;
                 return false;
@@ -82,7 +82,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 eventCalled = true;
                 return null;
             };
-            BacktraceClient.FilterReport = (ReportFilterType type, Exception e, string message) =>
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string message) =>
             {
                 eventCalled = true;
                 return false;
@@ -109,7 +109,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 eventCalled = true;
                 return null;
             };
-            BacktraceClient.FilterReport = (ReportFilterType type, Exception e, string message) =>
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string message) =>
             {
                 eventCalled = true;
                 return false;
@@ -137,7 +137,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 beforeSendCalled = true;
                 return null;
             };
-            BacktraceClient.FilterReport = (ReportFilterType type, Exception e, string message) =>
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string message) =>
             {
                 reportFilterCalled = true;
                 return false;
@@ -211,10 +211,17 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 return null;
             };
 
-            BacktraceClient.FilterReport = (ReportFilterType type, Exception e, string message) =>
+            // Return true to ignore a report, return false to handle the report
+            // and generate one for the error.
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception exception, string message) =>
             {
-                reportFilterCalled = true;
-                return true;
+                // ReportFilterType is one of None, Message, Exception,
+                // UnhandledException or Hang. It is also possible to
+                // to filter based on the exception and exception message.
+
+                // Report hangs and crashes only.
+                return type != ReportFilterType.Hang &&
+                    type != ReportFilterType.UnhandledException;
             };
 
             // in this situation to learn if we were able to continue processing report 

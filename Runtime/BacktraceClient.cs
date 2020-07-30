@@ -142,7 +142,11 @@ namespace Backtrace.Unity
         public Func<BacktraceData, BacktraceData> BeforeSend = null;
 
 
-        public Func<ReportFilterType, Exception, string, bool> FilterReport = null;
+        /// <summary>
+        // Return true to ignore a report, return false to handle the report
+        // and generate one for the error
+        /// </summary>
+        public Func<ReportFilterType, Exception, string, bool> SkipReport = null;
 
         /// <summary>
         /// Set event executed when unhandled application exception event catch exception
@@ -507,7 +511,7 @@ namespace Backtrace.Unity
             }
 
 
-            if (ShouldFilterReport(filterType, exception, string.Empty))
+            if (ShouldSkipReport(filterType, exception, string.Empty))
             {
                 return false;
             }
@@ -530,7 +534,7 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(string message, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
-            if (ShouldFilterReport(ReportFilterType.Message, null, message))
+            if (ShouldSkipReport(ReportFilterType.Message, null, message))
             {
                 return false;
             }
@@ -554,7 +558,7 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(BacktraceReport report)
         {
-            if (ShouldFilterReport(
+            if (ShouldSkipReport(
                     report.ExceptionTypeReport
                         ? ReportFilterType.Exception
                         : ReportFilterType.Message,
@@ -613,10 +617,10 @@ namespace Backtrace.Unity
         /// <param name="exception">Exception object</param>
         /// <param name="message">String message</param>
         /// <returns>true if client should skip report. Otherwise false.</returns>
-        private bool ShouldFilterReport(ReportFilterType type, Exception exception, string message)
+        private bool ShouldSkipReport(ReportFilterType type, Exception exception, string message)
         {
             return Configuration.ReportFilterType == type
-                || (FilterReport != null && FilterReport.Invoke(type, exception, message));
+                || (SkipReport != null && SkipReport.Invoke(type, exception, message));
 
         }
 

@@ -217,32 +217,25 @@ backtraceClient.HandleApplicationException();
 ```
 
 ## Filtering a report 
-`BacktraceClient` allows you to filter report by using `Filter reports` option available in the Backtrace configuration UI. In case if you need to have better control over creating new reports, you can use `FilterReport` delegate. delegate require to pass a function that will accept:
-* `ReportFilterType` enum - type of a report that BacktraceClient will creat. Available types: Message, Exception, UnhandledException and Hang,
-* Exception - exception handled by BacktraceClient. 
-* Message - report message.
-
-FilterReport delegate should report boolean value. If you would like to skip report - please return true, otherwise if you will return false, `BacktraceClient` will continue processing data.
-
-In case if you would like to filter only specific type of exception, please use `Filter report` option in the UI and select what type of reports, `BacktraceClient` should filter.
-
+Report filtering is enabled by using the `Filter reports` option in the user interface or for more advanced use-cases, the `SkipReport` delegate available in the BacktraceClient.
+ 
+Sample code: 
 ```csharp
- BacktraceClient.FilterReport = (ReportFilterType type, Exception exception, string message) =>
-            {
-                // to recognize filter type us ReportFilterType flag
-                // available options None,  Message, Exception, UnhandledException, Hang
-                // in case if you would like to skip all message reports you can check 
-                // if type is ReportFilterType.Message
+  // Return true to ignore a report, return false to handle the report
+  // and generate one for the error.
+  BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+  {
+    // ReportFilterType is one of None, Message, Exception,
+    // UnhandledException or Hang. It is also possible to
+    // to filter based on the exception and exception message.
 
-                // to learn more about exception object or report message please check exception/message properties
-
-                // return true if you would like to filter report
-                // otherwise return false and let Backtrace handle a report
-                return true;
-            };
+    // Report hangs and crashes only.
+    return type != ReportFilterType.Hang && type != ReportFilterType.UnhandledException;
+  };
 ```
-
-
+ 
+For example, to only get error reporting for hangs or crashes then only return false for Hang or UnhandledException or set the corresponding options in the user interface as shown below.
+![Sample report filter](./Documentation~/images/report-filter.PNG)
 ## Flush database
 
 When your application starts, database can send stored offline reports. If you want to do make it manually you can use `Flush` method that allows you to send report to server and then remove it from hard drive. If `Send` method fails, database will no longer store data.
