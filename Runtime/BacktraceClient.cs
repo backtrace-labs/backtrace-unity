@@ -675,7 +675,7 @@ namespace Backtrace.Unity
         /// <returns>true if client should skip report. Otherwise false.</returns>
         private bool ShouldSkipReport(ReportFilterType type, Exception exception, string message)
         {
-            return Configuration.ReportFilterType == type
+            return Configuration.ReportFilterType.HasFlag(type)
                 || (SkipReport != null && SkipReport.Invoke(type, exception, message));
 
         }

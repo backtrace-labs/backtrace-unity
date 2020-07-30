@@ -47,6 +47,31 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
         }
 
         [UnityTest]
+        public IEnumerator TestReportFilterWithMultipleOptions_ShouldPreventFromSendingMessage_ClientNotSendingData()
+        {
+            var eventCalled = false;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                eventCalled = true;
+                return null;
+            };
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+            {
+                eventCalled = true;
+                return false;
+            };
+
+            BacktraceClient.Configuration.ReportFilterType = ReportFilterType.UnhandledException | ReportFilterType.Message;
+            var message = "report message";
+
+            BacktraceClient.Send(message);
+            yield return new WaitForEndOfFrame();
+            Assert.IsFalse(eventCalled);
+
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator TestReportFilter_ShouldPreventFromSendingException_ClientNotSendingData()
         {
             var eventCalled = false;
