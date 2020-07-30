@@ -17,6 +17,7 @@ namespace Backtrace.Unity.Tests.Runtime
             BeforeSetup();
             AfterSetup(false);
         }
+
         
         [UnityTest]
         public IEnumerator TestClientCreation_ValidBacktraceConfiguration_ValidClientCreation()

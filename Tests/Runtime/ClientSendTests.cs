@@ -24,6 +24,12 @@ namespace Backtrace.Unity.Tests.Runtime
             client.Refresh();
         }
 
+        [TearDown]
+        public void Cleanup()
+        {
+            client.RequestHandler = null;
+        }
+
         [UnityTest]
         public IEnumerator SendReport_ExceptionReport_ValidSend()
         {

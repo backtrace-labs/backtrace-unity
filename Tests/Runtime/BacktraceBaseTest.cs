@@ -46,6 +46,8 @@ namespace Backtrace.Unity.Tests.Runtime
         [OneTimeTearDown]
         public void Cleanup()
         {
+            BacktraceClient.BeforeSend = null;
+            BacktraceClient.RequestHandler = null;
             Object.DestroyImmediate(GameObject);
         }
     }
