@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.3
+- Improvements to JIT stack frame parsing.
+
 ## Version 3.0.2
 - `BacktraceDatabase` now provides a new `Send` method. This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.
 - `BacktraceClient` has been optimized to only serialize data as needed.
