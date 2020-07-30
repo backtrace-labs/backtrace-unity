@@ -1,5 +1,27 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.3
+- `BacktraceClient` now allows developer to filter reports by using filters. You can filter reports by using `Filter reports` option available in the Backtrace configuration UI or via `FilterReport` delegate available in the BacktraceClient.
+
+Sample code: 
+
+```csharp
+    BacktraceClient.FilterReport = (ReportFilterType type, Exception exception, string message) =>
+            {
+                // to recognize filter type us ReportFilterType flag
+                // available options None,  Message, Exception, UnhandledException, Hang
+                // in case if you would like to skip all message reports you can check 
+                // if type is ReportFilterType.Message
+
+                // to learn more about exception object or report message please check exception/message properties
+
+                // return true if you would like to filter report
+                // otherwise return false and let Backtrace handle a report
+                return true;
+            };
+```
+- `BacktraceReport` now will check if stack trace is null - previously we checked only if stack trace is empty via `Any` method
+
 ## Version 3.0.2
 - `BacktraceDatabase` now provides a new `Send` method. This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.
 - `BacktraceClient` has been optimized to only serialize data as needed.

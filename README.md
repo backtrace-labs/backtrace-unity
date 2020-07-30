@@ -67,6 +67,7 @@ The following is a reference guide to the Backtrace Client fields:
 - Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
 - Destroy client on new scene load - Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true.
 - Use normalized exception message: If exception does not have a stack trace, use a normalized exception message to generate fingerprint.
+- Filter reports: Configure Backtrace plugin to filter reports based on report type - Message, Exception, Unhandled Exception, Hang. By default this option is disabled (None).
 - Send unhandled native game crashes on startup: Try to find game native crashes and send them on Game startup.
 - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
@@ -75,7 +76,7 @@ The following is a reference guide to the Backtrace Client fields:
 - Handle ANR (Application not responding) - this options is available only in Android build. It allows to catch ANR (application not responding) events happened to your game in Android devices. In this release, ANR is set to detect after 5 seconds. This will be configurable in a future release.
 - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
 - Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS 
-${Application.persistentDataPath}/backtrace/database to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
+`${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
 - Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
 - Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
 - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
@@ -215,12 +216,46 @@ backtraceClient.BeforeSend =
 backtraceClient.HandleApplicationException();
 ```
 
+## Filtering a report 
+`BacktraceClient` allows you to filter report by using `Filter reports` option available in the Backtrace configuration UI. In case if you need to have better control over creating new reports, you can use `FilterReport` delegate. delegate require to pass a function that will accept:
+* `ReportFilterType` enum - type of a report that BacktraceClient will creat. Available types: Message, Exception, UnhandledException and Hang,
+* Exception - exception handled by BacktraceClient. 
+* Message - report message.
+
+FilterReport delegate should report boolean value. If you would like to skip report - please return true, otherwise if you will return false, `BacktraceClient` will continue processing data.
+
+In case if you would like to filter only specific type of exception, please use `Filter report` option in the UI and select what type of reports, `BacktraceClient` should filter.
+
+```csharp
+ BacktraceClient.FilterReport = (ReportFilterType type, Exception exception, string message) =>
+            {
+                // to recognize filter type us ReportFilterType flag
+                // available options None,  Message, Exception, UnhandledException, Hang
+                // in case if you would like to skip all message reports you can check 
+                // if type is ReportFilterType.Message
+
+                // to learn more about exception object or report message please check exception/message properties
+
+                // return true if you would like to filter report
+                // otherwise return false and let Backtrace handle a report
+                return true;
+            };
+```
+
+
 ## Flush database
 
 When your application starts, database can send stored offline reports. If you want to do make it manually you can use `Flush` method that allows you to send report to server and then remove it from hard drive. If `Send` method fails, database will no longer store data.
 
 ```csharp
 backtraceDatabase.Flush();
+```
+
+## Send database
+This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.
+
+```csharp
+backtraceDatabase.Send();
 ```
 
 ## Clearing database
