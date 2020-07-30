@@ -468,6 +468,34 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(error.StackFrames.Any());
         }
 
+        [Test]
+        public void JITStackTrace_ShouldParseCorrectlyJITStackTrace_StackTraceObjectIsGeneratedCorrectly()
+        {
+
+            var simpleFunctionName = "GetStacktrace";
+            var functionNameWithWrappedManagedPrefix = "UnityEngine.DebugLogHandler:Internal_Log";
+            var functioNamewithMonoJitCodePrefix = "ServerGameManager:SendInitialiseNetObjectToClient";
+            var jitStackTrace = string.Format(@"#0 {0} (int)
+                 #1 DebugStringToFile(DebugStringToFileData const&)
+                 #2 DebugLogHandler_CUSTOM_Internal_Log(LogType, LogOption, ScriptingBackendNativeStringPtrOpaque*, ScriptingBackendNativeObjectPtrOpaque*)
+                 #3  (Mono JIT Code) (wrapper managed-to-native) {1} (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+                 #4  (Mono JIT Code) {2} (FG.Common.GameConnection,FG.Common.NetObjectSpawnData)
+                 #5  (Mono JIT Code) ServerGameManager:SpawnAlreadySpawnedObjectsForClient (FG.Common.GameConnection)
+                 #6  (Mono JIT Code) ServerGameManager:ProcessLevelLoaded (FG.Common.GameConnection)
+                 #7  (Mono JIT Code) ServerGameManager:ProcessClientReady (FG.Common.GameConnection,FG.Common.PlayerReadinessState)
+                 #8  (Mono JIT Code) FG.Common.UnityNetworkMessageHandler:HandleAndFreeInboundGameMessage (FG.Common.MessageEnvelope)
+                 #9  (Mono JIT Code) FG.Common.UnityNetworkMessageHandler:PeekAndHandleMessage (UnityEngine.Networking.NetworkMessage,FG.Common.GameConnection)
+                 #10  (Mono JIT Code) FG.Common.FG_UnityInternetNetworkManager:ServerHandleMessageReceived (UnityEngine.Networking.NetworkMessage)",
+                 simpleFunctionName, functionNameWithWrappedManagedPrefix, functioNamewithMonoJitCodePrefix);
+
+
+            var backtraceUnhandledException = new BacktraceUnhandledException("foo", jitStackTrace);
+
+            Assert.AreEqual(11, backtraceUnhandledException.StackFrames.Count);
+            Assert.AreEqual(backtraceUnhandledException.StackFrames[0].FunctionName, simpleFunctionName);
+            Assert.AreEqual(backtraceUnhandledException.StackFrames[3].FunctionName, functionNameWithWrappedManagedPrefix);
+            Assert.AreEqual(backtraceUnhandledException.StackFrames[4].FunctionName, functioNamewithMonoJitCodePrefix);
+        }
 
         internal string ConvertStackTraceToString(List<SampleStackFrame> data)
         {

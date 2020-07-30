@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Backtrace.Unity.Model
 {
@@ -116,6 +117,10 @@ namespace Backtrace.Unity.Model
                 {
                     stackFrame = SetNativeStackTraceInformation(frameString);
                 }
+                else if (frameString.StartsWith("#"))
+                {
+                    stackFrame = SetJITStackTraceInformation(frameString);
+                }
                 else if (frameString.IndexOf('(', methodNameEndIndex + 1) > -1)
                 {
                     stackFrame = SetDefaultStackTraceInformation(frameString);
@@ -138,6 +143,56 @@ namespace Backtrace.Unity.Model
 
 
             }
+        }
+
+        /// <summary>
+        /// Try to convert JIT stack trace
+        /// </summary>
+        /// <param name="frameString">JIT stack frame</param>
+        /// <returns>Backtrace stack frame</returns>
+        private BacktraceStackFrame SetJITStackTraceInformation(string frameString)
+        {
+
+            var stackFrame = new BacktraceStackFrame();
+            if (!frameString.StartsWith("#"))
+            {
+                //handle sitaution when we detected jit stack trace
+                // but jit stack trace doesn't start with #
+                stackFrame.FunctionName = frameString;
+                return stackFrame;
+            }
+
+            frameString = frameString.Substring(frameString.IndexOf(' ')).Trim();
+            const string monoJitPrefix = "(Mono JIT Code)";
+            var monoPrefixIndex = frameString.IndexOf(monoJitPrefix);
+            if (monoPrefixIndex != -1)
+            {
+                frameString = frameString.Substring(monoPrefixIndex + monoJitPrefix.Length).Trim();
+            }
+
+            const string managedWraperPrefix = "(wrapper managed-to-native)";
+            var managedWraperIndex = frameString.IndexOf(managedWraperPrefix);
+            if (managedWraperIndex != -1)
+            {
+                frameString = frameString.Substring(managedWraperIndex + managedWraperPrefix.Length).Trim();
+            }
+
+            // right now we outfiltered all known prefixes 
+            // we should have only function name with parameters
+
+            // filter parameters, if we can't use full frameString as function name
+            var parametersStart = frameString.IndexOf('(');
+            var parametersEnd = frameString.IndexOf(')');
+            if (parametersStart != -1 && parametersEnd != -1 && parametersEnd > parametersStart)
+            {
+                stackFrame.FunctionName = frameString.Substring(0, parametersStart).Trim();
+            }
+            else
+            {
+                stackFrame.FunctionName = frameString;
+            }
+            return stackFrame;
+
         }
 
         /// <summary>
@@ -237,6 +292,11 @@ namespace Backtrace.Unity.Model
         /// <returns></returns>
         private BacktraceStackFrame SetDefaultStackTraceInformation(string frameString)
         {
+            const string wrapperPrefix = "(wrapper remoting-invoke-with-check)";
+            if (frameString.StartsWith(wrapperPrefix))
+            {
+                frameString = frameString.Replace(wrapperPrefix, string.Empty);
+            }
             // find method parameters
             int methodNameEndIndex = frameString.IndexOf(')');
 
