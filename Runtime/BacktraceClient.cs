@@ -411,14 +411,14 @@ namespace Backtrace.Unity
                 }
             }
 
-            // avoid serializing data twice
-            // if record is here we should try to send json data that are available in record
-            // otherwise we can still use BacktraceData.ToJson().
+            yield return new WaitForEndOfFrame();
             if (EnablePerformanceStatistics)
             {
                 stopWatch.Restart();
             }
-            yield return new WaitForEndOfFrame();
+            // avoid serializing data twice
+            // if record is here we should try to send json data that are available in record
+            // otherwise we can still use BacktraceData.ToJson().            
             string json = record != null
                 ? record.BacktraceDataJson()
                 : data.ToJson();
