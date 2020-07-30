@@ -277,10 +277,6 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            if (FilterReport != null && FilterReport.Invoke(ReportFilterType.Exception, null, message))
-            {
-                return;
-            }
             var report = new BacktraceReport(
               message: message,
               attachmentPaths: attachmentPaths,
@@ -301,10 +297,6 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            if (FilterReport != null && FilterReport.Invoke(ReportFilterType.Exception, exception, null))
-            {
-                return;
-            }
             var report = new BacktraceReport(exception, attributes, attachmentPaths);
             _backtraceLogManager.Enqueue(report);
             SendReport(report);
@@ -318,14 +310,6 @@ namespace Backtrace.Unity
         public void Send(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
             if (!ShouldSendReport(report))
-            {
-                return;
-            }
-            if (FilterReport != null &&
-                FilterReport.Invoke(
-                    report.ExceptionTypeReport ? ReportFilterType.Exception : ReportFilterType.Message,
-                    report.Exception,
-                    report.Message))
             {
                 return;
             }
