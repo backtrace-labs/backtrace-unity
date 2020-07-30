@@ -155,6 +155,24 @@ namespace Backtrace.Unity
 
         private INativeClient _nativeClient;
 
+        public bool EnablePerformanceStatistics
+        {
+            get
+            {
+                return Configuration.PerformanceStatistics;
+            }
+        }
+
+        public int GameObjectDepth
+        {
+            get
+            {
+                return Configuration.GameObjectDepth == 0
+                ? 16 // default maximum game object size
+                : Configuration.GameObjectDepth;
+            }
+        }
+
 
         /// <summary>
         /// Instance of BacktraceApi that allows to send data to Backtrace API
@@ -193,8 +211,6 @@ namespace Backtrace.Unity
             }
         }
 
-        private int _gameObjectDepth = 0;
-
         private BacktraceLogManager _backtraceLogManager;
 
         public void OnDisable()
@@ -211,22 +227,21 @@ namespace Backtrace.Unity
 
             Enabled = true;
 
-            // set maximum game object depth
-            _gameObjectDepth = Configuration.GameObjectDepth == 0
-                ? 16 // default maximum game object size
-                : Configuration.GameObjectDepth;
-
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
-#if UNITY_2018_4_OR_NEWER
 
             BacktraceApi = new BacktraceApi(
                 credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
-                ignoreSslValidation: Configuration.IgnoreSslValidation);
+
+#if UNITY_2018_4_OR_NEWER
+                ignoreSslValidation: Configuration.IgnoreSslValidation
 #else
-            BacktraceApi = new BacktraceApi(new BacktraceCredentials(Configuration.GetValidServerUrl()));
+                ignoreSslValidation: false
 #endif
+                );
+            BacktraceApi.EnablePerformanceStatistics = Configuration.PerformanceStatistics;
+
             if (!Configuration.DestroyOnLoad)
             {
                 DontDestroyOnLoad(gameObject);
@@ -286,6 +301,7 @@ namespace Backtrace.Unity
               attachmentPaths: attachmentPaths,
               attributes: attributes);
             _backtraceLogManager.Enqueue(report);
+
             SendReport(report);
         }
 
@@ -301,6 +317,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
+
             var report = new BacktraceReport(exception, attributes, attachmentPaths);
             _backtraceLogManager.Enqueue(report);
             SendReport(report);
@@ -344,8 +361,19 @@ namespace Backtrace.Unity
         /// <returns>IEnumerator</returns>
         private IEnumerator CollectDataAndSend(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
         {
+            var queryAttributes = new Dictionary<string, string>();
+            var stopWatch = EnablePerformanceStatistics
+                ? System.Diagnostics.Stopwatch.StartNew()
+                : new System.Diagnostics.Stopwatch();
+
             BacktraceData data = SetupBacktraceData(report);
-            yield return new WaitForEndOfFrame();
+
+            if (EnablePerformanceStatistics)
+            {
+                stopWatch.Stop();
+                queryAttributes["performance.report"] = stopWatch.GetMicroseconds();
+            }
+
             if (BeforeSend != null)
             {
                 data = BeforeSend.Invoke(data);
@@ -356,30 +384,51 @@ namespace Backtrace.Unity
             }
             BacktraceDatabaseRecord record = null;
 
-            // avoid serializing data twice
-            // if record is here we should try to send json data that are available in record
-            // otherwise we can still use BacktraceData.ToJson().
-            string json = string.Empty;
             if (Database != null)
             {
                 yield return new WaitForEndOfFrame();
+                if (EnablePerformanceStatistics)
+                {
+                    stopWatch.Restart();
+                }
                 record = Database.Add(data);
                 // handle situation when database refuse to store report.
                 if (record != null)
                 {
                     //Extend backtrace data with additional attachments from backtrace database
                     data = record.BacktraceData;
+                    if (EnablePerformanceStatistics)
+                    {
+                        stopWatch.Stop();
+                        queryAttributes["performance.database"] = stopWatch.GetMicroseconds();
+                    }
+
+
                     if (record.Duplicated)
                     {
                         yield break;
                     }
-                    json = record.BacktraceDataJson();
                 }
             }
-            if (string.IsNullOrEmpty(json))
+
+            yield return new WaitForEndOfFrame();
+            if (EnablePerformanceStatistics)
             {
-                json = data.ToJson();
+                stopWatch.Restart();
             }
+            // avoid serializing data twice
+            // if record is here we should try to send json data that are available in record
+            // otherwise we can still use BacktraceData.ToJson().            
+            string json = record != null
+                ? record.BacktraceDataJson()
+                : data.ToJson();
+
+            if (EnablePerformanceStatistics)
+            {
+                stopWatch.Stop();
+                queryAttributes["performance.json"] = stopWatch.GetMicroseconds();
+            }
+
             //backward compatibility 
             if (RequestHandler != null)
             {
@@ -387,7 +436,12 @@ namespace Backtrace.Unity
                 yield break;
             }
 
-            StartCoroutine(BacktraceApi.Send(json, data.Attachments, data.Deduplication, (BacktraceResult result) =>
+            if (data.Deduplication != 0)
+            {
+                queryAttributes["_mod_duplicate"] = data.Deduplication.ToString();
+            }
+
+            StartCoroutine(BacktraceApi.Send(json, data.Attachments, queryAttributes, (BacktraceResult result) =>
             {
                 if (record != null)
                 {
@@ -418,6 +472,7 @@ namespace Backtrace.Unity
         /// <returns>Backtrace data</returns>
         private BacktraceData SetupBacktraceData(BacktraceReport report)
         {
+
             // apply _mod fingerprint attribute when client should use
             // normalized exception message instead environment stack trace
             // for exceptions without stack trace.
@@ -440,8 +495,7 @@ namespace Backtrace.Unity
                 reportAttributes = _nativeClient.GetAttributes();
             }
 
-            var data = report.ToBacktraceData(reportAttributes, _gameObjectDepth);
-            return data;
+            return report.ToBacktraceData(reportAttributes, GameObjectDepth);
         }
 
 #if UNITY_ANDROID
@@ -619,7 +673,7 @@ namespace Backtrace.Unity
         /// <returns>true if client should skip report. Otherwise false.</returns>
         private bool ShouldSkipReport(ReportFilterType type, Exception exception, string message)
         {
-            return Configuration.ReportFilterType == type
+            return Configuration.ReportFilterType.HasFlag(type)
                 || (SkipReport != null && SkipReport.Invoke(type, exception, message));
 
         }

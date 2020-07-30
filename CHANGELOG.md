@@ -23,7 +23,13 @@ Sample code:
 For example, to only get error reporting for hangs or crashes then only return false for Hang or UnhandledException or set the corresponding options in the user interface as shown below.
 
 ![Sample report filter](./Documentation~/images/report-filter.PNG)
-
+- Support for backtrace-unity timing observability. To enable sending performance information to Backtrace set the`Enable performance statistics` option in the UI. Attributes are created under the performance.* namespace, time unit is microseconds: 
+  * Report creation time (`performance.report`),
+  * JSON serialization time (`performance.json`),
+  * Database add operation time (`performance.database`),
+  * Database single send method time (`performance.send`),
+  * Database single flush method time (`performance.flush`)
+  
 
 ## Version 3.0.2
 - `BacktraceDatabase` now provides a new `Send` method. This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.

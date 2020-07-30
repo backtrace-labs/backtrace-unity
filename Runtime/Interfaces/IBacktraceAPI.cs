@@ -25,10 +25,21 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         /// <param name="json">Library diagnostic data in JSON format</param>
         /// <param name="attachments">List of report attachments</param>
-        /// /// <param name="deduplication">Deduplication count</param>
+        /// <param name="deduplication">Deduplication count</param>
         /// <param name="callback">Coroutine callback</param>
         /// <returns></returns>
         IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback);
+
+
+        /// <summary>
+        /// Send diagnostic report to Backtrace API
+        /// </summary>
+        /// <param name="json">Library diagnostic data in JSON format</param>
+        /// <param name="attachments">List of report attachments</param>
+        /// <param name="queryStringAttributes">Query string</param>
+        /// <param name="callback">Coroutine callback</param>
+        /// <returns></returns>
+        IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback);
 
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
@@ -45,7 +56,7 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
-         /// <summary>
+        /// <summary>
         /// Upload minidump to server
         /// </summary>
         /// <param name="minidumpPath">Minidump path</param>
@@ -53,5 +64,10 @@ namespace Backtrace.Unity.Interfaces
         /// <param name="callback">Result callback</param>
         /// <returns>Server response</returns>
         IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null);
+
+        /// <summary>
+        /// Enable performance statistics in Backtrace API
+        /// </summary>
+        bool EnablePerformanceStatistics { get; set; }
     }
 }

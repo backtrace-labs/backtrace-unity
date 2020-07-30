@@ -47,6 +47,31 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
         }
 
         [UnityTest]
+        public IEnumerator TestReportFilterWithMultipleOptions_ShouldPreventFromSendingMessage_ClientNotSendingData()
+        {
+            var eventCalled = false;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                eventCalled = true;
+                return null;
+            };
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+            {
+                eventCalled = true;
+                return false;
+            };
+
+            BacktraceClient.Configuration.ReportFilterType = ReportFilterType.UnhandledException | ReportFilterType.Message;
+            var message = "report message";
+
+            BacktraceClient.Send(message);
+            yield return new WaitForEndOfFrame();
+            Assert.IsFalse(eventCalled);
+
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator TestReportFilter_ShouldPreventFromSendingException_ClientNotSendingData()
         {
             var eventCalled = false;
@@ -211,17 +236,10 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 return null;
             };
 
-            // Return true to ignore a report, return false to handle the report
-            // and generate one for the error.
             BacktraceClient.SkipReport = (ReportFilterType type, Exception exception, string message) =>
             {
-                // ReportFilterType is one of None, Message, Exception,
-                // UnhandledException or Hang. It is also possible to
-                // to filter based on the exception and exception message.
-
-                // Report hangs and crashes only.
-                return type != ReportFilterType.Hang &&
-                    type != ReportFilterType.UnhandledException;
+                reportFilterCalled = true;
+                return type == ReportFilterType.UnhandledException;
             };
 
             // in this situation to learn if we were able to continue processing report 
@@ -232,6 +250,35 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             yield return new WaitForEndOfFrame();
             Assert.IsTrue(reportFilterCalled);
             Assert.IsFalse(eventCalled);
+
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator TestReportFilterDelegate_ShouldntPreventFromSendingUnhandledException_ClientNotSendingData()
+        {
+            var eventCalled = false;
+            var reportFilterCalled = false;
+            BacktraceClient.BeforeSend = (BacktraceData data) =>
+            {
+                eventCalled = true;
+                return null;
+            };
+
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception exception, string message) =>
+            {
+                reportFilterCalled = true;
+                return type != ReportFilterType.UnhandledException;
+            };
+
+            // in this situation to learn if we were able to continue processing report 
+            // we should check if before send event or reportFilter event was called
+            BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Exception;
+            BacktraceClient.Send(new BacktraceUnhandledException(string.Empty, string.Empty));
+
+            yield return new WaitForEndOfFrame();
+            Assert.IsTrue(reportFilterCalled);
+            Assert.IsTrue(eventCalled);
 
             yield return null;
         }

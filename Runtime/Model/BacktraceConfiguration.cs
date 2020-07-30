@@ -68,6 +68,11 @@ namespace Backtrace.Unity.Model
         public uint NumberOfLogs = 10;
 
         /// <summary>
+        /// Flag that allows to include performance statistics in Backtrace report
+        /// </summary>
+        [Tooltip("Enable performance statistics")]
+        public bool PerformanceStatistics = false;
+        /// <summary>
         /// Try to find game native crashes and send them on Game startup
         /// </summary>
         [Tooltip("Try to find game native crashes and send them on Game startup")]
