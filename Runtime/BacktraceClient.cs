@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity
 {
     /// <summary>
@@ -139,6 +140,13 @@ namespace Backtrace.Unity
         /// Set event executed before sending data to Backtrace API
         /// </summary>
         public Func<BacktraceData, BacktraceData> BeforeSend = null;
+
+
+        /// <summary>
+        // Return true to ignore a report, return false to handle the report
+        // and generate one for the error
+        /// </summary>
+        public Func<ReportFilterType, Exception, string, bool> SkipReport = null;
 
         /// <summary>
         /// Set event executed when unhandled application exception event catch exception
@@ -445,7 +453,8 @@ namespace Backtrace.Unity
         {
             const string anrMessage = "ANRException: Blocked thread detected";
             _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
-            SendUnhandledException(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
+            var hang = new BacktraceUnhandledException(anrMessage, stackTrace);
+            SendUnhandledException(hang);
         }
 #endif
 
@@ -473,13 +482,13 @@ namespace Backtrace.Unity
             _backtraceLogManager.Enqueue(unityMessage);
             if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
             {
-                SendUnhandledException(unityMessage);
+                var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
+                SendUnhandledException(exception);
             }
         }
 
-        private void SendUnhandledException(BacktraceUnityMessage unityMessage)
+        private void SendUnhandledException(BacktraceUnhandledException exception)
         {
-            var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
             if (OnUnhandledApplicationException != null)
             {
                 OnUnhandledApplicationException.Invoke(exception);
@@ -492,6 +501,20 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
+            // guess report type
+            var filterType = ReportFilterType.Exception;
+            if (exception is BacktraceUnhandledException)
+            {
+                filterType = (exception as BacktraceUnhandledException).Classifier == "ANRException"
+                    ? ReportFilterType.Hang
+                    : ReportFilterType.UnhandledException;
+            }
+
+
+            if (ShouldSkipReport(filterType, exception, string.Empty))
+            {
+                return false;
+            }
             //check rate limiting
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
@@ -511,6 +534,11 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(string message, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
+            if (ShouldSkipReport(ReportFilterType.Message, null, message))
+            {
+                return false;
+            }
+
             //check rate limiting
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
@@ -530,6 +558,15 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(BacktraceReport report)
         {
+            if (ShouldSkipReport(
+                    report.ExceptionTypeReport
+                        ? ReportFilterType.Exception
+                        : ReportFilterType.Message,
+                    report.Exception,
+                    report.Message))
+            {
+                return false;
+            }
             //check rate limiting
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
@@ -572,6 +609,20 @@ namespace Backtrace.Unity
             return !invalidConfiguration;
         }
 
+
+        /// <summary>
+        /// Check if client should skip current report
+        /// </summary>
+        /// <param name="type">Report type</param>
+        /// <param name="exception">Exception object</param>
+        /// <param name="message">String message</param>
+        /// <returns>true if client should skip report. Otherwise false.</returns>
+        private bool ShouldSkipReport(ReportFilterType type, Exception exception, string message)
+        {
+            return Configuration.ReportFilterType == type
+                || (SkipReport != null && SkipReport.Invoke(type, exception, message));
+
+        }
 
     }
 }

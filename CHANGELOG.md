@@ -1,5 +1,30 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.3
+This release includes significant improvements to performance by way of report filtering as well as improved performance diagnostics. Learn more below.
+ 
+- `BacktraceClient` now supports report filtering. Report filtering is enabled by using the `Filter reports` option in the user interface or for more advanced use-cases, the `SkipReport` delegate available in the BacktraceClient.
+ 
+Sample code: 
+```csharp
+  // Return true to ignore a report, return false to handle the report
+  // and generate one for the error.
+  BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+  {
+    // ReportFilterType is one of None, Message, Exception,
+    // UnhandledException or Hang. It is also possible to
+    // to filter based on the exception and exception message.
+
+    // Report hangs and crashes only.
+    return type != ReportFilterType.Hang && type != ReportFilterType.UnhandledException;
+  };
+```
+ 
+For example, to only get error reporting for hangs or crashes then only return false for Hang or UnhandledException or set the corresponding options in the user interface as shown below.
+
+![Sample report filter](./Documentation~/images/report-filter.PNG)
+
+
 ## Version 3.0.2
 - `BacktraceDatabase` now provides a new `Send` method. This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.
 - `BacktraceClient` has been optimized to only serialize data as needed.
