@@ -349,7 +349,7 @@ namespace Backtrace.Unity
             if (Configuration.PerformanceStatistics)
             {
                 stopWatch.Stop();
-                queryAttributes["performance.database.flush"] = MetricsHelper.GetPerformanceInfo(stopWatch);
+                queryAttributes["performance.database.flush"] = stopWatch.GetMicroseconds();
             }
 
             if (backtraceData == null)
@@ -386,7 +386,7 @@ namespace Backtrace.Unity
                 if (Configuration.PerformanceStatistics)
                 {
                     stopWatch.Stop();
-                    queryAttributes["performance.database.send"] = MetricsHelper.GetPerformanceInfo(stopWatch);
+                    queryAttributes["performance.database.send"] = stopWatch.GetMicroseconds();
                 }
                 queryAttributes["_mod_duplicate"] = record.Count.ToString();
 

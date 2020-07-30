@@ -142,7 +142,7 @@ namespace Backtrace.Unity.Services
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Stop();
-                    Debug.Log(string.Format("Backtrace - minidump send time: {0}ms", MetricsHelper.GetPerformanceInfo(stopWatch)));
+                    Debug.Log(string.Format("Backtrace - minidump send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
 
                 yield return result;
@@ -256,7 +256,7 @@ namespace Backtrace.Unity.Services
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Stop();
-                    Debug.Log(string.Format("Backtrace - JSON send time: {0}ms", MetricsHelper.GetPerformanceInfo(stopWatch)));
+                    Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
             }

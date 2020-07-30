@@ -5,9 +5,15 @@ namespace Backtrace.Unity.Common
 {
     internal static class MetricsHelper
     {
-        public static string GetPerformanceInfo(Stopwatch stopwatch)
+        /// <summary>
+        /// Get performance info from stopwatch in micros
+        /// </summary>
+        /// <param name="stopwatch">Stop watch</param>
+        /// <returns>Elapsed time in μs</returns>
+        public static string GetMicroseconds(this Stopwatch stopwatch)
         {
-            return Math.Max(1, stopwatch.ElapsedMilliseconds).ToString();
+            var elapsedTime = ((stopwatch.ElapsedTicks * 1000000) / Stopwatch.Frequency);
+            return Math.Max(1, elapsedTime).ToString();
         }
     }
 }

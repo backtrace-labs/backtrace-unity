@@ -228,6 +228,8 @@ namespace Backtrace.Unity
 
 #if UNITY_2018_4_OR_NEWER
                 ignoreSslValidation: Configuration.IgnoreSslValidation
+#else
+                ignoreSslValidation: false
 #endif
                 );
             BacktraceApi.EnablePerformanceStatistics = Configuration.PerformanceStatistics;
@@ -361,7 +363,7 @@ namespace Backtrace.Unity
             if (EnablePerformanceStatistics)
             {
                 stopWatch.Stop();
-                queryAttributes["performance.report"] = MetricsHelper.GetPerformanceInfo(stopWatch);
+                queryAttributes["performance.report"] = stopWatch.GetMicroseconds();
             }
 
             yield return new WaitForEndOfFrame();
@@ -392,7 +394,7 @@ namespace Backtrace.Unity
                     if (EnablePerformanceStatistics)
                     {
                         stopWatch.Stop();
-                        queryAttributes["performance.database"] = MetricsHelper.GetPerformanceInfo(stopWatch);
+                        queryAttributes["performance.database"] = stopWatch.GetMicroseconds();
                     }
 
 
@@ -417,7 +419,7 @@ namespace Backtrace.Unity
             if (EnablePerformanceStatistics)
             {
                 stopWatch.Stop();
-                queryAttributes["performance.json"] = MetricsHelper.GetPerformanceInfo(stopWatch);
+                queryAttributes["performance.json"] = stopWatch.GetMicroseconds();
             }
 
             //backward compatibility 
