@@ -495,9 +495,7 @@ namespace Backtrace.Unity
                 reportAttributes = _nativeClient.GetAttributes();
             }
 
-            var result = report.ToBacktraceData(reportAttributes, GameObjectDepth);
-
-            return result;
+            return report.ToBacktraceData(reportAttributes, GameObjectDepth);
         }
 
 #if UNITY_ANDROID
