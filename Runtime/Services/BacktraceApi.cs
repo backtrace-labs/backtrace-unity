@@ -5,8 +5,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
-using System.Web;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -66,7 +66,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         /// <param name="credentials">API credentials</param>
         public BacktraceApi(
-            BacktraceCredentials credentials, 
+            BacktraceCredentials credentials,
             bool ignoreSslValidation = false)
         {
             _credentials = credentials;
@@ -321,12 +321,30 @@ namespace Backtrace.Unity.Services
         private string GetParametrizedQuery(Dictionary<string, string> queryAttributes)
         {
             var uriBuilder = new UriBuilder(_serverurl);
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-            foreach (var queryAttribute in queryAttributes)
+            if (queryAttributes == null || !queryAttributes.Any())
             {
-                query[queryAttribute.Key] = UrlEncode(queryAttribute.Value);
+                return uriBuilder.Uri.ToString();
             }
-            uriBuilder.Query = query.ToString();
+
+
+            StringBuilder builder = new StringBuilder();
+            var shouldStartWithAnd = true;
+            if (string.IsNullOrEmpty(uriBuilder.Query))
+            {
+                shouldStartWithAnd = false;
+                builder.Append("?");
+            }
+
+            for (int queryIndex = 0; queryIndex < queryAttributes.Count; queryIndex++)
+            {
+                if (queryIndex != 0 || shouldStartWithAnd)
+                {
+                    builder.Append("&");
+                }
+                var queryAttribute = queryAttributes.ElementAt(queryIndex);
+                builder.AppendFormat("{0}={1}", queryAttribute.Key, UrlEncode(queryAttribute.Value));
+            }
+            uriBuilder.Query += builder.ToString();
             return uriBuilder.Uri.ToString();
         }
 
