@@ -119,7 +119,7 @@ namespace Backtrace.Unity.Model
         /// <param name="text"></param>
         internal void AssignSourceCodeToReport(string text)
         {
-            if (!DiagnosticStack.Any())
+            if (DiagnosticStack == null ||  !DiagnosticStack.Any())
             {
                 return;
             }
@@ -153,7 +153,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal void SetReportFingerPrintForEmptyStackTrace()
         {
-            if ((Exception != null && string.IsNullOrEmpty(Exception.StackTrace)) || !DiagnosticStack.Any() )
+            if ((Exception != null && string.IsNullOrEmpty(Exception.StackTrace)) || DiagnosticStack == null || !DiagnosticStack.Any() )
             {
                 // set attributes instead of fingerprint to still allow our user to define customer
                 // fingerprints for reports without stack trace and apply deduplication rules in report flow.
