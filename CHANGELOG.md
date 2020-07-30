@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.3
+- `BacktraceClient` allows to collect client performance statistics. To enable sending performance information to Backtrace please set option `Enable performance statistics` in the UI. In addition to that when this option is enabled, BacktraceClient will print time needed to send diagnostic JSON to Backtrace. `BacktraceClient` statistics measure: 
+* report creation time (`performance.report`),
+* json creation time (`performance.json`),
+* database add operation time (`performance.database`),
+* database single send method time (`performance.send`),
+* database single flush method time (`performance.flush`)
+
+`BacktraceClient` collects those information in microseconds.
+
 ## Version 3.0.2
 - `BacktraceDatabase` now provides a new `Send` method. This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.
 - `BacktraceClient` has been optimized to only serialize data as needed.
