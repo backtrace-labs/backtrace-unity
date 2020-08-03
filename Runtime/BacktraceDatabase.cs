@@ -106,7 +106,6 @@ namespace Backtrace.Unity
         /// </summary>
         public void Reload()
         {
-
             // validate configuration
             if (Configuration == null)
             {
@@ -118,8 +117,11 @@ namespace Backtrace.Unity
                 return;
             }
 
-
+#if UNITY_SWITCH
+            Enable = false;
+#else
             Enable = Configuration.Enabled && InitializeDatabasePaths();
+#endif
             if (!Enable)
             {
                 if (Configuration.Enabled)
@@ -452,6 +454,10 @@ namespace Backtrace.Unity
         /// <returns>Success when directory exists, otherwise false</returns>
         protected virtual bool InitializeDatabasePaths()
         {
+            if (!Configuration.Enabled)
+            {
+                return false;
+            }
             DatabasePath = DatabasePathHelper.GetFullDatabasePath(Configuration.DatabasePath);
             if (string.IsNullOrEmpty(DatabasePath))
             {

@@ -110,8 +110,11 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.sandboxType"] = Application.sandboxType.ToString();
             Attributes["application.system.language"] = Application.systemLanguage.ToString();
             Attributes["application.unity.version"] = Application.unityVersion;
-            Attributes["application.temporary_cache"] = Application.temporaryCachePath;
             Attributes["application.debug"] = Debug.isDebugBuild.ToString();
+#if !UNITY_SWITCH
+            Attributes["application.temporary_cache"] = Application.temporaryCachePath;
+#endif
+
 
         }
 
@@ -122,11 +125,13 @@ namespace Backtrace.Unity.Model.JsonData
         /// <returns>Machine uuid</returns>
         private static string GenerateMachineId()
         {
+#if !UNITY_WEBGL && !UNITY_SWITCH
+             // DeviceUniqueIdentifier will return "Switch" on Nintendo Switch
+            // try to generate random guid instead
             if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
             {
                 return SystemInfo.deviceUniqueIdentifier;
             }
-#if !UNITY_WEBGL
             var networkInterface =
                  NetworkInterface.GetAllNetworkInterfaces()
                     .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up);
@@ -144,7 +149,7 @@ namespace Backtrace.Unity.Model.JsonData
             var value = Convert.ToInt64(hex, 16);
             return GuidExtensions.FromLong(value).ToString();
 #else
-             return Guid.NewGuid().ToString();
+            return Guid.NewGuid().ToString();
 #endif
         }
 

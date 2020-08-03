@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.0.4
+Preliminary Nintendo Switch support has been introduced. The offline database is not currently supported in this version, but will be included in an upcoming release.
+
 ## Version 3.0.3
 This release includes significant improvements to performance by way of report filtering as well as improved performance diagnostics. Learn more below.
  

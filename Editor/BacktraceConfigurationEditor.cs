@@ -25,7 +25,7 @@ namespace Backtrace.Unity.Editor
             EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("HandleUnhandledExceptions"),
                 new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_UNHANDLED_EXCEPTION));
-            
+
             EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("ReportPerMin"),
                 new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_PER_MIN));
@@ -80,10 +80,14 @@ namespace Backtrace.Unity.Editor
                     EditorGUILayout.HelpBox("Please insert value greater or equal -1", MessageType.Error);
                 }
             }
+#if !UNITY_SWITCH
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");
             EditorGUILayout.PropertyField(enabled, new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_DATABASE));
-
-            if (enabled.boolValue)
+            bool databaseEnabled = enabled.boolValue;
+#else
+            bool databaseEnabled = false;
+#endif
+            if (databaseEnabled)
             {
 
                 SerializedProperty databasePath = serializedObject.FindProperty("DatabasePath");
@@ -97,7 +101,7 @@ namespace Backtrace.Unity.Editor
                 GUIStyle databaseFoldout = new GUIStyle(EditorStyles.foldout);
                 showDatabaseSettings = EditorGUILayout.Foldout(showDatabaseSettings, "Advanced database settings", databaseFoldout);
                 if (showDatabaseSettings)
-                {                    
+                {
                     EditorGUILayout.PropertyField(
                        serializedObject.FindProperty("DeduplicationStrategy"),
                        new GUIContent(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES));
