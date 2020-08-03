@@ -35,6 +35,23 @@ catch(Exception exception){
 - .NET 2.0/3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
 
+# Platforms Supported
+Backtrace-unity has been tested and certified for games deployed on the following platforms:
+Mobile - Android, iOS
+PC - Windows, Mac
+Web - WebGL
+Game Consoles - PlayStation4, Xbox One, Nintendo Switch
+There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
+* All Platforms - Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
+* Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio)
+* iOS - Identified by attribute uname.sysname = IOS
+* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information.
+*Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
+* PlayStation4 - Identified by attribute uname.sysname = PS4
+* Windows - Identified by attribute uname.sysname = Windows. Provides an option to capture Minidumps for Engine Crashes.
+* MacOS - Identified by attribute uname.sysname = MacOS.
+Note: Unity allows you to disable stack trace information in player properties. As a result backtrace-unity, the call stack and the log lines section will be empty.
+
 # Setup <a name="installation"></a>
 
 List of steps necessary to setup full Backtrace Unity integration.
