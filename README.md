@@ -50,7 +50,8 @@ There are some differences in capabilities that backtrace-unity provides based o
 * PlayStation4 - Identified by attribute uname.sysname = PS4
 * Windows - Identified by attribute uname.sysname = Windows. Provides an option to capture Minidumps for Engine Crashes.
 * MacOS - Identified by attribute uname.sysname = MacOS.
-Note: Unity allows you to disable stack trace information in player properties. As a result backtrace-unity, the call stack and the log lines section will be empty.
+
+Note: Unity allows you to disable stack trace information in player properties. If this is set, the call stack and the log lines section in Backtrace will be empty.
 
 # Setup <a name="installation"></a>
 
