@@ -46,7 +46,7 @@ There are some differences in capabilities that backtrace-unity provides based o
 * Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio)
 * iOS - Identified by attribute uname.sysname = IOS
 * WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information.
-*Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
+* Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
 * PlayStation4 - Identified by attribute uname.sysname = PS4
 * Windows - Identified by attribute uname.sysname = Windows. Provides an option to capture Minidumps for Engine Crashes.
 * MacOS - Identified by attribute uname.sysname = MacOS.
