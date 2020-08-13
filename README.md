@@ -43,7 +43,7 @@ Web - WebGL
 Game Consoles - PlayStation4, Xbox One, Nintendo Switch
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 * All Platforms - Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
-* Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio)
+* Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
 * iOS - Identified by attribute uname.sysname = IOS
 * WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information.
 *Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
@@ -97,6 +97,7 @@ The following is a reference guide to the Backtrace Client fields:
 `${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
 - Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
 - Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
+- Capture native crashes: This option will appear for games being deployed to Android and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Engine Plugin.
 - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
 - Attach Unity Player.log: Add Unity player log file to Backtrace report. NOTE: This feature is available only on desktop - Windows/MacOS/Linux.
 - Attach screenshot: Generate and attach screenshot of frame as exception occurs.
