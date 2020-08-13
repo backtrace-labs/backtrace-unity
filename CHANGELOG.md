@@ -1,7 +1,7 @@
 # Backtrace Unity Release Notes
 
 ## Version 3.1.0-alpha
-Android native crash support.
+This release adds an ability to capture native NDK crashes from Unity games deployed on Android. The Backtrace Configuration now exposes a setting for games being prepared for Android OS to choose `Capture native crashes`. When enabled, Backtrace will capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Engine Plugin.
 
 ## Version 3.0.4
 Preliminary Nintendo Switch support has been introduced. The offline database is not currently supported in this version, but will be included in an upcoming release.
