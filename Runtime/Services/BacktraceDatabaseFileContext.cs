@@ -14,6 +14,7 @@ namespace Backtrace.Unity.Services
     /// </summary>
     internal class BacktraceDatabaseFileContext : IBacktraceDatabaseFileContext
     {
+        private string[] _possibleDatabaseExtension = new string[] { ".dmp", ".json", ".jpg", ".log" };
 
         /// <summary>
         /// Maximum database size
@@ -78,7 +79,7 @@ namespace Backtrace.Unity.Services
                 //database only store data in json and files in dmp extension
                 try
                 {
-                    if (file.Extension != ".dmp" && file.Extension != ".json")
+                    if (!_possibleDatabaseExtension.Any(n => n == file.Extension))
                     {
                         file.Delete();
                         continue;

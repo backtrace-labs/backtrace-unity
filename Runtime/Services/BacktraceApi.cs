@@ -37,7 +37,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Url to server
         /// </summary>
-        private readonly Uri _serverurl;
+        private readonly Uri _serverUrl;
 
         /// <summary>
         /// Enable performance statistics
@@ -51,9 +51,14 @@ namespace Backtrace.Unity.Services
         {
             get
             {
-                return _serverurl.ToString();
+                return _serverUrl.ToString();
             }
         }
+
+        /// <summary>
+        /// Submission url for uploading minidump files
+        /// </summary>
+        private readonly string _minidumpUrl;
 
 
         private readonly BacktraceCredentials _credentials;
@@ -76,7 +81,8 @@ namespace Backtrace.Unity.Services
             }
 
             _ignoreSslValidation = ignoreSslValidation;
-            _serverurl = credentials.GetSubmissionUrl();
+            _serverUrl = credentials.GetSubmissionUrl();
+            _minidumpUrl = credentials.GetMinidumpSubmissionUrl().ToString();
         }
 
         /// <summary>
@@ -96,11 +102,6 @@ namespace Backtrace.Unity.Services
             var stopWatch = EnablePerformanceStatistics
                ? System.Diagnostics.Stopwatch.StartNew()
                : new System.Diagnostics.Stopwatch();
-
-            var jsonServerUrl = ServerUrl;
-            var minidumpServerUrl = jsonServerUrl.IndexOf("submit.backtrace.io") != -1
-                ? jsonServerUrl.Replace("/json", "/minidump")
-                : jsonServerUrl.Replace("format=json", "format=minidump");
 
             List<IMultipartFormSection> formData = new List<IMultipartFormSection>
             {
@@ -122,7 +123,7 @@ namespace Backtrace.Unity.Services
             var boundaryId = string.Format("----------{0:N}", Guid.NewGuid());
             var boundaryIdBytes = Encoding.ASCII.GetBytes(boundaryId);
 
-            using (var request = UnityWebRequest.Post(minidumpServerUrl, formData, boundaryIdBytes))
+            using (var request = UnityWebRequest.Post(_minidumpUrl, formData, boundaryIdBytes))
             {
                 request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundaryId);
                 request.timeout = 15000;
@@ -320,7 +321,7 @@ namespace Backtrace.Unity.Services
 
         private string GetParametrizedQuery(Dictionary<string, string> queryAttributes)
         {
-            var uriBuilder = new UriBuilder(_serverurl);
+            var uriBuilder = new UriBuilder(_serverUrl);
             if (queryAttributes == null || !queryAttributes.Any())
             {
                 return uriBuilder.Uri.ToString();

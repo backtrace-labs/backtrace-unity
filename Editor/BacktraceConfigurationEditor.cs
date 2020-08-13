@@ -42,9 +42,10 @@ namespace Backtrace.Unity.Editor
                     new GUIContent(BacktraceConfigurationLabels.LABEL_IGNORE_SSL_VALIDATION));
 #endif
 #if UNITY_ANDROID
-            EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("HandleANR"),
-                 new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("HandleANR"),
+                     new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
+
 #endif
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),
@@ -117,6 +118,12 @@ namespace Backtrace.Unity.Editor
                         serializedObject.FindProperty("AddUnityLogToReport"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));
 
+#endif
+
+#if UNITY_ANDROID
+                    EditorGUILayout.PropertyField(
+                         serializedObject.FindProperty("CaptureNativeCrashes"),
+                         new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
 #endif
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("AutoSendMode"),

@@ -8,9 +8,6 @@ namespace Backtrace.Unity.Model
     /// </summary>
     public class BacktraceCredentials
     {
-        private const string _configurationHostRecordName = "HostUrl";
-        private const string _configurationTokenRecordName = "Token";
-
         private readonly Uri _backtraceHostUri;
         private readonly byte[] _accessToken;
 
@@ -41,7 +38,6 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Create submission url to Backtrace API
         /// </summary>
-        /// <returns></returns>
         public Uri GetSubmissionUrl()
         {
             if (_backtraceHostUri == null)
@@ -57,6 +53,19 @@ namespace Backtrace.Unity.Model
             return uriBuilder.Uri;
         }
 
+        /// <summary>
+        /// Create minidump submission url to Backtrace API
+        /// </summary>
+        public Uri GetMinidumpSubmissionUrl()
+        {
+            var url = GetSubmissionUrl().ToString();
+            var minidumpUrl = url.IndexOf("submit.backtrace.io") != -1
+                ? url.Replace("/json", "/minidump")
+                : url.Replace("format=json", "format=minidump");
+            var uriBuilder = new UriBuilder(minidumpUrl);
+            return uriBuilder.Uri;
+
+        }
         /// <summary>
         /// Initialize Backtrace credentials with Backtrace submit url. 
         /// If you pass backtraceSubmitUrl you have to make sure url to API is valid and contains token

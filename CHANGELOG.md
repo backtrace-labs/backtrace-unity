@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.1.0-alpha
+Android native crash support.
+
 ## Version 3.0.4
 Preliminary Nintendo Switch support has been introduced. The offline database is not currently supported in this version, but will be included in an upcoming release.
 

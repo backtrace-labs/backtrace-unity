@@ -9,6 +9,7 @@
 
         internal static string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
         internal static string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
+        internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";
         internal static string LABEL_NUMBER_OF_LOGS = "Collect last n game logs";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";

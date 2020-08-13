@@ -1,5 +1,9 @@
-﻿using System;
+﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.JsonData;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native.Android
@@ -9,6 +13,13 @@ namespace Backtrace.Unity.Runtime.Native.Android
     /// </summary>
     internal class NativeClient : INativeClient
     {
+        [DllImport("backtrace-crashpad")]
+        private static extern bool InitializeCrashpad(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath);
+
+        [DllImport("backtrace-crashpad")]
+        public static extern void SetupAttributes(IntPtr keys, IntPtr values);
+
+        private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
         private const string _namespace = "backtrace.io.backtrace_unity_android_plugin";
         private readonly string _nativeAttributesPath = string.Format("{0}.{1}", _namespace, "BacktraceAttributes");
@@ -23,11 +34,59 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Anr watcher object
         /// </summary>
         private AndroidJavaObject _anrWatcher;
-        public NativeClient(string gameObjectName, bool detectAnrs)
+        public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
         {
-            if (detectAnrs && _enabled)
+            _configuration = configuration;
+            if (!_enabled)
             {
-                HandleAnr(gameObjectName, "OnAnrDetected");
+                return;
+            }
+
+            HandleAnr(gameObjectName, "OnAnrDetected");
+            HandleNativeCrashes();
+
+
+        }
+        /// <summary>
+        /// Start crashpad process to handle native Android crashes
+        /// </summary>
+
+        private void HandleNativeCrashes()
+        {
+            // make sure database is enabled 
+            if (!_configuration.Enabled || !_configuration.CaptureNativeCrashes)
+            {
+                return;
+            }
+
+            // crashpad is available only for API level 21+ 
+            // make sure we don't want ot start crashpad handler 
+            // on the unsupported API
+            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            {
+                int apiLevel = version.GetStatic<int>("SDK_INT");
+                if (apiLevel < 21)
+                {
+                    Debug.LogWarning("Crashpad integration status: Unsupported Android API level");
+                    return;
+                }
+            }
+
+            // get default built-in Backtrace-Unity attributes
+            var backtraceAttributes = new BacktraceAttributes(null, null, true);
+            SetupAttributes(
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Keys.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Values.ToArray()));
+
+
+            var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
+            var initializationResult = InitializeCrashpad(
+                AndroidJNI.NewStringUTF(minidumpUrl),
+                AndroidJNI.NewStringUTF(_configuration.CrashpadDatabasePath),
+                AndroidJNI.NewStringUTF(_configuration.CrashpadHandlerPath));
+            if (!initializationResult)
+            {
+                Debug.LogWarning("Crashpad integration status: Cannot initialize Crashpad client");
             }
         }
 
@@ -72,6 +131,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
+            if (!_configuration.HandleANR)
+            {
+                return;
+            }
             try
             {
                 _anrWatcher = new AndroidJavaObject(_anrPath, gameObjectName, callbackName);
