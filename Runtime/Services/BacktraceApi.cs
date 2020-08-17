@@ -309,11 +309,7 @@ namespace Backtrace.Unity.Services
 
         private string GetAttachmentUploadUrl(string rxId, string attachmentName)
         {
-            return string.IsNullOrEmpty(_credentials.Token)
-                ? string.Format("{0}&object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId,
-                    UrlEncode(attachmentName))
-                : string.Format("{0}/api/post?token={1}&object={2}&attachment_name={3}",
-                    _credentials.BacktraceHostUri.AbsoluteUri, _credentials.Token, rxId, UrlEncode(attachmentName));
+            return string.Format("{0}&object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId, UrlEncode(attachmentName));
 
         }
 

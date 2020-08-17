@@ -17,6 +17,7 @@
         internal static string LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP= "Send unhandled native game crashes on startup";
         internal static string LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE = "Use normalized exception message";
         internal static string LABEL_PERFORMANCE_STATISTICS = "Enable performance statistics";
+        internal static string LABEL_SYMBOLS_UPLOAD_TOKEN = "Symbols upload token";
 
         // database labels
         internal static string LABEL_ENABLE_DATABASE = "Enable Database";

@@ -92,6 +92,12 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
         public bool CaptureNativeCrashes = true;
+
+        /// <summary>
+        /// Symbols upload token
+        /// </summary>
+        [Tooltip("Symbols upload token required to upload symbols to Backtrace")]
+        public string SymbolsUploadToken = string.Empty;
 #endif
 
         /// <summary>
@@ -197,18 +203,6 @@ namespace Backtrace.Unity.Model
                     return string.Empty;
                 }
                 return Path.Combine(GetFullDatabasePath(), "crashpad");
-            }
-        }
-
-        public string CrashpadHandlerPath
-        {
-            get
-            {
-                if (!Enabled)
-                {
-                    return string.Empty;
-                }
-                return Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib", "arm", "crashpad_handler.so");
             }
         }
 

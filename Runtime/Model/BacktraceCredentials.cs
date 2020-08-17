@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 
 namespace Backtrace.Unity.Model
 {
@@ -8,42 +7,17 @@ namespace Backtrace.Unity.Model
     /// </summary>
     public class BacktraceCredentials
     {
-        private readonly Uri _backtraceHostUri;
-        private readonly byte[] _accessToken;
 
         /// <summary>
         /// Get a Uri to Backtrace servcie
         /// </summary>
-        public Uri BacktraceHostUri
-        {
-            get
-            {
-                return _backtraceHostUri;
-            }
-        }
-
-        /// <summary>
-        /// Get an access token
-        /// </summary>
-        public string Token
-        {
-            get
-            {
-                return _accessToken == null || _accessToken.Length == 0
-                    ? string.Empty
-                    : Encoding.UTF8.GetString(_accessToken);
-            }
-        }
+        public Uri BacktraceHostUri { get; private set; }
 
         /// <summary>
         /// Create submission url to Backtrace API
         /// </summary>
         public Uri GetSubmissionUrl()
         {
-            if (_backtraceHostUri == null)
-            {
-                throw new ArgumentException("BacktraceHostUri");
-            }
 
             var uriBuilder = new UriBuilder(BacktraceHostUri);
             if (!uriBuilder.Scheme.StartsWith("http"))
@@ -64,7 +38,44 @@ namespace Backtrace.Unity.Model
                 : url.Replace("format=json", "format=minidump");
             var uriBuilder = new UriBuilder(minidumpUrl);
             return uriBuilder.Uri;
+        }
 
+        /// <summary>
+        /// Create symbols submission url to Backtrace
+        /// </summary>
+        /// <returns></returns>
+        public Uri GetSymbolsSubmissionUrl(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentException("Empty symbols submission token");
+            }
+            var url = GetSubmissionUrl().ToString();
+
+            if (url.IndexOf("submit.backtrace.io") != -1)
+            {
+                url = url.Replace("/json", "/symbols");
+                var endIndex = url.LastIndexOf("/");
+                var startIndex = endIndex - 64;
+                var submissionToken = url.Substring(startIndex, 64);
+                url = url.Replace(submissionToken, token);
+
+            }
+            else
+            {
+                url = url.Replace("format=json", "format=symbols");
+                const string tokenPrefix = "token=";
+                var tokenIndex = url.IndexOf(tokenPrefix);
+                if (tokenIndex == -1)
+                {
+                    throw new ArgumentException("Missing token in Backtrace url");
+                }
+                var submissionToken = url.Substring(tokenIndex + tokenPrefix.Length, 64);
+                url = url.Replace(submissionToken, token);
+            }
+
+            var uriBuilder = new UriBuilder(url);
+            return uriBuilder.Uri;
         }
         /// <summary>
         /// Initialize Backtrace credentials with Backtrace submit url. 
@@ -82,63 +93,8 @@ namespace Backtrace.Unity.Model
         /// <param name="backtraceSubmitUrl">Backtrace submit url</param>
         public BacktraceCredentials(Uri backtraceSubmitUrl)
         {
-            var hostToCheck = backtraceSubmitUrl.Host;
-            if (!hostToCheck.StartsWith("www."))
-            {
-                hostToCheck = string.Format("www.{0}", hostToCheck);
-            }
-            _backtraceHostUri = backtraceSubmitUrl;
+            BacktraceHostUri = backtraceSubmitUrl;
         }
-
-        /// <summary>
-        /// Initialize Backtrace credencials
-        /// </summary>
-        /// <param name="backtraceHostUri">Uri to Backtrace host</param>
-        /// <param name="accessToken">Access token to Backtrace services</param>
-        /// <exception cref="ArgumentException">Thrown when uri to backtrace is invalid or accessToken is null or empty</exception>
-        public BacktraceCredentials(
-            Uri backtraceHostUri,
-            byte[] accessToken)
-        {
-            if (!IsValid(backtraceHostUri, accessToken))
-            {
-                throw new ArgumentException(string.Format("{0} or {1} is not valid.", "backtraceHostUri", "accessToken"));
-            }
-            _backtraceHostUri = backtraceHostUri;
-            _accessToken = accessToken;
-        }
-        /// <summary>
-        /// Initialize Backtrace credencials
-        /// </summary>
-        /// <param name="backtraceHostUrl">Url to Backtrace Url</param>
-        /// <param name="accessToken">Access token to Backtrace services</param>
-        public BacktraceCredentials(
-            string backtraceHostUrl,
-            byte[] accessToken)
-        : this(new Uri(backtraceHostUrl), accessToken)
-        { }
-
-        /// <summary>
-        /// Initialize Backtrace credencials
-        /// </summary>
-        /// <param name="backtraceHostUrl">Url to Backtrace Url</param>
-        /// <param name="accessToken">Access token to Backtrace services</param>
-        public BacktraceCredentials(
-            string backtraceHostUrl,
-            string accessToken)
-        : this(backtraceHostUrl, Encoding.UTF8.GetBytes(accessToken))
-        { }
-
-        /// <summary>
-        /// Initialize Backtrace credencials
-        /// </summary>
-        /// <param name="backtraceHostUri">Url to Backtrace Url</param>
-        /// <param name="accessToken">Access token to Backtrace services</param>
-        public BacktraceCredentials(
-            Uri backtraceHostUri,
-            string accessToken)
-        : this(backtraceHostUri, Encoding.UTF8.GetBytes(accessToken))
-        { }
         /// <summary>
         /// Check if model passed to constructor is valid
         /// </summary>

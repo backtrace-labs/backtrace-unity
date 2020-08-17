@@ -2,6 +2,7 @@
 using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -71,7 +72,13 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     return;
                 }
             }
-
+            var libDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
+            var crashpadHandlerPath = Directory.GetFiles(libDirectory, "libcrashpad_handler.so", SearchOption.AllDirectories).FirstOrDefault();
+            if (string.IsNullOrEmpty(crashpadHandlerPath))
+            {
+                Debug.LogWarning("Crashpad integration status: Cannot find crashpad library");
+                return;
+            }
             // get default built-in Backtrace-Unity attributes
             var backtraceAttributes = new BacktraceAttributes(null, null, true);
             SetupAttributes(
@@ -83,7 +90,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             var initializationResult = InitializeCrashpad(
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(_configuration.CrashpadDatabasePath),
-                AndroidJNI.NewStringUTF(_configuration.CrashpadHandlerPath));
+                AndroidJNI.NewStringUTF(crashpadHandlerPath));
             if (!initializationResult)
             {
                 Debug.LogWarning("Crashpad integration status: Cannot initialize Crashpad client");
