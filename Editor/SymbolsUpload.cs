@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -199,3 +200,4 @@ namespace Backtrace.Unity.Editor.Build
         }
     }
 }
+#endif

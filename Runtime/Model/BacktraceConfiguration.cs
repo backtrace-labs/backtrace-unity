@@ -93,11 +93,13 @@ namespace Backtrace.Unity.Model
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
         public bool CaptureNativeCrashes = true;
 
+#if UNITY_2019_2_OR_NEWER
         /// <summary>
         /// Symbols upload token
         /// </summary>
         [Tooltip("Symbols upload token required to upload symbols to Backtrace")]
         public string SymbolsUploadToken = string.Empty;
+#endif
 #endif
 
         /// <summary>

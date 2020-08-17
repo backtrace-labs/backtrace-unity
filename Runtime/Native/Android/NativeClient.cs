@@ -35,6 +35,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Anr watcher object
         /// </summary>
         private AndroidJavaObject _anrWatcher;
+
+        private bool _captureNativeCrashes = false;
+        private bool _handlerANR = false;
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
         {
             _configuration = configuration;
@@ -42,7 +45,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 return;
             }
-
+#if UNITY_ANDROID
+            _captureNativeCrashes = _configuration.CaptureNativeCrashes;
+            _handlerANR = _configuration.HandleANR;
+#endif
             HandleAnr(gameObjectName, "OnAnrDetected");
             HandleNativeCrashes();
 
@@ -55,7 +61,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private void HandleNativeCrashes()
         {
             // make sure database is enabled 
-            if (!_configuration.Enabled || !_configuration.CaptureNativeCrashes)
+            if (!_captureNativeCrashes)
             {
                 return;
             }
@@ -138,7 +144,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
-            if (!_configuration.HandleANR)
+            if (!_handlerANR)
             {
                 return;
             }
