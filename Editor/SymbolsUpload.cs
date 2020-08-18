@@ -31,7 +31,7 @@ namespace Backtrace.Unity.Editor.Build
                 return;
             }
             // validate if symbols.zip archive exists 
-            var symbolsArchive = GetPathToSymbolsArchive(BuildReport report);
+            var symbolsArchive = GetPathToSymbolsArchive(report);
             var backtraceAssets = AssetDatabase.FindAssets("Backtrace t: ScriptableObject", null);
             foreach (string backtraceAsset in backtraceAssets)
             {
