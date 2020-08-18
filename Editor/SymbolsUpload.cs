@@ -1,4 +1,4 @@
-﻿#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
 using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
@@ -31,7 +31,7 @@ namespace Backtrace.Unity.Editor.Build
                 return;
             }
             // validate if symbols.zip archive exists 
-            var symbolsArchive = GetPathToSymbolsArchive(Path.GetFileNameWithoutExtension(report.summary.outputPath));
+            var symbolsArchive = GetPathToSymbolsArchive(BuildReport report);
             var backtraceAssets = AssetDatabase.FindAssets("Backtrace t: ScriptableObject", null);
             foreach (string backtraceAsset in backtraceAssets)
             {
@@ -132,10 +132,10 @@ namespace Backtrace.Unity.Editor.Build
             }
         }
 
-        private string GetPathToSymbolsArchive(string installerName)
-        {
-            var archiveName = string.Format("{0}-{1}-v{2}.symbols.zip", installerName, PlayerSettings.bundleVersion, PlayerSettings.Android.bundleVersionCode);
-            return Path.Combine(Directory.GetParent(Application.dataPath).FullName, archiveName);
+        private string GetPathToSymbolsArchive(BuildReport report)
+        {BuildReport
+            var archiveName = string.Format("{0}-{1}-v{2}.symbols.zip", Path.GetFileNameWithoutExtension(report.summary.outputPath), PlayerSettings.bundleVersion, PlayerSettings.Android.bundleVersionCode);
+            return Path.Combine(Directory.GetParent(report.summary.outputPath).FullName, archiveName);
 
         }
         private BacktraceConfiguration GetBacktraceConfiguration(string assetPath)
