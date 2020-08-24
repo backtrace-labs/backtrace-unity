@@ -8,5 +8,7 @@ namespace Backtrace.Unity.Runtime.Native
         void HandleAnr(string gameObjectName, string callbackName);
 #endif
         Dictionary<string, string> GetAttributes();
+
+        void SetAttribute(string key, string value);
     }
 }

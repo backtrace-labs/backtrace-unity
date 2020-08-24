@@ -15,10 +15,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
     internal class NativeClient : INativeClient
     {
         [DllImport("backtrace-crashpad")]
-        private static extern bool InitializeCrashpad(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath);
+        private static extern bool InitializeCrashpad(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values);
 
         [DllImport("backtrace-crashpad")]
-        public static extern void SetupAttributes(IntPtr keys, IntPtr values);
+        private static extern bool AddCrashpadAttribute(IntPtr key, IntPtr value);
 
         private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
@@ -87,17 +87,18 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             // get default built-in Backtrace-Unity attributes
             var backtraceAttributes = new BacktraceAttributes(null, null, true);
-            SetupAttributes(
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Keys.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Values.ToArray()));
-
-
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-            var initializationResult = InitializeCrashpad(
+            
+            // reassign to captureNativeCrashes
+            // to avoid doing anything on crashpad binary, when crashpad
+            // isn't available
+            _captureNativeCrashes = InitializeCrashpad(
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(_configuration.CrashpadDatabasePath),
-                AndroidJNI.NewStringUTF(crashpadHandlerPath));
-            if (!initializationResult)
+                AndroidJNI.NewStringUTF(crashpadHandlerPath),
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Keys.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Values.ToArray()));
+            if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Crashpad integration status: Cannot initialize Crashpad client");
             }
@@ -157,6 +158,30 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning(string.Format("Cannot initialize ANR watchdog - reason: {0}", e.Message));
                 _enabled = false;
             }
+        }
+
+        /// <summary>
+        /// Set Backtrace-Android crashpad crash attributes
+        /// </summary>
+        /// <param name="key">Attribute key</param>
+        /// <param name="value">Attribute value</param>
+        public void SetAttribute(string key, string value)
+        {
+            Debug.Log($"Adding attribute to crashpad");
+            if (!_captureNativeCrashes || string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+            Debug.Log($"Adding attribute to crashpad. {key} {value}");
+            // avoid null reference in crashpad source code
+            if (value == null)
+            {
+                value = string.Empty;
+            }
+
+            AddCrashpadAttribute(
+                AndroidJNI.NewStringUTF(key),
+                AndroidJNI.NewStringUTF(value));
         }
     }
 }

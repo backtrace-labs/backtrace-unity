@@ -1,16 +1,73 @@
 ﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
-    public class BacktraceAttributeTests
+    public class BacktraceAttributeTests : BacktraceBaseTest
     {
+        private const int CLIENT_RATE_LIMIT = 3;
+
+        [SetUp]
+        public void Setup()
+        {
+            BeforeSetup();
+            BacktraceClient.Configuration = GetBasicConfiguration();
+            BacktraceClient.SetClientReportLimit(CLIENT_RATE_LIMIT);
+            AfterSetup();
+        }
+
+        [UnityTest]
+        public IEnumerator TesClientAttributeAccessor_BacktraceDataShouldIncludeClientAttributes_ClientAttributesAreAvailableInDiagnosticData()
+        {
+            var key = "foo";
+            var value = "bar";
+            BacktraceClient[key] = value;
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+             {
+                 data = reportData;
+                 return null;
+             };
+            BacktraceClient.Send(new Exception("foo"));
+            yield return new WaitForEndOfFrame();
+            Assert.IsNotNull(data);
+            Assert.AreEqual(data.Attributes.Attributes[key], value);
+            yield return null;
+        }
+
+
+        [UnityTest]
+        public IEnumerator TesClientAttributesMethod_BacktraceDataShouldIncludeClientAttributes_ClientAttributesAreAvailableInDiagnosticData()
+        {
+            var key = "foo2";
+            var value = "bar2";
+            var attributes = new Dictionary<string, string>();
+            attributes[key] = value;
+            BacktraceClient.SetAttributes(attributes);
+
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new Exception("foo"));
+            yield return new WaitForEndOfFrame();
+
+            Assert.IsNotNull(data);
+            Assert.AreEqual(data.Attributes.Attributes[key], value);
+            yield return null;
+        }
+
+
         [UnityTest]
         public IEnumerator TestAttributesGeneration_CreateCorrectAttributes_WithDiffrentReportConfiguration()
         {
@@ -39,8 +96,8 @@ namespace Backtrace.Unity.Tests.Runtime
             var testObject = new BacktraceAttributes(exceptionReport, clientAttributes);
             Assert.IsTrue(testObject.Attributes.Keys.Any(n => n == clientAttributeKey));
             Assert.IsTrue(testObject.Attributes.Keys.Any(n => n == reportAttributeKey));
-            Assert.IsTrue(testObject.Attributes[clientAttributeKey]== clientAttributeValue);
-            Assert.IsTrue(testObject.Attributes[reportAttributeKey]== reportAttributeValue);
+            Assert.IsTrue(testObject.Attributes[clientAttributeKey] == clientAttributeValue);
+            Assert.IsTrue(testObject.Attributes[reportAttributeKey] == reportAttributeValue);
             yield return null;
         }
 
