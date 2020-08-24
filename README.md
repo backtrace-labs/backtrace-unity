@@ -122,6 +122,9 @@ If you setup `Backtrace client` and `Backtrace database` configuration you can r
  //Read from manager BacktraceClient instance
 var backtraceClient = GameObject.Find("manager name").GetComponent<BacktraceClient>();
 
+//Set custom client attribute
+backtraceClient["attribute"] = "attribute value";
+
  //Read from manager BacktraceClient instance
 var database = GameObject.Find("manager name").GetComponent<BacktraceDatabase>();
 
@@ -140,9 +143,10 @@ If you would like to change Backtrace client/database options, we recommend to c
 For example:
 
 ```csharp
- //Read from manager BacktraceClient instance
+//Read from manager BacktraceClient instance
 var backtraceClient = GameObject.Find("manager name").GetComponent<BacktraceClient>();
-
+//Set custom client attribute
+backtraceClient["attribute"] = "attribute value";
 //Change configuration value
 backtraceClient.Configuration.DeduplicationStrategy = deduplicationStrategy;
 //Refresh configuraiton
