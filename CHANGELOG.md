@@ -1,6 +1,6 @@
 # Backtrace Unity Release Notes
 
-## Version 3.1.0-alpha
+## Version 3.1.0
 This release adds an ability to capture native NDK crashes from Unity games deployed on Android. The Backtrace Configuration now exposes a setting for games being prepared for Android OS to choose `Capture native crashes`. When enabled, Backtrace will capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Engine Plugin.
 
 When develoing for Andriod, Unity users who want to debug native NDK crash report can specify a Backtrace Symbols Server Token to support the optional uploading of debug symbols from Unity Editor to Backtrace during build. Uploaded symbols are needed to generate human readable stack trace with proper function names for identifying issues. 
