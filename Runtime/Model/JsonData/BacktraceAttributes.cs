@@ -20,7 +20,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Get built-in primitive attributes
         /// </summary>
-        public Dictionary<string, string> Attributes = new Dictionary<string, string>();
+        public readonly Dictionary<string, string> Attributes;
 
         private static string _machineId;
         private static string MachineId
@@ -42,12 +42,14 @@ namespace Backtrace.Unity.Model.JsonData
         /// </summary>
         /// <param name="report">Received report</param>
         /// <param name="clientAttributes">Client's attributes (report and client)</param>
-        public BacktraceAttributes(BacktraceReport report, Dictionary<string, string> clientAttributes)
+        public BacktraceAttributes(BacktraceReport report, Dictionary<string, string> clientAttributes, bool onlyBuiltInAttributes = false)
         {
             if (clientAttributes == null)
             {
                 clientAttributes = new Dictionary<string, string>();
             }
+            Attributes = clientAttributes;
+
             if (report != null)
             {
                 ConvertAttributes(report, clientAttributes);
@@ -55,9 +57,9 @@ namespace Backtrace.Unity.Model.JsonData
             }
             //Environment attributes override user attributes     
             SetLibraryAttributes(report);
-            SetMachineAttributes();
-            SetProcessAttributes();
-            SetSceneInformation();
+            SetMachineAttributes(onlyBuiltInAttributes);
+            SetProcessAttributes(onlyBuiltInAttributes);
+            SetSceneInformation(onlyBuiltInAttributes);
         }
         private BacktraceAttributes() { }
 
@@ -81,13 +83,16 @@ namespace Backtrace.Unity.Model.JsonData
         /// </summary>
         private void SetLibraryAttributes(BacktraceReport report)
         {
-            if (!string.IsNullOrEmpty(report.Factor))
+            if (report != null)
             {
-                Attributes["_mod_factor"] = report.Factor;
-            }
-            if (!string.IsNullOrEmpty(report.Fingerprint))
-            {
-                Attributes["_mod_fingerprint"] = report.Fingerprint;
+                if (!string.IsNullOrEmpty(report.Factor))
+                {
+                    Attributes["_mod_factor"] = report.Factor;
+                }
+                if (!string.IsNullOrEmpty(report.Fingerprint))
+                {
+                    Attributes["_mod_fingerprint"] = report.Fingerprint;
+                }
             }
 
             Attributes["guid"] = MachineId;
@@ -126,7 +131,7 @@ namespace Backtrace.Unity.Model.JsonData
         private static string GenerateMachineId()
         {
 #if !UNITY_WEBGL && !UNITY_SWITCH
-             // DeviceUniqueIdentifier will return "Switch" on Nintendo Switch
+            // DeviceUniqueIdentifier will return "Switch" on Nintendo Switch
             // try to generate random guid instead
             if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
             {
@@ -183,14 +188,18 @@ namespace Backtrace.Unity.Model.JsonData
                 : report.Message;
         }
 
-        internal void SetSceneInformation()
+        internal void SetSceneInformation(bool onlyBuiltInAttributes = false)
         {
-            //The number of Scenes which have been added to the Build Settings. The Editor will contain Scenes that were open before entering playmode.
+            //The number of Scenes which have been added to the Build Settings. The Editor will contain Scenes that were opened before entering playmode.
             if (SceneManager.sceneCountInBuildSettings > 0)
             {
                 Attributes["scene.count.build"] = SceneManager.sceneCountInBuildSettings.ToString();
             }
             Attributes["scene.count"] = SceneManager.sceneCount.ToString();
+            if (onlyBuiltInAttributes)
+            {
+                return;
+            }
             var activeScene = SceneManager.GetActiveScene();
             Attributes["scene.active"] = activeScene.name;
             Attributes["scene.buildIndex"] = activeScene.buildIndex.ToString();
@@ -206,8 +215,12 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Set attributes from current process
         /// </summary>
-        private void SetProcessAttributes()
+        private void SetProcessAttributes(bool onlyBuiltInAttributes = false)
         {
+            if (onlyBuiltInAttributes)
+            {
+                return;
+            }
             Attributes["gc.heap.used"] = GC.GetTotalMemory(false).ToString();
             Attributes["process.age"] = Math.Round(Time.realtimeSinceStartup).ToString();
         }
@@ -238,14 +251,17 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Set attributes about current machine
         /// </summary>
-        private void SetMachineAttributes()
+        private void SetMachineAttributes(bool onlyBuiltInAttributes = false)
         {
-            //collect battery data
-            var batteryLevel = SystemInfo.batteryLevel == -1
-                    ? -1
-                    : SystemInfo.batteryLevel * 100;
-            Attributes["battery.level"] = batteryLevel.ToString();
-            Attributes["battery.status"] = SystemInfo.batteryStatus.ToString();
+            if (onlyBuiltInAttributes)
+            {
+                //collect battery data
+                var batteryLevel = SystemInfo.batteryLevel == -1
+                        ? -1
+                        : SystemInfo.batteryLevel * 100;
+                Attributes["battery.level"] = batteryLevel.ToString();
+                Attributes["battery.status"] = SystemInfo.batteryStatus.ToString();
+            }
 
             if (SystemInfo.deviceModel != SystemInfo.unsupportedIdentifier)
             {

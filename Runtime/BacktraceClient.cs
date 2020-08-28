@@ -23,6 +23,42 @@ namespace Backtrace.Unity
         public bool Enabled { get; private set; }
 
         /// <summary>
+        /// Client attributes
+        /// </summary>
+        private readonly Dictionary<string, string> _clientAttributes = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Attribute object accessor
+        /// </summary>
+        public string this[string index]
+        {
+            get
+            {
+                return _clientAttributes[index];
+            }
+            set
+            {
+                _clientAttributes[index] = value;
+                if(_nativeClient != null)
+                {
+                    _nativeClient.SetAttribute(index, value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set client attributes that will be included in every report
+        /// </summary>
+        /// <param name="attributes">attributes dictionary</param>
+        public void SetAttributes(Dictionary<string, string> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                this[attribute.Key] = attribute.Value;
+            }
+        }
+
+        /// <summary>
         /// Backtrace client instance.
         /// </summary>
         private static BacktraceClient _instance;
@@ -488,12 +524,9 @@ namespace Backtrace.Unity
 
             report.AssignSourceCodeToReport(sourceCode);
 
-            var reportAttributes = new Dictionary<string, string>();
-            // extend client attributes with native attributes
-            if (_nativeClient != null)
-            {
-                reportAttributes = _nativeClient.GetAttributes();
-            }
+            var reportAttributes = _nativeClient == null
+                ? _clientAttributes
+                : _nativeClient.GetAttributes().Merge(_clientAttributes);
 
             return report.ToBacktraceData(reportAttributes, GameObjectDepth);
         }

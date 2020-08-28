@@ -42,9 +42,13 @@ namespace Backtrace.Unity.Editor
                     new GUIContent(BacktraceConfigurationLabels.LABEL_IGNORE_SSL_VALIDATION));
 #endif
 #if UNITY_ANDROID
-            EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("HandleANR"),
-                 new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("HandleANR"),
+                     new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
+
+                 EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("SymbolsUploadToken"),
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
 #endif
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),
@@ -70,7 +74,6 @@ namespace Backtrace.Unity.Editor
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
-
 
                 SerializedProperty gameObjectDepth = serializedObject.FindProperty("GameObjectDepth");
                 EditorGUILayout.PropertyField(gameObjectDepth, new GUIContent(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH));
@@ -117,6 +120,12 @@ namespace Backtrace.Unity.Editor
                         serializedObject.FindProperty("AddUnityLogToReport"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));
 
+#endif
+
+#if UNITY_ANDROID
+                    EditorGUILayout.PropertyField(
+                         serializedObject.FindProperty("CaptureNativeCrashes"),
+                         new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
 #endif
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("AutoSendMode"),

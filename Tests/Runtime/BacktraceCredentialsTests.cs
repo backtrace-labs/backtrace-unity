@@ -36,7 +36,6 @@ namespace Backtrace.Unity.Tests.Runtime
         public void ThrowInvalidUrlException_FromInvalidUrl_ThrowException(string host)
         {
             Assert.Throws<UriFormatException>(() => new BacktraceCredentials(host));
-            Assert.Throws<UriFormatException>(() => new BacktraceCredentials(host, "123"));
         }
 
     }

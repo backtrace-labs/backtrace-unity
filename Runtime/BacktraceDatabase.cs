@@ -458,7 +458,7 @@ namespace Backtrace.Unity
             {
                 return false;
             }
-            DatabasePath = DatabasePathHelper.GetFullDatabasePath(Configuration.DatabasePath);
+            DatabasePath = Configuration.GetFullDatabasePath();
             if (string.IsNullOrEmpty(DatabasePath))
             {
                 return false;

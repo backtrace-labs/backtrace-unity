@@ -1,5 +1,7 @@
-﻿using Backtrace.Unity.Types;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Types;
 using System;
+using System.IO;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model
@@ -84,6 +86,20 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Handle ANR events - Application not responding")]
         public bool HandleANR = true;
+
+        /// <summary>
+        /// Capture native NDK Crashes.
+        /// </summary>
+        [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
+        public bool CaptureNativeCrashes = true;
+
+#if UNITY_2019_2_OR_NEWER
+        /// <summary>
+        /// Symbols upload token
+        /// </summary>
+        [Tooltip("Symbols upload token required to upload symbols to Backtrace")]
+        public string SymbolsUploadToken = string.Empty;
+#endif
 #endif
 
         /// <summary>
@@ -97,6 +113,7 @@ namespace Backtrace.Unity.Model
             "* Exception message - Use the exception message as a factor in client-side deduplication.")]
 
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
+
 
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
@@ -174,6 +191,22 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
+
+        public string GetFullDatabasePath()
+        {
+            return DatabasePathHelper.GetFullDatabasePath(DatabasePath);
+        }
+        public string CrashpadDatabasePath
+        {
+            get
+            {
+                if (!Enabled)
+                {
+                    return string.Empty;
+                }
+                return Path.Combine(GetFullDatabasePath(), "crashpad");
+            }
+        }
 
         public string GetValidServerUrl()
         {
