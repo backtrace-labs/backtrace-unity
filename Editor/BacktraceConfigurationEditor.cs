@@ -46,6 +46,9 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("HandleANR"),
                      new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
 
+                 EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("SymbolsUploadToken"),
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
 #endif
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),
@@ -71,11 +74,6 @@ namespace Backtrace.Unity.Editor
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("DestroyOnLoad"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
-
-                EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("SymbolsUploadToken"),
-                    new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
-
 
                 SerializedProperty gameObjectDepth = serializedObject.FindProperty("GameObjectDepth");
                 EditorGUILayout.PropertyField(gameObjectDepth, new GUIContent(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH));
