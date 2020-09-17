@@ -39,7 +39,7 @@ namespace Backtrace.Unity
             set
             {
                 _clientAttributes[index] = value;
-                if(_nativeClient != null)
+                if (_nativeClient != null)
                 {
                     _nativeClient.SetAttribute(index, value);
                 }
@@ -56,6 +56,14 @@ namespace Backtrace.Unity
             {
                 this[attribute.Key] = attribute.Value;
             }
+        }
+
+        /// <summary>
+        /// Number of client attributes
+        /// </summary>
+        public int GetAttributesCount()
+        {
+            return _clientAttributes.Count;
         }
 
         /// <summary>
@@ -257,6 +265,11 @@ namespace Backtrace.Unity
         public void Refresh()
         {
             if (Configuration == null || !Configuration.IsValid())
+            {
+                return;
+            }
+
+            if (Instance != null)
             {
                 return;
             }
@@ -528,7 +541,8 @@ namespace Backtrace.Unity
                 ? _clientAttributes
                 : _nativeClient.GetAttributes().Merge(_clientAttributes);
 
-            return report.ToBacktraceData(reportAttributes, GameObjectDepth);
+            // pass copy of dictionary to prevent overriding client attributes
+            return report.ToBacktraceData(new Dictionary<string, string>(reportAttributes), GameObjectDepth);
         }
 
 #if UNITY_ANDROID

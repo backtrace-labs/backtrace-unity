@@ -70,9 +70,13 @@ namespace Backtrace.Unity.Model
                 ["il"] = Il,
                 ["metadata_token"] = MemberInfo,
                 ["address"] = ILOffset,
-                ["library"] = Library,
                 ["assembly"] = Assembly
             };
+            
+            if (!string.IsNullOrEmpty(Library) && !(Library.StartsWith("<") && Library.EndsWith(">")))
+            {
+                stackFrame["library"] = Library;
+            }
 
             if (Line != 0)
             {
