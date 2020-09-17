@@ -111,6 +111,10 @@ namespace Backtrace.Unity
             {
                 Configuration = GetComponent<BacktraceClient>().Configuration;
             }
+            if (Instance != null)
+            {
+                return;
+            }
             if (Configuration == null || !Configuration.IsValid())
             {
                 Enable = false;

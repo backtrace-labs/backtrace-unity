@@ -43,6 +43,28 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator TesClientAttributes_ReprotShouldntExtendClientAttributes_ClientAttributesWontStoreReportAttributes()
+        {
+            var key = "foo";
+            var value = "bar";
+            BacktraceClient[key] = value;
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new Exception("foo"));
+            yield return new WaitForEndOfFrame();
+            Assert.IsNotNull(data);
+            Assert.AreEqual(data.Attributes.Attributes[key], value);
+            Assert.AreEqual(1, BacktraceClient.GetAttributesCount());
+            BacktraceClient.Send(new Exception("bar"));
+            Assert.AreEqual(1, BacktraceClient.GetAttributesCount());
+            yield return null;
+        }
+
 
         [UnityTest]
         public IEnumerator TesClientAttributesMethod_BacktraceDataShouldIncludeClientAttributes_ClientAttributesAreAvailableInDiagnosticData()
@@ -80,8 +102,8 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator TestCorrectDictionaryGeneration_CreateCorrectAttributesDictionary_WithDiffrentClientAttributes()
+        [Test]
+        public void TestCorrectDictionaryGeneration_CreateCorrectAttributesDictionary_WithDiffrentClientAttributes()
         {
             var exception = new FileNotFoundException();
             var reportAttributeKey = "report_attr";
@@ -98,19 +120,6 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(testObject.Attributes.Keys.Any(n => n == reportAttributeKey));
             Assert.IsTrue(testObject.Attributes[clientAttributeKey] == clientAttributeValue);
             Assert.IsTrue(testObject.Attributes[reportAttributeKey] == reportAttributeValue);
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator TestCorrectDictionaryGeneration_ReplaceAttributes_TheSameDictionaryAttributes()
-        {
-            var reportAttributeKey = "report_attr";
-            var reportAttributeValue = string.Format("{0}-value", reportAttributeKey);
-            var clientAttributes = new Dictionary<string, string>() { { reportAttributeKey,
-                string.Format("{0}-client", reportAttributeValue)
-            } };
-            Assert.IsFalse(clientAttributes[reportAttributeKey] == reportAttributeValue);
-            yield return null;
         }
     }
 }
