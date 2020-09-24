@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.0-release candidate
+This release adds native crash support for iOS games. Backtrace configuration allows to start native crash handler by setting "Capture native crashes" toggle. 
+
 ## Version 3.1.0
 This release adds an ability to capture native NDK crashes from Unity games deployed on Android. The Backtrace Configuration now exposes a setting for games being prepared for Android OS to choose `Capture native crashes`. When enabled, Backtrace will capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Engine Plugin.
 
