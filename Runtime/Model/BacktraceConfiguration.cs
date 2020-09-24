@@ -80,18 +80,21 @@ namespace Backtrace.Unity.Model
         [Tooltip("Try to find game native crashes and send them on Game startup")]
         public bool SendUnhandledGameCrashesOnGameStartup = true;
 
+#if UNITY_ANDROID || UNITY_IOS
+        /// <summary>
+        /// Capture native NDK Crashes.
+        /// </summary>
+        [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
+
+        public bool CaptureNativeCrashes = true;
+#endif
+
 #if UNITY_ANDROID
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
         [Tooltip("Handle ANR events - Application not responding")]
         public bool HandleANR = true;
-
-        /// <summary>
-        /// Capture native NDK Crashes.
-        /// </summary>
-        [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
-        public bool CaptureNativeCrashes = true;
 
 #if UNITY_2019_2_OR_NEWER
         /// <summary>

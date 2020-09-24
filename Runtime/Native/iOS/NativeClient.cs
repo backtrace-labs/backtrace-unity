@@ -30,18 +30,32 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 #else
             false;
 #endif
+
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
         {
             if (INITIALIZED || !_enabled)
             {
                 return;
             }
+            if(configuration.CaptureNativeCrashes)
+            {
+                HandleNativeCrashes(configuration);
+            }
+            INITIALIZED = true;
+        }
+
+        /// <summary>
+        /// Start crashpad process to handle native Android crashes
+        /// </summary>
+
+        private void HandleNativeCrashes(BacktraceConfiguration configuration)
+        {
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
             var backtraceAttributes = new BacktraceAttributes(null, null, true);
             var submissionUrl = BacktraceApi.GetParametrizedQuery(plcrashreporterUrl.ToString(), backtraceAttributes.Attributes);
             Start(submissionUrl);
-            INITIALIZED = true;
         }
+
 
         /// <summary>
         /// Retrieve Backtrace Attributes from the Android native code.
