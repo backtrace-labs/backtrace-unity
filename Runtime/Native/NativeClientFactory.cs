@@ -8,6 +8,8 @@ namespace Backtrace.Unity.Runtime.Native
         {
 #if UNITY_ANDROID 
             return new Android.NativeClient(gameObjectName, configuration);
+#elif UNITY_IOS
+            return new iOS.NativeClient(gameObjectName, configuration);
 #else
             return null;
 #endif

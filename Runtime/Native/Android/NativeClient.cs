@@ -87,6 +87,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             // get default built-in Backtrace-Unity attributes
             var backtraceAttributes = new BacktraceAttributes(null, null, true);
+
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
             
             // reassign to captureNativeCrashes
