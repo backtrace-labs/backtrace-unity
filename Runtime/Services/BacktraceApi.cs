@@ -204,7 +204,7 @@ namespace Backtrace.Unity.Services
               : new System.Diagnostics.Stopwatch();
 
             var requestUrl = queryAttributes != null
-                ? GetParametrizedQuery(queryAttributes)
+                ? GetParametrizedQuery(_serverUrl.ToString(), queryAttributes)
                 : ServerUrl;
 
 
@@ -309,15 +309,15 @@ namespace Backtrace.Unity.Services
 
         private string GetAttachmentUploadUrl(string rxId, string attachmentName)
         {
-            return string.Format("{0}&object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId, UrlEncode(attachmentName));
+            return Uri.EscapeUriString(string.Format("{0}&object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId, attachmentName));
 
         }
 
-        private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
+       // private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
 
-        private string GetParametrizedQuery(Dictionary<string, string> queryAttributes)
+        public static string GetParametrizedQuery(string serverUrl, Dictionary<string, string> queryAttributes)
         {
-            var uriBuilder = new UriBuilder(_serverUrl);
+            var uriBuilder = new UriBuilder(serverUrl);
             if (queryAttributes == null || !queryAttributes.Any())
             {
                 return uriBuilder.Uri.ToString();
@@ -339,12 +339,12 @@ namespace Backtrace.Unity.Services
                     builder.Append("&");
                 }
                 var queryAttribute = queryAttributes.ElementAt(queryIndex);
-                builder.AppendFormat("{0}={1}", queryAttribute.Key, UrlEncode(queryAttribute.Value));
+                builder.AppendFormat("{0}={1}", queryAttribute.Key, queryAttribute.Value);
             }
             uriBuilder.Query += builder.ToString();
-            return uriBuilder.Uri.ToString();
+            return Uri.EscapeUriString(uriBuilder.Uri.ToString());
         }
-
+        /*
         private static string UrlEncode(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -366,5 +366,6 @@ namespace Backtrace.Unity.Services
             }
             return sb.ToString();
         }
+        */
     }
 }

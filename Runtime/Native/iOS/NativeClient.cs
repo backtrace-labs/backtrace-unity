@@ -1,7 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Services;
+using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native.iOS
 {
@@ -10,16 +12,14 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     /// </summary>
     public class NativeClient : INativeClient
     {
-
-        [DllImport("__Internal", EntryPoint = "GetAttributes")]
-        private static extern string GetiOSAttributes(float[] memoryUsed);
-
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
         private static extern void Start(string plCrashReporterUrl);
 
 
-        [DllImport("__Internal", EntryPoint = "SuperCrashInWrapper")]
+        [DllImport("__Internal", EntryPoint = "Crash")]
         public static extern string Crash();
+
+        private static bool INITIALIZED = false;
 
         /// <summary>
         /// Determine if ios integration should be enabled
@@ -32,9 +32,15 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 #endif
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
         {
-
-            var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl().ToString();
-            Start(plcrashreporterUrl);
+            if (INITIALIZED || !_enabled)
+            {
+                return;
+            }
+            var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
+            var backtraceAttributes = new BacktraceAttributes(null, null, true);
+            var submissionUrl = BacktraceApi.GetParametrizedQuery(plcrashreporterUrl.ToString(), backtraceAttributes.Attributes);
+            Start(submissionUrl);
+            INITIALIZED = true;
         }
 
         /// <summary>
@@ -43,21 +49,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <returns>Backtrace Attributes from the Android build</returns>
         public Dictionary<string, string> GetAttributes()
         {
-            var result = new Dictionary<string, string>();            
-            if (!_enabled)
-            {
-                return result;
-            }
-            float[] attributes = new float[] { 0,0,0,0,0,0};
-            GetiOSAttributes(attributes);
-
-            result.Add("mem.used", attributes[0].ToString());
-            result.Add("mem.free", attributes[1].ToString());
-            result.Add("mem.total", attributes[2].ToString());
-
-            result.Add("cpu.count.active", attributes[3].ToString());
-            result.Add("resident.size", attributes[4].ToString());
-            result.Add("virtual size", attributes[5].ToString());
+            var result = new Dictionary<string, string>();
             return result;
             
         }
@@ -69,12 +61,12 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
-            throw new NotImplementedException();
+            Debug.Log("ANR support on iOS is still unsupported.");
         }
 
         public void SetAttribute(string key, string value)
         {
-            throw new NotImplementedException();
+            Debug.Log("Custom report attribuets on iOS are unsupported.");
         }
     }
 }
