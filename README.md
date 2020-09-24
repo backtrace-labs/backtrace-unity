@@ -235,11 +235,7 @@ backtraceClient.BeforeSend =
 
 ## Reporting unhandled application exceptions
 
-`BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions even if you don't set this option in `Backtrace configuration window` please use code below:
-
-```csharp
-backtraceClient.HandleApplicationException();
-```
+`BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions please use Backtrace configuration UI available in the Unity IDE. 
 
 ## Filtering a report 
 Report filtering is enabled by using the `Filter reports` option in the user interface or for more advanced use-cases, the `SkipReport` delegate available in the BacktraceClient.

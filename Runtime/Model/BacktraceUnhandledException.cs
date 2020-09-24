@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace Backtrace.Unity.Model
 {
@@ -43,7 +42,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Unhandled exception stack frames
         /// </summary>
-        public List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
+        public readonly List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
 
 
         public BacktraceUnhandledException(string message, string stacktrace) : base(message)
