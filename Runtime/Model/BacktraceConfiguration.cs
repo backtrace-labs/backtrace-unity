@@ -84,7 +84,11 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Capture native NDK Crashes.
         /// </summary>
+#if UNITY_ANDROID
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
+#elif UNITY_IOS
+        [Tooltip("Capture native Crashes")]
+#endif
 
         public bool CaptureNativeCrashes = true;
 #endif

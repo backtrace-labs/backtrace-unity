@@ -1,3 +1,5 @@
+#if UNITY_IOS
+
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Backtrace.Unity.Model;
@@ -84,3 +86,4 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         }
     }
 }
+#endif
