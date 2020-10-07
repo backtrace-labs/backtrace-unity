@@ -15,7 +15,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     public class NativeClient : INativeClient
     {
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
-        public static extern void Start(string plCrashReporterUrl);
+        private static extern void Start(string plCrashReporterUrl);
 
 
         [DllImport("__Internal", EntryPoint = "Crash")]
@@ -35,15 +35,14 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
         {
-            UnityEngine.Debug.Log("Initializing native ios integration");
             if (INITIALIZED || !_enabled)
             {
                 return;
             }
-            //if(configuration.CaptureNativeCrashes)
-            //{
-            //    HandleNativeCrashes(configuration);
-            //}
+            if(configuration.CaptureNativeCrashes)
+            {
+                HandleNativeCrashes(configuration);
+            }
             INITIALIZED = true;
         }
 
@@ -51,7 +50,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        public void HandleNativeCrashes(BacktraceConfiguration configuration)
+        private void HandleNativeCrashes(BacktraceConfiguration configuration)
         {
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
             var backtraceAttributes = new BacktraceAttributes(null, null, true);
