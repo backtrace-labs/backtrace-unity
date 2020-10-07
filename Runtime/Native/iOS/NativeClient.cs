@@ -78,23 +78,23 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         {
             var dic = new Dictionary<string, string>();
 
-            GetNativeAttibutes(out IntPtr pUnmanagedArray, out int keysCount);
+            //GetNativeAttibutes(out IntPtr pUnmanagedArray, out int keysCount);
 
-            IntPtr[] pIntPtrArray = new IntPtr[keysCount];
+            //IntPtr[] pIntPtrArray = new IntPtr[keysCount];
 
-            // This was the original problem.
-            // Now it copies the native array pointers to individual IntPtr. Which now they point to individual structs.
-            Marshal.Copy(pUnmanagedArray, pIntPtrArray, 0, keysCount);
+            //// This was the original problem.
+            //// Now it copies the native array pointers to individual IntPtr. Which now they point to individual structs.
+            //Marshal.Copy(pUnmanagedArray, pIntPtrArray, 0, keysCount);
 
-            for (int i = 0; i < keysCount; i++)
-            {
-                Entry entry = Marshal.PtrToStructure<Entry>(pIntPtrArray[i]); // Magic!
-                dic.Add(entry.Key, entry.Value);
+            //for (int i = 0; i < keysCount; i++)
+            //{
+            //    Entry entry = Marshal.PtrToStructure<Entry>(pIntPtrArray[i]); // Magic!
+            //    dic.Add(entry.Key, entry.Value);
 
-                Marshal.FreeHGlobal(pIntPtrArray[i]); // Free the individual struct malloc
-            }
+            //    Marshal.FreeHGlobal(pIntPtrArray[i]); // Free the individual struct malloc
+            //}
 
-            Marshal.FreeHGlobal(pUnmanagedArray); // Free native array of pointers malloc.
+            //Marshal.FreeHGlobal(pUnmanagedArray); // Free native array of pointers malloc.
 
             return dic;
         }
