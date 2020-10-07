@@ -1,5 +1,6 @@
 #if UNITY_IOS
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Backtrace.Unity.Model;
@@ -14,12 +15,22 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     /// </summary>
     public class NativeClient : INativeClient
     {
+        // NSDictinary entry used only for iOS native integration
+        private struct Entry
+        {
+            public string Key;
+            public string Value;
+        }
+
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
         private static extern void Start(string plCrashReporterUrl);
 
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         public static extern string Crash();
+
+        [DllImport("__Internal", EntryPoint = "GetAttibutes")]
+        public static extern string GetNativeAttibutes(out IntPtr stingArray, out int keysCount);
 
         private static bool INITIALIZED = false;
 
@@ -65,9 +76,27 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <returns>Backtrace Attributes from the Android build</returns>
         public Dictionary<string, string> GetAttributes()
         {
-            var result = new Dictionary<string, string>();
-            return result;
-            
+            var dic = new Dictionary<string, string>();
+
+            GetNativeAttibutes(out IntPtr pUnmanagedArray, out int keysCount);
+
+            IntPtr[] pIntPtrArray = new IntPtr[keysCount];
+
+            // This was the original problem.
+            // Now it copies the native array pointers to individual IntPtr. Which now they point to individual structs.
+            Marshal.Copy(pUnmanagedArray, pIntPtrArray, 0, keysCount);
+
+            for (int i = 0; i < keysCount; i++)
+            {
+                Entry entry = Marshal.PtrToStructure<Entry>(pIntPtrArray[i]); // Magic!
+                dic.Add(entry.Key, entry.Value);
+
+                Marshal.FreeHGlobal(pIntPtrArray[i]); // Free the individual struct malloc
+            }
+
+            Marshal.FreeHGlobal(pUnmanagedArray); // Free native array of pointers malloc.
+
+            return dic;
         }
 
         /// <summary>
