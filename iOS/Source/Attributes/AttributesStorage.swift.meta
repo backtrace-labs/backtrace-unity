@@ -1,6 +1,5 @@
 fileFormatVersion: 2
-guid: 31c33a7a53ff945d7b53846a68e8def7
-folderAsset: yes
+guid: 426c604cf730344f4b8d6db51f388ec2
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -33,42 +32,17 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        CPU: AnyCPU
         DefaultValueInitialized: true
-        OS: AnyOS
-  - first:
-      Standalone: Linux64
-    second:
-      enabled: 0
-      settings:
-        CPU: None
-  - first:
-      Standalone: OSXUniversal
-    second:
-      enabled: 0
-      settings:
-        CPU: None
-  - first:
-      Standalone: Win
-    second:
-      enabled: 0
-      settings:
-        CPU: None
-  - first:
-      Standalone: Win64
-    second:
-      enabled: 0
-      settings:
-        CPU: None
   - first:
       iPhone: iOS
     second:
       enabled: 1
-      settings:
-        AddToEmbeddedBinaries: true
-        CPU: AnyCPU
-        CompileFlags: 
-        FrameworkDependencies: CoreData;CoreFoundation;CoreLocation;
+      settings: {}
+  - first:
+      tvOS: tvOS
+    second:
+      enabled: 1
+      settings: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

@@ -319,6 +319,14 @@ namespace Backtrace.Unity
             Refresh();
         }
 
+        public void StartNativeClient()
+        {
+            var plcrashreporterUrl = new BacktraceCredentials(Configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
+            var backtraceAttributes = new Model.JsonData.BacktraceAttributes(null, null, true);
+            var submissionUrl = Backtrace.Unity.Services.BacktraceApi.GetParametrizedQuery(plcrashreporterUrl.ToString(), backtraceAttributes.Attributes);
+            Backtrace.Unity.Runtime.Native.iOS.NativeClient.Start(submissionUrl);
+        }
+
         /// <summary>
         /// Change maximum number of reportrs sending per one minute
         /// </summary>
