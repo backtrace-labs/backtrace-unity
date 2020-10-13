@@ -48,16 +48,12 @@ import CrashReporter
         let handler: @convention(c) (_ signalInfo: UnsafeMutablePointer<siginfo_t>?,
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
             _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
-                print("In signal handler");
                 guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee,
                 let signalInfo = signalInfoPointer?.pointee else {
                         return
                 }
-                print("Reserved attrbutes");
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)");
-                print("Afte setting signo");
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: BacktraceCrashReporter.crashName)
-                print("Storage what's up");
         }
         
         var callbacks = withUnsafeMutableBytes(of: &mutableContext) { rawMutablePointer in
@@ -94,19 +90,18 @@ import CrashReporter
         let task = URLSession.shared.dataTask(with: urlRequest) { data, response, error in
             guard let data = data,
                 let response = response as? HTTPURLResponse,
-                error == nil else {                                              // check for fundamental networking error
+                error == nil else {
                     print("error", error ?? "Unknown error")
                     return
             }
             
-            guard (200 ... 299) ~= response.statusCode else {                    // check for http errors
+            guard (200 ... 299) ~= response.statusCode else {
                 print("statusCode should be 2xx, but is \(response.statusCode)")
                 print("response = \(response)")
                 return
             }
             
             let responseString = String(data: data, encoding: .utf8)
-            // print("responseString = \(responseString)")
             self.reporter.purgePendingCrashReport();
             try? AttributesStorage.remove(fileName: BacktraceCrashReporter.crashName);
         }
