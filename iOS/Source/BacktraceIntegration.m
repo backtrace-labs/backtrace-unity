@@ -1,11 +1,3 @@
-//
-//  BacktraceCrashReporterBridge.m
-//  Backtrace-Unity
-//
-//  Created by Backtrace on 10/6/20.
-//  Copyright © 2020 Backtrace. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #include "UnityFramework/UnityFramework-Swift.h"
 
@@ -17,12 +9,16 @@ struct Entry {
 
 bool initialized = false;
 BacktraceCrashReporter *reporter;
-void StartBacktraceIntegration(const char* rawUrl) {
+void StartBacktraceIntegration(const char* rawUrl, const char* attributeKeys[], const char* attributeValues[], const int size) {
     if(!rawUrl){
         return;
     }
+   NSMutableDictionary *attributes = [[NSMutableDictionary alloc]initWithCapacity:size];
+    for (int index =0; index < size ; index++) {
+        [attributes setObject:[NSString stringWithUTF8String: attributeValues[index]] forKey:[NSString stringWithUTF8String: attributeKeys[index]]];
+    }
     
-    reporter = [[BacktraceCrashReporter alloc] initWithUrl: [NSString stringWithUTF8String: rawUrl]];
+    reporter = [[BacktraceCrashReporter alloc] initWithUrl:[NSString stringWithUTF8String: rawUrl] attributes:attributes ];
     [reporter start];
     initialized = true;
 }
@@ -34,19 +30,23 @@ void GetAttibutes(struct Entry** entries, int* size) {
     NSDictionary* dictionary = [reporter getAttributes];
     int count = (int) [dictionary count];
     *entries = malloc(count * sizeof(struct Entry));
-    
-    printf("DICTIONARY SIZE: %d", count);
     int index = 0;
     for(id key in dictionary) {
-        NSLog(@"%d key=%@ value=%@", index, key, [dictionary objectForKey:key]);
-//        &(*entries)[index] = malloc(sizeof(struct Entry));
         (*entries)[index].key = [key UTF8String];
         (*entries)[index].value = [[dictionary objectForKey:key]  UTF8String];
-//        NSLog(@"%d IN ENTRY: key=%s value=%s", index, entries[index]->key,  entries[index]->value);
         index += 1;
-        
     }
+    
     *size = count;
+}
+
+void AddAttribute(char* key, char* value) {
+    if(initialized == false) {
+        return;
+    }
+    
+    [reporter setAttributesWithKey:[NSString stringWithUTF8String: key] value:[NSString stringWithUTF8String: value]];
+    
 }
 void Crash() {
     NSArray *array = @[];

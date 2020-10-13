@@ -8,10 +8,11 @@ import CrashReporter
     private(set) var attributesProvider: SignalContext
     private let backtraceUrl: URL;
     
-    @objc public init(url: NSString) {
+    @objc public init(url: NSString, attributes: NSDictionary) {
         self.backtraceUrl = URL(string: url as String)!;
         reporter = PLCrashReporter(configuration: PLCrashReporterConfig.defaultConfiguration());
         self.attributesProvider = AttributesProvider()
+        self.attributesProvider.attributes = attributes as! Attributes;
     }
     
     @objc public func start() {
@@ -21,10 +22,11 @@ import CrashReporter
     }
     
     @objc public func getAttributes() -> NSDictionary {
-        let attributes = AttributesProvider().attributesSources;
-        let mutableAttribuets = attributes.map(\.mutable);
-        let result = mutableAttribuets.merging();
-        return result as NSDictionary;
+        return self.attributesProvider.allAttributes as NSDictionary;
+    }
+    
+    @objc public func setAttributes(key: NSString, value: NSString) {
+        self.attributesProvider.attributes[key as String] = value as String;
     }
     
     private func sendPendingCrashes() {

@@ -2,10 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.JsonData;
-using Backtrace.Unity.Services;
 using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native.iOS
@@ -16,21 +15,23 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     public class NativeClient : INativeClient
     {
         // NSDictinary entry used only for iOS native integration
-        private struct Entry
+        internal struct Entry
         {
             public string Key;
             public string Value;
         }
 
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
-        private static extern void Start(string plCrashReporterUrl);
-
+        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int size);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         public static extern string Crash();
 
         [DllImport("__Internal", EntryPoint = "GetAttibutes")]
-        public static extern void GetNativeAttibutes(out IntPtr stingArray, out int keysCount);
+        public static extern void GetNativeAttibutes(out IntPtr attributes, out int keysCount);
+
+        [DllImport("__Internal", EntryPoint = "AddAttribute")]
+        public static extern void AddAttribute(string key, string value);
 
         private static bool INITIALIZED = false;
 
@@ -64,9 +65,12 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         private void HandleNativeCrashes(BacktraceConfiguration configuration)
         {
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
-            var backtraceAttributes = new BacktraceAttributes(null, null, true);
-            var submissionUrl = BacktraceApi.GetParametrizedQuery(plcrashreporterUrl.ToString(), backtraceAttributes.Attributes);
-            Start(submissionUrl);
+            var backtraceAttributes = new Model.JsonData.BacktraceAttributes(null, null, true);
+            //var submissionUrl = BacktraceApi.GetParametrizedQuery(plcrashreporterUrl.ToString(), backtraceAttributes.Attributes);
+            var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
+            var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
+
+            Start(plcrashreporterUrl.ToString(),attributeKeys, attributeValues, attributeValues.Length);
         }
 
 
@@ -77,6 +81,10 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         public Dictionary<string, string> GetAttributes()
         {
             var result = new Dictionary<string, string>();
+            if (_enabled == false)
+            {
+                return result;
+            }
             GetNativeAttibutes(out IntPtr pUnmanagedArray, out int keysCount);
 
             for (int i = 0; i < keysCount; i++)
@@ -102,7 +110,15 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         public void SetAttribute(string key, string value)
         {
-            Debug.Log("Custom report attribuets on iOS are unsupported.");
+            if (_enabled == false)
+            {
+                return;
+            }
+            if(string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+            AddAttribute(key, value);
         }
     }
 }
