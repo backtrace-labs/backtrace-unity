@@ -1,20 +1,20 @@
 import Foundation
 
 protocol AttributesSource {
-    var immutable: [String: Any?] { get }
-    var mutable: [String: Any?] { get }
+    var immutable: [String: String?] { get }
+    var mutable: [String: String?] { get }
 }
 
 extension AttributesSource {
-    var immutable: [String: Any?] { return [:] }
-    var mutable: [String: Any?] { return [:] }
+    var immutable: [String: String?] { return [:] }
+    var mutable: [String: String?] { return [:] }
 }
 
 final class AttributesProvider {
     
     // attributes can be modified on runtime
     var attributes: Attributes = [:]
-    private let attributesSources: [AttributesSource]
+    let attributesSources: [AttributesSource]
     private let faultInfo: FaultInfo
     
     lazy var immutable: Attributes = {
@@ -23,7 +23,7 @@ final class AttributesProvider {
     
     init() {
         faultInfo = FaultInfo()
-       attributesSources = [ProcessorInfo(),
+        attributesSources = [ProcessorInfo(),
             Device(),
             ScreenInfo(),
             LocaleInfo(),
@@ -57,9 +57,9 @@ extension AttributesProvider: CustomStringConvertible, CustomDebugStringConverti
     }
 }
 
-extension Array where Element == [String: Any?] {
-    func merging() -> [String: Any] {
-        let keyValuePairs = reduce([:], +).compactMap({ (key: String, value: Any?) -> (key: String, value: Any)? in
+extension Array where Element == [String: String?] {
+    func merging() -> [String: String] {
+        let keyValuePairs = reduce([:], +).compactMap({ (key: String, value: String?) -> (key: String, value: String)? in
             guard let value = value else {
                 return nil
             }

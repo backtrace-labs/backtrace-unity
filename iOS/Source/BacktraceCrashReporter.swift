@@ -20,6 +20,13 @@ import CrashReporter
         reporter.enable();
     }
     
+    @objc public func getAttributes() -> NSDictionary {
+        let attributes = AttributesProvider().attributesSources;
+        let mutableAttribuets = attributes.map(\.mutable);
+        let result = mutableAttribuets.merging();
+        return result as NSDictionary;
+    }
+    
     private func sendPendingCrashes() {
         if(!reporter.hasPendingCrashReport()) {
             return;
@@ -39,12 +46,16 @@ import CrashReporter
         let handler: @convention(c) (_ signalInfo: UnsafeMutablePointer<siginfo_t>?,
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
             _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
+                print("In signal handler");
                 guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee,
                 let signalInfo = signalInfoPointer?.pointee else {
                         return
                 }
-                attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
+                print("Reserved attrbutes");
+                attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)");
+                print("Afte setting signo");
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: BacktraceCrashReporter.crashName)
+                print("Storage what's up");
         }
         
         var callbacks = withUnsafeMutableBytes(of: &mutableContext) { rawMutablePointer in
@@ -102,7 +113,7 @@ import CrashReporter
     }
 }
 
-public typealias Attributes = [String: Any]
+public typealias Attributes = [String: String]
 
 
 
