@@ -1,5 +1,4 @@
 #if UNITY_IOS
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +42,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             true;
 #else
             false;
+
 #endif
 
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
@@ -51,12 +51,13 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return;
             }
-            if(configuration.CaptureNativeCrashes)
+            if (configuration.CaptureNativeCrashes)
             {
                 HandleNativeCrashes(configuration);
             }
             INITIALIZED = true;
         }
+
 
         /// <summary>
         /// Start crashpad process to handle native Android crashes
@@ -66,13 +67,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         {
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
             var backtraceAttributes = new Model.JsonData.BacktraceAttributes(null, null, true);
-            //var submissionUrl = BacktraceApi.GetParametrizedQuery(plcrashreporterUrl.ToString(), backtraceAttributes.Attributes);
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
-            Start(plcrashreporterUrl.ToString(),attributeKeys, attributeValues, attributeValues.Length);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length);
         }
-
 
         /// <summary>
         /// Retrieve Backtrace Attributes from the Android native code.
@@ -81,7 +80,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         public Dictionary<string, string> GetAttributes()
         {
             var result = new Dictionary<string, string>();
-            if (_enabled == false)
+            if (!_enabled)
             {
                 return result;
             }
@@ -110,11 +109,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         public void SetAttribute(string key, string value)
         {
-            if (_enabled == false)
+            if (!_enabled)
             {
                 return;
             }
-            if(string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value))
             {
                 return;
             }
