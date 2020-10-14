@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.1.2
+- `BacktraceData` allows to edit list of environment variables collected by `BacktraceAnnotations`
+
 ## Version 3.1.1
 - Prevent erroneously extending backtraceClient attributes with backtraceReport attributes.
 - Removed randomly generated path to assembly from callstacks.
