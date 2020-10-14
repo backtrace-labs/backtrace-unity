@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
 namespace Backtrace.Unity.Model.JsonData
 {
     /// <summary>
@@ -13,39 +12,16 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
-
-        private static Dictionary<string, string> _variables;
-
-        /// <summary>
-        /// System environment values dictionary
-        /// </summary>
-        internal static Dictionary<string, string> Variables
-        {
-            get
-            {
-                if (_variables == null)
-                {
-                    _variables = new Dictionary<string, string>();
-                    foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
-                    {
-                        _variables.Add(variable.Key.ToString(), Regex.Escape(variable.Value.ToString() ?? "NULL"));
-                    }
-                }
-
-                return _variables;
-            }
-        }
-
+        public static Dictionary<string, string> EnvironmentVariablesCache { get; set; } = SetEnvironmentVariables();
+        public Dictionary<string, string> EnvironmentVariables { get; set; } = EnvironmentVariablesCache;
         /// <summary>
         /// Set maximum number of game objects in Backtrace report
         /// </summary>
         private readonly int _gameObjectDepth;
-
         /// <summary>
         /// Exception object
         /// </summary>
-        private Exception _exception { get; set; }
-
+        public Exception Exception { get; set; }
         public Annotations()
         {
         }
@@ -57,37 +33,43 @@ namespace Backtrace.Unity.Model.JsonData
         public Annotations(Exception exception, int gameObjectDepth)
         {
             _gameObjectDepth = gameObjectDepth;
-            _exception = exception;
+            Exception = exception;
         }
-
+        private static Dictionary<string, string> SetEnvironmentVariables()
+        {
+            var environmentVariables = new Dictionary<string, string>();
+            foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
+            {
+                environmentVariables.Add(variable.Key.ToString(), Regex.Escape(variable.Value.ToString() ?? "NULL"));
+            }
+            return environmentVariables;
+        }
         public BacktraceJObject ToJson()
         {
             var annotations = new BacktraceJObject();
             var envVariables = new BacktraceJObject();
-
-            foreach (var envVariable in Variables)
+            if (EnvironmentVariables != null)
             {
-                envVariables[envVariable.Key] = envVariable.Value;
+                foreach (var envVariable in EnvironmentVariables)
+                {
+                    envVariables[envVariable.Key] = envVariable.Value;
+                }
+                annotations["Environment Variables"] = envVariables;
             }
-            annotations["Environment Variables"] = envVariables;
-
-            if (_exception != null)
+            if (Exception != null)
             {
                 annotations["Exception properties"] = new BacktraceJObject()
                 {
-                    ["message"] = _exception.Message,
-                    ["stackTrace"] = _exception.StackTrace,
-                    ["type"] = _exception.GetType().FullName,
-                    ["source"] = _exception.Source
+                    ["message"] = Exception.Message,
+                    ["stackTrace"] = Exception.StackTrace,
+                    ["type"] = Exception.GetType().FullName,
+                    ["source"] = Exception.Source
                 };
             }
-
             if (_gameObjectDepth > -1)
             {
                 var activeScene = SceneManager.GetActiveScene();
-
                 var gameObjects = new List<BacktraceJObject>();
-
                 var rootObjects = new List<GameObject>();
                 activeScene.GetRootGameObjects(rootObjects);
                 foreach (var gameObject in rootObjects)
@@ -96,11 +78,8 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 annotations["Game objects"] = gameObjects;
             }
-
-
             return annotations;
         }
-
         private BacktraceJObject ConvertGameObject(GameObject gameObject, int depth = 0)
         {
             if (gameObject == null)
@@ -109,7 +88,6 @@ namespace Backtrace.Unity.Model.JsonData
             }
             var jGameObject = GetJObject(gameObject);
             var innerObjects = new List<BacktraceJObject>();
-
             foreach (var childObject in gameObject.transform)
             {
                 var transformChildObject = childObject as Component;
@@ -122,7 +100,6 @@ namespace Backtrace.Unity.Model.JsonData
             jGameObject["children"] = innerObjects;
             return jGameObject;
         }
-
         private BacktraceJObject ConvertGameObject(Component gameObject, string parentName, int depth)
         {
             if (_gameObjectDepth > 0 && depth > _gameObjectDepth)
@@ -135,8 +112,6 @@ namespace Backtrace.Unity.Model.JsonData
                 return result;
             }
             var innerObjects = new List<BacktraceJObject>();
-
-
             foreach (var childObject in gameObject.transform)
             {
                 var transformChildObject = childObject as Component;
@@ -149,7 +124,6 @@ namespace Backtrace.Unity.Model.JsonData
             result["children"] = innerObjects;
             return result;
         }
-
         private BacktraceJObject GetJObject(GameObject gameObject, string parentName = "")
         {
             var o = new BacktraceJObject();
@@ -166,7 +140,6 @@ namespace Backtrace.Unity.Model.JsonData
             o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
             return o;
         }
-
         private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
         {
             var o = new BacktraceJObject();
