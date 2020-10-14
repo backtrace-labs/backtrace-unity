@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -140,6 +141,57 @@ namespace Backtrace.Unity.Tests.Runtime
                 trigger = true;
                 Assert.AreEqual(sourceCodeTestString, data.SourceCode.Text);
                 return new BacktraceResult();
+            };
+            client.Send(exception);
+
+            yield return new WaitForEndOfFrame();
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PiiTests_ShouldModifyEnvironmentVariable_IntegrationShouldUseModifiedEnvironmentVariables()
+        {
+            var trigger = false;
+            var exception = new Exception("custom exception message");
+
+            var environmentVariableKey = "foo";
+            var expectedValue = "bar";
+            Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
+
+            client.BeforeSend = (BacktraceData data) =>
+            {
+                var actualValue = data.Annotation.EnvironmentVariables[environmentVariableKey];
+                Assert.AreEqual(expectedValue, actualValue);
+                trigger = true;
+                return data;
+            };
+            client.Send(exception);
+
+            yield return new WaitForEndOfFrame();
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
+
+
+        [UnityTest]
+        public IEnumerator PiiTests_ShouldRemoveEnvironmentVariableValue_IntegrationShouldUseModifiedEnvironmentVariables()
+        {
+            var trigger = false;
+            var exception = new Exception("custom exception message");
+
+            var environmentVariableKey = "USERNAME";
+            var expectedValue = "%USERNAME%";
+            var defaultUserName = Annotations.EnvironmentVariablesCache[environmentVariableKey];
+            Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
+
+            client.BeforeSend = (BacktraceData data) =>
+            {
+                var actualValue = data.Annotation.EnvironmentVariables[environmentVariableKey];
+                Assert.AreEqual(expectedValue, actualValue);
+                Assert.AreNotEqual(defaultUserName, actualValue);
+                trigger = true;
+                return data;
             };
             client.Send(exception);
 
