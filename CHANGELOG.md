@@ -3,7 +3,7 @@
 ## Version 3.1.2
 - `BacktraceData` allows to edit list of environment variables collected by `BacktraceAnnotations`
 - `SourceCode` object description for PII purpose
-` `Annotations` class exposes EnvironmentVariableCache dictionary - dictionary that stores environment variables collected by library. For example - to replace `USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+- `Annotations` class exposes EnvironmentVariableCache dictionary - dictionary that stores environment variables collected by library. For example - to replace `USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
 
 ```csharp
 Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";
