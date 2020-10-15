@@ -45,7 +45,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Version of the C# library
         /// </summary>
-        public const string AgentVersion = "3.1.1";
+        public const string AgentVersion = "3.1.2";
 
         /// <summary>
         /// Application thread details
@@ -63,7 +63,7 @@ namespace Backtrace.Unity.Model
         public string[] Classifier;
 
         /// <summary>
-        /// Source code information - right now we support source code only for BacktraceUnhandledException exceptions.
+        /// Source code information.
         /// </summary>
         public BacktraceSourceCode SourceCode;
 

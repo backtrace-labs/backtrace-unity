@@ -1,5 +1,23 @@
 # Backtrace Unity Release Notes
 
+## Version 3.1.2
+- `BacktraceData` allows to edit list of environment variables collected by `BacktraceAnnotations`
+- `SourceCode` object description for PII purpose
+` `Annotations` class exposes EnvironmentVariableCache dictionary - dictionary that stores environment variables collected by library. For example - to replace `USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+
+```csharp
+Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";
+```
+
+Also you can still use BeforeSend event to edit collected diagnostic data:
+```csharp
+  client.BeforeSend = (BacktraceData data) =>
+  {
+      data.Annotation.EnvironmentVariables["USERNAME"] = "%USERNAME%";
+      return data;
+  }
+```
+
 ## Version 3.1.1
 - Prevent erroneously extending backtraceClient attributes with backtraceReport attributes.
 - Removed randomly generated path to assembly from callstacks.
