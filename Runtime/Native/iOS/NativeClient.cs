@@ -1,4 +1,4 @@
-#if UNITY_IOS || UNITY_STANDALONE_OSX
+#if UNITY_IOS
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Determine if ios integration should be enabled
         /// </summary>
         private readonly bool _enabled =
-#if (UNITY_IOS || UNITY_STANDALONE_OSX) && !UNITY_EDITOR
+#if UNITY_IOS && !UNITY_EDITOR
             true;
 #else
             false;
