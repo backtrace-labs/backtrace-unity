@@ -46,14 +46,13 @@ namespace Backtrace.Unity.Json
         /// <returns>BacktraceJObject JSON representation</returns>
         public string ToJson()
         {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine("{");
+            var stringBuilder = new StringBuilder("{");
 
             var lines = Source.Select(entry => string.Format("\"{0}\": {1}", EscapeString(entry.Key), ConvertValue(entry.Value)));
             var content = string.Join(",", lines);
 
             stringBuilder.Append(content);
-            stringBuilder.AppendLine("}");
+            stringBuilder.Append("}");
 
             return stringBuilder.ToString();
         }

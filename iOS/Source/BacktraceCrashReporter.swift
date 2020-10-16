@@ -9,8 +9,8 @@ import CrashReporter
     private let backtraceUrl: URL;
     
     @objc public init(url: NSString, attributes: NSDictionary) {
-        self.backtraceUrl = URL(string: url as String)!;
-        reporter = PLCrashReporter(configuration: PLCrashReporterConfig.defaultConfiguration());
+        self.backtraceUrl = URL(string: url as String)!
+        reporter = PLCrashReporter(configuration: PLCrashReporterConfig.defaultConfiguration())
         self.attributesProvider = AttributesProvider()
         self.attributesProvider.attributes = attributes as! Attributes;
     }
@@ -21,8 +21,15 @@ import CrashReporter
         reporter.enable();
     }
     
-    @objc public func getAttributes() -> NSDictionary {
-        return self.attributesProvider.allAttributes as NSDictionary;
+    // allows to still fetch attributes for integration without crash reporter enabled
+    @objc public static func getAttributes() -> NSDictionary {
+        let attributesSources = [ProcessorInfo(),
+            Device(),
+            ScreenInfo(),
+            LocaleInfo(),
+            NetworkInfo(),
+            LocationInfo()] as [AttributesSource];
+        return  attributesSources.map(\.mutable).merging() as NSDictionary;
     }
     
     @objc public func setAttributes(key: NSString, value: NSString) {
@@ -100,8 +107,6 @@ import CrashReporter
                 print("response = \(response)")
                 return
             }
-            
-            let responseString = String(data: data, encoding: .utf8)
             self.reporter.purgePendingCrashReport();
             try? AttributesStorage.remove(fileName: BacktraceCrashReporter.crashName);
         }

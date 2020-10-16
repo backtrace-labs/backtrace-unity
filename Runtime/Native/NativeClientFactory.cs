@@ -11,7 +11,7 @@ namespace Backtrace.Unity.Runtime.Native
 #else
 #if UNITY_ANDROID
             return new Android.NativeClient(gameObjectName, configuration);
-#elif UNITY_IOS
+#elif UNITY_IOS || UNITY_STANDALONE_OSX
             return new iOS.NativeClient(gameObjectName, configuration);
 #else
             return null;

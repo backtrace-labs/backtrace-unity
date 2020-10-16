@@ -58,7 +58,13 @@ namespace Backtrace.Unity.Tests.Runtime
         [Test]
         public void TestDbPath_ShouldCorrectlyGenerateFullpath_PathShouldntBeEmpty()
         {
-            var expectedDatabasePath = "C:/users/user/Backtrace/database/path";
+            var expectedDatabasePath =
+#if UNITY_EDITOR_OSX || UNITY_IOS || UNITY_STANDALONE_OSX
+                "/Users/user/Library/Application Support/Backtrace/database/path";
+#else
+            "C:/users/user/Backtrace/database/path";
+#endif
+
             var actualDatabasePath = DatabasePathHelper.GetFullDatabasePath(expectedDatabasePath);
             Assert.AreEqual(new DirectoryInfo(expectedDatabasePath).FullName, actualDatabasePath);
         }

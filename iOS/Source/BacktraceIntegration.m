@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #include "UnityFramework/UnityFramework-Swift.h"
 
+//attributes antry
 struct Entry {
     const char* key;
     const char* value;
@@ -9,6 +10,7 @@ struct Entry {
 
 bool initialized = false;
 BacktraceCrashReporter *reporter;
+// Initialize native crash reporter handler and set basic Unity attributes that integration will store when exception occured.
 void StartBacktraceIntegration(const char* rawUrl, const char* attributeKeys[], const char* attributeValues[], const int size) {
     if(!rawUrl){
         return;
@@ -23,11 +25,13 @@ void StartBacktraceIntegration(const char* rawUrl, const char* attributeKeys[], 
     initialized = true;
 }
 
+// Return native iOS attributes
+// Attributes support doesn't require to use instance of BacktraceCrashReporter object
+// we still want to provide attributes when someone doesn't want to capture native crashes
+// GetAttributes function will alloc space in memory for NSDicionary and will put all attributes 
+// there. In Unity layer we will reuse intPtr to get all attributes from NSDictionary.
 void GetAttibutes(struct Entry** entries, int* size) {
-    if(initialized == false) {
-        return;
-    }
-    NSDictionary* dictionary = [reporter getAttributes];
+    NSDictionary* dictionary = [BacktraceCrashReporter getAttributes];
     int count = (int) [dictionary count];
     *entries = malloc(count * sizeof(struct Entry));
     int index = 0;
@@ -41,6 +45,7 @@ void GetAttibutes(struct Entry** entries, int* size) {
 }
 
 void AddAttribute(char* key, char* value) {
+    // there is no reason to store attribuets when integration is disabled
     if(initialized == false) {
         return;
     }
@@ -54,6 +59,6 @@ void Crash() {
 }
 
 void HandleAnr(){
-    printf("Handling ANR: Unsupported operation.");
+    printf("Handling ANR: Feature unsupported yet.");
     
 }

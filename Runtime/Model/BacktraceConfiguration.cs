@@ -80,13 +80,13 @@ namespace Backtrace.Unity.Model
         [Tooltip("Try to find game native crashes and send them on Game startup")]
         public bool SendUnhandledGameCrashesOnGameStartup = true;
 
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
         /// <summary>
         /// Capture native NDK Crashes.
         /// </summary>
 #if UNITY_ANDROID
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
-#elif UNITY_IOS
+#elif UNITY_IOS || UNITY_STANDALONE_OSX
         [Tooltip("Capture native Crashes")]
 #endif
 

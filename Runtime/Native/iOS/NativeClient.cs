@@ -1,4 +1,4 @@
-#if UNITY_IOS
+#if UNITY_IOS || UNITY_STANDALONE_OSX
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Determine if ios integration should be enabled
         /// </summary>
         private readonly bool _enabled =
-#if UNITY_IOS && !UNITY_EDITOR
+#if (UNITY_IOS || UNITY_STANDALONE_OSX) && !UNITY_EDITOR
             true;
 #else
             false;
@@ -54,8 +54,12 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             if (configuration.CaptureNativeCrashes)
             {
                 HandleNativeCrashes(configuration);
+                // get basic attributes to enable attributes bridge
+                // otherwise first call to objective-c will take
+                // a lot of time
+                GetAttributes();
+                INITIALIZED = true;
             }
-            INITIALIZED = true;
         }
 
 
@@ -67,6 +71,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         {
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
             var backtraceAttributes = new Model.JsonData.BacktraceAttributes(null, null, true);
+
+            // add exception.type attribute to PLCrashReporter reports
+            // The library will send PLCrashReporter crashes to Backtrace
+            // only when Crash occured
+            backtraceAttributes.Attributes["exception.type"] = "Crash";
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
@@ -98,18 +107,26 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         }
 
         /// <summary>
-        /// Setup Android ANR support and set callback function when ANR happened.
+        /// Setup iOS ANR support and set callback function when ANR happened.
         /// </summary>
         /// <param name="gameObjectName">Backtrace game object name</param>
         /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
-            Debug.Log("ANR support on iOS is still unsupported.");
+            Debug.Log("ANR support on iOS is unsupported.");
         }
 
+        /// <summary>
+        /// Add attribute to native crash
+        /// </summary>
+        /// <param name="key">attribute name</param>
+        /// <param name="value">attribute value</param>
         public void SetAttribute(string key, string value)
         {
-            if (!_enabled)
+            // if INITIALIZED is equal to false, we don't need to set
+            // attributes or store them. AddAttibutes call to objective-c code
+            // is usefull ONLY when we initialized PLCrashReporter integration
+            if (!_enabled || INITIALIZED == false)
             {
                 return;
             }

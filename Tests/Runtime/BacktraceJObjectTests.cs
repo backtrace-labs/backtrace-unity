@@ -18,11 +18,11 @@ namespace Backtrace.Unity.Tests.Runtime
         {
             var jObject = new BacktraceJObject();
             var json = jObject.ToJson();
-            Assert.IsNotEmpty(json);
+            var expectedResult = "{}";
 
-            var expectedResult = "{\r\n" +
-                "}\r\n";
+            Assert.IsNotEmpty(json);
             Assert.AreEqual(expectedResult, json);
+
             yield return null;
         }
         [UnityTest]
@@ -171,10 +171,10 @@ namespace Backtrace.Unity.Tests.Runtime
             jObject["bar"] = string.Empty;
 
             var json = jObject.ToJson();
-            var expectedResult = "{\r\n" +
+            var expectedResult = "{" +
                "\"foo\": null," +
                "\"bar\": \"\"" +
-               "}\r\n";
+               "}";
             Assert.AreEqual(expectedResult, json);
             yield return null;
         }
