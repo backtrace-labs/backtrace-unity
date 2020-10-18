@@ -311,7 +311,7 @@ system.memory usage related information including memfree, swapfree, and vmalloc
 
 ## ANR
 
-When configuring the nacktrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds.
+When configuring the backtrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds.
 
 ## Symbols upload
 
