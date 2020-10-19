@@ -63,7 +63,7 @@ namespace Backtrace.Unity.Model
         public string[] Classifier;
 
         /// <summary>
-        /// Source code information - right now we support source code only for BacktraceUnhandledException exceptions.
+        /// Source code information.
         /// </summary>
         public BacktraceSourceCode SourceCode;
 

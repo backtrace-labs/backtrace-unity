@@ -3,6 +3,24 @@
 ## Version 3.2.0-release candidate
 This release adds the ability to capture native iOS crashes from Unity games deployed to iOS. The Backtrace Configuration now exposes a setting for games being prepared for iOS to choose `Capture native crashes`. When enabled, the backtrace-unity client will capture and submit native iOS crashes to the configured Backtrace instance. To generate human readable callstacks, game programmers will need to generate and upload appropriate debug symbols.
 
+## Version 3.1.2
+- `BacktraceData` allows to edit list of environment variables collected by `BacktraceAnnotations`
+- `SourceCode` object description for PII purpose
+- `Annotations` class exposes EnvironmentVariableCache dictionary - dictionary that stores environment variables collected by library. For example - to replace `USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+
+```csharp
+Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";
+```
+
+Also you can still use BeforeSend event to edit collected diagnostic data:
+```csharp
+  client.BeforeSend = (BacktraceData data) =>
+  {
+      data.Annotation.EnvironmentVariables["USERNAME"] = "%USERNAME%";
+      return data;
+  }
+```
+
 ## Version 3.1.1
 - Prevent erroneously extending backtraceClient attributes with backtraceReport attributes.
 - Removed randomly generated path to assembly from callstacks.
