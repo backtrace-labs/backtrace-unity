@@ -14,11 +14,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
     /// </summary>
     internal class NativeClient : INativeClient
     {
-        [DllImport("backtrace-crashpad")]
-        private static extern bool InitializeCrashpad(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values);
+        [DllImport("backtrace-native")]
+        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values);
 
-        [DllImport("backtrace-crashpad")]
-        private static extern bool AddCrashpadAttribute(IntPtr key, IntPtr value);
+        [DllImport("backtrace-native")]
+        private static extern bool AddAttribute(IntPtr key, IntPtr value);
 
         private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
@@ -29,7 +29,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Determine if android integration should be enabled
         /// </summary>
-        private bool _enabled = Application.platform == RuntimePlatform.Android;
+        private bool _enabled =
+#if UNITY_ANDROID && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
 
         /// <summary>
         /// Anr watcher object
@@ -37,7 +42,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private AndroidJavaObject _anrWatcher;
 
         private bool _captureNativeCrashes = false;
-        private bool _handlerANR = false;
+        private readonly bool _handlerANR = false;
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
         {
             _configuration = configuration;
@@ -48,10 +53,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
 #if UNITY_ANDROID
             _captureNativeCrashes = _configuration.CaptureNativeCrashes;
             _handlerANR = _configuration.HandleANR;
-#endif
             HandleAnr(gameObjectName, "OnAnrDetected");
             HandleNativeCrashes();
-
+#endif
 
         }
         /// <summary>
@@ -87,12 +91,15 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             // get default built-in Backtrace-Unity attributes
             var backtraceAttributes = new BacktraceAttributes(null, null, true);
+            // add exception type to crashes handled by crashpad - all exception handled by crashpad 
+            // will be game crashes
+            backtraceAttributes.Attributes["exception.type"] = "Crash";
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
             
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad
             // isn't available
-            _captureNativeCrashes = InitializeCrashpad(
+            _captureNativeCrashes = Initialize(
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(_configuration.CrashpadDatabasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
@@ -179,7 +186,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 value = string.Empty;
             }
 
-            AddCrashpadAttribute(
+            AddAttribute(
                 AndroidJNI.NewStringUTF(key),
                 AndroidJNI.NewStringUTF(value));
         }
