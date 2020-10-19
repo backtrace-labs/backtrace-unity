@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.0
+- Updated Android NDK libraries used by Unity plugin.
+
 ## Version 3.1.2
 - `BacktraceData` allows to edit list of environment variables collected by `BacktraceAnnotations`
 - `SourceCode` object description for PII purpose
