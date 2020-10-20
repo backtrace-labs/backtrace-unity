@@ -186,6 +186,28 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["error.message"] = report.ExceptionTypeReport
                 ? report.Exception.Message
                 : report.Message;
+
+            // detect exception type
+            var errorType = "error.type";
+            if (!report.ExceptionTypeReport)
+            {
+                Attributes[errorType] = "Message";
+                return;
+            }
+            if (report.Exception is BacktraceUnhandledException)
+            {
+                if ((report.Exception as BacktraceUnhandledException).Classifier == "ANRException")
+                {
+                    Attributes[errorType] = "Hang";
+                }
+                else
+                {
+                    Attributes[errorType] = "Unhandled exception";
+                }
+            } else
+            {
+                Attributes[errorType] = "Exception";
+            }
         }
 
         internal void SetSceneInformation(bool onlyBuiltInAttributes = false)
