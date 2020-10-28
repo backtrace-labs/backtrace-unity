@@ -279,7 +279,7 @@ namespace Backtrace.Unity.Model.JsonData
                 Attributes["uname.machine"] = cpuArchitecture;
             }
             //Operating system name = such as "windows"
-            Attributes["uname.sysname"] = SystemHelper.Name(cpuArchitecture);
+            Attributes["uname.sysname"] = SystemHelper.Name();
 
             //The version of the operating system
             Attributes["uname.version"] = Environment.OSVersion.Version.ToString();
