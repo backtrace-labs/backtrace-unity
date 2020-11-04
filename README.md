@@ -156,7 +156,9 @@ Backtrace offers to upload symbols automatically from Unity Editor to your Backt
 
 # iOS Specific information
 ## Native Crashes
-When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start.
+When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporte from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
+![Enable symbols](./Documentation~/images/Disable-ios-unity-crash-reporter.png)
+
 
 ## Debug Symbol upload
 When building your iOS game in Xcode, you must make sure you configure the build settings to generate "`DWARF with dSYM files` for any build that you want to debug with Backtrace (By default, it may only generate `DWARF`). In the example below, `DWARF with dSYM files` is enabled in the `Project Build Settings` for each `Target`.
@@ -167,6 +169,7 @@ This change will generate dSYM files every time you build your game in Xcode. Yo
 ![pack symbols](./Documentation~/images/dsym-files.png)
 
 To learn more about how to submit those symbol files to Backtrace, please see the Project Settings / Symbols. You can manage submission tokens, upload via the UI, or configure external Symbol Servers to connect and discover required symbols. Please review additional Symbol documentaion at https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview
+
 
 
 # API Overview
