@@ -45,7 +45,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Version of the C# library
         /// </summary>
-        public const string AgentVersion = "3.2.0-rc1";
+        public const string AgentVersion = "3.2.0-rc3";
 
         /// <summary>
         /// Application thread details
