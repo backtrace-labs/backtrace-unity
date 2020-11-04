@@ -67,7 +67,7 @@ PluginImporter:
         AddToEmbeddedBinaries: true
         CPU: AnyCPU
         CompileFlags: 
-        FrameworkDependencies: 
+        FrameworkDependencies: CoreData;CoreFoundation;CoreLocation;
   userData: 
   assetBundleName: 
   assetBundleVariant: 
