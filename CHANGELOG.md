@@ -3,7 +3,8 @@
 ## Version 3.2.0-release candidate
 This release adds the ability to capture native iOS crashes from Unity games deployed to iOS. The Backtrace Configuration now exposes a setting for games being prepared for iOS to choose `Capture native crashes`. When enabled, the backtrace-unity client will capture and submit native iOS crashes to the configured Backtrace instance. To generate human readable callstacks, game programmers will need to generate and upload appropriate debug symbols.
 
-- Renamed attribute uname.sysname and added default uname.sysname detection for new Unity platforms.
+- Renamed default uname.sysname attributes for some platforms for example: ps4 (instead of PS4), switch (instead of Switch)
+- Added default uname.sysname detection for new Unity platforms. Previously when we detected unknown OS, Backtrace-Unity set uname.sysname attribute to "NaCL". Right now we will try to get platform namy based on `Application.platform` property.
 - By default backtrace-unity plugin will add error.type attribute that allows developers to quickly filter reports based on exception type - for example: Crash, Message, Hang, Unhandled Exception, Exception.
 - Updated Android NDK libraries used by Unity plugin.
 
