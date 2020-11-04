@@ -87,7 +87,7 @@ namespace Backtrace.Unity.Common
                 case RuntimePlatform.SamsungTVPlayer:
                     return "Samsung TV";
                 case RuntimePlatform.tvOS:
-                    return "Apple tvOS";
+                    return "tvOS";
                 case RuntimePlatform.WebGLPlayer:
                     return "WebGL";
                 case RuntimePlatform.WiiU:
