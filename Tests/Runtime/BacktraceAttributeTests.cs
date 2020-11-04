@@ -121,5 +121,41 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(testObject.Attributes[clientAttributeKey] == clientAttributeValue);
             Assert.IsTrue(testObject.Attributes[reportAttributeKey] == reportAttributeValue);
         }
+
+        [Test]
+        public void TestExceptionTypeAttribute_ShouldSetExceptionTypeMessage_ExceptionTypeAttributeIsCorrect()
+        {
+            var report = new BacktraceReport("foo");
+            var testAttributes = new BacktraceAttributes(report, null);
+
+            Assert.AreEqual("Message", testAttributes.Attributes["error.type"]);
+        }
+
+        [Test]
+        public void TestExceptionTypeAttribute_ShouldSetExceptionTypeException_ExceptionTypeAttributeIsCorrect()
+        {
+            var report = new BacktraceReport(new Exception("foo"));
+            var testAttributes = new BacktraceAttributes(report, null);
+
+            Assert.AreEqual("Exception", testAttributes.Attributes["error.type"]);
+        }
+
+        [Test]
+        public void TestExceptionTypeAttribute_ShouldSetExceptionTypeUnhandledException_ExceptionTypeAttributeIsCorrect()
+        {
+            var report = new BacktraceReport(new BacktraceUnhandledException("foo", string.Empty));
+            var testAttributes = new BacktraceAttributes(report, null);
+
+            Assert.AreEqual("Unhandled exception", testAttributes.Attributes["error.type"]);
+        }
+
+        [Test]
+        public void TestExceptionTypeAttribute_ShouldSetExceptionTypeHang_ExceptionTypeAttributeIsCorrect()
+        {
+            var report = new BacktraceReport(new BacktraceUnhandledException("ANRException: Blocked thread detected", string.Empty));
+            var testAttributes = new BacktraceAttributes(report, null);
+
+            Assert.AreEqual("Hang", testAttributes.Attributes["error.type"]);
+        }
     }
 }
