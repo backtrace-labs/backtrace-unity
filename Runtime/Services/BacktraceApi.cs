@@ -110,7 +110,7 @@ namespace Backtrace.Unity.Services
 
             foreach (var file in attachments)
             {
-                if (File.Exists(file) && new FileInfo(file).Length > 10000000)
+                if (File.Exists(file) && new FileInfo(file).Length < 10000000)
                 {
                     formData.Add(new MultipartFormFileSection(
                         string.Format("attachment__{0}", Path.GetFileName(file)),
