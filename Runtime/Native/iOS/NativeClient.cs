@@ -75,7 +75,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             // add exception.type attribute to PLCrashReporter reports
             // The library will send PLCrashReporter crashes to Backtrace
             // only when Crash occured
-            backtraceAttributes.Attributes["exception.type"] = "Crash";
+            backtraceAttributes.Attributes["error.type"] = "Crash";
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
