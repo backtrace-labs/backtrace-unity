@@ -64,7 +64,7 @@ namespace Backtrace.Unity.Common
         /// </summary>
         /// <param name="architecture">System architecture</param>
         /// <returns>System name</returns>
-        internal static string Name(string architecture)
+        internal static string Name()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             switch (Application.platform)
@@ -80,20 +80,20 @@ namespace Backtrace.Unity.Common
                 case RuntimePlatform.OSXPlayer:
                     return "Mac OS";
                 case RuntimePlatform.PS3:
-                    return "PS3";
+                    return "ps3";
                 case RuntimePlatform.PS4:
-                    return "PS4";
+                    return "ps4";
                 case RuntimePlatform.TizenPlayer:
                 case RuntimePlatform.SamsungTVPlayer:
                     return "Samsung TV";
                 case RuntimePlatform.tvOS:
-                    return "Apple tvOS";
+                    return "tvOS";
                 case RuntimePlatform.WebGLPlayer:
                     return "WebGL";
                 case RuntimePlatform.WiiU:
                     return "WiiU";
                 case RuntimePlatform.Switch:
-                    return "Switch";
+                    return "switch";
                 case RuntimePlatform.WindowsEditor:
                 case RuntimePlatform.WindowsPlayer:
                 case RuntimePlatform.WSAPlayerARM:
@@ -104,7 +104,7 @@ namespace Backtrace.Unity.Common
                 case RuntimePlatform.XboxOne:
                     return "Xbox";
                 default:
-                    return "NaCl";
+                    return Application.platform.ToString();
             }
         }
 

@@ -27,6 +27,16 @@ namespace Backtrace.Unity.Model
             return uriBuilder.Uri;
         }
 
+        public Uri GetPlCrashReporterSubmissionUrl()
+        {
+            var url = GetSubmissionUrl().ToString();
+            var plCrashReporterUrl = url.IndexOf("submit.backtrace.io") != -1
+                ? url.Replace("/json", "/plcrash")
+                : url.Replace("format=json", "format=plcrash");
+            var uriBuilder = new UriBuilder(plCrashReporterUrl);
+            return uriBuilder.Uri;
+        }
+
         /// <summary>
         /// Create minidump submission url to Backtrace API
         /// </summary>

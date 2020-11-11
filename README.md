@@ -1,8 +1,20 @@
+
 # Backtrace Unity support
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report handled and unhandled Unity exceptions and crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
 [github release]: (https://github.com/backtrace-labs/backtrace-labs/)
+
+- [Features Summary <a name="features-summary"></a>](#features-summary--a-name--features-summary----a-)
+- [Prerequisites](#prerequisites)
+- [Platforms Supported](#platforms-supported)
+- [Setup <a name="installation"></a>](#setup--a-name--installation----a-)
+- [Android Specific information](#android-specific-information)
+- [iOS Specific information](#ios-specific-information)
+- [API Overview](#api-overview)
+- [Architecture description](#architecture-description)
+- [Investigating an Error in Backtrace](#investigating-an-error-in-backtrace)
+
 
 ## Usage
 
@@ -19,15 +31,23 @@ catch(Exception exception){
 }
 ```
 
-# Features Summary <a name="features-summary"></a>
+# Feature Summary <a name="features-summary"></a>
 
-- Light-weight Unity client that quickly submits crashed generated in Unity environment to your Backtrace dashboard
-  - Can include callstack, system metadata, custom metadata, custom attributes and file attachments if needed
-- Supports a wide range of unity version and environments
-- Supports .NET 2.0/3.5/4.5/Standard 2.0 Backend, IL2CPP and Mono environments
-- Supports offline database for error report storage and re-submission in case of network outage
-- Fully customizable and extendable event handlers
-- Custom IDE integrations
+- Lightweight library that quickly submits handled and unhandled exceptions and crashes to Backtrace 
+  - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4, Xbox, Switch, Stadia)
+  - Install via Universal Package Manager
+- Collect detailed context 
+  - Callstacks, including function names and line numbers where possible
+  - System metadata including device GUID, OS version, memory usage, process age
+  - Custom metadata including app version, scene info, device drivers
+  - Last # log lines, screenshots, log or config files, other attachments
+  - Android NDK Crashes; iOS Native Crashes, Windows Native Crashes
+- Client-side features
+  - Deduplication options and custom client side fingerprinting
+  - Offline crash capture/storage for future collection
+  - Customizable event handlers and base classes, Client side filters
+  - Performance statistics collection option for timing observability
+- Unity IDE integration to configure Backtrace behaviors in your game.
 
 # Prerequisites
 
@@ -44,7 +64,7 @@ Game Consoles - PlayStation4, Xbox One, Nintendo Switch
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 * All Platforms - Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
 * Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
-* iOS - Identified by attribute uname.sysname = IOS
+* iOS - Identified by attribute uname.sysname = IOS; Native Engine and Plugin Crashes.
 * WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information.
 * Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
 * PlayStation4 - Identified by attribute uname.sysname = PS4
@@ -99,7 +119,7 @@ The following is a reference guide to the Backtrace Client fields:
 `${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
 - Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
 - Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
-- Capture native crashes: This option will appear for games being deployed to Android and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Engine Plugin.
+- Capture native crashes: This option will appear for games being deployed to Android or iOS and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Plugin.
 - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
 - Attach Unity Player.log: Add Unity player log file to Backtrace report. NOTE: This feature is available only on desktop - Windows/MacOS/Linux.
 - Attach screenshot: Generate and attach screenshot of frame as exception occurs.
@@ -109,6 +129,53 @@ The following is a reference guide to the Backtrace Client fields:
 - Retry interval: If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries.
 - Maximum retries: If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.
 - Retry order: This specifies in which order records are sent to the Backtrace server.
+# Android Specific information
+
+The backtrace-unity library includes support for capturing Android NDK crashes and additional Android Native information, from underlying Android OS (Memory and process related), JNI, and NDK layers.
+
+## Native process and memory related information
+
+system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
+
+## ANR
+
+When configuring the backtrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds.
+
+## Symbols upload
+
+Unity allows developer to generate symbols archive called `symbols.zip` in the il2cpp build pipeline in the root directory of your game. In this archive you can find generated symbols for your game libraries. When your game crashes due to a native exception, your stack trace will contain only memory addresses instead of function name. Symbols from `symbols.zip` archive allows Backtrace to match function address to function name in your source code. 
+
+To generate `symbols.zip` archive make sure:
+* you selected il2cpp build,
+* you checked `Create symbols.zip` in the Build settings window
+![Create symbols.zip](./Documentation~/images/symbols.png)
+
+To upload symbols to Backtrace, you need to rename symbols generated by Unity end simply with a `.so` extension. By default, symbol files within the .zip will end with extension `.sym.so`. or `.dbg.so` Backtrace will only match symbols to files based on the ending with `.so` extension. Please ensure all files have a single `.so` extention before uploading the zip. To upload symbols please go to your project settings, to the `Upload an archive` tab under `Symbols` section. 
+
+Backtrace offers to upload symbols automatically from Unity Editor to your Backtrace instance. Backtrace symbols upload pipeline will be triggered after successfull build of il2cpp Android game and when Symbols upload token is available in Backtrace Client options. After successfull build, upload pipeline will confirm symbols upload.
+
+# iOS Specific information
+The backtrace-unity library includes support for capturing native iOS crashes as well as iOS native memory and process information from underlying iOS layer.
+
+## Native process and memory related information
+
+system and vm usage related information including system.memory.free, system.memory.used, system.memory.total, system.memory.active, system.memory.inactive, system.memory.wired are avaialble.
+
+## Native Crashes
+When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporte from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
+![Enable symbols](./Documentation~/images/Disable-ios-unity-crash-reporter.png)
+
+## Debug Symbol upload
+When building your iOS game in Xcode, you must make sure you configure the build settings to generate "`DWARF with dSYM files` for any build that you want to debug with Backtrace (By default, it may only generate `DWARF`). In the example below, `DWARF with dSYM files` is enabled in the `Project Build Settings` for each `Target`.
+![Enable symbols](./Documentation~/images/xCode-enable-debugging-symbols.png)
+
+This change will generate dSYM files every time you build your game in Xcode. You can find the files in the `...\Build\Products\<the folder representing your build>`. Within there will be dSYM files that you should compress into a .zip file and submit to Backtrace for use during symbolication.
+
+![pack symbols](./Documentation~/images/dsym-files.png)
+
+To learn more about how to submit those symbol files to Backtrace, please see the Project Settings / Symbols. You can manage submission tokens, upload via the UI, or configure external Symbol Servers to connect and discover required symbols. Please review additional Symbol documentaion at https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview
+
+
 
 # API Overview
 
@@ -300,31 +367,6 @@ Notes:
 - `BacktraceDatabase` methods allows you to use aggregated diagnostic data together. You can check `Hash` property of `BacktraceDatabaseRecord` to check generated hash for diagnostic data and `Counter` to check how much the same records we detect.
 - `BacktraceDatabase` `Count` method will return number of all records stored in database (included deduplicated records),
 - `BacktarceDatabase` `Delete` method will remove record (with multiple deduplicated records) at the same time.
-
-# Android Specific information
-
-The backtrace-unity library includes support for capturing additional Android Native information, from underlying Android OS (Memory and process related), JNI, and NDK layers.
-
-## Native process and memory related information
-
-system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
-
-## ANR
-
-When configuring the backtrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR reports. This will use the default of 5 seconds.
-
-## Symbols upload
-
-Unity allows developer to generate symbols archive called `symbols.zip` in the il2cpp build pipeline in the root directory of your game. In this archive you can find generated symbols for your game libraries. When your game crashes due to a native exception, your stack trace will contain only memory addresses instead of function name. Symbols from `symbols.zip` archive allows Backtrace to match function address to function name in your source code. 
-
-To generate `symbols.zip` archive make sure:
-* you selected il2cpp build,
-* you checked `Create symbols.zip` in the Build settings window
-![Create symbols.zip](./Documentation~/images/symbols.png)
-
-To upload symbols to Backtrace, you need to rename symbols generated by Unity end simply with a `.so` extension. By default, symbol files within the .zip will end with extension `.sym.so`. or `.dbg.so` Backtrace will only match symbols to files based on the ending with `.so` extension. Please ensure all files have a single `.so` extention before uploading the zip. To upload symbols please go to your project settings, to the `Upload an archive` tab under `Symbols` section. 
-
-Backtrace offers to upload symbols automatically from Unity Editor to your Backtrace instance. Backtrace symbols upload pipeline will be triggered after successfull build of il2cpp Android game and when Symbols upload token is available in Backtrace Client options. After successfull build, upload pipeline will confirm symbols upload.
 
 # Architecture description
 

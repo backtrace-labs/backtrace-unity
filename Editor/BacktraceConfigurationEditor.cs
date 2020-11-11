@@ -122,7 +122,7 @@ namespace Backtrace.Unity.Editor
 
 #endif
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
                     EditorGUILayout.PropertyField(
                          serializedObject.FindProperty("CaptureNativeCrashes"),
                          new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
