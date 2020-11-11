@@ -81,7 +81,7 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 - Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded from https://github.com/backtrace-labs/backtrace-unity/releases
 - Open your Unity project
-- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk)
+- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> KnownFolder/package.json)
 
 ## Integrating into your project
 
