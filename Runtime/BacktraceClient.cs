@@ -305,7 +305,13 @@ namespace Backtrace.Unity
             }
 
             _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
-
+            if (_nativeClient != null)
+            {
+                foreach (var attribute in _clientAttributes)
+                {
+                    _nativeClient.SetAttribute(attribute.Key, attribute.Value);
+                }
+            }
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
                 var nativeCrashUplaoder = new NativeCrashUploader();

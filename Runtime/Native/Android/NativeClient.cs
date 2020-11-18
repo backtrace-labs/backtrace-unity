@@ -69,6 +69,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 return;
             }
+            var databasePath = _configuration.CrashpadDatabasePath;
+            if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(databasePath))
+            {
+                return;
+            }
 
             // crashpad is available only for API level 21+ 
             // make sure we don't want ot start crashpad handler 
@@ -83,6 +88,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 }
             }
             var libDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
+            if (!Directory.Exists(libDirectory))
+            {
+                return;
+            }
             var crashpadHandlerPath = Directory.GetFiles(libDirectory, "libcrashpad_handler.so", SearchOption.AllDirectories).FirstOrDefault();
             if (string.IsNullOrEmpty(crashpadHandlerPath))
             {
@@ -101,7 +110,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // isn't available
             _captureNativeCrashes = Initialize(
                 AndroidJNI.NewStringUTF(minidumpUrl),
-                AndroidJNI.NewStringUTF(_configuration.CrashpadDatabasePath),
+                AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
                 AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Keys.ToArray()),
                 AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Values.ToArray()));
@@ -174,12 +183,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <param name="value">Attribute value</param>
         public void SetAttribute(string key, string value)
         {
-            Debug.Log($"Adding attribute to crashpad");
             if (!_captureNativeCrashes || string.IsNullOrEmpty(key))
             {
                 return;
             }
-            Debug.Log($"Adding attribute to crashpad. {key} {value}");
             // avoid null reference in crashpad source code
             if (value == null)
             {
