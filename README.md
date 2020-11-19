@@ -175,6 +175,41 @@ This change will generate dSYM files every time you build your game in Xcode. Yo
 
 To learn more about how to submit those symbol files to Backtrace, please see the Project Settings / Symbols. You can manage submission tokens, upload via the UI, or configure external Symbol Servers to connect and discover required symbols. Please review additional Symbol documentaion at https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview
 
+# Security
+
+Backtrace-Unity allows you to remove/modify data that library collects when exception occured. Right now you can choose one of the methods below:
+
+* Before Send event
+The library will fire an event every time when exception in managed environment occured. Before event allows you to skip report (you can do that by returning null value) or modify data that library were able to collect. BeforeSend event might be really useful in case if you would like to extend attributes or json object data based on data that application has right now.
+
+Example code:
+
+```
+//Read from manager BacktraceClient instance
+var backtraceClient = GameObject.Find("manager name").GetComponent<BacktraceClient>();
+// set beforeSend event
+_backtraceClient.BeforeSend = (BacktraceData data) =>
+        {
+            data.Attributes.Attributes["my-dynamic-attribute"] = "value";
+            return data;
+        };
+```
+
+* Environment variable
+`Annotations` class exposes EnvironmentVariableCache dictionary - dictionary that stores environment variables collected by library. For example - to replace `USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+
+```csharp
+Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";
+```
+
+Also you can still use BeforeSend event to edit collected diagnostic data:
+```csharp
+  client.BeforeSend = (BacktraceData data) =>
+  {
+      data.Annotation.EnvironmentVariables["USERNAME"] = "%USERNAME%";
+      return data;
+  }
+```
 
 
 # API Overview
