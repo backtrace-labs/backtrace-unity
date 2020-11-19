@@ -11,6 +11,7 @@
 - [Setup <a name="installation"></a>](#setup--a-name--installation----a-)
 - [Android Specific information](#android-specific-information)
 - [iOS Specific information](#ios-specific-information)
+- [Security](#security)
 - [API Overview](#api-overview)
 - [Architecture description](#architecture-description)
 - [Investigating an Error in Backtrace](#investigating-an-error-in-backtrace)
@@ -184,15 +185,15 @@ The library will fire an event every time when exception in managed environment 
 
 Example code:
 
-```
+```csharp
 //Read from manager BacktraceClient instance
 var backtraceClient = GameObject.Find("manager name").GetComponent<BacktraceClient>();
 // set beforeSend event
 _backtraceClient.BeforeSend = (BacktraceData data) =>
-        {
-            data.Attributes.Attributes["my-dynamic-attribute"] = "value";
-            return data;
-        };
+{
+    data.Attributes.Attributes["my-dynamic-attribute"] = "value";
+    return data;
+};
 ```
 
 * Environment variable

@@ -1,5 +1,11 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.1
+- Android stack trace parser improvements,
+- Fixed Android NDK initialization when database directory doesn't exist,
+- Added security section to Readme
+
+
 ## Version 3.2.0
 - This release adds the ability to capture native iOS crashes from Unity games deployed to iOS. The Backtrace Configuration now exposes a setting for games being prepared for iOS to choose `Capture native crashes`. When enabled, the backtrace-unity client will capture and submit native iOS crashes to the configured Backtrace instance. To generate human readable callstacks, game programmers will need to generate and upload appropriate debug symbols.
 - Added default uname.sysname attributes for some platforms. The following is the list of uname.sysname platforms that can be populated. list "Android, IOS, Linux, Mac OS, ps3, ps4, Samsung TV, tvOS, WebGL, WiiU, Switch, Xbox". Note 'Switch' had previously been reported as 'switch'
