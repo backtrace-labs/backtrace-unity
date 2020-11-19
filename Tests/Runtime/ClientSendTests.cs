@@ -182,6 +182,11 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var environmentVariableKey = "USERNAME";
             var expectedValue = "%USERNAME%";
+            if (!Annotations.EnvironmentVariablesCache.ContainsKey(environmentVariableKey))
+            {
+                Annotations.EnvironmentVariablesCache[environmentVariableKey] = "fake user name";
+            }
+
             var defaultUserName = Annotations.EnvironmentVariablesCache[environmentVariableKey];
             Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
 

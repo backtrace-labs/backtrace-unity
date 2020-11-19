@@ -166,6 +166,11 @@ namespace Backtrace.Unity.Tests.Runtime
                 Library = "BacktraceCrashHelper.java",
                 Line = 31
             },
+            new SampleStackFrame() {
+                Type = StackTraceType.Android,
+                FunctionName = "com.google.android.gms.ads.internal.webview.ac.loadUrl",
+                Custom = "com.google.android.gms.ads.internal.webview.ac.loadUrl(:com.google.android.gms.policy_ads_fdr_dynamite@204102000@204102000000.334548305.334548305:1)"
+            },
              // android unknown source
              new SampleStackFrame() {
                  Type = StackTraceType.Android,
@@ -324,9 +329,16 @@ namespace Backtrace.Unity.Tests.Runtime
             {
                 var mixModeCallStack = _mixModeCallStack.ElementAt(i);
                 var backtraceStackFrame = backtraceStackTrace.StackFrames[i - startIndex];
-                Assert.AreEqual(mixModeCallStack.FunctionName, backtraceStackFrame.FunctionName);
-                Assert.AreEqual(mixModeCallStack.Line, backtraceStackFrame.Line);
-                Assert.AreEqual(mixModeCallStack.Library, backtraceStackFrame.Library);
+                if (!string.IsNullOrEmpty(mixModeCallStack.Custom))
+                {
+                    Assert.AreEqual(mixModeCallStack.FunctionName, backtraceStackFrame.FunctionName);
+                }
+                else
+                {
+                    Assert.AreEqual(mixModeCallStack.FunctionName, backtraceStackFrame.FunctionName);
+                    Assert.AreEqual(mixModeCallStack.Line, backtraceStackFrame.Line);
+                    Assert.AreEqual(mixModeCallStack.Library, backtraceStackFrame.Library);
+                }
             }
         }
 
@@ -512,6 +524,7 @@ namespace Backtrace.Unity.Tests.Runtime
     internal class SampleStackFrame
     {
         public StackTraceType Type = StackTraceType.Default;
+        public string Custom { get; set; }
         public string StackFrame { get; set; }
         public string FunctionName { get; set; }
         public string Library { get; set; }
@@ -543,6 +556,10 @@ namespace Backtrace.Unity.Tests.Runtime
 
         public string ParseAndroidStackTrace()
         {
+            if (!string.IsNullOrEmpty(Custom))
+            {
+                return string.Format("{0}\n", Custom);
+            }
             var formattedLineNumber = Line != 0 ? string.Format(":{0}", Line) : string.Empty;
             return string.Format("{0}({1}{2})\n", FunctionName, Library, formattedLineNumber);
         }
