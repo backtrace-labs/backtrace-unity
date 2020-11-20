@@ -3,7 +3,7 @@
 ## Version 3.2.1
 - Android stack trace parser improvements,
 - Fixed Android NDK initialization when database directory doesn't exist,
-- Added security section to Readme
+- Added Privacy section to Readme
 
 
 ## Version 3.2.0
