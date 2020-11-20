@@ -103,9 +103,14 @@ namespace Backtrace.Unity.Services
                ? System.Diagnostics.Stopwatch.StartNew()
                : new System.Diagnostics.Stopwatch();
 
+            var minidumpBytes = File.ReadAllBytes(minidumpPath);
+            if (minidumpBytes == null || minidumpBytes.Length == 0)
+            {
+                yield break;
+            }
             List<IMultipartFormSection> formData = new List<IMultipartFormSection>
             {
-                new MultipartFormFileSection("upload_file", File.ReadAllBytes(minidumpPath))
+                new MultipartFormFileSection("upload_file", minidumpBytes)
             };
 
             foreach (var file in attachments)
@@ -224,7 +229,7 @@ namespace Backtrace.Unity.Services
                 yield return request.SendWebRequest();
 
                 BacktraceResult result;
-                if (request.responseCode == 200)
+                if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
 
@@ -265,10 +270,9 @@ namespace Backtrace.Unity.Services
 
         private void PrintLog(UnityWebRequest request)
         {
-            string responseText = Encoding.UTF8.GetString(request.downloadHandler.data);
             Debug.LogWarning(string.Format("{0}{1}", string.Format("[Backtrace]::Reponse code: {0}, Response text: {1}",
                     request.responseCode,
-                    responseText),
+                    request.downloadHandler.text),
                 "\n Please check provided url to Backtrace service or learn more from our integration guide: https://help.backtrace.io/integration-guides/game-engines/unity-integration-guide"));
         }
 
@@ -313,7 +317,7 @@ namespace Backtrace.Unity.Services
 
         }
 
-       // private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
+        // private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
 
         public static string GetParametrizedQuery(string serverUrl, Dictionary<string, string> queryAttributes)
         {
