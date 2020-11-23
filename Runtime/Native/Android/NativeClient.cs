@@ -65,13 +65,15 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private void HandleNativeCrashes()
         {
             // make sure database is enabled 
-            if (!_captureNativeCrashes)
+            if (!_captureNativeCrashes || !_configuration.Enabled)
             {
+                Debug.LogWarning("Backtrace native integration status: Disabled NDK integration");
                 return;
             }
             var databasePath = _configuration.CrashpadDatabasePath;
             if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(databasePath))
             {
+                Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
                 return;
             }
 
@@ -83,7 +85,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 int apiLevel = version.GetStatic<int>("SDK_INT");
                 if (apiLevel < 21)
                 {
-                    Debug.LogWarning("Crashpad integration status: Unsupported Android API level");
+                    Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
                     return;
                 }
             }
@@ -95,7 +97,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             var crashpadHandlerPath = Directory.GetFiles(libDirectory, "libcrashpad_handler.so", SearchOption.AllDirectories).FirstOrDefault();
             if (string.IsNullOrEmpty(crashpadHandlerPath))
             {
-                Debug.LogWarning("Crashpad integration status: Cannot find crashpad library");
+                Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
                 return;
             }
             // get default built-in Backtrace-Unity attributes
@@ -116,7 +118,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Values.ToArray()));
             if (!_captureNativeCrashes)
             {
-                Debug.LogWarning("Crashpad integration status: Cannot initialize Crashpad client");
+                Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
             }
         }
 
