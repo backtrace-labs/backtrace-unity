@@ -325,6 +325,13 @@ namespace Backtrace.Unity
             Refresh();
         }
 
+        private void OnDestroy()
+        {
+            Debug.Log("Disabling Backtrace integration");
+            Enabled = false;
+            Application.logMessageReceived -= HandleUnityMessage;
+        }
+
         /// <summary>
         /// Change maximum number of reportrs sending per one minute
         /// </summary>
