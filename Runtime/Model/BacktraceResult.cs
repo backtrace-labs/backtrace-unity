@@ -114,12 +114,19 @@ namespace Backtrace.Unity.Model
 
         public static BacktraceResult FromJson(string json)
         {
+            if (string.IsNullOrEmpty(json))
+            {
+                return new BacktraceResult()
+                {
+                    Status = BacktraceResultStatus.Empty
+                };
+            }
             var rawResult = JsonUtility.FromJson<BacktraceRawResult>(json);
             var result = new BacktraceResult()
             {
                 response = rawResult.response,
                 _rxId = rawResult._rxid,
-                Status = rawResult.response == "ok" ? BacktraceResultStatus.Ok: BacktraceResultStatus.ServerError
+                Status = rawResult.response == "ok" ? BacktraceResultStatus.Ok : BacktraceResultStatus.ServerError
             };
             return result;
         }

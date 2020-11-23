@@ -11,6 +11,7 @@
 - [Setup <a name="installation"></a>](#setup--a-name--installation----a-)
 - [Android Specific information](#android-specific-information)
 - [iOS Specific information](#ios-specific-information)
+- [Data Privacy](#data-privacy)
 - [API Overview](#api-overview)
 - [Architecture description](#architecture-description)
 - [Investigating an Error in Backtrace](#investigating-an-error-in-backtrace)
@@ -175,6 +176,41 @@ This change will generate dSYM files every time you build your game in Xcode. Yo
 
 To learn more about how to submit those symbol files to Backtrace, please see the Project Settings / Symbols. You can manage submission tokens, upload via the UI, or configure external Symbol Servers to connect and discover required symbols. Please review additional Symbol documentaion at https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview
 
+# Data Privacy
+
+Backtrace-Unity allows developers to remove and modify data that the library collects when an exception occurs using the following methods:
+
+* BeforeSend event
+The library will fire an event every time an exception in the managed environment occurs. The BeforeEvent trigger allows you to skip the report (you can do that by returning null value) or to modify data that library collected before sending the report. BeforeSend event might be useful in case if you would like to extend attributes or json object data based on data that application has at the time of exception.
+
+Example code:
+
+```csharp
+//Read from manager BacktraceClient instance
+var backtraceClient = GameObject.Find("manager name").GetComponent<BacktraceClient>();
+// set beforeSend event
+_backtraceClient.BeforeSend = (BacktraceData data) =>
+{
+    data.Attributes.Attributes["my-dynamic-attribute"] = "value";
+    return data;
+};
+```
+
+* Environment Variable Management
+The `Annotations` class exposes the EnvironmentVariableCache dictionary - a dictionary that stores environment variables collected by the library. You can manipulate the data in this cache before the report is sent. For example - to replace the`USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+
+```csharp
+Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";
+```
+
+Also you can still use BeforeSend event to edit collected diagnostic data:
+```csharp
+  client.BeforeSend = (BacktraceData data) =>
+  {
+      data.Annotation.EnvironmentVariables["USERNAME"] = "%USERNAME%";
+      return data;
+  }
+```
 
 
 # API Overview

@@ -305,7 +305,13 @@ namespace Backtrace.Unity
             }
 
             _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
-
+            if (_nativeClient != null)
+            {
+                foreach (var attribute in _clientAttributes)
+                {
+                    _nativeClient.SetAttribute(attribute.Key, attribute.Value);
+                }
+            }
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
                 var nativeCrashUplaoder = new NativeCrashUploader();
@@ -317,6 +323,13 @@ namespace Backtrace.Unity
         private void Awake()
         {
             Refresh();
+        }
+
+        private void OnDestroy()
+        {
+            Debug.Log("Disabling Backtrace integration");
+            Enabled = false;
+            Application.logMessageReceived -= HandleUnityMessage;
         }
 
         /// <summary>
@@ -552,6 +565,11 @@ namespace Backtrace.Unity
         /// <param name="stackTrace">Main thread stack trace</param>
         internal void OnAnrDetected(string stackTrace)
         {
+            if (!Enabled)
+            {
+                Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
+                return;
+            }
             const string anrMessage = "ANRException: Blocked thread detected";
             _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
             var hang = new BacktraceUnhandledException(anrMessage, stackTrace);

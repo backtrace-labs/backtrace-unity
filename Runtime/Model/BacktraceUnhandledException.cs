@@ -241,7 +241,7 @@ namespace Backtrace.Unity.Model
                 var sourceCodeParts = sourceCodeInformation.Split(':');
                 if (sourceCodeParts.Length == 2)
                 {
-                    stackFrame.Line = int.Parse(sourceCodeParts[1]);
+                    int.TryParse(sourceCodeParts[1], out stackFrame.Line);
                     stackFrame.Library = sourceCodeParts[0];
                     stackFrame.FunctionName = stackFrame.FunctionName.Substring(sourceCodeEndIndex + 2);
                 }
@@ -272,7 +272,7 @@ namespace Backtrace.Unity.Model
                 if (sourceCodeInformation.Length == 2)
                 {
                     stackFrame.Library = sourceCodeInformation[0];
-                    stackFrame.Line = int.Parse(sourceCodeInformation[1]);
+                    int.TryParse(sourceCodeInformation[1], out stackFrame.Line);
                 }
                 else if (frameString.StartsWith("java.lang") || possibleSourceCodeInformation == "Unknown Source")
                 {
