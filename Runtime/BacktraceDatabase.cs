@@ -399,7 +399,7 @@ namespace Backtrace.Unity
                 StartCoroutine(
                      BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>
                      {
-                         if (sendResult.Status == BacktraceResultStatus.Ok)
+                         if (sendResult.Status != BacktraceResultStatus.ServerError)
                          {
                              Delete(record);
                          }
