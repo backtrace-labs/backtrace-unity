@@ -229,7 +229,19 @@ namespace Backtrace.Unity.Services
                 yield return request.SendWebRequest();
 
                 BacktraceResult result;
-                if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
+                if(request.responseCode == 429)
+                {
+                    result = new BacktraceResult()
+                    {
+                        Message = "Server report limit reached",
+                        Status = Types.BacktraceResultStatus.LimitReached
+                    };
+                    if (OnServerResponse != null)
+                    {
+                        OnServerResponse.Invoke(result);
+                    }
+                }
+                else if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
 

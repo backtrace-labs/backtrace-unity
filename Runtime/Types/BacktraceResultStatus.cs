@@ -6,7 +6,7 @@
     public enum BacktraceResultStatus
     {
         /// <summary>
-        /// Set when client limit is reached
+        /// Set when client/server limit is reached
         /// </summary>
         LimitReached,
         /// <summary>

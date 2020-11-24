@@ -327,7 +327,6 @@ namespace Backtrace.Unity
 
         private void OnDestroy()
         {
-            Debug.Log("Disabling Backtrace integration");
             Enabled = false;
             Application.logMessageReceived -= HandleUnityMessage;
         }
@@ -508,7 +507,7 @@ namespace Backtrace.Unity
                 if (record != null)
                 {
                     record.Dispose();
-                    if (result.Status == BacktraceResultStatus.Ok && Database != null)
+                    if (Database != null && result.Status != BacktraceResultStatus.ServerError)
                     {
                         Database.Delete(record);
                     }
@@ -620,6 +619,10 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
+            if(!Enabled)
+            {
+                return false;
+            }
             // guess report type
             var filterType = ReportFilterType.Exception;
             if (exception is BacktraceUnhandledException)
