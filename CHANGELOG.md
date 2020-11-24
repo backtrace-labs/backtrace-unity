@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.2
+- Fixed native iOS attributes
+
 ## Version 3.2.1
 - Android stack trace parser improvements,
 - Fixed Android NDK initialization when database directory doesn't exist,
