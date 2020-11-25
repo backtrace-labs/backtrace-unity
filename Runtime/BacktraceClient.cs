@@ -471,6 +471,10 @@ namespace Backtrace.Unity
                         yield break;
                     }
                 }
+                else
+                {
+                    yield break;
+                }
             }
 
             yield return new WaitForEndOfFrame();
@@ -620,7 +624,7 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
-            if(!Enabled)
+            if (!Enabled)
             {
                 return false;
             }
