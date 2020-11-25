@@ -5,9 +5,9 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Backtrace.Unity.Tests.Runtime
+namespace Backtrace.Unity.Tests.Runtime.RateLimit
 {
-    public class RateLimitTests : BacktraceBaseTest
+    public class BacktraceClientRateLimitTests : BacktraceBaseTest
     {
         private const int CLIENT_RATE_LIMIT = 3;
 

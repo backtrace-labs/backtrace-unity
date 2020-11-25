@@ -399,7 +399,7 @@ namespace Backtrace.Unity
                 StartCoroutine(
                      BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>
                      {
-                         if (sendResult.Status != BacktraceResultStatus.ServerError)
+                         if (sendResult.Status != BacktraceResultStatus.ServerError && sendResult.Status != BacktraceResultStatus.NetworkError)
                          {
                              Delete(record);
                          }
@@ -465,6 +465,7 @@ namespace Backtrace.Unity
             DatabasePath = Configuration.GetFullDatabasePath();
             if (string.IsNullOrEmpty(DatabasePath))
             {
+                Debug.LogWarning("Backtrace database path is empty.");
                 return false;
             }
 
@@ -477,6 +478,11 @@ namespace Backtrace.Unity
                 databaseDirExists = dirInfo.Exists;
             }
 
+            if(!databaseDirExists)
+            {
+                Debug.LogWarning(string.Format("Backtrace database path doesn't exist. Database path: {0}", DatabasePath));
+
+            }
             return databaseDirExists;
 
         }

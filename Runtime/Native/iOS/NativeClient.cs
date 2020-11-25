@@ -76,6 +76,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             // The library will send PLCrashReporter crashes to Backtrace
             // only when Crash occured
             backtraceAttributes.Attributes["error.type"] = "Crash";
+            backtraceAttributes.Attributes["backtrace.version"] = BacktraceClient.VERSION;
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
