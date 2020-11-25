@@ -93,12 +93,12 @@ namespace Backtrace.Unity.Model
         /// <param name="report">Executed report</param>
         /// <param name="exception">Exception</param>
         /// <returns>BacktraceResult with exception information</returns>
-        internal static BacktraceResult OnError(Exception exception)
+        internal static BacktraceResult OnNetworkError(Exception exception)
         {
             return new BacktraceResult()
             {
                 Message = exception.Message,
-                Status = BacktraceResultStatus.ServerError
+                Status = BacktraceResultStatus.NetworkError
             };
         }
 

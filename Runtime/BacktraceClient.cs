@@ -20,6 +20,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
+        public const string VERSION = "3.2.3";
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -339,7 +340,7 @@ namespace Backtrace.Unity
         {
             if (!Enabled)
             {
-                Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
+                Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
             _reportLimitWatcher.SetClientReportLimit(reportPerMin);
@@ -470,6 +471,10 @@ namespace Backtrace.Unity
                         yield break;
                     }
                 }
+                else
+                {
+                    yield break;
+                }
             }
 
             yield return new WaitForEndOfFrame();
@@ -507,7 +512,7 @@ namespace Backtrace.Unity
                 if (record != null)
                 {
                     record.Dispose();
-                    if (Database != null && result.Status != BacktraceResultStatus.ServerError)
+                    if (Database != null && result.Status != BacktraceResultStatus.ServerError && result.Status != BacktraceResultStatus.NetworkError)
                     {
                         Database.Delete(record);
                     }
@@ -566,7 +571,7 @@ namespace Backtrace.Unity
         {
             if (!Enabled)
             {
-                Debug.LogWarning("Please enable BacktraceClient first - Please validate Backtrace client initializaiton in Unity IDE.");
+                Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
             const string anrMessage = "ANRException: Blocked thread detected";
@@ -619,7 +624,7 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
         {
-            if(!Enabled)
+            if (!Enabled)
             {
                 return false;
             }

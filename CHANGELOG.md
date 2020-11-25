@@ -1,5 +1,11 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.3
+- Backtrace offline database will now store 8 reports by default. Previously this was not set by default.  
+- HTTP client communication improvements
+- Improvements in UPM
+- Updated symbolication strategy on iOS crashes
+
 ## Version 3.2.2
 - Fixed native iOS attributes
 

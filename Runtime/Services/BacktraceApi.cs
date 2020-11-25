@@ -124,13 +124,10 @@ namespace Backtrace.Unity.Services
             }
 
             yield return new WaitForEndOfFrame();
-
-            var boundaryId = string.Format("----------{0:N}", Guid.NewGuid());
-            var boundaryIdBytes = Encoding.ASCII.GetBytes(boundaryId);
-
+            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
             using (var request = UnityWebRequest.Post(_minidumpUrl, formData, boundaryIdBytes))
             {
-                request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundaryId);
+                request.SetRequestHeader("Content-Type", string.Format("multipart/form-data; boundary={0}", Encoding.UTF8.GetString(boundaryIdBytes)));
                 request.timeout = 15000;
                 yield return request.SendWebRequest();
                 var result = request.isNetworkError || request.isHttpError
@@ -213,23 +210,31 @@ namespace Backtrace.Unity.Services
                 : ServerUrl;
 
 
-            using (var request = new UnityWebRequest(requestUrl, "POST"))
+            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
             {
-#if UNITY_2018_4_OR_NEWER
-                if (_ignoreSslValidation)
+                new MultipartFormFileSection("upload_file",  Encoding.UTF8.GetBytes(json), "upload_file.json", "application/json")
+            };
+
+            foreach (var file in attachments)
+            {
+                if (File.Exists(file) && new FileInfo(file).Length < 10000000)
                 {
-                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
+                    formData.Add(new MultipartFormFileSection(
+                        string.Format("attachment__{0}", Path.GetFileName(file)),
+                        File.ReadAllBytes(file)));
                 }
-#endif
+            }
+
+
+            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
+            using (var request = UnityWebRequest.Post(requestUrl, formData, boundaryIdBytes))
+            {
+                request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + Encoding.UTF8.GetString(boundaryIdBytes));
                 request.timeout = 15000;
-                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-                request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
-                request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-                request.SetRequestHeader("Content-Type", "application/json");
                 yield return request.SendWebRequest();
 
                 BacktraceResult result;
-                if(request.responseCode == 429)
+                if (request.responseCode == 429)
                 {
                     result = new BacktraceResult()
                     {
@@ -249,17 +254,12 @@ namespace Backtrace.Unity.Services
                     {
                         OnServerResponse.Invoke(result);
                     }
-                    if (attachments != null && attachments.Count > 0)
-                    {
-                        var stack = new Stack<string>(attachments);
-                        yield return SendAttachment(result.RxId, stack);
-                    }
                 }
                 else
                 {
                     PrintLog(request);
                     var exception = new Exception(request.error);
-                    result = BacktraceResult.OnError(exception);
+                    result = BacktraceResult.OnNetworkError(exception);
                     if (OnServerError != null)
                     {
                         OnServerError.Invoke(exception);
@@ -285,53 +285,10 @@ namespace Backtrace.Unity.Services
             Debug.LogWarning(string.Format("{0}{1}", string.Format("[Backtrace]::Reponse code: {0}, Response text: {1}",
                     request.responseCode,
                     request.downloadHandler.text),
-                "\n Please check provided url to Backtrace service or learn more from our integration guide: https://help.backtrace.io/integration-guides/game-engines/unity-integration-guide"));
+                "\n Please check provided url to Backtrace service or learn more from our integration guide: https://support.backtrace.io/hc/en-us/articles/360040515991-Unity-Integration-Guide"));
         }
 
-        private IEnumerator SendAttachment(string rxId, Stack<string> attachments)
-        {
-            if (attachments != null && attachments.Count > 0)
-            {
-                var attachment = attachments.Pop();
-                if (File.Exists(attachment))
-                {
-                    string fileName = Path.GetFileName(attachment);
-                    string serverUrl = GetAttachmentUploadUrl(rxId, fileName);
-                    using (var request = new UnityWebRequest(serverUrl, "POST"))
-                    {
-
-#if UNITY_2018_4_OR_NEWER
-                        if (_ignoreSslValidation)
-                        {
-                            request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
-                        }
-#endif
-                        request.timeout = 45000;
-                        byte[] bodyRaw = File.ReadAllBytes(attachment);
-                        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
-                        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-                        request.SetRequestHeader("Content-Type", "application/json");
-                        yield return request.SendWebRequest();
-
-                        if (request.responseCode != 200)
-                        {
-                            PrintLog(request);
-                        }
-                    }
-                }
-                yield return SendAttachment(rxId, attachments);
-            }
-        }
-
-        private string GetAttachmentUploadUrl(string rxId, string attachmentName)
-        {
-            return Uri.EscapeUriString(string.Format("{0}&object={1}&attachment_name={2}", _credentials.BacktraceHostUri.AbsoluteUri, rxId, attachmentName));
-
-        }
-
-        // private static readonly string reservedCharacters = "!*'();:@&=+$,/?%#[]";
-
-        public static string GetParametrizedQuery(string serverUrl, Dictionary<string, string> queryAttributes)
+        private string GetParametrizedQuery(string serverUrl, Dictionary<string, string> queryAttributes)
         {
             var uriBuilder = new UriBuilder(serverUrl);
             if (queryAttributes == null || !queryAttributes.Any())
@@ -360,28 +317,5 @@ namespace Backtrace.Unity.Services
             uriBuilder.Query += builder.ToString();
             return Uri.EscapeUriString(uriBuilder.Uri.ToString());
         }
-        /*
-        private static string UrlEncode(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder();
-            foreach (char @char in value)
-            {
-                if (reservedCharacters.IndexOf(@char) == -1)
-                {
-                    sb.Append(@char);
-                }
-                else
-                {
-                    sb.AppendFormat("%{0:X2}", (int)@char);
-                }
-            }
-            return sb.ToString();
-        }
-        */
     }
 }

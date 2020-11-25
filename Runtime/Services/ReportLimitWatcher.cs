@@ -1,8 +1,10 @@
-﻿using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Services
 {
     /// <summary>
@@ -15,6 +17,11 @@ namespace Backtrace.Unity.Services
         /// to validate number of reports that Backtarce integration will send per minute.
         /// </summary>
         internal readonly Queue<long> _reportQueue;
+
+        /// <summary>
+        /// Lock object
+        /// </summary>
+        internal readonly object _object = new object();
 
         /// <summary>
         /// Time period used to clear values from report queue.
@@ -49,8 +56,7 @@ namespace Backtrace.Unity.Services
         {
             if (reportPerMin < 0)
             {
-                throw new ArgumentException(string.Format((string)"{0} have to be greater than or equal to zero",
-                    (object)"reportPerMin"));
+                throw new ArgumentException("reportPerMin have to be greater than or equal to zero");
             }
             int reportNumber = checked((int)reportPerMin);
             _reportQueue = new Queue<long>(reportNumber);
@@ -77,20 +83,23 @@ namespace Backtrace.Unity.Services
             {
                 return true;
             }
-            //clear all reports older than _queReportTime
-            Clear();
-            if (_reportQueue.Count + 1 > _reportPerMin)
+            lock (_object)
             {
-                _limitHit = true;
-                if (displayMessageOnLimitHit)
+                //clear all reports older than _queReportTime
+                Clear();
+                if (_reportQueue.Count + 1 > _reportPerMin)
                 {
-                    DisplayReportLimitHitMessage();
+                    _limitHit = true;
+                    if (displayMessageOnLimitHit)
+                    {
+                        DisplayReportLimitHitMessage();
+                    }
+                    return false;
                 }
-                return false;
+                _limitHit = false;
+                _displayMessage = true;
+                _reportQueue.Enqueue(timestamp);
             }
-            _limitHit = false;
-            _displayMessage = true;
-            _reportQueue.Enqueue(timestamp);
             return true;
         }
 
@@ -104,13 +113,20 @@ namespace Backtrace.Unity.Services
             return WatchReport(report.Timestamp, displayMessageOnLimitHit);
         }
 
+        /// <summary>
+        /// Determine if report limit watcher should display message 
+        /// </summary>
+        internal bool ShouldDisplayMessage()
+        {
+            return _limitHit && _displayMessage;
+        }
 
         /// <summary>
         /// Display report limit hit 
         /// </summary>
         private void DisplayReportLimitHitMessage()
         {
-            if (_limitHit && _displayMessage)
+            if (ShouldDisplayMessage())
             {
                 _displayMessage = false;
                 Debug.LogWarning(string.Format("Backtrace report limit hit({0}/min) – Ignoring errors for 1 minute",
@@ -124,7 +140,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private void Clear()
         {
-            long currentTime = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            long currentTime = new DateTime().Timestamp();
             bool clear = false;
             while (!clear && _reportQueue.Count != 0)
             {

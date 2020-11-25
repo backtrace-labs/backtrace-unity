@@ -20,6 +20,10 @@
         /// <summary>
         /// Status generated Backtrace client receive empty report (Aggregate Exception purpose)
         /// </summary>
-        Empty
+        Empty,
+        /// <summary>
+        /// Status generated on networking error
+        /// </summary>
+        NetworkError
     }
 }

@@ -178,7 +178,7 @@ namespace Backtrace.Unity.Model
         /// Maximum number of stored reports in Database. If value is equal to zero, then limit not exists
         /// </summary>
         [Tooltip("This is one of two limits you can impose for controlling the growth of the offline store. This setting is the maximum number of stored reports in database. If value is equal to zero, then limit not exists, When the limit is reached, the database will remove the oldest entries.")]
-        public int MaxRecordCount;
+        public int MaxRecordCount = 8;
 
         /// <summary>
         /// Database size in MB

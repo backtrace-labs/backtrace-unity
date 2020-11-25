@@ -3,6 +3,9 @@
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report handled and unhandled Unity exceptions and crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
+[![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
+
+
 [github release]: (https://github.com/backtrace-labs/backtrace-labs/)
 
 - [Features Summary <a name="features-summary"></a>](#features-summary--a-name--features-summary----a-)
