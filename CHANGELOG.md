@@ -1,6 +1,6 @@
 # Backtrace Unity Release Notes
 
-## Version 3.3.3
+## Version 3.2.3
 - Backtrace database by default will store only 8 reports. Previously database was able to store infinity reports. 
 - Http client communication improvements
 - UPM imrovements
