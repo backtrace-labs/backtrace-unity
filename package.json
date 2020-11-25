@@ -19,5 +19,6 @@
     "name": "Backtrace I/O",
     "url": "https://backtrace.io/"
   },
-  "category": "Editor plugin + Script plugin"
+  "category": "Editor plugin + Script plugin",
+  "type": "library"
 }
