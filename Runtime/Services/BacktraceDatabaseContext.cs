@@ -271,7 +271,6 @@ namespace Backtrace.Unity.Services
                     TotalRecords--;
                 }
                 TotalSize -= record.Size;
-                System.Diagnostics.Debug.WriteLine(string.Format("[RemoveLastRecord] :: Total Size = {0}", TotalSize));
                 return true;
             }
             return false;
