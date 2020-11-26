@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.4
+- Fixed Backtrace-Unity NDK integration database path.
+
 ## Version 3.2.3
 - Backtrace offline database will now store 8 reports by default. Previously this was not set by default.  
 - HTTP client communication improvements

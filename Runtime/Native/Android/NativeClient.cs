@@ -71,10 +71,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
             var databasePath = _configuration.CrashpadDatabasePath;
-            if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(databasePath))
+            if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(_configuration.GetFullDatabasePath()))
             {
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
                 return;
+            }
+            if(!Directory.Exists(databasePath))
+            {
+                Directory.CreateDirectory(databasePath);
             }
 
             // crashpad is available only for API level 21+ 
