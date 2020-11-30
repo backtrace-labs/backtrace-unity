@@ -582,7 +582,7 @@ namespace Backtrace.Unity
 #endif
 
         /// <summary>
-        /// Handle Untiy unhandled exceptions
+        /// Handle Unity unhandled exceptions
         /// </summary>
         private void CaptureUnityMessages()
         {
