@@ -97,6 +97,20 @@ List of steps necessary to setup full Backtrace Unity integration.
 - Provide valid Backtrace client configuration and start using library!
   ![Full Backtrace configuration](./Documentation~/images/client-setup.PNG)
 
+## Integrating into your project via code
+
+One of the integration paths require to create game object in your game scene. If you would like to initialize Backtrace integration programatically, we recommend to use `Initialize` method available in `BacktraceClient` class.
+
+```csharp
+  var backtraceClient = BacktraceClient.Initialize(
+      url: serverUrl,
+      databasePath: "${Application.persistentDataPath}/sample/backtrace/path",
+      gameObjectName: "game-object-name",
+      attributes: attributes);
+```
+
+If you need to use more advanced configuration, `Initialize` method accepts `BacktraceConfiguration` scriptable object. 
+
 ## Plugin best practices
 
 Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.

@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.5
+- Added `BacktraceClient` Initialization method that allows developer to intialize Backtrace integration without adding game object to game scene.
+- Fixed invalid `meta` file for iOS integration for Unity 2019.2.13f1.
+
 ## Version 3.2.4
 - Fixed Backtrace-Unity NDK integration database path.
 
