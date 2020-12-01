@@ -236,7 +236,6 @@ namespace Backtrace.Unity.Services
                         }
                         //decrement total size of database
                         TotalSize -= value.Size;
-                        System.Diagnostics.Debug.WriteLine(string.Format("[Delete] :: Total Size = {0}", TotalSize));
                         return;
                     }
                 }
@@ -261,16 +260,7 @@ namespace Backtrace.Unity.Services
             var record = LastOrDefault();
             if (record != null)
             {
-                record.Delete();
-                if (record.Count > 0)
-                {
-                    TotalRecords = TotalRecords - record.Count;
-                }
-                else
-                {
-                    TotalRecords--;
-                }
-                TotalSize -= record.Size;
+                Delete(record);
                 return true;
             }
             return false;

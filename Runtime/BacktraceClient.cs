@@ -542,6 +542,7 @@ namespace Backtrace.Unity
 
                     if (record.Duplicated)
                     {
+                        record.Dispose();
                         yield break;
                     }
                 }

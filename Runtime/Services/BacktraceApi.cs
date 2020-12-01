@@ -24,6 +24,11 @@ namespace Backtrace.Unity.Services
         public Func<string, BacktraceData, BacktraceResult> RequestHandler { get; set; }
 
         /// <summary>
+        /// Determine if BacktraceApi should display failure message on HTTP failure.
+        /// </summary>
+        private bool _shouldDisplayFailureMessage = true;
+
+        /// <summary>
         /// Event triggered when server is unvailable
         /// </summary>
         public Action<Exception> OnServerError { get; set; }
@@ -127,6 +132,12 @@ namespace Backtrace.Unity.Services
             var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
             using (var request = UnityWebRequest.Post(_minidumpUrl, formData, boundaryIdBytes))
             {
+#if UNITY_2018_4_OR_NEWER
+                if (_ignoreSslValidation)
+                {
+                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
+                }
+#endif
                 request.SetRequestHeader("Content-Type", string.Format("multipart/form-data; boundary={0}", Encoding.UTF8.GetString(boundaryIdBytes)));
                 request.timeout = 15000;
                 yield return request.SendWebRequest();
@@ -229,6 +240,12 @@ namespace Backtrace.Unity.Services
             var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
             using (var request = UnityWebRequest.Post(requestUrl, formData, boundaryIdBytes))
             {
+#if UNITY_2018_4_OR_NEWER
+                if (_ignoreSslValidation)
+                {
+                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
+                }
+#endif
                 request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + Encoding.UTF8.GetString(boundaryIdBytes));
                 request.timeout = 15000;
                 yield return request.SendWebRequest();
@@ -249,6 +266,7 @@ namespace Backtrace.Unity.Services
                 else if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
+                    _shouldDisplayFailureMessage = true;
 
                     if (OnServerResponse != null)
                     {
@@ -282,9 +300,14 @@ namespace Backtrace.Unity.Services
 
         private void PrintLog(UnityWebRequest request)
         {
+            if(!_shouldDisplayFailureMessage)
+            {
+                return;
+            }
+            _shouldDisplayFailureMessage = false;
             Debug.LogWarning(string.Format("{0}{1}", string.Format("[Backtrace]::Reponse code: {0}, Response text: {1}",
                     request.responseCode,
-                    request.downloadHandler.text),
+                    request.error),
                 "\n Please check provided url to Backtrace service or learn more from our integration guide: https://support.backtrace.io/hc/en-us/articles/360040515991-Unity-Integration-Guide"));
         }
 
