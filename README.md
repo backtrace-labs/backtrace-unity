@@ -110,6 +110,18 @@ One of the integration paths require to create game object in your game scene. I
 ```
 
 If you need to use more advanced configuration, `Initialize` method accepts `BacktraceConfiguration` scriptable object. 
+```csharp
+  var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+  configuration.ServerUrl = serverUrl;
+  configuration.Enabled = true;
+  configuration.DatabasePath = "${Application.persistentDataPath}/sample/backtrace/path";
+  configuration.CreateDatabase = true;
+  configuration.Sampling = 0.002;
+  _backtraceClient = BacktraceClient.Initialize(
+      configuration,
+      gameObjectName: "game-object-name",
+      attributes: attributes);
+```
 
 ## Plugin best practices
 
