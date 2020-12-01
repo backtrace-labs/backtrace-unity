@@ -3,6 +3,7 @@
 ## Version 3.2.5
 - Added `BacktraceClient` Initialization method that allows developer to intialize Backtrace integration without adding game object to game scene.
 - Fixed invalid `meta` file for iOS integration for Unity 2019.2.13f1.
+- Backtrace client allows to configure report sampling. By default report sampling is equal to 0.01 - which means 1% of all unhandled exceptions will be skipped. 
 
 ## Version 3.2.4
 - Fixed Backtrace-Unity NDK integration database path.

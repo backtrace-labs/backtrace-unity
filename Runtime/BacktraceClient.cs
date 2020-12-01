@@ -675,13 +675,34 @@ namespace Backtrace.Unity
         /// <param name="type">log type</param>
         internal void HandleUnityMessage(string message, string stackTrace, LogType type)
         {
+            if (!Enabled)
+            {
+                return;
+            }
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
             _backtraceLogManager.Enqueue(unityMessage);
-            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
+            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException() && !SamplingShouldSkip())
             {
                 var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
                 SendUnhandledException(exception);
             }
+        }
+
+        /// <summary>
+        /// Skip sending report when sampling hit. This feature is enabled only for unhandled exception handler
+        /// </summary>
+        /// <returns>True, when client should skip report, otherwise false.</returns>
+        private bool SamplingShouldSkip()
+        {
+#if UNITY_EDITOR
+            return false;
+#else
+            if (!Configuration || Configuration.Sampling == 0)
+            {
+                return false;
+            }
+            return UnityEngine.Random.Range(0f, 1f) < Configuration.Sampling;
+#endif
         }
 
         private void SendUnhandledException(BacktraceUnhandledException exception)

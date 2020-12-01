@@ -47,6 +47,16 @@ namespace Backtrace.Unity.Model
         public bool DestroyOnLoad = false;
 
         /// <summary>
+        /// Sampling configuration - fractional sampling allows to drop some % of unhandled exception.
+        /// </summary>
+        [Tooltip("Sampling configuration - fractional sampling allows to drop some % of unhandled exception. \n" +
+            "* 1 - means 100% of unhandled exception reports will be dropped by library,\n" +
+            "* 0.1 - means 10% of unhandled exception reports will be dropped by library,\n" +
+            "* 0 - means library won't drop any unhandled exception beceuase of sampling.")]
+        [Range(0, 1)]
+        public double Sampling = 0.01d;
+
+        /// <summary>
         /// Backtrace report filter type
         /// </summary>
         [Tooltip("Report filter allows to filter specific type of reports. Possible options:\n" +
