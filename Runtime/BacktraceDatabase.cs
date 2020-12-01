@@ -399,13 +399,13 @@ namespace Backtrace.Unity
                 StartCoroutine(
                      BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>
                      {
+                         record.Dispose();
                          if (sendResult.Status != BacktraceResultStatus.ServerError && sendResult.Status != BacktraceResultStatus.NetworkError)
                          {
                              Delete(record);
                          }
                          else
                          {
-                             record.Dispose();
                              BacktraceDatabaseContext.IncrementBatchRetry();
                              return;
                          }
@@ -478,7 +478,7 @@ namespace Backtrace.Unity
                 databaseDirExists = dirInfo.Exists;
             }
 
-            if(!databaseDirExists)
+            if (!databaseDirExists)
             {
                 Debug.LogWarning(string.Format("Backtrace database path doesn't exist. Database path: {0}", DatabasePath));
 
@@ -534,8 +534,9 @@ namespace Backtrace.Unity
             //check how many records are stored in database
             //remove in case when we want to store one more than expected number
             //If record count == 0 then we ignore this condition
-            if (BacktraceDatabaseContext.Count() + 1 > DatabaseSettings.MaxRecordCount && DatabaseSettings.MaxRecordCount != 0 && !BacktraceDatabaseContext.RemoveLastRecord())
-            {
+            var noMoreSpaceForReport = BacktraceDatabaseContext.Count() + 1 > DatabaseSettings.MaxRecordCount && DatabaseSettings.MaxRecordCount != 0;
+            if (noMoreSpaceForReport)
+            { 
                 return false;
             }
 

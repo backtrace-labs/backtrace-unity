@@ -75,6 +75,10 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("DestroyOnLoad"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_DESTROY_CLIENT_ON_SCENE_LOAD));
 
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("Sampling"),
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_SAMPLING));
+
                 SerializedProperty gameObjectDepth = serializedObject.FindProperty("GameObjectDepth");
                 EditorGUILayout.PropertyField(gameObjectDepth, new GUIContent(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH));
 

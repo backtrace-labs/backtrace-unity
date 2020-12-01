@@ -20,7 +20,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.2.4";
+        public const string VERSION = "3.2.5";
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -53,6 +53,10 @@ namespace Backtrace.Unity
         /// <param name="attributes">attributes dictionary</param>
         public void SetAttributes(Dictionary<string, string> attributes)
         {
+            if (attributes == null)
+            {
+                return;
+            }
             foreach (var attribute in attributes)
             {
                 this[attribute.Key] = attribute.Value;
@@ -257,6 +261,76 @@ namespace Backtrace.Unity
         }
 
         private BacktraceLogManager _backtraceLogManager;
+
+
+        /// <summary>
+        /// Initialize new Backtrace integration
+        /// </summary>
+        /// <param name="configuration">Backtrace configuration scriptable object</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        {
+            if (string.IsNullOrEmpty(gameObjectName))
+            {
+                throw new ArgumentException("Missing game object name");
+            }
+
+            if (configuration == null || string.IsNullOrEmpty(configuration.ServerUrl))
+            {
+                throw new ArgumentException("Missing valid configuration");
+            }
+
+            if (Instance != null)
+            {
+                return Instance;
+            }
+            var backtrackGameObject = new GameObject(gameObjectName, typeof(BacktraceClient), typeof(BacktraceDatabase));
+            BacktraceClient backtraceClient = backtrackGameObject.GetComponent<BacktraceClient>();
+            BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
+
+            backtraceDatabase.Configuration = configuration;
+            backtraceClient.Configuration = configuration;
+            backtrackGameObject.SetActive(true);
+            backtraceClient.Refresh();
+            backtraceClient.SetAttributes(attributes);
+
+            return backtraceClient;
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration with database path. Note - database path will be auto created by Backtrace Unity plugin
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="databasePath">Database path</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            configuration.ServerUrl = url;
+            configuration.Enabled = true;
+            configuration.DatabasePath = databasePath;
+            configuration.CreateDatabase = true;
+            return Initialize(configuration, attributes, gameObjectName);
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            configuration.ServerUrl = url;
+            configuration.Enabled = false;
+            return Initialize(configuration, attributes, gameObjectName);
+        }
 
         public void OnDisable()
         {
@@ -468,6 +542,7 @@ namespace Backtrace.Unity
 
                     if (record.Duplicated)
                     {
+                        record.Dispose();
                         yield break;
                     }
                 }
@@ -582,7 +657,7 @@ namespace Backtrace.Unity
 #endif
 
         /// <summary>
-        /// Handle Untiy unhandled exceptions
+        /// Handle Unity unhandled exceptions
         /// </summary>
         private void CaptureUnityMessages()
         {
@@ -601,13 +676,36 @@ namespace Backtrace.Unity
         /// <param name="type">log type</param>
         internal void HandleUnityMessage(string message, string stackTrace, LogType type)
         {
+            if (!Enabled)
+            {
+                return;
+            }
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
             _backtraceLogManager.Enqueue(unityMessage);
-            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
+            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException() && !SamplingShouldSkip())
             {
                 var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
                 SendUnhandledException(exception);
             }
+        }
+
+        /// <summary>
+        /// Skip sending report when sampling hit. This feature is enabled only for unhandled exception handler
+        /// </summary>
+        /// <returns>True, when client should skip report, otherwise false.</returns>
+        private bool SamplingShouldSkip()
+        {
+            // Sampling won't work in Editor mode - from editor we're allowing to send all type
+            // of possible errors.
+#if UNITY_EDITOR
+            return false;
+#else
+            if (!Configuration || Configuration.Sampling == 1)
+            {
+                return false;
+            }
+            return UnityEngine.Random.Range(0f, 1f) > Configuration.Sampling;
+#endif
         }
 
         private void SendUnhandledException(BacktraceUnhandledException exception)
