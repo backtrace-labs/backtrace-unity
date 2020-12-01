@@ -695,14 +695,16 @@ namespace Backtrace.Unity
         /// <returns>True, when client should skip report, otherwise false.</returns>
         private bool SamplingShouldSkip()
         {
+            // Sampling won't work in Editor mode - from editor we're allowing to send all type
+            // of possible errors.
 #if UNITY_EDITOR
             return false;
 #else
-            if (!Configuration || Configuration.Sampling == 0)
+            if (!Configuration || Configuration.Sampling == 1)
             {
                 return false;
             }
-            return UnityEngine.Random.Range(0f, 1f) < Configuration.Sampling;
+            return UnityEngine.Random.Range(0f, 1f) > Configuration.Sampling;
 #endif
         }
 
