@@ -69,7 +69,7 @@ There are some differences in capabilities that backtrace-unity provides based o
 * All Platforms - Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
 * Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
 * iOS - Identified by attribute uname.sysname = IOS; Native Engine and Plugin Crashes.
-* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information.
+* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details in https://docs.unity3d.com/Manual/webgl-building.html 
 * Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
 * PlayStation4 - Identified by attribute uname.sysname = PS4
 * Windows - Identified by attribute uname.sysname = Windows. Provides an option to capture Minidumps for Engine Crashes.
