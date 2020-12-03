@@ -396,7 +396,7 @@ namespace Backtrace.Unity.Tests.Runtime
             // should guess classifier based on first stack frame
             string message = string.Empty;
             var exception = new BacktraceUnhandledException(message, stackTrace);
-            Assert.AreEqual("BacktraceUnhandledException", exception.Classifier);
+            Assert.AreEqual("UnhandledException", exception.Classifier);
         }
 
 
