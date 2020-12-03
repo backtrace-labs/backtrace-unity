@@ -20,7 +20,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.2.5";
+        public const string VERSION = "3.2.6";
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -682,10 +682,37 @@ namespace Backtrace.Unity
             }
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
             _backtraceLogManager.Enqueue(unityMessage);
-            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException() && !SamplingShouldSkip())
+            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
             {
-                var exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
-                SendUnhandledException(exception);
+                BacktraceUnhandledException exception = null;
+                var invokeSkipApi = true;
+
+                // detect sampling flow
+                // we should apply sampling only to unhandled exceptions that are type LogType == Error
+                // log type error won't provide full exception information
+                if (type == LogType.Error && SamplingShouldSkip())
+                {
+                    if (SkipReport != null || Configuration.ReportFilterType.HasFlag(ReportFilterType.UnhandledException))
+                    {
+                        exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
+                        if (ShouldSkipReport(ReportFilterType.UnhandledException, exception, string.Empty))
+                        {
+                            return;
+                        }
+                        invokeSkipApi = false;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                if (exception == null)
+                {
+                    exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
+                }
+
+                SendUnhandledException(exception, invokeSkipApi);
             }
         }
 
@@ -708,19 +735,19 @@ namespace Backtrace.Unity
 #endif
         }
 
-        private void SendUnhandledException(BacktraceUnhandledException exception)
+        private void SendUnhandledException(BacktraceUnhandledException exception, bool invokeSkipApi = true)
         {
             if (OnUnhandledApplicationException != null)
             {
                 OnUnhandledApplicationException.Invoke(exception);
             }
-            if (ShouldSendReport(exception, null, null))
+            if (ShouldSendReport(exception, null, null, invokeSkipApi))
             {
                 SendReport(new BacktraceReport(exception));
             }
         }
 
-        private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes)
+        private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes, bool invokeSkipApi = true)
         {
             if (!Enabled)
             {
@@ -736,7 +763,7 @@ namespace Backtrace.Unity
             }
 
 
-            if (ShouldSkipReport(filterType, exception, string.Empty))
+            if (invokeSkipApi && ShouldSkipReport(filterType, exception, string.Empty))
             {
                 return false;
             }
