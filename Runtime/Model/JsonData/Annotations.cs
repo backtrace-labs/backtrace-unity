@@ -46,7 +46,6 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 var value = variable.Value == null ? "NULL" : variable.Value.ToString();
                 environmentVariables.Add(variable.Key.ToString(), value);
-                environmentVariables.Add(variable.Key.ToString(), value);
             }
             return environmentVariables;
         }
