@@ -8,7 +8,7 @@
         internal static string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
 
         internal static string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
-        internal static string LABEL_SAMPLING = "Sampling skip fraction";
+        internal static string LABEL_SAMPLING = "Log random sampling rate";
         internal static string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";

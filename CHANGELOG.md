@@ -1,5 +1,11 @@
 # Backtrace Unity Release Notes
 
+## Version 3.2.6
+- `BacktraceClient` will apply sampling only to errors lacking exception information.
+- Fixed annotations nullable value.
+- Renamed `BacktraceUnhandledException` classifier to `error`.
+- Fixed nullable environment annotation value.
+
 ## Version 3.2.5
 - Added `BacktraceClient` Initialization method that allows developer to intialize Backtrace integration without adding game object to game scene.
 - Fixed invalid `meta` file for iOS integration for Unity 2019.2.13f1.
