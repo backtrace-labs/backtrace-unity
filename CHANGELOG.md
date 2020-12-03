@@ -3,7 +3,7 @@
 ## Version 3.2.6
 - `BacktraceClient` will apply sampling only to errors lacking exception information.
 - Fixed annotations nullable value.
-- Renamed `BacktraceUnhandledException` classifier to `UnhandledException`.
+- Renamed `BacktraceUnhandledException` classifier to `error`.
 - Fixed nullable environment annotation value.
 
 ## Version 3.2.5
