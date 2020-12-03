@@ -40,7 +40,12 @@ namespace Backtrace.Unity.Model.JsonData
             var environmentVariables = new Dictionary<string, string>();
             foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
             {
-                environmentVariables.Add(variable.Key.ToString(), Regex.Escape(variable.Value.ToString() ?? "NULL"));
+                if (variable.Key == null)
+                {
+                    continue;
+                }
+                var value = variable.Value == null ? "NULL" : variable.Value.ToString();
+                environmentVariables.Add(variable.Key.ToString(), value);
             }
             return environmentVariables;
         }

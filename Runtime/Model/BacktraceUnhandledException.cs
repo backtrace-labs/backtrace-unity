@@ -365,7 +365,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         private void TrySetClassifier()
         {
-            Classifier = "BacktraceUnhandledException";
+            Classifier = "UnhandledException";
             if (string.IsNullOrEmpty(_message))
             {
                 return;
