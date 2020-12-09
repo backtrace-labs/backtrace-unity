@@ -10,7 +10,7 @@
 - Added `BacktraceClient` Initialization method that allows developer to intialize Backtrace integration without adding game object to game scene.
 - Fixed invalid `meta` file for iOS integration for Unity 2019.2.13f1.
 - HTTP communication messages improvements - right now Backtrace-Unity plugin will print only one error message when network failure happen. Backtrace-Unity will stop printing failures until next successfull report upload.
-- Sampling skip fraction - Enables a new random sampling mechanism for BacktraceUnhandledExceptions (errors from Debug.LogError - by default sampling is equal to 0.01 - which means only 1% of randomly sampled Debug.LogError reports will be send to Backtrace. If you would like to send all Debug.LogError to Backtrace - please replace 0.01 value with 1. 
+- Sampling skip fraction - Enables a new random sampling mechanism for BacktraceUnhandledExceptions (errors from Debug.LogError), by setting default sampling  equal to 0.01 - which means only 1% of randomly sampled Debug.LogError reports will be send to Backtrace. If you would like to send all Debug.LogError to Backtrace - please replace 0.01 value with 1. 
 
 **Be aware**
 
