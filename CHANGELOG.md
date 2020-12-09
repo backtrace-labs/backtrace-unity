@@ -3,18 +3,18 @@
 ## Version 3.2.6
 - `BacktraceClient` will apply sampling only to errors lacking exception information.
 - Fixed annotations nullable value.
-- Renamed `BacktraceUnhandledException` classifier to `error`.
+- Renamed `BacktraceUnhandledException` classifier, which was generated from a Debug.LogError call, to `error`.
 - Fixed nullable environment annotation value.
 
 ## Version 3.2.5
 - Added `BacktraceClient` Initialization method that allows developer to intialize Backtrace integration without adding game object to game scene.
 - Fixed invalid `meta` file for iOS integration for Unity 2019.2.13f1.
 - HTTP communication messages improvements - right now Backtrace-Unity plugin will print only one error message when network failure happen. Backtrace-Unity will stop printing failures until next successfull report upload.
-- Sampling skip fraction - Enables a new random sampling mechanism for unhandled exceptions - by default sampling is equal to 0.01 - which means only 1% of randomply sampling reports will be send to Backtrace. If you would like to send all unhandled exceptions to Backtrace - please replace 0.01 value with 1. 
+- Sampling skip fraction - Enables a new random sampling mechanism for BacktraceUnhandledExceptions (errors from Debug.LogError - by default sampling is equal to 0.01 - which means only 1% of randomly sampled Debug.LogError reports will be send to Backtrace. If you would like to send all Debug.LogError to Backtrace - please replace 0.01 value with 1. 
 
 **Be aware**
 
-By default Backtrace library will send only 1% of your reports - please change this value if you would like to send more unhandled exceptions to server.
+By default Backtrace library will send only 1% of your Debug.LogError reports - please change this value if you would like to send more Debug.LogErrors to server.
 
 
 
