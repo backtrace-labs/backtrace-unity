@@ -4,7 +4,6 @@
     {
         string Write(string data, string prefix);
         string Write(byte[] data, string prefix);
-        void SaveTemporaryFile(string path, byte[] file);
-        void SaveValidRecord(string sourcePath, string destinationPath);
+        void Save(string path, byte[] file);
     }
 }

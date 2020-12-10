@@ -134,7 +134,7 @@ namespace Backtrace.Unity.Editor.Build
 
         private string GetPathToSymbolsArchive(BuildReport report)
         {
-            var archiveName = string.Format("{0}-{1}-v{2}.symbols.zip", Path.GetFileNameWithoutExtension(report.summary.outputPath), PlayerSettings.bundleVersion, PlayerSettings.Android.bundleVersionCode);
+            var archiveName = string.Format("{0}-{1}-v{2}.symbols.zip", Path.GetFileNameWithoutExtension(report.summary.outputPath), PlayerSettings.bundleVersion, PlayerSettings.Android.bundleVersionCode.ToString());
             return Path.Combine(Directory.GetParent(report.summary.outputPath).FullName, archiveName);
 
         }

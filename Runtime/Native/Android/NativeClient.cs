@@ -109,7 +109,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
             // will be game crashes
             backtraceAttributes.Attributes["error.type"] = "Crash";
-            backtraceAttributes.Attributes["backtrace.version"] = BacktraceClient.VERSION;
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
             
             // reassign to captureNativeCrashes
@@ -144,7 +143,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
             using (var backtraceAttributes = new AndroidJavaObject(_nativeAttributesPath))
             {
-                var androidAttributes = backtraceAttributes.Call<AndroidJavaObject>("GetAttributes", context);
+                var androidAttributes = backtraceAttributes.Call<AndroidJavaObject>("GetAttributes", new object[] { context });
                 var entrySet = androidAttributes.Call<AndroidJavaObject>("entrySet");
                 var iterator = entrySet.Call<AndroidJavaObject>("iterator");
                 while (iterator.Call<bool>("hasNext"))

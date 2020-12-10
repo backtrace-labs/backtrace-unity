@@ -9,10 +9,7 @@ namespace Backtrace.Unity.Model
     /// </summary>
     public class BacktraceSourceCode
     {
-        /// <summary>
-        /// Source code id - integration uses id to assign source code to first stack frame
-        /// </summary>
-        public readonly string Id = Guid.NewGuid().ToString();
+        internal static string SOURCE_CODE_PROPERTY = "main";
         /// <summary>
         /// Default source code type
         /// </summary>
@@ -40,13 +37,13 @@ namespace Backtrace.Unity.Model
         {
             var json = new BacktraceJObject();
             var sourceCode = new BacktraceJObject();
-            sourceCode["id"] = Id;
+            sourceCode["id"] = SOURCE_CODE_PROPERTY;
             sourceCode["type"] = Type;
             sourceCode["title"] = Title;
             sourceCode["highlightLine"] = HighlightLine;
             sourceCode["text"] = Text;
 
-            json[Id.ToString()] = sourceCode;
+            json[SOURCE_CODE_PROPERTY] = sourceCode;
             return json;
         }
     }

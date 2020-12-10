@@ -36,7 +36,6 @@ namespace Backtrace.Unity.Model.JsonData
         }
 
 
-        internal const string APPLICATION_ATTRIBUTE_NAME = "application";
         /// <summary>
         /// Create instance of Backtrace Attribute
         /// </summary>
@@ -52,7 +51,14 @@ namespace Backtrace.Unity.Model.JsonData
 
             if (report != null)
             {
-                ConvertAttributes(report, clientAttributes);
+                // Add report attributes
+                if (report.Attributes != null)
+                {
+                    foreach (var attribute in report.Attributes)
+                    {
+                        Attributes[attribute.Key] = attribute.Value;
+                    }
+                }
                 SetExceptionAttributes(report);
             }
             //Environment attributes override user attributes     
@@ -65,7 +71,14 @@ namespace Backtrace.Unity.Model.JsonData
 
         public BacktraceJObject ToJson()
         {
-            return new BacktraceJObject(Attributes);
+
+            var attributes = new BacktraceJObject();
+            var enumerator = Attributes.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                attributes[enumerator.Current.Key] = enumerator.Current.Value;
+            }
+            return attributes;
         }
 
         private void SetScriptingBackend()
@@ -96,10 +109,11 @@ namespace Backtrace.Unity.Model.JsonData
             }
 
             Attributes["guid"] = MachineId;
+            Attributes["backtrace.version"] = BacktraceClient.VERSION;
             SetScriptingBackend();
 
             //Base name of application generating the report
-            Attributes[APPLICATION_ATTRIBUTE_NAME] = Application.productName;
+            Attributes["application"] = Application.productName;
             Attributes["application.version"] = Application.version;
             Attributes["application.url"] = Application.absoluteURL;
             Attributes["application.company.name"] = Application.companyName;
@@ -159,21 +173,6 @@ namespace Backtrace.Unity.Model.JsonData
         }
 
         /// <summary>
-        /// Convert custom user attributes
-        /// </summary>
-        /// <param name="report">Received report</param>
-        /// <param name="clientAttributes">Client's attributes (report and client)</param>
-        /// <returns>Dictionary of custom user attributes </returns>
-        private void ConvertAttributes(BacktraceReport report, Dictionary<string, string> clientAttributes)
-        {
-            var reportAttributes = BacktraceReport.ConcatAttributes(report, clientAttributes);
-            foreach (var attribute in reportAttributes)
-            {
-                Attributes[attribute.Key] = attribute.Value;
-            }
-        }
-
-        /// <summary>
         /// Set attributes from exception
         /// </summary>
         internal void SetExceptionAttributes(BacktraceReport report)
@@ -204,7 +203,8 @@ namespace Backtrace.Unity.Model.JsonData
                 {
                     Attributes[errorType] = "Unhandled exception";
                 }
-            } else
+            }
+            else
             {
                 Attributes[errorType] = "Exception";
             }

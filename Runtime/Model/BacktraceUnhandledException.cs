@@ -54,7 +54,7 @@ namespace Backtrace.Unity.Model
                 ConvertStackFrames();
             }
 
-            if (string.IsNullOrEmpty(stacktrace) || !StackFrames.Any())
+            if (string.IsNullOrEmpty(stacktrace) || StackFrames.Count == 0)
             {
                 // make sure that for this kind of exception, this exception message will be always the same
                 // error message might be overriden by ConvertStackFrames method.

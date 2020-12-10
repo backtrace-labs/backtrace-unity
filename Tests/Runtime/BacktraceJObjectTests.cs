@@ -34,8 +34,8 @@ namespace Backtrace.Unity.Tests.Runtime
                 AgentName = "Backtrace-unity",
                 IntNumber = 1,
                 FloatNumber = 12.123f,
-                DoubleNumber = 123.123d,
-                LongNumber = 123
+                DoubleNumber = 555.432d,
+                LongNumber = 999
             };
 
             var jObject = new BacktraceJObject()
@@ -71,11 +71,12 @@ namespace Backtrace.Unity.Tests.Runtime
             };
 
             var json = jObject.ToJson();
-            foreach (var keyValuePair in jObject.Source)
+            foreach (var keyValuePair in jObject.PrimitiveValues)
             {
                 Assert.IsTrue(json.Contains(keyValuePair.Key));
                 Assert.IsTrue(json.Contains(Regex.Escape(keyValuePair.Value.ToString())));
             }
+
             yield return null;
         }
 
@@ -167,17 +168,19 @@ namespace Backtrace.Unity.Tests.Runtime
         public IEnumerator TestDataSerialization_ShouldSerializeEmptyOrNullableValues_DataSerializeCorrectly()
         {
             var jObject = new BacktraceJObject();
-            jObject["foo"] = null;
             jObject["bar"] = string.Empty;
+            jObject["foo"] = null;
 
-            var json = jObject.ToJson();
+           var json = jObject.ToJson();
+
             var expectedResult = "{" +
-               "\"foo\": null," +
-               "\"bar\": \"\"" +
-               "}";
+                   "\"bar\":\"\"," +
+                   "\"foo\":null" +
+                   "}";
             Assert.AreEqual(expectedResult, json);
             yield return null;
         }
+
 
         [UnityTest]
         public IEnumerator TestDataSerialization_JsonWithCharactersToEscape_ShouldEscapeCorrectly()

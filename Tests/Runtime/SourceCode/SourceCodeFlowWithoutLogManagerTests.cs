@@ -36,7 +36,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
             BacktraceClient.Send(new Exception("foo"));
@@ -56,7 +56,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
             BacktraceClient.Send("foo");
@@ -75,7 +75,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
 
@@ -96,7 +96,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
 

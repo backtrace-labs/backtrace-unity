@@ -11,7 +11,7 @@ namespace Backtrace.Unity.Model.Database
     /// <summary>
     /// Single record in BacktraceDatabase
     /// </summary>
-    public class BacktraceDatabaseRecord : IDisposable
+    public class BacktraceDatabaseRecord
     {
         /// <summary>
         /// Id
@@ -27,6 +27,8 @@ namespace Backtrace.Unity.Model.Database
         /// Path to json stored all information about current record
         /// </summary>
         internal string RecordPath { get; set; }
+
+        internal bool _reportFromDisk = false;
 
         /// <summary>
         /// Path to a diagnostic data json
@@ -136,7 +138,10 @@ namespace Backtrace.Unity.Model.Database
         public static BacktraceDatabaseRecord Deserialize(string json)
         {
             var rawRecord = JsonUtility.FromJson<BacktraceDatabaseRawRecord>(json);
-            return new BacktraceDatabaseRecord(rawRecord);
+
+            var result = new BacktraceDatabaseRecord(rawRecord);
+            result._reportFromDisk = true;
+            return result;
         }
         /// <summary>
         /// Constructor for serialization purpose
@@ -174,9 +179,9 @@ namespace Backtrace.Unity.Model.Database
             try
             {
                 _diagnosticDataJson = Record.ToJson();
-                DiagnosticDataPath = Save(_diagnosticDataJson, string.Format("{0}-attachment", Id));
+                DiagnosticDataPath = Save(_diagnosticDataJson, string.Format("{0}-attachment", Id.ToString()));
 
-                if (Attachments != null && Attachments.Any())
+                if (Attachments != null && Attachments.Count != 0)
                 {
                     foreach (var attachment in Attachments)
                     {
@@ -187,13 +192,13 @@ namespace Backtrace.Unity.Model.Database
                     }
                 }
                 //save record
-                RecordPath = Path.Combine(_path, string.Format("{0}-record.json", Id));
+                RecordPath = Path.Combine(_path, string.Format("{0}-record.json", Id.ToString()));
                 //check current record size
                 var json = ToJson();
                 byte[] file = Encoding.UTF8.GetBytes(json);
                 //add record size
                 Size += file.Length;
-                RecordWriter.Write(json, string.Format("{0}-record", Id));
+                RecordWriter.Write(json, string.Format("{0}-record", Id.ToString()));
                 return true;
             }
             catch (IOException io)
@@ -264,7 +269,7 @@ namespace Backtrace.Unity.Model.Database
             Delete(RecordPath);
 
             //remove database attachments
-            if (Attachments != null && Attachments.Any())
+            if (Attachments != null && Attachments.Count != 0)
             {
                 foreach (var attachment in Attachments)
                 {
@@ -334,29 +339,15 @@ namespace Backtrace.Unity.Model.Database
             }
             return Path.GetDirectoryName(path) == _path;
         }
-        #region dispose
-#pragma warning disable CA1063 // Implement IDisposable Correctly
-        public virtual void Dispose()
-#pragma warning restore CA1063 // Implement IDisposable Correctly
+        public virtual void Unlock()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            Locked = false;
+            Record = null;
+            _diagnosticDataJson = string.Empty;
         }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                Locked = false;
-                Record = null;
-                _diagnosticDataJson = string.Empty;
-            }
-        }
-
-        #endregion
 
         [Serializable]
-        private class BacktraceDatabaseRawRecord
+        private struct BacktraceDatabaseRawRecord
         {
             public string Id;
             public string recordName;

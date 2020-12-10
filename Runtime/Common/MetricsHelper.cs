@@ -12,8 +12,7 @@ namespace Backtrace.Unity.Common
         /// <returns>Elapsed time in μs</returns>
         public static string GetMicroseconds(this Stopwatch stopwatch)
         {
-            var elapsedTime = ((stopwatch.ElapsedTicks * 1000000) / Stopwatch.Frequency);
-            return Math.Max(1, elapsedTime).ToString();
+            return Math.Max(1, ((stopwatch.ElapsedTicks * 1000000) / Stopwatch.Frequency)).ToString();
         }
     }
 }

@@ -119,7 +119,7 @@ namespace Backtrace.Unity.Model
         /// <param name="text"></param>
         internal void AssignSourceCodeToReport(string text)
         {
-            if (DiagnosticStack == null ||  !DiagnosticStack.Any())
+            if (DiagnosticStack == null ||  DiagnosticStack.Count == 0)
             {
                 return;
             }
@@ -129,7 +129,7 @@ namespace Backtrace.Unity.Model
                 Text = text
             };
             // assign log information to first stack frame
-            DiagnosticStack.First().SourceCode = SourceCode.Id.ToString();
+            DiagnosticStack.First().SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal void SetReportFingerPrintForEmptyStackTrace()
         {
-            if ((Exception != null && string.IsNullOrEmpty(Exception.StackTrace)) || DiagnosticStack == null || !DiagnosticStack.Any() )
+            if ((Exception != null && string.IsNullOrEmpty(Exception.StackTrace)) || DiagnosticStack == null || DiagnosticStack.Count == 0)
             {
                 // set attributes instead of fingerprint to still allow our user to define customer
                 // fingerprints for reports without stack trace and apply deduplication rules in report flow.
@@ -166,18 +166,6 @@ namespace Backtrace.Unity.Model
             return new BacktraceData(this, clientAttributes, gameObjectDepth);
         }
 
-        /// <summary>
-        /// Concat two attributes dictionary 
-        /// </summary>
-        /// <param name="report">Current report</param>
-        /// <param name="attributes">Attributes to concatenate</param>
-        /// <returns></returns>
-        internal static Dictionary<string, string> ConcatAttributes(
-            BacktraceReport report, Dictionary<string, string> attributes)
-        {
-            var reportAttributes = report.Attributes;
-            return reportAttributes.Merge(attributes);
-        }
 
         internal void SetStacktraceInformation()
         {

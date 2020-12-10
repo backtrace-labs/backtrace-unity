@@ -20,12 +20,12 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// IL Offset
         /// </summary>
-        public int? Il;
+        public string Il;
 
         /// <summary>
         /// PBD Unique identifier
         /// </summary>
-        public int? MemberInfo;
+        public string MemberInfo;
 
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Address of the stack frame
         /// </summary>
-        public int? ILOffset;
+        public string ILOffset;
 
         /// <summary>
         /// Source code file name where exception occurs
@@ -80,12 +80,12 @@ namespace Backtrace.Unity.Model
 
             if (Line != 0)
             {
-                stackFrame["line"] = Line;
+                stackFrame["line"] = Line.ToString();
             }
 
             if (Column != 0)
             {
-                stackFrame["column"] = Column;
+                stackFrame["column"] = Column.ToString();
             }
 
             if (!string.IsNullOrEmpty(Address))
@@ -146,7 +146,7 @@ namespace Backtrace.Unity.Model
 
             FunctionName = GetMethodName(method);
             Line = frame.GetFileLineNumber();
-            Il = frame.GetILOffset();
+            Il = frame.GetILOffset().ToString();
             ILOffset = Il;
             Assembly = assembly;
             Library = string.IsNullOrEmpty(SourceCodeFullPath) ? method.DeclaringType.ToString() : SourceCodeFullPath;
@@ -158,7 +158,7 @@ namespace Backtrace.Unity.Model
             Column = frame.GetFileColumnNumber();
             try
             {
-                MemberInfo = method.MetadataToken;
+                MemberInfo = method.MetadataToken.ToString();
             }
             catch (InvalidOperationException)
             {
@@ -176,13 +176,12 @@ namespace Backtrace.Unity.Model
         private string GetMethodName(MethodBase method)
         {
             var methodName = method.Name.StartsWith(".") ? method.Name.Substring(1, method.Name.Length - 1) : method.Name;
-            string fullMethodName = string.Format("{0}.{1}()", method.DeclaringType == null ? null : method.DeclaringType.ToString(), methodName);
-            return fullMethodName;
+            return string.Format("{0}.{1}()", method.DeclaringType == null ? null : method.DeclaringType.ToString(), methodName);
         }
         
         public override string ToString()
         {
-            return string.Format("{0} (at {1}:{2})", FunctionName, Library, Line);
+            return string.Format("{0} (at {1}:{2})", FunctionName, Library, Line.ToString());
         }
     }
 }

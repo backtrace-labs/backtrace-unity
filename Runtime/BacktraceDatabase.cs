@@ -265,7 +265,7 @@ namespace Backtrace.Unity
             var record = BacktraceDatabaseContext.Add(data);
             if (!@lock)
             {
-                record.Dispose();
+                record.Unlock();
             }
             return record;
         }
@@ -399,7 +399,7 @@ namespace Backtrace.Unity
                 StartCoroutine(
                      BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>
                      {
-                         record.Dispose();
+                         record.Unlock();
                          if (sendResult.Status != BacktraceResultStatus.ServerError && sendResult.Status != BacktraceResultStatus.NetworkError)
                          {
                              Delete(record);
@@ -520,7 +520,7 @@ namespace Backtrace.Unity
                 }
                 BacktraceDatabaseContext.Add(record);
                 ValidateDatabaseSize();
-                record.Dispose();
+                record.Unlock();
             }
         }
         /// <summary>

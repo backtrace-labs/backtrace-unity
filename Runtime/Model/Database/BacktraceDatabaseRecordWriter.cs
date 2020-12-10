@@ -25,28 +25,14 @@ namespace Backtrace.Unity.Model.Database
 
         public string Write(string json, string prefix)
         {            
-            byte[] file = Encoding.UTF8.GetBytes(json);
-            return Write(file, prefix);
+            return Write(Encoding.UTF8.GetBytes(json), prefix);
         }
 
         public string Write(byte[] data, string prefix)
         {
-            string filename = string.Format("{0}.json", prefix);
-            string tempFilePath = Path.Combine(_destinationPath, string.Format("temp_{0}", filename));
-            SaveTemporaryFile(tempFilePath, data);
-            string destFilePath = Path.Combine(_destinationPath, filename);
-            SaveValidRecord(tempFilePath, destFilePath);
+            string destFilePath = Path.Combine(_destinationPath, string.Format("{0}.json", prefix));
+            Save(destFilePath, data);
             return destFilePath;
-        }
-
-        /// <summary>
-        /// Save valid diagnostic data from temporary file
-        /// </summary>
-        /// <param name="sourcePath">Temporary file path</param>
-        /// <param name="destinationPath">destination path</param>
-        public void SaveValidRecord(string sourcePath, string destinationPath)
-        {
-            File.Move(sourcePath, destinationPath);
         }
 
         /// <summary>
@@ -54,7 +40,7 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         /// <param name="path">Path to temporary file</param>
         /// <param name="file">Current file</param>
-        public void SaveTemporaryFile(string path, byte[] file)
+        public void Save(string path, byte[] file)
         {
             using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
             {
