@@ -84,30 +84,22 @@ namespace Backtrace.Unity.Model.Database
                 }
                 else
                 {
+                    // Create a texture the size of the screen, RGB24 format
+                    int width = Screen.width;
+                    int height = Screen.height;
+                    Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
 
-                    try
-                    {
-                        // Create a texture the size of the screen, RGB24 format
-                        int width = Screen.width;
-                        int height = Screen.height;
-                        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+                    // Read screen contents into the texture
+                    tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                    tex.Apply();
 
-                        // Read screen contents into the texture
-                        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-                        tex.Apply();
+                    // Encode texture into JPG
+                    byte[] bytes = tex.EncodeToJPG();
 
-                        // Encode texture into JPG
-                        byte[] bytes = tex.EncodeToJPG();
-
-                        // For testing purposes, also write to a file in the project folder
-                        File.WriteAllBytes(screenshotPath, bytes);
-                        _lastScreenTime = BacktraceDatabase.LastFrameTime;
-                        _lastScreenPath = screenshotPath;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Log("cannot generate attachment");
-                    }
+                    // For testing purposes, also write to a file in the project folder
+                    File.WriteAllBytes(screenshotPath, bytes);
+                    _lastScreenTime = BacktraceDatabase.LastFrameTime;
+                    _lastScreenPath = screenshotPath;
                 }
             }
             return screenshotPath;
