@@ -630,20 +630,16 @@ namespace Backtrace.Unity
             // pass copy of dictionary to prevent overriding client attributes
             var result = report.ToBacktraceData(null, GameObjectDepth);
 
+            // add native attributes to client report
+            if (_nativeClient != null)
+            {
+                _nativeClient.GetAttributes(result.Attributes.Attributes);
+            }
+
             // apply client attributes
             foreach (var attribute in _clientAttributes)
             {
                 result.Attributes.Attributes.Add(attribute.Key, attribute.Value);
-            }
-
-            // add native attributes to client report
-            if (_nativeClient != null)
-            {
-                var attributes = _nativeClient.GetAttributes();
-                foreach (var attribute in attributes)
-                {
-                    result.Attributes.Attributes.Add(attribute.Key, attribute.Value);
-                }
             }
 
             return result;

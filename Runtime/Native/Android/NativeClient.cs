@@ -76,7 +76,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
                 return;
             }
-            if(!Directory.Exists(databasePath))
+            if (!Directory.Exists(databasePath))
             {
                 Directory.CreateDirectory(databasePath);
             }
@@ -110,7 +110,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // will be game crashes
             backtraceAttributes.Attributes["error.type"] = "Crash";
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-            
+
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad
             // isn't available
@@ -130,12 +130,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
         /// <returns>Backtrace Attributes from the Android build</returns>
-        public Dictionary<string, string> GetAttributes()
+        public void GetAttributes(Dictionary<string, string> result)
         {
-            var result = new Dictionary<string, string>();
             if (!_enabled)
             {
-                return result;
+                return;
             }
 
             using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
@@ -154,9 +153,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     var value = pair.Call<string>("getValue");
                     result[key] = value;
                 }
-
-                return result;
-
             }
         }
 

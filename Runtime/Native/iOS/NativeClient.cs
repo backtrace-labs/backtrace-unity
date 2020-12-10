@@ -54,10 +54,6 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             if (configuration.CaptureNativeCrashes)
             {
                 HandleNativeCrashes(configuration);
-                // get basic attributes to enable attributes bridge
-                // otherwise first call to objective-c will take
-                // a lot of time
-                GetAttributes();
                 INITIALIZED = true;
             }
         }
@@ -86,12 +82,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
         /// <returns>Backtrace Attributes from the Android build</returns>
-        public Dictionary<string, string> GetAttributes()
+        public void GetAttributes(Dictionary<string, string> result)
         {
-            var result = new Dictionary<string, string>();
             if (!_enabled)
             {
-                return result;
+                return;
             }
             GetNativeAttibutes(out IntPtr pUnmanagedArray, out int keysCount);
 
@@ -103,7 +98,6 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
 
             Marshal.FreeHGlobal(pUnmanagedArray);
-            return result;
         }
 
         /// <summary>
