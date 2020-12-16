@@ -119,7 +119,7 @@ namespace Backtrace.Unity.Model
         /// <param name="text"></param>
         internal void AssignSourceCodeToReport(string text)
         {
-            if (DiagnosticStack == null ||  DiagnosticStack.Count == 0)
+            if (DiagnosticStack == null || DiagnosticStack.Count == 0)
             {
                 return;
             }

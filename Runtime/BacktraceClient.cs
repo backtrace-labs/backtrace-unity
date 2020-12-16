@@ -639,7 +639,7 @@ namespace Backtrace.Unity
             // apply client attributes
             foreach (var attribute in _clientAttributes)
             {
-                result.Attributes.Attributes.Add(attribute.Key, attribute.Value);
+                result.Attributes.Attributes[attribute.Key] = attribute.Value;
             }
 
             return result;

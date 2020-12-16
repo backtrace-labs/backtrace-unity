@@ -1,16 +1,40 @@
 ﻿using Backtrace.Unity.Json;
+using Backtrace.Unity.Types;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 
 namespace Backtrace.Unity.Model
 {
     public class BacktraceStackFrame
     {
+
+        private static string[] _frameSeparators = new string[] { "::", ":", "." };
+
         /// <summary>
         /// Function where exception occurs
         /// </summary>
         public string FunctionName;
+
+        internal BacktraceStackFrameType StackFrameType = BacktraceStackFrameType.Unknown;
+
+        /// <summary>
+        /// Function file name
+        /// </summary>
+        public string FileName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Library))
+                {
+                    return GetFileNameFromFunctionName();
+                }
+                return Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
+                    ? Path.GetFileName(Library).Trim()
+                    : GetFileNameFromFunctionName();
+            }
+        }
 
         /// <summary>
         /// Line number in source code where exception occurs
@@ -67,12 +91,13 @@ namespace Backtrace.Unity.Model
             var stackFrame = new BacktraceJObject
             {
                 ["funcName"] = FunctionName,
+                ["fileName"] = FileName,
                 ["il"] = Il,
                 ["metadata_token"] = MemberInfo,
                 ["address"] = ILOffset,
                 ["assembly"] = Assembly
             };
-            
+
             if (!string.IsNullOrEmpty(Library) && !(Library.StartsWith("<") && Library.EndsWith(">")))
             {
                 stackFrame["library"] = Library;
@@ -178,7 +203,57 @@ namespace Backtrace.Unity.Model
             var methodName = method.Name.StartsWith(".") ? method.Name.Substring(1, method.Name.Length - 1) : method.Name;
             return string.Format("{0}.{1}()", method.DeclaringType == null ? null : method.DeclaringType.ToString(), methodName);
         }
-        
+
+        /// <summary>
+        /// Generate file name based on full functiom name
+        /// </summary>
+        /// <returns>File name</returns>
+        private string GetFileNameFromFunctionName()
+        {
+            if (string.IsNullOrEmpty(FunctionName))
+            {
+                return string.Empty;
+            }
+            // use Function name instead and try to get last part of function
+            var lastSearchIndex = FunctionName.IndexOf('(');
+            if (lastSearchIndex == -1)
+            {
+                lastSearchIndex = FunctionName.Length - 1;
+            }
+            
+            int separatorIndex = -1;
+            for (int arrayIndex = 0; arrayIndex < _frameSeparators.Length; arrayIndex++)
+            {
+                separatorIndex = FunctionName.LastIndexOf(_frameSeparators[arrayIndex], lastSearchIndex);
+                if (separatorIndex != -1)
+                {
+                    break;
+                }
+            }
+
+            if (separatorIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            var libraryPath = FunctionName.Substring(0, separatorIndex).Split(new char[] { '.' });
+            var fileName = libraryPath[libraryPath.Length - 1];
+            if (fileName.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(fileName) || StackFrameType == BacktraceStackFrameType.Unknown)
+            {
+                return fileName;
+            }
+
+            switch (StackFrameType)
+            {
+                case BacktraceStackFrameType.Dotnet:
+                    return string.Format("{0}.cs", fileName);
+                case BacktraceStackFrameType.Android:
+                    return string.Format("{0}.java", fileName);
+                default:
+                    return fileName;
+            }
+        }
+
         public override string ToString()
         {
             return string.Format("{0} (at {1}:{2})", FunctionName, Library, Line.ToString());

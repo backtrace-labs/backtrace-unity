@@ -10,7 +10,7 @@ namespace Backtrace.Unity.Tests.Runtime
         protected BacktraceClient BacktraceClient;
         protected void BeforeSetup()
         {
-            //Debug.unityLogger.logEnabled = false;
+            Debug.unityLogger.logEnabled = false;
             GameObject = new GameObject();
             GameObject.SetActive(false);
             BacktraceClient = GameObject.AddComponent<BacktraceClient>();
