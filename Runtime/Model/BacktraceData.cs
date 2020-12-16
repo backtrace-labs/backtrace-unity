@@ -117,21 +117,25 @@ namespace Backtrace.Unity.Model
         /// <returns>Backtrace Data JSON string</returns>
         public string ToJson()
         {
-            var jObject = new BacktraceJObject()
+            var jObject = new BacktraceJObject(new Dictionary<string, string>()
             {
-                ["uuid"] = Uuid,
-                ["timestamp"] = Timestamp,
+                ["uuid"] = Uuid.ToString(),
                 ["lang"] = Lang,
                 ["langVersion"] = LangVersion,
                 ["agent"] = Agent,
                 ["agentVersion"] = AgentVersion,
                 ["mainThread"] = MainThread,
-                ["classifiers"] = Classifier,
-                ["attributes"] = Attributes.ToJson(),
-                ["annotations"] = Annotation.ToJson(),
-                ["threads"] = ThreadData == null ? null : ThreadData.ToJson(),
-                ["sourceCode"] = SourceCode == null ? null : SourceCode.ToJson()
-            };
+            });
+            jObject.Add("timestamp", Timestamp);
+            jObject["classifiers"] = Classifier;
+
+            jObject.Add("attributes", Attributes.ToJson());
+            jObject.Add("annotations", Annotation.ToJson());
+            jObject.Add("threads", ThreadData.ToJson());
+            if (SourceCode != null)
+            {
+                jObject.Add("sourceCode", SourceCode.ToJson());
+            }
             return jObject.ToJson();
         }
 

@@ -44,7 +44,7 @@ namespace Backtrace.Unity.Tests.Runtime
             var json = data.ToJson();
             foreach (var keyValuePair in attributes)
             {
-                var value = string.Format("\"{0}\":\"{1}\"", keyValuePair.Key, keyValuePair.Value);
+                var value = string.Format("\"{0}\":{1}", keyValuePair.Key, string.IsNullOrEmpty(keyValuePair.Value) ? "null" : string.Format("\"{0}\"", keyValuePair.Value));
                 Assert.IsTrue(json.Contains(value));
             }
 

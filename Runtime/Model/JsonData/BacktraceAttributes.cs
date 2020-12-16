@@ -71,14 +71,7 @@ namespace Backtrace.Unity.Model.JsonData
 
         public BacktraceJObject ToJson()
         {
-
-            var attributes = new BacktraceJObject();
-            var enumerator = Attributes.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                attributes[enumerator.Current.Key] = enumerator.Current.Value;
-            }
-            return attributes;
+            return new BacktraceJObject(Attributes);
         }
 
         private void SetScriptingBackend()

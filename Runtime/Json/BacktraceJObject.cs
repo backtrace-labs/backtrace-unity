@@ -39,6 +39,44 @@ namespace Backtrace.Unity.Json
             UserPrimitives = source == null ? new Dictionary<string, string>() : source;
         }
 
+
+        public void Add(string key, bool value)
+        {
+            PrimitiveValues.Add(key, value.ToString().ToLower());
+        }
+
+        public void Add(string key, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                ComplexObjects.Add(key, null);
+            }
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("\"");
+            EscapeString(value, builder);
+            builder.Append("\"");
+
+            PrimitiveValues.Add(key, builder.ToString());
+        }
+
+        public void Add(string key, long value)
+        {
+            PrimitiveValues.Add(key, value.ToString());
+        }
+
+        public void Add(string key, BacktraceJObject value)
+        {
+            if (value != null)
+            {
+                InnerObjects.Add(key, value);
+            }
+            else
+            {
+                ComplexObjects.Add(key, null);
+            }
+        }
+
         public object this[string key]
         {
             set
@@ -147,7 +185,9 @@ namespace Backtrace.Unity.Json
                 }
                 else
                 {
+                    stringBuilder.Append("\"");
                     EscapeString(entry.Value, stringBuilder);
+                    stringBuilder.Append("\"");
                 }
                 if (propertyIndex != UserPrimitives.Count)
                 {

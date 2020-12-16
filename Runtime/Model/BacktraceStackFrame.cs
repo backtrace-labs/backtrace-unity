@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Json;
 using Backtrace.Unity.Types;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -88,7 +89,7 @@ namespace Backtrace.Unity.Model
         public bool InvalidFrame { get; set; }
         public BacktraceJObject ToJson()
         {
-            var stackFrame = new BacktraceJObject
+            var stackFrame = new BacktraceJObject(new Dictionary<string, string>()
             {
                 ["funcName"] = FunctionName,
                 ["fileName"] = FileName,
@@ -96,31 +97,26 @@ namespace Backtrace.Unity.Model
                 ["metadata_token"] = MemberInfo,
                 ["address"] = ILOffset,
                 ["assembly"] = Assembly
-            };
+            });
 
             if (!string.IsNullOrEmpty(Library) && !(Library.StartsWith("<") && Library.EndsWith(">")))
             {
-                stackFrame["library"] = Library;
+                stackFrame.Add("library", Library);
             }
 
             if (Line != 0)
             {
-                stackFrame["line"] = Line.ToString();
+                stackFrame.Add("line", Line);
             }
 
             if (Column != 0)
             {
-                stackFrame["column"] = Column.ToString();
-            }
-
-            if (!string.IsNullOrEmpty(Address))
-            {
-                stackFrame["address"] = Address;
+                stackFrame.Add("column", Column);
             }
 
             if (!string.IsNullOrEmpty(SourceCode))
             {
-                stackFrame["sourceCode"] = SourceCode;
+                stackFrame.Add("sourceCode", SourceCode);
             }
 
             return stackFrame;
@@ -220,7 +216,7 @@ namespace Backtrace.Unity.Model
             {
                 lastSearchIndex = FunctionName.Length - 1;
             }
-            
+
             int separatorIndex = -1;
             for (int arrayIndex = 0; arrayIndex < _frameSeparators.Length; arrayIndex++)
             {

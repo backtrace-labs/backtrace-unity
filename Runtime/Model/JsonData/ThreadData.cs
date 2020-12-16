@@ -34,14 +34,13 @@ namespace Backtrace.Unity.Model.JsonData
             //set currentThreadId
             MainThread = generatedMainThreadId;
         }
-        private ThreadData() { }
 
         public BacktraceJObject ToJson()
         {
             var threadData = new BacktraceJObject();
             foreach (var threadInfo in ThreadInformations)
             {
-                threadData[threadInfo.Key] = threadInfo.Value.ToJson();
+                threadData.Add(threadInfo.Key, threadInfo.Value.ToJson());
             }
             return threadData;
         }

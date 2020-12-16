@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -52,24 +53,17 @@ namespace Backtrace.Unity.Model.JsonData
         public BacktraceJObject ToJson()
         {
             var annotations = new BacktraceJObject();
-            var envVariables = new BacktraceJObject();
-            if (EnvironmentVariables != null)
-            {
-                foreach (var envVariable in EnvironmentVariables)
-                {
-                    envVariables[envVariable.Key] = envVariable.Value;
-                }
-                annotations["Environment Variables"] = envVariables;
-            }
+            annotations.Add("Environment Variables", new BacktraceJObject(EnvironmentVariables));
+
             if (Exception != null)
             {
-                annotations["Exception properties"] = new BacktraceJObject()
+                annotations.Add("Exception properties", new BacktraceJObject(new Dictionary<string, string>()
                 {
-                    ["message"] = Exception.Message,
-                    ["stackTrace"] = Exception.StackTrace,
-                    ["type"] = Exception.GetType().FullName,
-                    ["source"] = Exception.Source
-                };
+                    {"message",  Exception.Message },
+                    {"stackTrace",Exception.StackTrace},
+                    {"type", Exception.GetType().FullName },
+                    { "source",Exception.Source },
+                }));
             }
             if (_gameObjectDepth > -1)
             {
@@ -131,31 +125,31 @@ namespace Backtrace.Unity.Model.JsonData
         }
         private BacktraceJObject GetJObject(GameObject gameObject, string parentName = "")
         {
-            var o = new BacktraceJObject();
-            o["name"] = gameObject.name;
-            o["isStatic"] = gameObject.isStatic;
-            o["layer"] = gameObject.layer;
-            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
-            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
-            o["tag"] = gameObject.tag;
-            o["activeInHierarchy"] = gameObject.activeInHierarchy;
-            o["activeSelf"] = gameObject.activeSelf;
-            o["hideFlags"] = (int)gameObject.hideFlags;
-            o["instanceId"] = gameObject.GetInstanceID();
-            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
-            return o;
+            return new BacktraceJObject(new Dictionary<string, string>()
+            {
+                { "name",  gameObject.name},
+                {"isStatic", gameObject.isStatic.ToString().ToLower() },
+                {"layer",  gameObject.layer.ToString(CultureInfo.InvariantCulture) },
+                {"transform.position", gameObject.transform.position.ToString()},
+                {"transform.rotation", gameObject.transform.rotation.ToString()},
+                {"tag",gameObject.tag},
+                {"activeInHierarchy", gameObject.activeInHierarchy.ToString().ToLower()},
+                {"activeSelf",  gameObject.activeSelf.ToString().ToLower() },
+                {"instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
+                { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
+            });
         }
         private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
         {
-            var o = new BacktraceJObject();
-            o["name"] = gameObject.name;
-            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
-            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
-            o["tag"] = gameObject.tag;
-            o["hideFlags"] = (int)gameObject.hideFlags;
-            o["instanceId"] = gameObject.GetInstanceID();
-            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
-            return o;
+            return new BacktraceJObject(new Dictionary<string, string>()
+            {
+                { "name",  gameObject.name},
+                {"transform.position", gameObject.transform.position.ToString()},
+                {"transform.rotation", gameObject.transform.rotation.ToString()},
+                {"tag",gameObject.tag},
+                {"instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
+                { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
+            });
         }
     }
 }

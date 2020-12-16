@@ -1,5 +1,12 @@
 # Backtrace Unity Release Notes
 
+## Version 3.3.0
+- `BacktraceReport` stack trace now includes file name of stack frame.
+- Performance improvements:
+  - JSON algorithm performance improvements - avoid analysing data types,
+  - improved library attributes management,
+  - improved Unity logs management.
+
 ## Version 3.2.6
 - `BacktraceClient` will apply sampling only to errors lacking exception information.
 - Fixed annotations nullable value.

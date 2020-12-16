@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Json;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Backtrace.Unity.Model.JsonData
@@ -25,15 +26,17 @@ namespace Backtrace.Unity.Model.JsonData
         public BacktraceJObject ToJson()
         {
             var stackFrames = new List<BacktraceJObject>();
-            foreach (var stack in Stack)
+            for (int i = 0; i < Stack.Count(); i++)
             {
-                stackFrames.Add(stack.ToJson());
+                stackFrames.Add(Stack.ElementAt(i).ToJson());
             }
 
-            var o = new BacktraceJObject();
-            o["name"] = Name;
-            o["fault"] = Fault;
-            o["stack"] = stackFrames;
+            var o = new BacktraceJObject(new Dictionary<string, string>()
+            {
+                {"name", Name },
+            });
+            o.Add("fault", Fault);
+            o.ComplexObjects.Add("stack", stackFrames);
             return o;
         }
 
@@ -59,7 +62,7 @@ namespace Backtrace.Unity.Model.JsonData
         public ThreadInformation(Thread thread, IEnumerable<BacktraceStackFrame> stack, bool faultingThread = false)
             : this(
                  threadName: thread.GenerateValidThreadName().ToLower(),
-                 fault: faultingThread, 
+                 fault: faultingThread,
                  stack: stack)
         { }
 
