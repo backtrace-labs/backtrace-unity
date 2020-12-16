@@ -1,8 +1,6 @@
-﻿using Backtrace.Unity.Interfaces.Database;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -27,8 +25,6 @@ namespace Backtrace.Unity.Model.Database
         /// Path to json stored all information about current record
         /// </summary>
         internal string RecordPath { get; set; }
-
-        internal bool _reportFromDisk = false;
 
         /// <summary>
         /// Path to a diagnostic data json
@@ -80,12 +76,6 @@ namespace Backtrace.Unity.Model.Database
             }
         }
 
-
-        /// <summary>
-        /// Record writer
-        /// </summary>
-        internal IBacktraceDatabaseRecordWriter RecordWriter;
-
         public string BacktraceDataJson()
         {
             if (!string.IsNullOrEmpty(_diagnosticDataJson))
@@ -121,6 +111,10 @@ namespace Backtrace.Unity.Model.Database
             }
         }
 
+        /// <summary>
+        /// Convert current record to JSON
+        /// </summary>
+        /// <returns>Record JSON representation</returns>
         public string ToJson()
         {
             var rawRecord = new BacktraceDatabaseRawRecord()
@@ -135,13 +129,15 @@ namespace Backtrace.Unity.Model.Database
             return JsonUtility.ToJson(rawRecord, true);
         }
 
+        /// <summary>
+        /// Convert JSON record to Record
+        /// </summary>
+        /// <param name="json">JSON record</param>
+        /// <returns>Backtrace Database record</returns>
         public static BacktraceDatabaseRecord Deserialize(string json)
         {
             var rawRecord = JsonUtility.FromJson<BacktraceDatabaseRawRecord>(json);
-
-            var result = new BacktraceDatabaseRecord(rawRecord);
-            result._reportFromDisk = true;
-            return result;
+            return new BacktraceDatabaseRecord(rawRecord);
         }
         /// <summary>
         /// Constructor for serialization purpose
@@ -167,7 +163,6 @@ namespace Backtrace.Unity.Model.Database
             Record = data;
             _path = path;
             Attachments = data.Attachments;
-            RecordWriter = new BacktraceDatabaseRecordWriter(path);
         }
 
         /// <summary>
@@ -178,8 +173,9 @@ namespace Backtrace.Unity.Model.Database
         {
             try
             {
+                var jsonPrefix = Id.ToString();
                 _diagnosticDataJson = Record.ToJson();
-                DiagnosticDataPath = Save(_diagnosticDataJson, string.Format("{0}-attachment", Id.ToString()));
+                DiagnosticDataPath = Save(_diagnosticDataJson, string.Format("{0}-attachment", jsonPrefix));
 
                 if (Attachments != null && Attachments.Count != 0)
                 {
@@ -192,20 +188,13 @@ namespace Backtrace.Unity.Model.Database
                     }
                 }
                 //save record
-                RecordPath = Path.Combine(_path, string.Format("{0}-record.json", Id.ToString()));
-                //check current record size
-                var json = ToJson();
-                byte[] file = Encoding.UTF8.GetBytes(json);
-                //add record size
-                Size += file.Length;
-                RecordWriter.Write(json, string.Format("{0}-record", Id.ToString()));
+                RecordPath = Save(ToJson(), string.Format("{0}-record", jsonPrefix));
                 return true;
             }
             catch (IOException io)
             {
-                Debug.Log(string.Format("Received {0} while saving data to database.",
-                    "IOException"));
-                Debug.Log(string.Format("Message {0}", io.Message));
+                Debug.Log("Received IOException while saving data to database.");
+                Debug.Log(io.Message);
                 return false;
             }
             catch (Exception ex)
@@ -223,7 +212,6 @@ namespace Backtrace.Unity.Model.Database
         internal void DatabasePath(string path)
         {
             _path = path;
-            RecordWriter = new BacktraceDatabaseRecordWriter(path);
         }
 
         /// <summary>
@@ -240,7 +228,13 @@ namespace Backtrace.Unity.Model.Database
             }
             byte[] file = Encoding.UTF8.GetBytes(json);
             Size += file.Length;
-            return RecordWriter.Write(file, prefix);
+
+            string destFilePath = Path.Combine(_path, string.Format("{0}.json", prefix));
+            using (var fs = new FileStream(destFilePath, FileMode.Create, FileAccess.Write))
+            {
+                fs.Write(file, 0, file.Length);
+            }
+            return destFilePath;
         }
 
         /// <summary>

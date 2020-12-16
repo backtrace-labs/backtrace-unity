@@ -120,31 +120,44 @@ namespace Backtrace.Unity.Services
             string hash = GetHash(backtraceData);
             if (!string.IsNullOrEmpty(hash))
             {
-                var existRecord = BatchRetry.SelectMany(n => n.Value)
-                    .FirstOrDefault(n => n.Hash == hash);
-
-                if (existRecord != null)
+                var existingRecord = GetRecordByHash(hash);
+                if (existingRecord != null)
                 {
-                    existRecord.Locked = true;
-                    existRecord.Increment();
+                    existingRecord.Locked = true;
+                    existingRecord.Increment();
                     TotalRecords++;
-                    return existRecord;
+                    return existingRecord;
                 }
             }
             //add built-in attachments
             var attachments = _attachmentManager.GetReportAttachments(backtraceData);
-            foreach (var attachment in attachments)
+            for (int attachmentIndex = 0; attachmentIndex < attachments.Count(); attachmentIndex++)
             {
-                if (!string.IsNullOrEmpty(attachment))
+                if (!string.IsNullOrEmpty(attachments.ElementAt(attachmentIndex)))
                 {
-                    backtraceData.Report.AttachmentPaths.Add(attachment);
-                    backtraceData.Attachments.Add(attachment);
+                    backtraceData.Report.AttachmentPaths.Add(attachments.ElementAt(attachmentIndex));
+                    backtraceData.Attachments.Add(attachments.ElementAt(attachmentIndex));
                 }
             }
 
             var record = ConvertToRecord(backtraceData, hash);
             //add record to database context
             return Add(record);
+        }
+
+        private BacktraceDatabaseRecord GetRecordByHash(string hash)
+        {
+            for (int batchIndex = 0; batchIndex < BatchRetry.Count; batchIndex++)
+            {
+                for (int recordIndex = 0; recordIndex < BatchRetry[batchIndex].Count; recordIndex++)
+                {
+                    if (BatchRetry[batchIndex][recordIndex].Hash == hash)
+                    {
+                        return BatchRetry[batchIndex][recordIndex];
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -320,7 +333,12 @@ namespace Backtrace.Unity.Services
         /// <returns></returns>
         public int Count()
         {
-            return BatchRetry.SelectMany(n => n.Value).Sum(n => n.Count);
+            var result = 0;
+            for (int batchIndex = 0; batchIndex < BatchRetry.Count; batchIndex++)
+            {
+                result += BatchRetry[batchIndex].Count;
+            }
+            return result;
         }
 
         /// <summary>
