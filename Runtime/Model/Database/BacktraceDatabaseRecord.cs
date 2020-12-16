@@ -176,7 +176,6 @@ namespace Backtrace.Unity.Model.Database
                 var jsonPrefix = Id.ToString();
                 _diagnosticDataJson = Record.ToJson();
                 DiagnosticDataPath = Save(_diagnosticDataJson, string.Format("{0}-attachment", jsonPrefix));
-
                 if (Attachments != null && Attachments.Count != 0)
                 {
                     foreach (var attachment in Attachments)

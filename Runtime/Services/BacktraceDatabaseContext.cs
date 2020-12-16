@@ -336,7 +336,10 @@ namespace Backtrace.Unity.Services
             var result = 0;
             for (int batchIndex = 0; batchIndex < BatchRetry.Count; batchIndex++)
             {
-                result += BatchRetry[batchIndex].Count;
+                for (int reportIndex = 0; reportIndex < BatchRetry[batchIndex].Count; reportIndex++)
+                {
+                    result += BatchRetry[batchIndex][reportIndex].Count;
+                }
             }
             return result;
         }

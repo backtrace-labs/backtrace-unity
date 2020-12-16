@@ -256,9 +256,7 @@ namespace Backtrace.Unity.Json
 
         private void AppendKey(string value, StringBuilder builder)
         {
-            builder.Append("\"");
-            builder.Append(value);
-            builder.Append("\":");
+            builder.AppendFormat("\"{0}\":", value);
         }
 
 
