@@ -129,7 +129,7 @@ namespace Backtrace.Unity.Model
                 Text = text
             };
             // assign log information to first stack frame
-            DiagnosticStack.First().SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
+            DiagnosticStack[0].SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
         }
 
         /// <summary>

@@ -77,11 +77,17 @@ namespace Backtrace.Unity.Model.JsonData
         private void SetScriptingBackend()
         {
 #if NET_STANDARD_2_0
-            Attributes["scripting.backend"] = ".NET Standard 2.0";
+            Attributes["api.compatibility"] = ".NET Standard 2.0";
 #elif NET_4_6
-            Attributes["scripting.backend"] = ".NET Framework 4.5";
+            Attributes["api.compatibility"] = ".NET Framework 4.5";
 #else
-            Attributes["scripting.backend"] = ".NET Framework 3.5 equivalent";
+            Attributes["api.compatibility"] = ".NET Framework 3.5 equivalent";
+#endif
+
+#if ENABLE_IL2CPP
+            Attributes["scripting.backend"] = "IL2CPP";
+#else
+            Attributes["scripting.backend"] = "Mono";
 #endif
         }
         /// <summary>

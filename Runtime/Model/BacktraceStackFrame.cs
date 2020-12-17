@@ -23,17 +23,23 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Function file name
         /// </summary>
-        public string FileName;
+        public string FileName
+        {
+            get
+            {
+                return string.IsNullOrEmpty(Library)
+                        ? GetFileNameFromFunctionName()
+                        : Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
+                            ? Path.GetFileName(Library).Trim()
+                            : GetFileNameFromFunctionName();
+            }
+        }
+
 
         /// <summary>
         /// Line number in source code where exception occurs
         /// </summary>
         public int Line;
-
-        /// <summary>
-        /// IL Offset
-        /// </summary>
-        public string Il;
 
         /// <summary>
         /// PBD Unique identifier
@@ -54,7 +60,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Address of the stack frame
         /// </summary>
-        public string ILOffset;
+        public int ILOffset;
 
         /// <summary>
         /// Source code file name where exception occurs
@@ -81,12 +87,11 @@ namespace Backtrace.Unity.Model
             {
                 ["funcName"] = FunctionName,
                 ["fileName"] = FileName,
-                ["il"] = Il,
                 ["metadata_token"] = MemberInfo,
-                ["address"] = ILOffset,
                 ["assembly"] = Assembly
             });
 
+            stackFrame.Add("address", ILOffset);
             if (!string.IsNullOrEmpty(Library) && !(Library.StartsWith("<") && Library.EndsWith(">")))
             {
                 stackFrame.Add("library", Library);
@@ -150,19 +155,12 @@ namespace Backtrace.Unity.Model
                 }
             }
 
-
-            SourceCodeFullPath = frame.GetFileName();
-
             FunctionName = GetMethodName(method);
+            SourceCodeFullPath = frame.GetFileName();
             Line = frame.GetFileLineNumber();
-            Il = frame.GetILOffset().ToString();
-            ILOffset = Il;
+            ILOffset = frame.GetILOffset();
             Assembly = assembly;
             Library = string.IsNullOrEmpty(SourceCodeFullPath) ? method.DeclaringType.ToString() : SourceCodeFullPath;
-
-            SourceCode = generatedByException
-                    ? Guid.NewGuid().ToString()
-                    : string.Empty;
 
             Column = frame.GetFileColumnNumber();
             try
@@ -174,12 +172,6 @@ namespace Backtrace.Unity.Model
                 //metadata token in some situations can throw Argument Exception. Plase check property definition to leran more about this behaviour
             }
             InvalidFrame = false;
-            FileName = string.IsNullOrEmpty(Library)
-                    ? GetFileNameFromFunctionName()
-                    : Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
-                        ? Path.GetFileName(Library).Trim()
-                        : GetFileNameFromFunctionName();
-
         }
 
 
