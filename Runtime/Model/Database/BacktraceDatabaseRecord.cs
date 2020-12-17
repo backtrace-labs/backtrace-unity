@@ -58,6 +58,9 @@ namespace Backtrace.Unity.Model.Database
 
         private string _diagnosticDataJson;
 
+        /// <summary>
+        /// Determine if current record is duplicated
+        /// </summary>
         public bool Duplicated
         {
             get
@@ -68,6 +71,9 @@ namespace Backtrace.Unity.Model.Database
 
         private int _count = 1;
 
+        /// <summary>
+        /// Number of instances of the record
+        /// </summary>
         public int Count
         {
             get
@@ -75,7 +81,10 @@ namespace Backtrace.Unity.Model.Database
                 return _count;
             }
         }
-
+        /// <summary>
+        /// Return JSON diagnostic data
+        /// </summary>
+        /// <returns></returns>
         public string BacktraceDataJson()
         {
             if (!string.IsNullOrEmpty(_diagnosticDataJson))
@@ -168,7 +177,7 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Save data to hard drive
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if record was successfully saved on hard drive</returns>
         public bool Save()
         {
             try

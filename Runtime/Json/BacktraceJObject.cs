@@ -40,11 +40,21 @@ namespace Backtrace.Unity.Json
         }
 
 
+        /// <summary>
+        /// Add boolean key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
         public void Add(string key, bool value)
         {
             PrimitiveValues.Add(key, value.ToString().ToLower());
         }
 
+        /// <summary>
+        /// Add string key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
         public void Add(string key, string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -60,11 +70,21 @@ namespace Backtrace.Unity.Json
             PrimitiveValues.Add(key, builder.ToString());
         }
 
+        /// <summary>
+        /// Add long key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
         public void Add(string key, long value)
         {
             PrimitiveValues.Add(key, value.ToString());
         }
 
+        /// <summary>
+        /// Add BacktraceJObject key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
         public void Add(string key, BacktraceJObject value)
         {
             if (value != null)
@@ -74,10 +94,20 @@ namespace Backtrace.Unity.Json
             else
             {
                 ComplexObjects.Add(key, null);
+
             }
         }
+        /// <summary>
+        /// Add ienumerable object key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, IEnumerable value)
+        {
+            ComplexObjects.Add(key, value);
+        }
 
-        public object this[string key]
+        internal object this[string key]
         {
             set
             {

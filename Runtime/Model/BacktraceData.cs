@@ -127,7 +127,7 @@ namespace Backtrace.Unity.Model
                 ["mainThread"] = MainThread,
             });
             jObject.Add("timestamp", Timestamp);
-            jObject["classifiers"] = Classifier;
+            jObject.Add("classifiers", Classifier);
 
             jObject.Add("attributes", Attributes.ToJson());
             jObject.Add("annotations", Annotation.ToJson());

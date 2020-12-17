@@ -23,19 +23,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Function file name
         /// </summary>
-        public string FileName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(Library))
-                {
-                    return GetFileNameFromFunctionName();
-                }
-                return Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
-                    ? Path.GetFileName(Library).Trim()
-                    : GetFileNameFromFunctionName();
-            }
-        }
+        public string FileName;
 
         /// <summary>
         /// Line number in source code where exception occurs
@@ -186,6 +174,12 @@ namespace Backtrace.Unity.Model
                 //metadata token in some situations can throw Argument Exception. Plase check property definition to leran more about this behaviour
             }
             InvalidFrame = false;
+            FileName = string.IsNullOrEmpty(Library)
+                    ? GetFileNameFromFunctionName()
+                    : Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
+                        ? Path.GetFileName(Library).Trim()
+                        : GetFileNameFromFunctionName();
+
         }
 
 
