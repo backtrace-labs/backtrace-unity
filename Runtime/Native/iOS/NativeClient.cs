@@ -1,6 +1,7 @@
 #if UNITY_IOS
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Backtrace.Unity.Model;
@@ -65,6 +66,14 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         private void HandleNativeCrashes(BacktraceConfiguration configuration)
         {
+            var databasePath = configuration.GetFullDatabasePath();
+            // make sure database is enabled 
+            if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(databasePath))
+            {
+                Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
+                return;
+            }
+
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
             var backtraceAttributes = new Model.JsonData.BacktraceAttributes(null, null, true);
 
