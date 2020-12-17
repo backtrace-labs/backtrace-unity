@@ -46,9 +46,11 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("HandleANR"),
                      new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
 
+#if UNITY_2019_2_OR_NEWER
                  EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("SymbolsUploadToken"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
+#endif
 #endif
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),
