@@ -9,10 +9,10 @@ namespace Backtrace.Unity.Model
     /// </summary>
     internal class BacktraceUnityMessage
     {
-        private string _formattedMessage;
-        public string Message;
-        public string StackTrace;
-        public LogType Type;
+        private readonly string _formattedMessage;
+        public readonly string Message;
+        public readonly string StackTrace;
+        public readonly LogType Type;
 
         public BacktraceUnityMessage(BacktraceReport report)
         {
