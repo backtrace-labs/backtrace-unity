@@ -36,19 +36,29 @@ namespace Backtrace.Unity.Model.JsonData
             _gameObjectDepth = gameObjectDepth;
             Exception = exception;
         }
+        
         private static Dictionary<string, string> SetEnvironmentVariables()
         {
-            var environmentVariables = new Dictionary<string, string>();
-            foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
+            var result = new Dictionary<string, string>();
+            var environmentVariables = Environment.GetEnvironmentVariables();
+            if (environmentVariables == null)
             {
-                if (variable.Key == null)
+                return result;
+            }
+
+
+            foreach (DictionaryEntry variable in environmentVariables)
+            {
+                var key = variable.Key as string;
+                if (string.IsNullOrEmpty(key))
                 {
                     continue;
                 }
-                var value = variable.Value == null ? "NULL" : variable.Value.ToString();
-                environmentVariables.Add(variable.Key.ToString(), value);
+
+                var rawValue = variable.Value as string;
+                result.Add(key, string.IsNullOrEmpty(rawValue) ? "NULL" : rawValue);
             }
-            return environmentVariables;
+            return result;
         }
         public BacktraceJObject ToJson()
         {
