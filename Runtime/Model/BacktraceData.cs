@@ -18,6 +18,26 @@ namespace Backtrace.Unity.Model
         public Guid Uuid { get; private set; }
 
         /// <summary>
+        /// String representation of Uuid Guid - for optimization purposes.
+        /// </summary>
+        private string _uuidString;
+
+        /// <summary>
+        /// internal Uuid in string format
+        /// </summary>
+        internal string UuidString
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_uuidString))
+                {
+                    _uuidString = Uuid.ToString();
+                }
+                return _uuidString;
+            }
+        }
+
+        /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
         public long Timestamp { get; private set; }
@@ -119,7 +139,7 @@ namespace Backtrace.Unity.Model
         {
             var jObject = new BacktraceJObject(new Dictionary<string, string>()
             {
-                ["uuid"] = Uuid.ToString(),
+                ["uuid"] = UuidString,
                 ["lang"] = Lang,
                 ["langVersion"] = LangVersion,
                 ["agent"] = Agent,

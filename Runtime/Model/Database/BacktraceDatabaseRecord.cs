@@ -135,7 +135,7 @@ namespace Backtrace.Unity.Model.Database
                 hash = Hash,
                 attachments = Attachments
             };
-            return JsonUtility.ToJson(rawRecord, true);
+            return JsonUtility.ToJson(rawRecord, false);
         }
 
         /// <summary>
@@ -182,9 +182,11 @@ namespace Backtrace.Unity.Model.Database
         {
             try
             {
-                var jsonPrefix = Id.ToString();
+                var jsonPrefix = Record.UuidString;
                 _diagnosticDataJson = Record.ToJson();
-                DiagnosticDataPath = Save(_diagnosticDataJson, string.Format("{0}-attachment", jsonPrefix));
+                DiagnosticDataPath = Path.Combine(_path, string.Format("{0}-attachment.json", jsonPrefix));
+                Save(_diagnosticDataJson, DiagnosticDataPath);
+
                 if (Attachments != null && Attachments.Count != 0)
                 {
                     foreach (var attachment in Attachments)
@@ -196,7 +198,8 @@ namespace Backtrace.Unity.Model.Database
                     }
                 }
                 //save record
-                RecordPath = Save(ToJson(), string.Format("{0}-record", jsonPrefix));
+                RecordPath = Path.Combine(_path, string.Format("{0}-record.json", jsonPrefix));
+                Save(ToJson(), RecordPath);
                 return true;
             }
             catch (IOException io)
@@ -226,23 +229,20 @@ namespace Backtrace.Unity.Model.Database
         /// Save single file from database record
         /// </summary>
         /// <param name="json">single file (json/dmp)</param>
-        /// <param name="prefix">file prefix</param>
-        /// <returns>path to file</returns>
-        private string Save(string json, string prefix)
+        /// <param name="destPath">file path</param>
+        private void Save(string json, string destPath)
         {
             if (string.IsNullOrEmpty(json))
             {
-                return string.Empty;
+                return;
             }
             byte[] file = Encoding.UTF8.GetBytes(json);
             Size += file.Length;
 
-            string destFilePath = Path.Combine(_path, string.Format("{0}.json", prefix));
-            using (var fs = new FileStream(destFilePath, FileMode.Create, FileAccess.Write))
+            using (var fs = new FileStream(destPath, FileMode.Create, FileAccess.Write))
             {
                 fs.Write(file, 0, file.Length);
             }
-            return destFilePath;
         }
 
         /// <summary>

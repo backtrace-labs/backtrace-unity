@@ -509,7 +509,7 @@ namespace Backtrace.Unity
                 {
                     try
                     {
-                        Debug.Log("Removing record from Backtrace Database path");
+                        Debug.Log("Removing record from Backtrace Database path - invalid record.");
                         record.Delete();
                     }
                     catch (Exception)
@@ -536,7 +536,7 @@ namespace Backtrace.Unity
             //If record count == 0 then we ignore this condition
             var noMoreSpaceForReport = BacktraceDatabaseContext.Count() + 1 > DatabaseSettings.MaxRecordCount && DatabaseSettings.MaxRecordCount != 0;
             if (noMoreSpaceForReport)
-            { 
+            {
                 return false;
             }
 

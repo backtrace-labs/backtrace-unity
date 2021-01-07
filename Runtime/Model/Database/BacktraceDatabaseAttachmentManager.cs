@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Types;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -23,13 +22,21 @@ namespace Backtrace.Unity.Model.Database
 
         public IEnumerable<string> GetReportAttachments(BacktraceData data)
         {
-            var attachmentPrefix = data.Uuid.ToString();
-            return new List<string>()
+            var attachmentPrefix = data.UuidString;
+
+            var result = new List<string>();
+            AddIfPathIsNotEmpty(result, GetScreenshotPath(attachmentPrefix));
+            AddIfPathIsNotEmpty(result, GetUnityPlayerLogFile(data, attachmentPrefix));
+            AddIfPathIsNotEmpty(result, GetMinidumpPath(data, attachmentPrefix));
+            return result;
+        }
+
+        private void AddIfPathIsNotEmpty(List<string> source, string attachmentPath)
+        {
+            if (!string.IsNullOrEmpty(attachmentPath))
             {
-                GetScreenshotPath(attachmentPrefix),
-                GetUnityPlayerLogFile(data, attachmentPrefix),
-                GetMinidumpPath(data, attachmentPrefix)
-            };
+                source.Add(attachmentPath);
+            }
         }
 
         private string GetMinidumpPath(BacktraceData backtraceData, string dataPrefix)
@@ -70,7 +77,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 return string.Empty;
             }
-            var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}.jpg", dataPrefix));
+            var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}-screen.jpg", dataPrefix));
 
             lock (_lock)
             {
@@ -94,11 +101,12 @@ namespace Backtrace.Unity.Model.Database
                     tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                     tex.Apply();
 
-                    // Encode texture into JPG
-                    byte[] bytes = tex.EncodeToJPG();
-
-                    // For testing purposes, also write to a file in the project folder
-                    File.WriteAllBytes(screenshotPath, bytes);
+                    // Encode texture into JPG and save it on hard drive
+                    var bytes = tex.EncodeToJPG();
+                    using (var fs = new FileStream(screenshotPath, FileMode.Create, FileAccess.Write))
+                    {
+                        fs.Write(bytes, 0, bytes.Length);
+                    }
                     _lastScreenTime = BacktraceDatabase.LastFrameTime;
                     _lastScreenPath = screenshotPath;
                 }
@@ -137,7 +145,7 @@ namespace Backtrace.Unity.Model.Database
             {
                 return string.Empty;
             }
-            var databaseLogPath = Path.Combine(_settings.DatabasePath, string.Format("{0}.log", dataPrefix));
+            var databaseLogPath = Path.Combine(_settings.DatabasePath, string.Format("{0}-lg.log", dataPrefix));
             File.Copy(playerLogPath, databaseLogPath);
             return databaseLogPath;
         }

@@ -86,7 +86,7 @@ namespace Backtrace.Unity.Model
             var stackFrame = new BacktraceJObject(new Dictionary<string, string>()
             {
                 ["funcName"] = FunctionName,
-                ["fileName"] = FileName,
+                ["path"] = FileName,
                 ["metadata_token"] = MemberInfo,
                 ["assembly"] = Assembly
             });

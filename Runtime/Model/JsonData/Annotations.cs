@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Backtrace.Unity.Model.JsonData
@@ -23,9 +22,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// Exception object
         /// </summary>
         public Exception Exception { get; set; }
-        public Annotations()
-        {
-        }
+
         /// <summary>
         /// Create new instance of Annotations class
         /// </summary>

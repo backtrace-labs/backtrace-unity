@@ -162,25 +162,27 @@ namespace Backtrace.Unity.Json
             {
                 stringBuilder.Append(',');
             }
-            var enumerator = UserPrimitives.GetEnumerator();
-            while (enumerator.MoveNext())
+            using (var enumerator = UserPrimitives.GetEnumerator())
             {
-                propertyIndex++;
-                var entry = enumerator.Current;
-                AppendKey(entry.Key, stringBuilder);
-                if (string.IsNullOrEmpty(entry.Value))
+                while (enumerator.MoveNext())
                 {
-                    stringBuilder.Append("null");
-                }
-                else
-                {
-                    stringBuilder.Append("\"");
-                    EscapeString(entry.Value, stringBuilder);
-                    stringBuilder.Append("\"");
-                }
-                if (propertyIndex != UserPrimitives.Count)
-                {
-                    stringBuilder.Append(",");
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    if (string.IsNullOrEmpty(entry.Value))
+                    {
+                        stringBuilder.Append("null");
+                    }
+                    else
+                    {
+                        stringBuilder.Append("\"");
+                        EscapeString(entry.Value, stringBuilder);
+                        stringBuilder.Append("\"");
+                    }
+                    if (propertyIndex != UserPrimitives.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
                 }
             }
         }
@@ -188,18 +190,20 @@ namespace Backtrace.Unity.Json
         private void AppendPrimitives(StringBuilder stringBuilder)
         {
             int propertyIndex = 0;
-            var enumerator = PrimitiveValues.GetEnumerator();
-            while (enumerator.MoveNext())
+            using (var enumerator = PrimitiveValues.GetEnumerator())
             {
-
-                propertyIndex++;
-                var entry = enumerator.Current;
-                AppendKey(entry.Key, stringBuilder);
-                stringBuilder.Append(string.IsNullOrEmpty(entry.Value) ? "null" : entry.Value);
-
-                if (propertyIndex != PrimitiveValues.Count)
+                while (enumerator.MoveNext())
                 {
-                    stringBuilder.Append(",");
+
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    stringBuilder.Append(string.IsNullOrEmpty(entry.Value) ? "null" : entry.Value);
+
+                    if (propertyIndex != PrimitiveValues.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
                 }
             }
         }
@@ -211,20 +215,22 @@ namespace Backtrace.Unity.Json
                 return;
             }
             int propertyIndex = 0;
-            var enumerator = InnerObjects.GetEnumerator();
-            if (ShouldContinueAddingJSONProperties(stringBuilder))
+            using (var enumerator = InnerObjects.GetEnumerator())
             {
-                stringBuilder.Append(',');
-            }
-            while (enumerator.MoveNext())
-            {
-                propertyIndex++;
-                var entry = enumerator.Current;
-                AppendKey(entry.Key, stringBuilder);
-                entry.Value.ToJson(stringBuilder);
-                if (propertyIndex != InnerObjects.Count)
+                if (ShouldContinueAddingJSONProperties(stringBuilder))
                 {
-                    stringBuilder.Append(",");
+                    stringBuilder.Append(',');
+                }
+                while (enumerator.MoveNext())
+                {
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    entry.Value.ToJson(stringBuilder);
+                    if (propertyIndex != InnerObjects.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
                 }
             }
         }
@@ -236,52 +242,54 @@ namespace Backtrace.Unity.Json
                 return;
             }
             int propertyIndex = 0;
-            var enumerator = ComplexObjects.GetEnumerator();
-            if (ShouldContinueAddingJSONProperties(stringBuilder))
+            using (var enumerator = ComplexObjects.GetEnumerator())
             {
-                stringBuilder.Append(',');
-            }
-            while (enumerator.MoveNext())
-            {
-                propertyIndex++;
-                var entry = enumerator.Current;
-                AppendKey(entry.Key, stringBuilder);
-                if (entry.Value == null)
+                if (ShouldContinueAddingJSONProperties(stringBuilder))
                 {
-                    stringBuilder.Append("null");
+                    stringBuilder.Append(',');
                 }
-                else if (entry.Value is IEnumerable && !(entry.Value is IDictionary))
+                while (enumerator.MoveNext())
                 {
-                    stringBuilder.Append('[');
-                    int index = 0;
-                    foreach (var item in (entry.Value as IEnumerable))
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    if (entry.Value == null)
                     {
-                        if (index != 0)
-                        {
-                            stringBuilder.Append(',');
-                        }
-                        if (item == null)
-                        {
-                            stringBuilder.Append("null");
-                        }
-                        else if (item is BacktraceJObject)
-                        {
-                            (item as BacktraceJObject).ToJson(stringBuilder);
-                        }
-                        else
-                        {
-                            stringBuilder.Append("\"");
-                            EscapeString(item.ToString(), stringBuilder);
-                            stringBuilder.Append("\"");
-                        }
-                        index++;
+                        stringBuilder.Append("null");
                     }
-                    stringBuilder.Append(']');
-                }
+                    else if (entry.Value is IEnumerable && !(entry.Value is IDictionary))
+                    {
+                        stringBuilder.Append('[');
+                        int index = 0;
+                        foreach (var item in (entry.Value as IEnumerable))
+                        {
+                            if (index != 0)
+                            {
+                                stringBuilder.Append(',');
+                            }
+                            if (item == null)
+                            {
+                                stringBuilder.Append("null");
+                            }
+                            else if (item is BacktraceJObject)
+                            {
+                                (item as BacktraceJObject).ToJson(stringBuilder);
+                            }
+                            else
+                            {
+                                stringBuilder.Append("\"");
+                                EscapeString(item.ToString(), stringBuilder);
+                                stringBuilder.Append("\"");
+                            }
+                            index++;
+                        }
+                        stringBuilder.Append(']');
+                    }
 
-                if (propertyIndex != ComplexObjects.Count)
-                {
-                    stringBuilder.Append(",");
+                    if (propertyIndex != ComplexObjects.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
                 }
             }
         }
