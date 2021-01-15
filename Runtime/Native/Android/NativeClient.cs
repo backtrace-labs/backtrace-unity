@@ -199,5 +199,27 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(key),
                 AndroidJNI.NewStringUTF(value));
         }
+
+        /// <summary>
+        /// Report OOM via Backtrace native android library.
+        /// </summary>
+        /// <returns>true - if native crash reprorter is enabled. Otherwise false.</returns>
+        public bool OnOOM()
+        {
+            return false;
+        }
+
+        public void UpdateClientTime(float time)
+        {
+            //_lastUpdateTime = time;
+        }
+
+        public void Disable()
+        {
+            //if (_anrThread != null)
+            //{
+            //    _anrThread.Abort();
+            //}
+        }
     }
 }

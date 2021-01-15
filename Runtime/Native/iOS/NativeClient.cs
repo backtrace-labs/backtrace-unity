@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Backtrace.Unity.Model;
 using UnityEngine;
 
@@ -14,6 +15,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     /// </summary>
     public class NativeClient : INativeClient
     {
+        // Last Backtrace client update time 
+        internal float _lastUpdateTime;
+
+        private Thread _anrThread;
+
         // NSDictinary entry used only for iOS native integration
         internal struct Entry
         {
@@ -23,6 +29,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
         private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int size);
+
+        [DllImport("__Internal", EntryPoint = "NativeReport")]
+        public static extern void NativeReport(string message);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         public static extern string Crash();
@@ -57,6 +66,8 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                 HandleNativeCrashes(configuration);
                 INITIALIZED = true;
             }
+
+            // HandleAnr(gameObjectName, string.Empty);
         }
 
 
@@ -112,12 +123,49 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <summary>
         /// Setup iOS ANR support and set callback function when ANR happened.
         /// </summary>
-        /// <param name="gameObjectName">Backtrace game object name</param>
-        /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
-            Debug.Log("ANR support on iOS is unsupported.");
+            // if INITIALIZED is equal to false, plcrashreporter instance is disabled
+            // so we can't generate native report
+            if (!_enabled || INITIALIZED == false)
+            {
+                return;
+            }
+
+            bool reported = false;
+            var mainThreadId = Thread.CurrentThread.ManagedThreadId;
+            _anrThread = new Thread(() =>
+            {
+                float lastUpdatedCache = 0;
+                while (true)
+                {
+                    if (lastUpdatedCache == 0)
+                    {
+                        lastUpdatedCache = _lastUpdateTime;
+                    }
+                    else if (lastUpdatedCache == _lastUpdateTime)
+                    {
+                        if (!reported)
+                        {
+                            NativeReport("ANRException: Blocked thread detected.");
+                            reported = true;
+                        }
+                    }
+                    else
+                    {
+                        reported = false;
+                    }
+
+                    lastUpdatedCache = _lastUpdateTime;
+                    Thread.Sleep(5000);
+
+                }
+            });
+
+            _anrThread.Start();
         }
+
+
 
         /// <summary>
         /// Add attribute to native crash
@@ -138,6 +186,41 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                 return;
             }
             AddAttribute(key, value);
+        }
+        /// <summary>
+        /// Report OOM via PlCrashReporter report.
+        /// </summary>
+        /// <returns>true - if native crash reprorter is enabled. Otherwise false.</returns>
+        public bool OnOOM()
+        {
+            // if INITIALIZED is equal to false, plcrashreporter instance is disabled
+            // so we can't generate native report
+            if (!_enabled || INITIALIZED == false)
+            {
+                return false;
+            }
+            NativeReport("OOMException: Out of memory detected.");
+            return true;
+        }
+
+        /// <summary>
+        /// Update native client internal timer.
+        /// </summary>
+        /// <param name="time">Current time</param>
+        public void UpdateClientTime(float time)
+        {
+            _lastUpdateTime = time;
+        }
+
+        /// <summary>
+        /// Disable native client integration
+        /// </summary>
+        public void Disable()
+        {
+            if (_anrThread != null)
+            {
+                _anrThread.Abort();
+            }
         }
     }
 }
