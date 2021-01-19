@@ -224,6 +224,10 @@ namespace Backtrace.Unity.Model
             {
                 return fileName;
             }
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return Library;
+            }
 
             switch (StackFrameType)
             {
