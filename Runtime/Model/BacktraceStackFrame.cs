@@ -224,7 +224,7 @@ namespace Backtrace.Unity.Model
             {
                 return fileName;
             }
-            if (string.IsNullOrEmpty(fileName))
+            if (string.IsNullOrEmpty(fileName) || fileName == ".")
             {
                 return Library;
             }
