@@ -141,7 +141,7 @@ namespace Backtrace.Unity.Services
                 request.SetRequestHeader("Content-Type", string.Format("multipart/form-data; boundary={0}", Encoding.UTF8.GetString(boundaryIdBytes)));
                 request.timeout = 15000;
                 yield return request.SendWebRequest();
-                var result = request.result != UnityWebRequest.Result.Success && request.result != UnityWebRequest.Result.InProgress
+                var result = request.isNetworkError || request.isHttpError
                     ? new BacktraceResult()
                     {
                         Message = request.error,
@@ -263,7 +263,7 @@ namespace Backtrace.Unity.Services
                         OnServerResponse.Invoke(result);
                     }
                 }
-                else if (request.responseCode == 200 && (request.result == UnityWebRequest.Result.Success || request.result == UnityWebRequest.Result.InProgress))
+                else if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
                     _shouldDisplayFailureMessage = true;

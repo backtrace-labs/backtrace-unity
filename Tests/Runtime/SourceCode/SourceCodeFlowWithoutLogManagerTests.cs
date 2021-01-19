@@ -3,7 +3,6 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Linq;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -102,7 +101,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
             BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Error);
             yield return new WaitForEndOfFrame();
-            Assert.IsTrue(invoked);          
+            Assert.IsTrue(invoked);
         }
 
         [UnityTest]

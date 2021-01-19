@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native.Android
@@ -14,11 +15,21 @@ namespace Backtrace.Unity.Runtime.Native.Android
     /// </summary>
     internal class NativeClient : INativeClient
     {
+        // Last Backtrace client update time 
+        internal float _lastUpdateTime;
+
+        private Thread _anrThread;
+
         [DllImport("backtrace-native")]
         private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
+
+        [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
+        private static extern bool NativeReport(IntPtr message);
+
+
 
         private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
@@ -176,6 +187,41 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning(string.Format("Cannot initialize ANR watchdog - reason: {0}", e.Message));
                 _enabled = false;
             }
+
+            bool reported = false;
+            var mainThreadId = Thread.CurrentThread.ManagedThreadId;
+            _anrThread = new Thread(() =>
+            {
+                float lastUpdatedCache = 0;
+                while (true)
+                {
+                    if (lastUpdatedCache == 0)
+                    {
+                        lastUpdatedCache = _lastUpdateTime;
+                    }
+                    else if (lastUpdatedCache == _lastUpdateTime)
+                    {
+                        if (!reported)
+                        {
+                            if (AndroidJNI.AttachCurrentThread() == 0)
+                            {
+                                NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."));
+                            }
+                            reported = true;
+                        }
+                    }
+                    else
+                    {
+                        reported = false;
+                    }
+
+                    lastUpdatedCache = _lastUpdateTime;
+                    Thread.Sleep(5000);
+
+                }
+            });
+
+            _anrThread.Start();
         }
 
         /// <summary>
@@ -206,20 +252,33 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <returns>true - if native crash reprorter is enabled. Otherwise false.</returns>
         public bool OnOOM()
         {
-            return false;
+            if (!_enabled)
+            {
+                return false;
+            }
+
+            NativeReport(AndroidJNI.NewStringUTF("OOMException: Out of memory detected."));
+            return true;
         }
 
+        /// <summary>
+        /// Update native client internal timer.
+        /// </summary>
+        /// <param name="time">Current time</param>
         public void UpdateClientTime(float time)
         {
-            //_lastUpdateTime = time;
+            _lastUpdateTime = time;
         }
 
+        /// <summary>
+        /// Disable native client integration
+        /// </summary>
         public void Disable()
         {
-            //if (_anrThread != null)
-            //{
-            //    _anrThread.Abort();
-            //}
+            if (_anrThread != null)
+            {
+                _anrThread.Abort();
+            }
         }
     }
 }
