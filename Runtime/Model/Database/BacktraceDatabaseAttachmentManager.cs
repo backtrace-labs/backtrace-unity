@@ -134,7 +134,7 @@ namespace Backtrace.Unity.Model.Database
                     string.Format("~/Library/Logs/{0}/{1}/Player.log", Application.companyName, Application.productName);
 #elif UNITY_STANDALONE_WIN
                     Path.Combine(
-                        Directory.GetParent(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)).FullName,
+                        Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)).FullName,
                         "LocalLow",
                         Application.companyName,
                         Application.productName,
