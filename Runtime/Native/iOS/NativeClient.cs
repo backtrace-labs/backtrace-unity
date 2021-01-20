@@ -67,7 +67,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                 INITIALIZED = true;
             }
 
-            // HandleAnr(gameObjectName, string.Empty);
+            HandleAnr(gameObjectName, string.Empty);
         }
 
 
