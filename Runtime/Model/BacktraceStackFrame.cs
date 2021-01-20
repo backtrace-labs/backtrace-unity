@@ -30,7 +30,7 @@ namespace Backtrace.Unity.Model
                 return string.IsNullOrEmpty(Library)
                         ? GetFileNameFromFunctionName()
                         : Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
-                            ? Path.GetFileName(Library).Trim()
+                            ? GetFileNameFromLibraryName()
                             : GetFileNameFromFunctionName();
             }
         }
@@ -186,6 +186,31 @@ namespace Backtrace.Unity.Model
             return string.Format("{0}.{1}()", method.DeclaringType == null ? null : method.DeclaringType.ToString(), methodName);
         }
 
+        private string GetFileNameFromLibraryName()
+        {
+            var libraryName = Path.GetFileName(Library).Trim();
+
+            // detect namespace
+            var lastSeparatorIndex = libraryName.LastIndexOf(".");
+            if (lastSeparatorIndex == -1 || libraryName.IndexOf(".") == lastSeparatorIndex)
+            {
+                // detected full path to source code
+                return libraryName;
+            }
+
+            // omit '.' character that substring will return based on lastSeparatorIndex
+            libraryName = libraryName.Substring(lastSeparatorIndex + 1);
+            switch (StackFrameType)
+            {
+                case BacktraceStackFrameType.Dotnet:
+                    return string.Format("{0}.cs", libraryName);
+                case BacktraceStackFrameType.Android:
+                    return string.Format("{0}.java", libraryName);
+                default:
+                    return libraryName;
+            }
+        }
+
         /// <summary>
         /// Generate file name based on full functiom name
         /// </summary>
@@ -223,10 +248,6 @@ namespace Backtrace.Unity.Model
             if (fileName.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(fileName) || StackFrameType == BacktraceStackFrameType.Unknown)
             {
                 return fileName;
-            }
-            if (string.IsNullOrEmpty(fileName) || fileName == ".")
-            {
-                return Library;
             }
 
             switch (StackFrameType)
