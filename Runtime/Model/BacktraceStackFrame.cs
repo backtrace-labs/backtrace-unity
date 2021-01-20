@@ -244,7 +244,21 @@ namespace Backtrace.Unity.Model
             }
 
             var libraryPath = FunctionName.Substring(0, separatorIndex).Split(new char[] { '.' });
-            var fileName = libraryPath[libraryPath.Length - 1];
+            // handle situation when function name is a constructor path or specific module path
+            var currentIndex = libraryPath.Length - 1;
+            string fileName = libraryPath[currentIndex];
+
+            while (string.IsNullOrEmpty(fileName) && currentIndex > 0)
+            {
+                fileName = libraryPath[currentIndex - 1];
+                currentIndex--;
+
+            }
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return Library;
+            }
+
             if (fileName.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(fileName) || StackFrameType == BacktraceStackFrameType.Unknown)
             {
                 return fileName;
