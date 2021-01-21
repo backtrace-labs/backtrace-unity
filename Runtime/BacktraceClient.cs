@@ -288,10 +288,12 @@ namespace Backtrace.Unity
             }
             var backtrackGameObject = new GameObject(gameObjectName, typeof(BacktraceClient), typeof(BacktraceDatabase));
             BacktraceClient backtraceClient = backtrackGameObject.GetComponent<BacktraceClient>();
-            BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
-
-            backtraceDatabase.Configuration = configuration;
             backtraceClient.Configuration = configuration;
+            if (configuration.Enabled)
+            {
+                BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
+                backtraceDatabase.Configuration = configuration;
+            }
             backtrackGameObject.SetActive(true);
             backtraceClient.Refresh();
             backtraceClient.SetAttributes(attributes);
@@ -371,12 +373,15 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
-            Database = GetComponent<BacktraceDatabase>();
-            if (Database != null)
+            if (Configuration.Enabled)
             {
-                Database.Reload();
-                Database.SetApi(BacktraceApi);
-                Database.SetReportWatcher(_reportLimitWatcher);
+                Database = GetComponent<BacktraceDatabase>();
+                if (Database != null)
+                {
+                    Database.Reload();
+                    Database.SetApi(BacktraceApi);
+                    Database.SetReportWatcher(_reportLimitWatcher);
+                }
             }
 
             _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
@@ -533,7 +538,7 @@ namespace Backtrace.Unity
             }
             BacktraceDatabaseRecord record = null;
 
-            if (Database != null)
+            if (Database != null && Database.Enabled())
             {
                 yield return new WaitForEndOfFrame();
                 if (EnablePerformanceStatistics)
@@ -582,7 +587,7 @@ namespace Backtrace.Unity
                 queryAttributes["performance.json"] = stopWatch.GetMicroseconds();
             }
             yield return new WaitForEndOfFrame();
-            if(string.IsNullOrEmpty(json))
+            if (string.IsNullOrEmpty(json))
             {
                 yield break;
             }
