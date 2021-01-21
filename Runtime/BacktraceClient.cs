@@ -288,10 +288,12 @@ namespace Backtrace.Unity
             }
             var backtrackGameObject = new GameObject(gameObjectName, typeof(BacktraceClient), typeof(BacktraceDatabase));
             BacktraceClient backtraceClient = backtrackGameObject.GetComponent<BacktraceClient>();
-            BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
-
-            backtraceDatabase.Configuration = configuration;
             backtraceClient.Configuration = configuration;
+            if (configuration.Enabled)
+            {
+                BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
+                backtraceDatabase.Configuration = configuration;
+            }
             backtrackGameObject.SetActive(true);
             backtraceClient.Refresh();
             backtraceClient.SetAttributes(attributes);
@@ -371,12 +373,15 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
-            Database = GetComponent<BacktraceDatabase>();
-            if (Database != null)
+            if (Configuration.Enabled)
             {
-                Database.Reload();
-                Database.SetApi(BacktraceApi);
-                Database.SetReportWatcher(_reportLimitWatcher);
+                Database = GetComponent<BacktraceDatabase>();
+                if (Database != null)
+                {
+                    Database.Reload();
+                    Database.SetApi(BacktraceApi);
+                    Database.SetReportWatcher(_reportLimitWatcher);
+                }
             }
 
             _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
@@ -400,10 +405,23 @@ namespace Backtrace.Unity
             Refresh();
         }
 
+        /// <summary>
+        /// Update native client internal ANR timer.
+        /// </summary>
+        private void Update()
+        {
+            _nativeClient?.UpdateClientTime(Time.time);
+        }
+
         private void OnDestroy()
         {
             Enabled = false;
             Application.logMessageReceived -= HandleUnityMessage;
+#if UNITY_ANDROID || UNITY_IOS
+            Application.lowMemory -= HandleLowMemory;
+            _nativeClient?.Disable();
+#endif
+
         }
 
         /// <summary>
@@ -520,7 +538,7 @@ namespace Backtrace.Unity
             }
             BacktraceDatabaseRecord record = null;
 
-            if (Database != null)
+            if (Database != null && Database.Enabled())
             {
                 yield return new WaitForEndOfFrame();
                 if (EnablePerformanceStatistics)
@@ -569,6 +587,10 @@ namespace Backtrace.Unity
                 queryAttributes["performance.json"] = stopWatch.GetMicroseconds();
             }
             yield return new WaitForEndOfFrame();
+            if (string.IsNullOrEmpty(json))
+            {
+                yield break;
+            }
 
             //backward compatibility 
             if (RequestHandler != null)
@@ -673,8 +695,32 @@ namespace Backtrace.Unity
             if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
             {
                 Application.logMessageReceived += HandleUnityMessage;
+#if UNITY_ANDROID || UNITY_IOS
+                Application.lowMemory += HandleLowMemory;
+#endif
             }
         }
+
+#if UNITY_ANDROID || UNITY_IOS
+        internal void HandleLowMemory()
+        {
+            if (!Enabled)
+            {
+                Debug.LogWarning("Please enable BacktraceClient first.");
+                return;
+            }
+            const string lowMemoryMessage = "OOMException: Out of memory detected.";
+            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
+
+            // try to send report about OOM from managed layer if native layer is disabled.
+            bool nativeSendResult = _nativeClient != null ? _nativeClient.OnOOM() : false;
+            if (!nativeSendResult)
+            {
+                var oom = new BacktraceUnhandledException(lowMemoryMessage, string.Empty);
+                SendUnhandledException(oom);
+            }
+        }
+#endif
 
         /// <summary>
         /// Catch Unity logger data and create Backtrace reports for log type that represents exception or error

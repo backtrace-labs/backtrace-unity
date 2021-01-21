@@ -194,9 +194,14 @@ namespace Backtrace.Unity.Model.JsonData
             }
             if (report.Exception is BacktraceUnhandledException)
             {
-                if ((report.Exception as BacktraceUnhandledException).Classifier == "ANRException")
+                var classifier = (report.Exception as BacktraceUnhandledException).Classifier;
+                if (classifier == "ANRException")
                 {
                     Attributes[errorType] = "Hang";
+                }
+                else if (classifier == "OOMException")
+                {
+                    Attributes[errorType] = "oom";
                 }
                 else
                 {

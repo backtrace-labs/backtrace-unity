@@ -221,6 +221,15 @@ namespace Backtrace.Unity
         }
 
         /// <summary>
+        /// Validate if BacktraceDatabase is enabled
+        /// </summary>
+        /// <returns>true if BacktraceDatabase is enabled. Otherwise false.</returns>
+        public bool Enabled()
+        {
+            return Enable;
+        }
+
+        /// <summary>
         /// Get settings 
         /// </summary>
         /// <returns>Current database settings</returns>
