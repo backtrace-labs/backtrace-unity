@@ -62,10 +62,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
 #if UNITY_ANDROID
-            _captureNativeCrashes = _configuration.CaptureNativeCrashes;
             _handlerANR = _configuration.HandleANR;
-            HandleAnr(gameObjectName, "OnAnrDetected");
             HandleNativeCrashes();
+            HandleAnr(gameObjectName, "OnAnrDetected");
 #endif
 
         }
@@ -76,7 +75,13 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private void HandleNativeCrashes()
         {
             // make sure database is enabled 
-            if (!_captureNativeCrashes || !_configuration.Enabled)
+            var integrationDisabled =
+#if UNITY_ANDROID
+                !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
+#else
+                true;
+#endif
+            if (integrationDisabled)
             {
                 Debug.LogWarning("Backtrace native integration status: Disabled NDK integration");
                 return;
@@ -188,6 +193,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 _enabled = false;
             }
 
+            if (!_captureNativeCrashes)
+            {
+                return;
+            }
+
             bool reported = false;
             var mainThreadId = Thread.CurrentThread.ManagedThreadId;
             _anrThread = new Thread(() =>
@@ -252,7 +262,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <returns>true - if native crash reprorter is enabled. Otherwise false.</returns>
         public bool OnOOM()
         {
-            if (!_enabled)
+            if (!_enabled || _captureNativeCrashes)
             {
                 return false;
             }

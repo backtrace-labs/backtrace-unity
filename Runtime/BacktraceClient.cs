@@ -582,6 +582,10 @@ namespace Backtrace.Unity
                 queryAttributes["performance.json"] = stopWatch.GetMicroseconds();
             }
             yield return new WaitForEndOfFrame();
+            if(string.IsNullOrEmpty(json))
+            {
+                yield break;
+            }
 
             //backward compatibility 
             if (RequestHandler != null)
