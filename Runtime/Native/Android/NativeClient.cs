@@ -215,7 +215,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
                         {
                             if (AndroidJNI.AttachCurrentThread() == 0)
                             {
+                                // set temporary attribute to "Hang"
+                                SetAttribute("error.type", "Hang");
                                 NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."));
+                                // update error.type attribute in case when crash happen 
+                                SetAttribute("error.type", "Crash");
                             }
                             reported = true;
                         }
@@ -267,7 +271,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return false;
             }
 
+            // set temporary attribute to "Hang"
+            SetAttribute("error.type", "Low Memory");
             NativeReport(AndroidJNI.NewStringUTF("OOMException: Out of memory detected."));
+            // update error.type attribute in case when crash happen 
+            SetAttribute("error.type", "Crash");
+
             return true;
         }
 

@@ -201,7 +201,7 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 else if (classifier == "OOMException")
                 {
-                    Attributes[errorType] = "oom";
+                    Attributes[errorType] = "Low Memory";
                 }
                 else
                 {

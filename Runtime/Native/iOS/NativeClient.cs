@@ -149,7 +149,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                     {
                         if (!reported)
                         {
+                            // set temporary attribute to "Hang"
+                            SetAttribute("error.type", "Hang");
                             NativeReport("ANRException: Blocked thread detected.");
+                            // update error.type attribute in case when crash happen 
+                            SetAttribute("error.type", "Crash");   
                             reported = true;
                         }
                     }
@@ -201,7 +205,12 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return false;
             }
+            // set temporary attribute to "Hang"
+            SetAttribute("error.type", "Low Memory");
             NativeReport("OOMException: Out of memory detected.");
+            // update error.type attribute in case when crash happen 
+            SetAttribute("error.type", "Crash");   
+            
             return true;
         }
 
