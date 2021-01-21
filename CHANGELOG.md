@@ -6,6 +6,9 @@
   - JSON algorithm performance improvements - avoid analyzing data types,
   - improved library attributes management,
   - improved Unity logs management.
+- Out of memory support for mobile platforms. This feature is enabled by default. When OOM occurs, Backtrace-Client will try to generate native report and collect us much as possible information. 
+- support for ANRs generated in managed environment on Android and iOS. 
+
 
 ## Version 3.2.6
 - `BacktraceClient` will apply sampling only to errors lacking exception information.
