@@ -3,11 +3,11 @@
 ## Version 3.3.0
 - `BacktraceReport` stack trace now includes the file name of the stack frame.
 - Performance improvements:
-  - JSON algorithm performance improvements - avoid analyzing data types,
-  - improved library attributes management,
+  - JSON algorithm performance improvements - avoid analyzing data types.
+  - improved library attributes management.
   - improved Unity logs management.
-- Out of memory support for mobile platforms. This feature is enabled by default. When OOM occurs, Backtrace-Client will try to generate native report and collect us much as possible information. 
-- support for ANRs generated in managed environment on Android and iOS. 
+- Support for Low Memory error reports on Anrdoid and iOS (these are sometimes referred to as OOM or Out Of Memory errors). If a low memory situation is detected, backtrace-unity will attempt to generate and submit a native error report to the Backtrace instance. The report will have the `error.type` value of `Low Memory`.
+- New support for hang detection on Android and iOS. If a game experiences non responsiviness after 5 seconds, backtrace-unity will generate an error report to the Backtrace instance. The report will have the `error.type` value of `Hang`.  
 
 
 ## Version 3.2.6
