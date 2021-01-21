@@ -13,7 +13,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     /// <summary>
     /// iOS native client 
     /// </summary>
-    public class NativeClient : INativeClient
+    internal class NativeClient : INativeClient
     {
         // Last Backtrace client update time 
         internal float _lastUpdateTime;
@@ -66,8 +66,10 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                 HandleNativeCrashes(configuration);
                 INITIALIZED = true;
             }
-
-            HandleAnr(gameObjectName, string.Empty);
+            if (configuration.HandleANR)
+            {
+                HandleAnr(gameObjectName, string.Empty);
+            }
         }
 
 
