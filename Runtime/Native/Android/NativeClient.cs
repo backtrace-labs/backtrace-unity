@@ -122,9 +122,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             // get default built-in Backtrace-Unity attributes
             var backtraceAttributes = new BacktraceAttributes(null, null, true);
-            // add exception type to crashes handled by crashpad - all exception handled by crashpad 
-            // will be game crashes
-            backtraceAttributes.Attributes["error.type"] = "Crash";
+
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
 
             // reassign to captureNativeCrashes
@@ -140,6 +138,17 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
             }
+            // add exception type to crashes handled by crashpad - all exception handled by crashpad 
+            // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
+            // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
+
+            // warning 
+            // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from 
+            // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
+            // attribute via attributes parameters.
+            AddAttribute(
+                        AndroidJNI.NewStringUTF("error.type"),
+                        AndroidJNI.NewStringUTF("Crash"));
         }
 
         /// <summary>
@@ -213,15 +222,19 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     {
                         if (!reported)
                         {
+
+                            reported = true;
                             if (AndroidJNI.AttachCurrentThread() == 0)
                             {
-                                // set temporary attribute to "Hang"
-                                SetAttribute("error.type", "Hang");
+                                 // set temporary attribute to "Hang"
+                                AddAttribute(
+                                    AndroidJNI.NewStringUTF("error.type"),
+                                    AndroidJNI.NewStringUTF("Hang"));
+
                                 NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."));
                                 // update error.type attribute in case when crash happen 
                                 SetAttribute("error.type", "Crash");
                             }
-                            reported = true;
                         }
                     }
                     else
