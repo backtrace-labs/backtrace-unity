@@ -20,7 +20,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.2.6";
+        public const string VERSION = "3.3.0";
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -288,10 +288,12 @@ namespace Backtrace.Unity
             }
             var backtrackGameObject = new GameObject(gameObjectName, typeof(BacktraceClient), typeof(BacktraceDatabase));
             BacktraceClient backtraceClient = backtrackGameObject.GetComponent<BacktraceClient>();
-            BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
-
-            backtraceDatabase.Configuration = configuration;
             backtraceClient.Configuration = configuration;
+            if (configuration.Enabled)
+            {
+                BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
+                backtraceDatabase.Configuration = configuration;
+            }
             backtrackGameObject.SetActive(true);
             backtraceClient.Refresh();
             backtraceClient.SetAttributes(attributes);
@@ -371,12 +373,15 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
-            Database = GetComponent<BacktraceDatabase>();
-            if (Database != null)
+            if (Configuration.Enabled)
             {
-                Database.Reload();
-                Database.SetApi(BacktraceApi);
-                Database.SetReportWatcher(_reportLimitWatcher);
+                Database = GetComponent<BacktraceDatabase>();
+                if (Database != null)
+                {
+                    Database.Reload();
+                    Database.SetApi(BacktraceApi);
+                    Database.SetReportWatcher(_reportLimitWatcher);
+                }
             }
 
             _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
@@ -400,10 +405,23 @@ namespace Backtrace.Unity
             Refresh();
         }
 
+        /// <summary>
+        /// Update native client internal ANR timer.
+        /// </summary>
+        private void Update()
+        {
+            _nativeClient?.UpdateClientTime(Time.time);
+        }
+
         private void OnDestroy()
         {
             Enabled = false;
             Application.logMessageReceived -= HandleUnityMessage;
+#if UNITY_ANDROID || UNITY_IOS
+            Application.lowMemory -= HandleLowMemory;
+            _nativeClient?.Disable();
+#endif
+
         }
 
         /// <summary>
@@ -495,7 +513,7 @@ namespace Backtrace.Unity
         /// <param name="report">Backtrace Report</param>
         /// <param name="sendCallback">Coroutine callback</param>
         /// <returns>IEnumerator</returns>
-        private IEnumerator CollectDataAndSend(BacktraceReport report, Action<BacktraceResult> sendCallback = null)
+        private IEnumerator CollectDataAndSend(BacktraceReport report, Action<BacktraceResult> sendCallback)
         {
             var queryAttributes = new Dictionary<string, string>();
             var stopWatch = EnablePerformanceStatistics
@@ -520,7 +538,7 @@ namespace Backtrace.Unity
             }
             BacktraceDatabaseRecord record = null;
 
-            if (Database != null)
+            if (Database != null && Database.Enabled())
             {
                 yield return new WaitForEndOfFrame();
                 if (EnablePerformanceStatistics)
@@ -542,7 +560,7 @@ namespace Backtrace.Unity
 
                     if (record.Duplicated)
                     {
-                        record.Dispose();
+                        record.Unlock();
                         yield break;
                     }
                 }
@@ -551,23 +569,27 @@ namespace Backtrace.Unity
                     yield break;
                 }
             }
-
-            yield return new WaitForEndOfFrame();
             if (EnablePerformanceStatistics)
             {
                 stopWatch.Restart();
             }
             // avoid serializing data twice
             // if record is here we should try to send json data that are available in record
-            // otherwise we can still use BacktraceData.ToJson().            
+            // otherwise we can still use BacktraceData.ToJson().       
             string json = record != null
                 ? record.BacktraceDataJson()
                 : data.ToJson();
+
 
             if (EnablePerformanceStatistics)
             {
                 stopWatch.Stop();
                 queryAttributes["performance.json"] = stopWatch.GetMicroseconds();
+            }
+            yield return new WaitForEndOfFrame();
+            if (string.IsNullOrEmpty(json))
+            {
+                yield break;
             }
 
             //backward compatibility 
@@ -586,7 +608,7 @@ namespace Backtrace.Unity
             {
                 if (record != null)
                 {
-                    record.Dispose();
+                    record.Unlock();
                     if (Database != null && result.Status != BacktraceResultStatus.ServerError && result.Status != BacktraceResultStatus.NetworkError)
                     {
                         Database.Delete(record);
@@ -594,10 +616,7 @@ namespace Backtrace.Unity
                 }
                 //check if there is more errors to send
                 //handle inner exception
-                HandleInnerException(report, (BacktraceResult innerResult) =>
-                {
-                    result.InnerExceptionResult = innerResult;
-                });
+                HandleInnerException(report);
 
                 if (sendCallback != null)
                 {
@@ -605,6 +624,7 @@ namespace Backtrace.Unity
                 }
             }));
         }
+
 
         /// <summary>
         /// Collect additional report information from client and convert report to backtrace data
@@ -629,12 +649,22 @@ namespace Backtrace.Unity
 
             report.AssignSourceCodeToReport(sourceCode);
 
-            var reportAttributes = _nativeClient == null
-                ? _clientAttributes
-                : _nativeClient.GetAttributes().Merge(_clientAttributes);
-
             // pass copy of dictionary to prevent overriding client attributes
-            return report.ToBacktraceData(new Dictionary<string, string>(reportAttributes), GameObjectDepth);
+            var result = report.ToBacktraceData(null, GameObjectDepth);
+
+            // add native attributes to client report
+            if (_nativeClient != null)
+            {
+                _nativeClient.GetAttributes(result.Attributes.Attributes);
+            }
+
+            // apply client attributes
+            foreach (var attribute in _clientAttributes)
+            {
+                result.Attributes.Attributes[attribute.Key] = attribute.Value;
+            }
+
+            return result;
         }
 
 #if UNITY_ANDROID
@@ -665,8 +695,32 @@ namespace Backtrace.Unity
             if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
             {
                 Application.logMessageReceived += HandleUnityMessage;
+#if UNITY_ANDROID || UNITY_IOS
+                Application.lowMemory += HandleLowMemory;
+#endif
             }
         }
+
+#if UNITY_ANDROID || UNITY_IOS
+        internal void HandleLowMemory()
+        {
+            if (!Enabled)
+            {
+                Debug.LogWarning("Please enable BacktraceClient first.");
+                return;
+            }
+            const string lowMemoryMessage = "OOMException: Out of memory detected.";
+            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
+
+            // try to send report about OOM from managed layer if native layer is disabled.
+            bool nativeSendResult = _nativeClient != null ? _nativeClient.OnOOM() : false;
+            if (!nativeSendResult)
+            {
+                var oom = new BacktraceUnhandledException(lowMemoryMessage, string.Empty);
+                SendUnhandledException(oom);
+            }
+        }
+#endif
 
         /// <summary>
         /// Catch Unity logger data and create Backtrace reports for log type that represents exception or error
@@ -838,12 +892,12 @@ namespace Backtrace.Unity
         /// if inner exception exists, client should send report twice - one with current exception, one with inner exception
         /// </summary>
         /// <param name="report">current report</param>
-        private void HandleInnerException(BacktraceReport report, Action<BacktraceResult> callback)
+        private void HandleInnerException(BacktraceReport report)
         {
             var innerExceptionReport = report.CreateInnerReport();
             if (innerExceptionReport != null && ShouldSendReport(innerExceptionReport))
             {
-                SendReport(innerExceptionReport, callback);
+                SendReport(innerExceptionReport);
             }
         }
 

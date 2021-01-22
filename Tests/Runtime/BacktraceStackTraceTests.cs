@@ -22,24 +22,28 @@ namespace Backtrace.Unity.Tests.Runtime
                 {
                     FunctionName ="UnityEngine.TestTools.TestRunner.TestEnumeratorWrapper.GetEnumerator(NUnit.Framework.Internal.ITestExecutionContext context)",
                     Line = 31,
+                    FileName = "TestEnumeratorWrapper.cs",
                     Library = "C:/ buildslave / unity / build / Extensions / TestRunner / UnityEngine.TestRunner / TestRunner / TestEnumeratorWrapper.cs"
                 },
                 new SampleStackFrame()
                 {
                     FunctionName ="UnityEngine.TestTools.EnumerableTestMethodCommand +< ExecuteEnumerable > c__Iterator0.MoveNext()",
                     Line = 112,
+                    FileName = "EnumerableTestMethodCommand.cs",
                     Library = "C:/ buildslave / unity / build / Extensions / TestRunner / UnityEngine.TestRunner / NUnitExtensions / Commands / EnumerableTestMethodCommand.cs"
                 },
                 new SampleStackFrame()
                 {
                     FunctionName = "UnityEngine.TestTools.EnumerableSetUpTearDownCommand +< ExecuteEnumerable > c__Iterator0.MoveNext()",
                     Line = 71,
+                    FileName = "EnumerableTestMethodCommand.cs",
                     Library = "C:/ buildslave / unity / build / Extensions / TestRunner / UnityEngine.TestRunner / NUnitExtensions / Commands / EnumerableTestMethodCommand.cs"
                 },
                 new SampleStackFrame()
                 {
                     FunctionName = "UnityEngine.TestRunner.NUnitExtensions.Runner.UnityLogCheckDelegatingCommand +< ExecuteEnumerable > c__Iterator0.MoveNext()",
                     Line = 67,
+                    FileName = "UnityLogCheckDelegatingCommand.cs",
                     Library = "C:/ buildslave / unity / build / Extensions / TestRunner / UnityEngine.TestRunner / NUnitExtensions / Runner / UnityLogCheckDelegatingCommand.cs"
                 },
             };
@@ -50,42 +54,49 @@ namespace Backtrace.Unity.Tests.Runtime
                 {
                     FunctionName ="Startup.GetRandomFileStream ()",
                     Line = 104,
+                    FileName = "Startup.cs",
                     Library = "Assets/Startup.cs"
                 },
             new SampleStackFrame()
                 {
                     FunctionName ="Startup.GetRandomFile ()",
                     Line = 99,
+                    FileName = "Startup.cs",
                     Library = "Assets/Startup.cs"
                 },
             new SampleStackFrame()
                 {
                     FunctionName ="Startup.ReadRandomFile ()",
                     Line = 94,
+                    FileName = "Startup.cs",
                     Library = "Assets/Startup.cs"
                 },
             new SampleStackFrame()
                 {
                     FunctionName ="Startup.DoSomethingDifferent ()",
                     Line = 89,
+                    FileName = "Startup.cs",
                     Library = "Assets/Startup.cs"
                 },
             new SampleStackFrame()
                 {
                     FunctionName ="Startup.DoSomethingElse ()",
                     Line = 84,
+                    FileName = "Startup.cs",
                     Library = "Assets/Startup.cs"
                 },
             new SampleStackFrame()
                 {
                     FunctionName ="Startup.DoSomething ()",
                     Line = 80,
+                    FileName = "Startup.cs",
                     Library = "Assets/Startup.cs"
                 },
             new SampleStackFrame()
                 {
                     FunctionName ="Startup.Update ()",
                     Line = 116,
+                    FileName = "Startup.cs",
                     Library = "Assets/Startup.cs"
                 }
         };
@@ -97,6 +108,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 {
                     Type = StackTraceType.Android,
                     FunctionName ="java.lang.Thread.sleep",
+                    FileName= "Thread.java",
                     Library = "NativeMethod"
                 },
             new SampleStackFrame()
@@ -104,6 +116,7 @@ namespace Backtrace.Unity.Tests.Runtime
                     Type = StackTraceType.Android,
                     FunctionName ="java.lang.Thread.sleep",
                     Line = 440,
+                    FileName = "Thread.java",
                     Library = "Thread.java"
                 },
             new SampleStackFrame()
@@ -111,6 +124,7 @@ namespace Backtrace.Unity.Tests.Runtime
                     Type = StackTraceType.Android,
                     FunctionName ="java.lang.Thread.sleep",
                     Line = 356,
+                    FileName = "Thread.java",
                     Library = "Thread.java"
                 },
             new SampleStackFrame()
@@ -118,6 +132,7 @@ namespace Backtrace.Unity.Tests.Runtime
                     Type = StackTraceType.Android,
                     FunctionName ="backtrace.io.backtrace_unity_android_plugin.BacktraceCrashHelper$1.run",
                     Line = 16,
+                    FileName = "BacktraceCrashHelper.java",
                     Library = "BacktraceCrashHelper.java"
                 },
             new SampleStackFrame()
@@ -125,6 +140,7 @@ namespace Backtrace.Unity.Tests.Runtime
                     Type = StackTraceType.Android,
                     FunctionName ="android.os.Handler.handleCallback",
                     Line = 883,
+                    FileName = "Handler.java",
                     Library = "Handler.java"
                 },
             new SampleStackFrame()
@@ -132,6 +148,7 @@ namespace Backtrace.Unity.Tests.Runtime
                     Type = StackTraceType.Android,
                     FunctionName ="android.os.Handler.dispatchMessage",
                     Line = 100,
+                    FileName = "Handler.java",
                     Library = "Handler.java"
                 },
             new SampleStackFrame()
@@ -139,6 +156,7 @@ namespace Backtrace.Unity.Tests.Runtime
                     Type = StackTraceType.Android,
                     FunctionName ="com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run",
                     Line = 493,
+                    FileName = "RuntimeInit.java",
                     Library = "RuntimeInit.java"
                 }
         };
@@ -156,6 +174,7 @@ namespace Backtrace.Unity.Tests.Runtime
             {
                 Type = StackTraceType.Android,
                 FunctionName ="java.lang.Thread.sleep",
+                FileName= "Thread.java",
                 Library = "NativeMethod"
             },
             // android source code stack frame
@@ -164,6 +183,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Type = StackTraceType.Android,
                 FunctionName ="backtrace.io.backtrace_unity_android_plugin.BacktraceCrashHelper.InternalCall",
                 Library = "BacktraceCrashHelper.java",
+                FileName = "BacktraceCrashHelper.java",
                 Line = 31
             },
             new SampleStackFrame() {
@@ -176,18 +196,21 @@ namespace Backtrace.Unity.Tests.Runtime
                  Type = StackTraceType.Android,
                  FunctionName = "com.unity3d.player.UnityPlayer.access$300",
                  Line = 0,
+                 FileName = "UnityPlayer.java",
                  Library = "Unknown Source"
              },
              // csharp layer
             new SampleStackFrame() {
                  FunctionName = "UnityEngine.AndroidJNISafe.CheckException ()",
                  Line = 24,
+                 FileName = "AndroidJNISafe.cs",
                  Library = "/Users/builduser/buildslave/unity/build/Modules/AndroidJNI/AndroidJNISafe.cs"
              },
             // csharp layer with arguments 
              new SampleStackFrame() {
                  FunctionName = "UnityEngine.AndroidJavaObject.CallStatic (System.String methodName, System.Object[] args)",
                  Line = 252,
+                 FileName = "AndroidJava.cs",
                  Library = "/Users/builduser/buildslave/unity/build/Modules/AndroidJNI/AndroidJava.cs"
              }
         };
@@ -201,6 +224,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Line = 0,
                 Library = "Unity",
                 Address = "0x00007FF6661B40EC",
+                FileName = "StackWalker",
                 FunctionName = "StackWalker::GetCurrentCallstack"
             },
             new SampleStackFrame()
@@ -228,6 +252,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Line = 0,
                 Library = "Mono JIT Code",
                 Address = "0x00000266BD679AEB",
+                FileName = "DebugLogHandler",
                 FunctionName = "UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)"
             },
             new SampleStackFrame()
@@ -235,6 +260,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Type = StackTraceType.Native,
                 StackFrame = "0x00000266BD67295B (Mono JIT Code) [firstSceneButtons.cs:41] firstSceneButtons:Start ()",
                 Line = 41,
+                FileName = "firstSceneButtons.cs",
                 Library = "firstSceneButtons.cs",
                 Address = "0x00000266BD67295B",
                 FunctionName = "firstSceneButtons:Start ()"
@@ -253,6 +279,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Type = StackTraceType.Native,
                 StackFrame = "0x00007FFFEEB8CBB0 (mono-2.0-bdwgc) [mini-runtime.c:2809] mono_jit_runtime_invoke",
                 Line = 2809,
+                FileName = "mini-runtime.c",
                 Library = "mini-runtime.c",
                 Address = "0x00007FFFEEB8CBB0",
                 FunctionName = "mono_jit_runtime_invoke"
@@ -313,6 +340,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.AreEqual(anrStackFrame.FunctionName, backtraceStackFrame.FunctionName);
                 Assert.AreEqual(anrStackFrame.Line, backtraceStackFrame.Line);
                 Assert.AreEqual(anrStackFrame.Library, backtraceStackFrame.Library);
+                Assert.AreEqual(anrStackFrame.FileName, backtraceStackFrame.FileName);
             }
         }
 
@@ -337,6 +365,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 {
                     Assert.AreEqual(mixModeCallStack.FunctionName, backtraceStackFrame.FunctionName);
                     Assert.AreEqual(mixModeCallStack.Line, backtraceStackFrame.Line);
+                    Assert.AreEqual(mixModeCallStack.FileName, backtraceStackFrame.FileName);
                     Assert.AreEqual(mixModeCallStack.Library, backtraceStackFrame.Library);
                 }
             }
@@ -363,6 +392,7 @@ namespace Backtrace.Unity.Tests.Runtime
                     Assert.AreEqual(realStackFrame.FunctionName, backtraceStackFrame.FunctionName);
                     Assert.AreEqual(realStackFrame.Line, backtraceStackFrame.Line);
                     Assert.AreEqual(realStackFrame.Library, backtraceStackFrame.Library);
+                    Assert.AreEqual(realStackFrame.FileName, backtraceStackFrame.FileName);
                 }
                 // -1 because we include header in stack trace
                 Assert.AreEqual(data.Count - startIndex, backtraceStackTrace.StackFrames.Count);
@@ -436,6 +466,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.AreEqual(expectedStackFrame.Library, backtraceStackFrame.Library);
                 Assert.AreEqual(expectedStackFrame.Line, backtraceStackFrame.Line);
                 Assert.AreEqual(expectedStackFrame.FunctionName, backtraceStackFrame.FunctionName);
+                Assert.AreEqual(expectedStackFrame.FileName, backtraceStackFrame.FileName);
             }
 
         }
@@ -526,6 +557,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public StackTraceType Type = StackTraceType.Default;
         public string Custom { get; set; }
         public string StackFrame { get; set; }
+        public string FileName { get; set; } = string.Empty;
         public string FunctionName { get; set; }
         public string Library { get; set; }
         public int Line { get; set; }

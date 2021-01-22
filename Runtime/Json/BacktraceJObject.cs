@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace Backtrace.Unity.Json
@@ -13,31 +12,122 @@ namespace Backtrace.Unity.Json
     public class BacktraceJObject
     {
         /// <summary>
-        /// JSON object source
+        /// JSON object source - primitive values
         /// </summary>
-        public readonly Dictionary<string, object> Source = new Dictionary<string, object>();
+        internal readonly Dictionary<string, string> PrimitiveValues = new Dictionary<string, string>();
+
+        /// <summary>
+        /// JSON object source - primitive values
+        /// </summary>
+        internal readonly Dictionary<string, string> UserPrimitives;
+
+        /// <summary>
+        /// Inner objects
+        /// </summary>
+        internal readonly Dictionary<string, BacktraceJObject> InnerObjects = new Dictionary<string, BacktraceJObject>();
+
+        /// <summary>
+        /// Complex objects - array of JObjects/strings
+        /// </summary>
+        internal readonly Dictionary<string, object> ComplexObjects = new Dictionary<string, object>();
+
 
         public BacktraceJObject() : this(null) { }
 
         public BacktraceJObject(Dictionary<string, string> source)
         {
-            if (source == null)
-            {
-                return;
-            }
-            Source = source.ToDictionary(n => n.Key, m => m.Value as object);
+            UserPrimitives = source == null ? new Dictionary<string, string>() : source;
         }
 
-        public object this[string key]
+
+        /// <summary>
+        /// Add boolean key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, bool value)
         {
-            get
+            PrimitiveValues.Add(key, value.ToString().ToLower());
+        }
+
+
+
+        /// <summary>
+        /// Add key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, float value)
+        {
+            PrimitiveValues.Add(key, value.ToString("G", CultureInfo.InvariantCulture));
+        }
+
+        /// <summary>
+        /// Add key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, double value)
+        {
+            PrimitiveValues.Add(key, value.ToString("G", CultureInfo.InvariantCulture));
+        }
+
+        /// <summary>
+        /// Add string key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, string value)
+        {
+            if (string.IsNullOrEmpty(value))
             {
-                return Source[key];
+                ComplexObjects.Add(key, null);
+                return;
             }
-            set
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("\"");
+            EscapeString(value, builder);
+            builder.Append("\"");
+
+            PrimitiveValues.Add(key, builder.ToString());
+        }
+
+        /// <summary>
+        /// Add long key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, long value)
+        {
+            PrimitiveValues.Add(key, value.ToString());
+        }
+
+        /// <summary>
+        /// Add BacktraceJObject key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, BacktraceJObject value)
+        {
+            if (value != null)
             {
-                Source[key] = value;
+                InnerObjects.Add(key, value);
             }
+            else
+            {
+                ComplexObjects.Add(key, null);
+
+            }
+        }
+        /// <summary>
+        /// Add ienumerable object key-value pair to JSON object
+        /// </summary>
+        /// <param name="key">JSON key</param>
+        /// <param name="value">value</param>
+        public void Add(string key, IEnumerable value)
+        {
+            ComplexObjects.Add(key, value);
         }
 
         /// <summary>
@@ -46,35 +136,201 @@ namespace Backtrace.Unity.Json
         /// <returns>BacktraceJObject JSON representation</returns>
         public string ToJson()
         {
-            var stringBuilder = new StringBuilder("{");
-
-            var lines = Source.Select(entry => string.Format("\"{0}\": {1}", EscapeString(entry.Key), ConvertValue(entry.Value)));
-            var content = string.Join(",", lines);
-
-            stringBuilder.Append(content);
-            stringBuilder.Append("}");
-
+            var stringBuilder = new StringBuilder();
+            ToJson(stringBuilder);
             return stringBuilder.ToString();
         }
+
+        internal void ToJson(StringBuilder stringBuilder)
+        {
+            stringBuilder.Append("{");
+            AppendPrimitives(stringBuilder);
+            AddUserPrimitives(stringBuilder);
+            AppendJObjects(stringBuilder);
+            AppendComplexValues(stringBuilder);
+            stringBuilder.Append("}");
+        }
+
+        private void AddUserPrimitives(StringBuilder stringBuilder)
+        {
+            if (UserPrimitives.Count == 0)
+            {
+                return;
+            }
+            int propertyIndex = 0;
+            if (ShouldContinueAddingJSONProperties(stringBuilder))
+            {
+                stringBuilder.Append(',');
+            }
+            using (var enumerator = UserPrimitives.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    if (string.IsNullOrEmpty(entry.Value))
+                    {
+                        stringBuilder.Append("null");
+                    }
+                    else
+                    {
+                        stringBuilder.Append("\"");
+                        EscapeString(entry.Value, stringBuilder);
+                        stringBuilder.Append("\"");
+                    }
+                    if (propertyIndex != UserPrimitives.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
+                }
+            }
+        }
+
+        private void AppendPrimitives(StringBuilder stringBuilder)
+        {
+            int propertyIndex = 0;
+            using (var enumerator = PrimitiveValues.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    stringBuilder.Append(string.IsNullOrEmpty(entry.Value) ? "null" : entry.Value);
+
+                    if (propertyIndex != PrimitiveValues.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
+                }
+            }
+        }
+
+        private void AppendJObjects(StringBuilder stringBuilder)
+        {
+            if (InnerObjects.Count == 0)
+            {
+                return;
+            }
+            int propertyIndex = 0;
+            using (var enumerator = InnerObjects.GetEnumerator())
+            {
+                if (ShouldContinueAddingJSONProperties(stringBuilder))
+                {
+                    stringBuilder.Append(',');
+                }
+                while (enumerator.MoveNext())
+                {
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    entry.Value.ToJson(stringBuilder);
+                    if (propertyIndex != InnerObjects.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
+                }
+            }
+        }
+
+        private void AppendComplexValues(StringBuilder stringBuilder)
+        {
+            if (ComplexObjects.Count == 0)
+            {
+                return;
+            }
+            int propertyIndex = 0;
+            using (var enumerator = ComplexObjects.GetEnumerator())
+            {
+                if (ShouldContinueAddingJSONProperties(stringBuilder))
+                {
+                    stringBuilder.Append(',');
+                }
+                while (enumerator.MoveNext())
+                {
+                    propertyIndex++;
+                    var entry = enumerator.Current;
+                    AppendKey(entry.Key, stringBuilder);
+                    if (entry.Value == null)
+                    {
+                        stringBuilder.Append("null");
+                    }
+                    else if (entry.Value is IEnumerable && !(entry.Value is IDictionary))
+                    {
+                        stringBuilder.Append('[');
+                        int index = 0;
+                        foreach (var item in (entry.Value as IEnumerable))
+                        {
+                            if (index != 0)
+                            {
+                                stringBuilder.Append(',');
+                            }
+                            if (item == null)
+                            {
+                                stringBuilder.Append("null");
+                            }
+                            else if (item is BacktraceJObject)
+                            {
+                                (item as BacktraceJObject).ToJson(stringBuilder);
+                            }
+                            else
+                            {
+                                stringBuilder.Append("\"");
+                                EscapeString(item.ToString(), stringBuilder);
+                                stringBuilder.Append("\"");
+                            }
+                            index++;
+                        }
+                        stringBuilder.Append(']');
+                    }
+
+                    if (propertyIndex != ComplexObjects.Count)
+                    {
+                        stringBuilder.Append(",");
+                    }
+                }
+            }
+        }
+
+        private bool ShouldContinueAddingJSONProperties(StringBuilder stringBuilder)
+        {
+            return stringBuilder[stringBuilder.Length - 1] != ',' && stringBuilder[stringBuilder.Length - 1] != '{';
+        }
+
+
+        private void AppendKey(string value, StringBuilder builder)
+        {
+            builder.Append("\"");
+            if (string.IsNullOrEmpty(value))
+            {
+                builder.Append("null");
+            }
+            else
+            {
+                EscapeString(value, builder);
+            }
+            builder.Append("\":");
+        }
+
 
         /// <summary>
         /// Escape special characters in string 
         /// </summary>
         /// <param name="value">string to escape</param>
         /// <returns>escaped string</returns>
-        private string EscapeString(string value)
+        private void EscapeString(string value, StringBuilder output)
         {
-            var output = new StringBuilder(value.Length);
             foreach (char c in value)
             {
                 switch (c)
                 {
                     case '\\':
-                        output.AppendFormat("{0}{0}", '\\');
+                        output.AppendFormat("\\\\");
                         break;
-
                     case '"':
-                        output.AppendFormat("{0}{1}", '\\', '"');
+                        output.AppendFormat("\\\"");
                         break;
                     case '\b':
                         output.Append("\\b");
@@ -96,82 +352,6 @@ namespace Backtrace.Unity.Json
                         break;
                 }
             }
-
-            return output.ToString();
-        }
-
-
-        /// <summary>
-        /// Convert object to json value
-        /// </summary>
-        /// <param name="value">object value</param>
-        /// <returns>json value</returns>
-        private string ConvertValue(object value)
-        {
-            if (value == null)
-            {
-                return "null";
-            }
-
-            var analysedType = value.GetType();
-            if (analysedType == typeof(string))
-            {
-                return string.Format("\"{0}\"", EscapeString(value as string));
-            }
-            else if (analysedType == typeof(double))
-            {
-                return Convert.ToDouble(value, CultureInfo.CurrentCulture).ToString(CultureInfo.InvariantCulture);
-            }
-            else if (analysedType == typeof(float))
-            {
-                return Convert.ToDouble(value, CultureInfo.CurrentCulture).ToString(CultureInfo.InvariantCulture);
-            }
-            else if (analysedType == typeof(int))
-            {
-                return Convert.ToInt32(value, CultureInfo.CurrentCulture).ToString();
-            }
-            else if (analysedType == typeof(long))
-            {
-                return Convert.ToInt64(value, CultureInfo.CurrentCulture).ToString();
-            }
-            else if (analysedType == typeof(bool))
-            {
-                return ((bool)value).ToString().ToLower();
-            }
-            else if (value is IEnumerable && !(value is IDictionary))
-            {
-                var collection = (value as IEnumerable);
-                var builder = new StringBuilder();
-                builder.Append('[');
-                int index = 0;
-                foreach (var item in collection)
-                {
-                    if (index != 0)
-                    {
-                        builder.Append(',');
-                    }
-                    builder.Append(ConvertValue(item));
-                    index++;
-                }
-                builder.Append(']');
-                return builder.ToString();
-            }
-            else if (Guid.TryParse(value.ToString(), out Guid guidResult))
-            {
-                return string.Format("\"{0}\"", guidResult.ToString());
-            }
-            else
-            {
-                //check if this is json inner object
-                var backtraceJObjectValue = value as BacktraceJObject;
-                if (backtraceJObjectValue != null)
-                {
-                    return backtraceJObjectValue.ToJson();
-                }
-
-                return "null";
-            }
-
         }
     }
 }

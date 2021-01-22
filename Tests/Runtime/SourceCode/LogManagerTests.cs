@@ -51,7 +51,9 @@ namespace Backtrace.Unity.Tests.Runtime
             logManager.Enqueue(enqueuedMessage, string.Empty, LogType.Log);
 
             Assert.AreEqual(expectedNumberOfMessages, logManager.Size);
-            Assert.AreEqual(enqueuedMessage, logManager.LogQueue.First().Message);
+            // validate if log ends with enqueueMessage to validate if message is there,
+            // without checking other message content (date, log type etc..)
+            Assert.IsTrue(logManager.LogQueue.First().EndsWith(enqueuedMessage));
         }
 
 

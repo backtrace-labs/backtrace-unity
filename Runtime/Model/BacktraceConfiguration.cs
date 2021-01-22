@@ -97,7 +97,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
 #elif UNITY_IOS
-         /// <summary>
+        /// <summary>
         /// Capture native iOS Crashes.
         /// </summary>
         [Tooltip("Capture native Crashes")]
@@ -106,7 +106,7 @@ namespace Backtrace.Unity.Model
         public bool CaptureNativeCrashes = true;
 #endif
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID  || UNITY_IOS
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>

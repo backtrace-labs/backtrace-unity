@@ -9,10 +9,7 @@ namespace Backtrace.Unity.Model
     /// </summary>
     public class BacktraceSourceCode
     {
-        /// <summary>
-        /// Source code id - integration uses id to assign source code to first stack frame
-        /// </summary>
-        public readonly string Id = Guid.NewGuid().ToString();
+        internal static string SOURCE_CODE_PROPERTY = "main";
         /// <summary>
         /// Default source code type
         /// </summary>
@@ -22,10 +19,6 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public readonly string Title = "Log File";
 
-        /// <summary>
-        /// Required source code option -  we don't want to hightlight any line
-        /// </summary>
-        public readonly bool HighlightLine = false;
 
         /// <summary>
         /// Unity engine text
@@ -39,14 +32,15 @@ namespace Backtrace.Unity.Model
         internal BacktraceJObject ToJson()
         {
             var json = new BacktraceJObject();
-            var sourceCode = new BacktraceJObject();
-            sourceCode["id"] = Id;
-            sourceCode["type"] = Type;
-            sourceCode["title"] = Title;
-            sourceCode["highlightLine"] = HighlightLine;
-            sourceCode["text"] = Text;
-
-            json[Id.ToString()] = sourceCode;
+            var sourceCode = new BacktraceJObject(new System.Collections.Generic.Dictionary<string, string>()
+            {
+                { "id",SOURCE_CODE_PROPERTY },
+                { "type", Type },
+                { "title", Title },
+                { "text", Text }
+            });
+            sourceCode.Add("highlightLine", false);
+            json.Add(SOURCE_CODE_PROPERTY, sourceCode);
             return json;
         }
     }

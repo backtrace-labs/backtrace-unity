@@ -18,6 +18,26 @@ namespace Backtrace.Unity.Model
         public Guid Uuid { get; private set; }
 
         /// <summary>
+        /// String representation of Uuid Guid - for optimization purposes.
+        /// </summary>
+        private string _uuidString;
+
+        /// <summary>
+        /// internal Uuid in string format
+        /// </summary>
+        internal string UuidString
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_uuidString))
+                {
+                    _uuidString = Uuid.ToString();
+                }
+                return _uuidString;
+            }
+        }
+
+        /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
         public long Timestamp { get; private set; }
@@ -117,21 +137,25 @@ namespace Backtrace.Unity.Model
         /// <returns>Backtrace Data JSON string</returns>
         public string ToJson()
         {
-            var jObject = new BacktraceJObject()
+            var jObject = new BacktraceJObject(new Dictionary<string, string>()
             {
-                ["uuid"] = Uuid,
-                ["timestamp"] = Timestamp,
+                ["uuid"] = UuidString,
                 ["lang"] = Lang,
                 ["langVersion"] = LangVersion,
                 ["agent"] = Agent,
                 ["agentVersion"] = AgentVersion,
                 ["mainThread"] = MainThread,
-                ["classifiers"] = Classifier,
-                ["attributes"] = Attributes.ToJson(),
-                ["annotations"] = Annotation.ToJson(),
-                ["threads"] = ThreadData == null ? null : ThreadData.ToJson(),
-                ["sourceCode"] = SourceCode == null ? null : SourceCode.ToJson()
-            };
+            });
+            jObject.Add("timestamp", Timestamp);
+            jObject.Add("classifiers", Classifier);
+
+            jObject.Add("attributes", Attributes.ToJson());
+            jObject.Add("annotations", Annotation.ToJson());
+            jObject.Add("threads", ThreadData.ToJson());
+            if (SourceCode != null)
+            {
+                jObject.Add("sourceCode", SourceCode.ToJson());
+            }
             return jObject.ToJson();
         }
 

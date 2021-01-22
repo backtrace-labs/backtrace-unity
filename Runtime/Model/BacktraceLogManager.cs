@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Unity message queue 
         /// </summary>
-        internal readonly ConcurrentQueue<BacktraceUnityMessage> LogQueue;
+        internal readonly ConcurrentQueue<string> LogQueue;
 
         /// <summary>
         /// Lock object
@@ -27,7 +27,7 @@ namespace Backtrace.Unity.Model
         public BacktraceLogManager(uint numberOfLogs)
         {
             _limit = numberOfLogs;
-            LogQueue = new ConcurrentQueue<BacktraceUnityMessage>();
+            LogQueue = new ConcurrentQueue<string>();
         }
 
         /// <summary>
@@ -85,10 +85,10 @@ namespace Backtrace.Unity.Model
                 return false;
             }
 
-            LogQueue.Enqueue(unityMessage);
+            LogQueue.Enqueue(unityMessage.ToString());
             lock (lockObject)
             {
-                while (LogQueue.Count > _limit && LogQueue.TryDequeue(out BacktraceUnityMessage _));
+                while (LogQueue.Count > _limit && LogQueue.TryDequeue(out string _)) ;
             }
             return true;
         }
@@ -102,7 +102,7 @@ namespace Backtrace.Unity.Model
             var stringBuilder = new StringBuilder();
             foreach (var item in LogQueue)
             {
-                stringBuilder.AppendLine(item.ToString());
+                stringBuilder.AppendLine(item);
             }
             return stringBuilder.ToString();
         }

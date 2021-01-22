@@ -9,7 +9,7 @@ using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
-    public class BacktraceClientTests: BacktraceBaseTest
+    public class BacktraceClientTests : BacktraceBaseTest
     {
         [SetUp]
         public void Setup()
@@ -18,7 +18,7 @@ namespace Backtrace.Unity.Tests.Runtime
             AfterSetup(false);
         }
 
-        
+
         [UnityTest]
         public IEnumerator TestClientCreation_ValidBacktraceConfiguration_ValidClientCreation()
         {
@@ -29,7 +29,7 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
-        
+
         [UnityTest]
         public IEnumerator TestClientCreation_EmptyConfiguration_DisabledClientCreation()
         {
@@ -135,7 +135,7 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
-       [UnityTest]
+        [UnityTest]
         public IEnumerator TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldGenerateFingerprintForExceptionReportWithoutStackTrace_ShouldIncludeFingerprintInBacktraceReport()
         {
             BacktraceClient.Configuration = GetValidClientConfiguration();
@@ -152,15 +152,19 @@ namespace Backtrace.Unity.Tests.Runtime
             bool eventFired = false;
             BacktraceClient.BeforeSend = (BacktraceData data) =>
             {
-                eventFired = true;
+                Assert.IsNotNull(data.Attributes.Attributes["_mod_fingerprint"]);
                 Assert.AreEqual(expectedNormalizedMessage.GetSha(), data.Attributes.Attributes["_mod_fingerprint"]);
+                eventFired = true;
                 // prevent backtrace data from sending to Backtrace.
                 return null;
             };
-            BacktraceClient.Send(report);
-            yield return new WaitForEndOfFrame();
+
+            yield return BacktraceClient.StartCoroutine(CallBacktraceClientAndWait(report));
+
+
             Assert.IsTrue(eventFired);
         }
+
 
         [UnityTest]
         public IEnumerator TestFingerprintBehaviorForNormalizedExceptionMessage_ShouldntGenerateFingerprintForDisabledOption_FingerprintDoesntExist()
@@ -178,13 +182,15 @@ namespace Backtrace.Unity.Tests.Runtime
             bool eventFired = false;
             BacktraceClient.BeforeSend = (BacktraceData data) =>
             {
-                eventFired = true;
                 Assert.IsFalse(data.Attributes.Attributes.ContainsKey("_mod_fingerprint"));
+                eventFired = true;
                 // prevent backtrace data from sending to Backtrace.
                 return null;
             };
-            BacktraceClient.Send(report);
-            yield return new WaitForEndOfFrame();
+
+            yield return BacktraceClient.StartCoroutine(CallBacktraceClientAndWait(report));
+
+
             Assert.IsTrue(eventFired);
         }
 
@@ -200,13 +206,14 @@ namespace Backtrace.Unity.Tests.Runtime
             // exception below has empty exception stack trace
             var exception = new BacktraceUnhandledException("00:00:00 00/00/00 Unhandled exception", string.Empty);
             var report = new BacktraceReport(exception);
-            var expectedFingerprint = "foo-bar";
+            const string expectedFingerprint = "foo-bar";
             report.Fingerprint = expectedFingerprint;
 
             bool eventFired = false;
             BacktraceClient.BeforeSend = (BacktraceData data) =>
             {
                 eventFired = true;
+                Assert.IsNotNull(data.Attributes.Attributes["_mod_fingerprint"]);
                 Assert.AreEqual(expectedFingerprint, data.Attributes.Attributes["_mod_fingerprint"]);
                 // prevent backtrace data from sending to Backtrace.
                 return null;
@@ -242,16 +249,19 @@ namespace Backtrace.Unity.Tests.Runtime
             var normalizedMessage = "Unhandledexception";
             var exception = new BacktraceUnhandledException(normalizedMessage, string.Empty);
             var report = new BacktraceReport(exception);
+
             bool eventFired = false;
             BacktraceClient.BeforeSend = (BacktraceData data) =>
             {
-                eventFired = true;
+                Assert.IsNotNull(data.Attributes.Attributes["_mod_fingerprint"]);
                 Assert.AreEqual(normalizedMessage.GetSha(), data.Attributes.Attributes["_mod_fingerprint"]);
+                // prevent backtrace data from sending to Backtrace.
+                eventFired = true;
                 // prevent backtrace data from sending to Backtrace.
                 return null;
             };
-            BacktraceClient.Send(report);
-            yield return new WaitForEndOfFrame();
+
+            yield return BacktraceClient.StartCoroutine(CallBacktraceClientAndWait(report));
             Assert.IsTrue(eventFired);
         }
 
@@ -277,6 +287,13 @@ namespace Backtrace.Unity.Tests.Runtime
             BacktraceClient.Send(report);
             yield return new WaitForEndOfFrame();
             Assert.IsTrue(eventFired);
+        }
+
+
+        private IEnumerator CallBacktraceClientAndWait(BacktraceReport report)
+        {
+            BacktraceClient.Send(report);
+            yield return new WaitForEndOfFrame();
         }
     }
 }

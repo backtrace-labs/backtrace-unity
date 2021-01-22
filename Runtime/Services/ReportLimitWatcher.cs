@@ -129,8 +129,7 @@ namespace Backtrace.Unity.Services
             if (ShouldDisplayMessage())
             {
                 _displayMessage = false;
-                Debug.LogWarning(string.Format("Backtrace report limit hit({0}/min) – Ignoring errors for 1 minute",
-                    _reportPerMin));
+                Debug.LogWarning(string.Format("Backtrace report limit hit({0}/min) – Ignoring errors for 1 minute", _reportPerMin));
             }
         }
 

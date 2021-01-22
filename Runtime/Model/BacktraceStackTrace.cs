@@ -71,6 +71,7 @@ namespace Backtrace.Unity.Model
                 {
                     continue;
                 }
+                backtraceFrame.StackFrameType = Types.BacktraceStackFrameType.Dotnet;
                 StackFrames.Insert(startingIndex, backtraceFrame);
                 startingIndex++;
             }

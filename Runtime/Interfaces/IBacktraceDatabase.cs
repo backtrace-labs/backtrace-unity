@@ -83,5 +83,11 @@ namespace Backtrace.Unity.Interfaces
         /// <param name="lock">Lock report - default true</param>
         /// <returns>Backtrace record</returns>
         BacktraceDatabaseRecord Add(BacktraceData data, bool @lock = true);
+
+        /// <summary>
+        /// Validate if BacktraceDatabase is enabled
+        /// </summary>
+        /// <returns>true if BacktraceDatabase is enabled. Otherwise false.</returns>
+        bool Enabled();
     }
 }

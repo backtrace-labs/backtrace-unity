@@ -26,7 +26,7 @@ namespace Backtrace.Unity.Editor
 #else
             settings.IgnoreSslValidation = false;
 #endif
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
             settings.HandleANR = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_HANDLE_ANR, settings.HandleANR);
 #endif
             settings.GameObjectDepth = EditorGUILayout.IntField(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH, settings.GameObjectDepth);

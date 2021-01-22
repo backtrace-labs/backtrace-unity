@@ -300,7 +300,7 @@ namespace Backtrace.Unity.Services
 
         private void PrintLog(UnityWebRequest request)
         {
-            if(!_shouldDisplayFailureMessage)
+            if (!_shouldDisplayFailureMessage)
             {
                 return;
             }

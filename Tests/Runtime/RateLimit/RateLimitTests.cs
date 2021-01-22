@@ -63,7 +63,6 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                         var result = reportLimitWatcher.WatchReport(new DateTime().Timestamp());
                         if (result)
                         {
-                            UnityEngine.Debug.Log($"Thread {i} - added report");
                             acceptedReports++;
                         }
                         else

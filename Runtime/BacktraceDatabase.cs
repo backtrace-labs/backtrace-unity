@@ -221,6 +221,15 @@ namespace Backtrace.Unity
         }
 
         /// <summary>
+        /// Validate if BacktraceDatabase is enabled
+        /// </summary>
+        /// <returns>true if BacktraceDatabase is enabled. Otherwise false.</returns>
+        public bool Enabled()
+        {
+            return Enable;
+        }
+
+        /// <summary>
         /// Get settings 
         /// </summary>
         /// <returns>Current database settings</returns>
@@ -265,7 +274,7 @@ namespace Backtrace.Unity
             var record = BacktraceDatabaseContext.Add(data);
             if (!@lock)
             {
-                record.Dispose();
+                record.Unlock();
             }
             return record;
         }
@@ -399,7 +408,7 @@ namespace Backtrace.Unity
                 StartCoroutine(
                      BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>
                      {
-                         record.Dispose();
+                         record.Unlock();
                          if (sendResult.Status != BacktraceResultStatus.ServerError && sendResult.Status != BacktraceResultStatus.NetworkError)
                          {
                              Delete(record);
@@ -509,7 +518,7 @@ namespace Backtrace.Unity
                 {
                     try
                     {
-                        Debug.Log("Removing record from Backtrace Database path");
+                        Debug.Log("Removing record from Backtrace Database path - invalid record.");
                         record.Delete();
                     }
                     catch (Exception)
@@ -520,7 +529,7 @@ namespace Backtrace.Unity
                 }
                 BacktraceDatabaseContext.Add(record);
                 ValidateDatabaseSize();
-                record.Dispose();
+                record.Unlock();
             }
         }
         /// <summary>
@@ -536,7 +545,7 @@ namespace Backtrace.Unity
             //If record count == 0 then we ignore this condition
             var noMoreSpaceForReport = BacktraceDatabaseContext.Count() + 1 > DatabaseSettings.MaxRecordCount && DatabaseSettings.MaxRecordCount != 0;
             if (noMoreSpaceForReport)
-            { 
+            {
                 return false;
             }
 

@@ -1,8 +1,10 @@
 #if UNITY_IOS
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Backtrace.Unity.Model;
 using UnityEngine;
 
@@ -11,8 +13,13 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     /// <summary>
     /// iOS native client 
     /// </summary>
-    public class NativeClient : INativeClient
+    internal class NativeClient : INativeClient
     {
+        // Last Backtrace client update time 
+        internal float _lastUpdateTime;
+
+        private Thread _anrThread;
+
         // NSDictinary entry used only for iOS native integration
         internal struct Entry
         {
@@ -22,6 +29,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
         private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int size);
+
+        [DllImport("__Internal", EntryPoint = "NativeReport")]
+        public static extern void NativeReport(string message);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         public static extern string Crash();
@@ -54,11 +64,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             if (configuration.CaptureNativeCrashes)
             {
                 HandleNativeCrashes(configuration);
-                // get basic attributes to enable attributes bridge
-                // otherwise first call to objective-c will take
-                // a lot of time
-                GetAttributes();
                 INITIALIZED = true;
+            }
+            if (configuration.HandleANR)
+            {
+                HandleAnr(gameObjectName, string.Empty);
             }
         }
 
@@ -69,6 +79,14 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         private void HandleNativeCrashes(BacktraceConfiguration configuration)
         {
+            var databasePath = configuration.GetFullDatabasePath();
+            // make sure database is enabled 
+            if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(databasePath))
+            {
+                Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
+                return;
+            }
+
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
             var backtraceAttributes = new Model.JsonData.BacktraceAttributes(null, null, true);
 
@@ -76,7 +94,6 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             // The library will send PLCrashReporter crashes to Backtrace
             // only when Crash occured
             backtraceAttributes.Attributes["error.type"] = "Crash";
-            backtraceAttributes.Attributes["backtrace.version"] = BacktraceClient.VERSION;
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
@@ -87,12 +104,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
         /// <returns>Backtrace Attributes from the Android build</returns>
-        public Dictionary<string, string> GetAttributes()
+        public void GetAttributes(Dictionary<string, string> result)
         {
-            var result = new Dictionary<string, string>();
             if (!_enabled)
             {
-                return result;
+                return;
             }
             GetNativeAttibutes(out IntPtr pUnmanagedArray, out int keysCount);
 
@@ -104,18 +120,58 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
 
             Marshal.FreeHGlobal(pUnmanagedArray);
-            return result;
         }
 
         /// <summary>
         /// Setup iOS ANR support and set callback function when ANR happened.
         /// </summary>
-        /// <param name="gameObjectName">Backtrace game object name</param>
-        /// <param name="callbackName">Callback function name</param>
         public void HandleAnr(string gameObjectName, string callbackName)
         {
-            Debug.Log("ANR support on iOS is unsupported.");
+            // if INITIALIZED is equal to false, plcrashreporter instance is disabled
+            // so we can't generate native report
+            if (!_enabled || INITIALIZED == false)
+            {
+                return;
+            }
+
+            bool reported = false;
+            var mainThreadId = Thread.CurrentThread.ManagedThreadId;
+            _anrThread = new Thread(() =>
+            {
+                float lastUpdatedCache = 0;
+                while (true)
+                {
+                    if (lastUpdatedCache == 0)
+                    {
+                        lastUpdatedCache = _lastUpdateTime;
+                    }
+                    else if (lastUpdatedCache == _lastUpdateTime)
+                    {
+                        if (!reported)
+                        {
+                            // set temporary attribute to "Hang"
+                            SetAttribute("error.type", "Hang");
+                            NativeReport("ANRException: Blocked thread detected.");
+                            // update error.type attribute in case when crash happen 
+                            SetAttribute("error.type", "Crash");   
+                            reported = true;
+                        }
+                    }
+                    else
+                    {
+                        reported = false;
+                    }
+
+                    lastUpdatedCache = _lastUpdateTime;
+                    Thread.Sleep(5000);
+
+                }
+            });
+
+            _anrThread.Start();
         }
+
+
 
         /// <summary>
         /// Add attribute to native crash
@@ -136,6 +192,46 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                 return;
             }
             AddAttribute(key, value);
+        }
+        /// <summary>
+        /// Report OOM via PlCrashReporter report.
+        /// </summary>
+        /// <returns>true - if native crash reprorter is enabled. Otherwise false.</returns>
+        public bool OnOOM()
+        {
+            // if INITIALIZED is equal to false, plcrashreporter instance is disabled
+            // so we can't generate native report
+            if (!_enabled || INITIALIZED == false)
+            {
+                return false;
+            }
+            // set temporary attribute to "Hang"
+            SetAttribute("error.type", "Low Memory");
+            NativeReport("OOMException: Out of memory detected.");
+            // update error.type attribute in case when crash happen 
+            SetAttribute("error.type", "Crash");   
+            
+            return true;
+        }
+
+        /// <summary>
+        /// Update native client internal timer.
+        /// </summary>
+        /// <param name="time">Current time</param>
+        public void UpdateClientTime(float time)
+        {
+            _lastUpdateTime = time;
+        }
+
+        /// <summary>
+        /// Disable native client integration
+        /// </summary>
+        public void Disable()
+        {
+            if (_anrThread != null)
+            {
+                _anrThread.Abort();
+            }
         }
     }
 }

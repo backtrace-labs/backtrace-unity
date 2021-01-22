@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Backtrace.Unity.Model.JsonData
@@ -22,9 +22,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// Exception object
         /// </summary>
         public Exception Exception { get; set; }
-        public Annotations()
-        {
-        }
+
         /// <summary>
         /// Create new instance of Annotations class
         /// </summary>
@@ -35,41 +33,44 @@ namespace Backtrace.Unity.Model.JsonData
             _gameObjectDepth = gameObjectDepth;
             Exception = exception;
         }
+        
         private static Dictionary<string, string> SetEnvironmentVariables()
         {
-            var environmentVariables = new Dictionary<string, string>();
-            foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
+            var result = new Dictionary<string, string>();
+            var environmentVariables = Environment.GetEnvironmentVariables();
+            if (environmentVariables == null)
             {
-                if (variable.Key == null)
+                return result;
+            }
+
+
+            foreach (DictionaryEntry variable in environmentVariables)
+            {
+                var key = variable.Key as string;
+                if (string.IsNullOrEmpty(key))
                 {
                     continue;
                 }
-                var value = variable.Value == null ? "NULL" : variable.Value.ToString();
-                environmentVariables.Add(variable.Key.ToString(), value);
+
+                var rawValue = variable.Value as string;
+                result.Add(key, string.IsNullOrEmpty(rawValue) ? "NULL" : rawValue);
             }
-            return environmentVariables;
+            return result;
         }
         public BacktraceJObject ToJson()
         {
             var annotations = new BacktraceJObject();
-            var envVariables = new BacktraceJObject();
-            if (EnvironmentVariables != null)
-            {
-                foreach (var envVariable in EnvironmentVariables)
-                {
-                    envVariables[envVariable.Key] = envVariable.Value;
-                }
-                annotations["Environment Variables"] = envVariables;
-            }
+            annotations.Add("Environment Variables", new BacktraceJObject(EnvironmentVariables));
+
             if (Exception != null)
             {
-                annotations["Exception properties"] = new BacktraceJObject()
+                annotations.Add("Exception properties", new BacktraceJObject(new Dictionary<string, string>()
                 {
-                    ["message"] = Exception.Message,
-                    ["stackTrace"] = Exception.StackTrace,
-                    ["type"] = Exception.GetType().FullName,
-                    ["source"] = Exception.Source
-                };
+                    {"message",  Exception.Message },
+                    {"stackTrace",Exception.StackTrace},
+                    {"type", Exception.GetType().FullName },
+                    { "source",Exception.Source },
+                }));
             }
             if (_gameObjectDepth > -1)
             {
@@ -81,7 +82,7 @@ namespace Backtrace.Unity.Model.JsonData
                 {
                     gameObjects.Add(ConvertGameObject(gameObject));
                 }
-                annotations["Game objects"] = gameObjects;
+                annotations.Add("Game objects", gameObjects);
             }
             return annotations;
         }
@@ -102,7 +103,7 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
-            jGameObject["children"] = innerObjects;
+            jGameObject.Add("children", innerObjects);
             return jGameObject;
         }
         private BacktraceJObject ConvertGameObject(Component gameObject, string parentName, int depth)
@@ -126,36 +127,36 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 innerObjects.Add(ConvertGameObject(transformChildObject, gameObject.name, depth + 1));
             }
-            result["children"] = innerObjects;
+            result.Add("children", innerObjects);
             return result;
         }
         private BacktraceJObject GetJObject(GameObject gameObject, string parentName = "")
         {
-            var o = new BacktraceJObject();
-            o["name"] = gameObject.name;
-            o["isStatic"] = gameObject.isStatic;
-            o["layer"] = gameObject.layer;
-            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
-            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
-            o["tag"] = gameObject.tag;
-            o["activeInHierarchy"] = gameObject.activeInHierarchy;
-            o["activeSelf"] = gameObject.activeSelf;
-            o["hideFlags"] = (int)gameObject.hideFlags;
-            o["instanceId"] = gameObject.GetInstanceID();
-            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
-            return o;
+            return new BacktraceJObject(new Dictionary<string, string>()
+            {
+                { "name",  gameObject.name},
+                {"isStatic", gameObject.isStatic.ToString().ToLower() },
+                {"layer",  gameObject.layer.ToString(CultureInfo.InvariantCulture) },
+                {"transform.position", gameObject.transform.position.ToString()},
+                {"transform.rotation", gameObject.transform.rotation.ToString()},
+                {"tag",gameObject.tag},
+                {"activeInHierarchy", gameObject.activeInHierarchy.ToString().ToLower()},
+                {"activeSelf",  gameObject.activeSelf.ToString().ToLower() },
+                {"instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
+                { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
+            });
         }
         private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
         {
-            var o = new BacktraceJObject();
-            o["name"] = gameObject.name;
-            o["transform.position"] = gameObject.transform.position.ToString() ?? "";
-            o["transform.rotation"] = gameObject.transform.rotation.ToString() ?? "";
-            o["tag"] = gameObject.tag;
-            o["hideFlags"] = (int)gameObject.hideFlags;
-            o["instanceId"] = gameObject.GetInstanceID();
-            o["parnetName"] = string.IsNullOrEmpty(parentName) ? "root object" : parentName;
-            return o;
+            return new BacktraceJObject(new Dictionary<string, string>()
+            {
+                { "name",  gameObject.name},
+                {"transform.position", gameObject.transform.position.ToString()},
+                {"transform.rotation", gameObject.transform.rotation.ToString()},
+                {"tag",gameObject.tag},
+                {"instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
+                { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
+            });
         }
     }
 }

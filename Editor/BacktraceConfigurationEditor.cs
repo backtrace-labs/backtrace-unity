@@ -41,14 +41,16 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("IgnoreSslValidation"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_IGNORE_SSL_VALIDATION));
 #endif
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("HandleANR"),
                      new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
 
-                 EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("SymbolsUploadToken"),
-                    new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+                EditorGUILayout.PropertyField(
+                   serializedObject.FindProperty("SymbolsUploadToken"),
+                   new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
+#endif
 #endif
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),

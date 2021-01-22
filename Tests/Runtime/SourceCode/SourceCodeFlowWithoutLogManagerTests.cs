@@ -3,7 +3,6 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Linq;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -36,7 +35,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
             BacktraceClient.Send(new Exception("foo"));
@@ -56,7 +55,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
             BacktraceClient.Send("foo");
@@ -75,7 +74,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
 
@@ -96,13 +95,13 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.IsNotNull(lastData.SourceCode);
 
                 var threadName = lastData.ThreadData.MainThread;
-                Assert.AreEqual(lastData.SourceCode.Id, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+                Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
                 return lastData;
             };
 
             BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Error);
             yield return new WaitForEndOfFrame();
-            Assert.IsTrue(invoked);          
+            Assert.IsTrue(invoked);
         }
 
         [UnityTest]
