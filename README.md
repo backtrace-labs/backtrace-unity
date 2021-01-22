@@ -1,7 +1,7 @@
 
 # Backtrace Unity support
 
-[Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report handled and unhandled Unity exceptions and crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
+[Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
 [![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
 
@@ -37,8 +37,8 @@ catch(Exception exception){
 
 # Feature Summary <a name="features-summary"></a>
 
-- Lightweight library that quickly submits handled and unhandled exceptions and crashes to Backtrace 
-  - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4, Xbox, Switch, Stadia)
+- Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace 
+  - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
   - Install via Universal Package Manager
 - Collect detailed context 
   - Callstacks, including function names and line numbers where possible
@@ -48,8 +48,9 @@ catch(Exception exception){
   - Android NDK Crashes; iOS Native Crashes, Windows Native Crashes
 - Client-side features
   - Deduplication options and custom client side fingerprinting
+  - Client side filters and sampling controls
   - Offline crash capture/storage for future collection
-  - Customizable event handlers and base classes, Client side filters
+  - Customizable event handlers and base classes
   - Performance statistics collection option for timing observability
 - Unity IDE integration to configure Backtrace behaviors in your game.
 
@@ -66,7 +67,7 @@ PC - Windows, Mac
 Web - WebGL
 Game Consoles - PlayStation4, Xbox One, Nintendo Switch
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
-* All Platforms - Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
+* All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
 * Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
 * iOS - Identified by attribute uname.sysname = IOS; ANRs (Hangs), Native Engine and Plugin Crashes.
 * WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details in https://docs.unity3d.com/Manual/webgl-building.html 
@@ -125,7 +126,16 @@ If you need to use more advanced configuration, `Initialize` method accepts a `B
 
 ## Plugin best practices
 
-Plugin allows you to define maximum depth of game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
+The plugin will report on 5 'classes' or errors:
+1) Log Errors - Programmers use Debug.LogError(https://docs.unity3d.com/ScriptReference/Debug.LogError.html), a variant of Debug.Log, to log error messages to the console.
+2) Unhandled Exceptions - Unhandled Exceptions are exceptions in a game that occur outside of an explicit try / catch statement. 
+3) Handled Exceptions - Exceptions that are explicitly caught and handled.
+4) Crashes - An end to the game play experience. The game crashes or restarts. 
+5) Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
+
+The plugin provide 2 controls for manaing what the client will report. [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors, and [Log Error Sampling](#sampling-log-errors) will allow you to tell the client to sample the Debug Log errors so programmers don't 'shoot themselves in the foot' by releasing the plugin to a many users and report on hundreds of low priority and recoverable errors that they may not be intending to capture. 
+
+The plugin allows you to collect game objects if you like by specifying a depth of hierarchy to inspect to for game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
 
 ## Backtrace Client and Offline Database Settings
 
@@ -139,7 +149,7 @@ The following is a reference guide to the Backtrace Client fields:
 - Send unhandled native game crashes on startup: Try to find game native crashes and send them on Game startup.
 - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 - Symbols upload token - If you want to upload Unity debug symbols for Android NDK Native Crash debugging, enter your Backtrace Symbol upload token here. This option is available only in Android build.
-- Log random sampling rate - Enables a new random sampling mechanism for error message - **by default** sampling is equal to **0.01** - which means only **1%** of randomply sampling **reports will be send** to Backtrace. If you would like to send all error messages to Backtrace - please replace 0.01 value with 1. 
+- Log random sampling rate - Enables a random sampling mechanism for DebugLog.error messages - **by default** sampling is equal to **0.01** - which means only **1%** of randomply sampling **reports will be send** to Backtrace. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1. 
 - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
 - Collect last n game logs: Collect last n number of logs generated by game. 
 - Enabled performance statistics: Allows `BacktraceClient` to measure execution time and include performance information as report attributes.
@@ -184,9 +194,11 @@ To generate `symbols.zip` archive make sure:
 * you checked `Create symbols.zip` in the Build settings window
 ![Create symbols.zip](./Documentation~/images/symbols.png)
 
-To upload symbols to Backtrace, you need to rename symbols generated by Unity end simply with a `.so` extension. By default, symbol files within the .zip will end with extension `.sym.so`. or `.dbg.so` Backtrace will only match symbols to files based on the ending with `.so` extension. Please ensure all files have a single `.so` extention before uploading the zip. To upload symbols please go to your project settings, to the `Upload an archive` tab under `Symbols` section. 
-
 Backtrace offers to upload symbols automatically from Unity Editor to your Backtrace instance. Backtrace symbols upload pipeline will be triggered after successfull build of il2cpp Android game and when Symbols upload token is available in Backtrace Client options. After successfull build, upload pipeline will confirm symbols upload.
+
+If you build outside the Unity Editor and need to manually upload symbols to Backtrace, you must rename symbols generated by Unity end simply with a `.so` extension. By default, symbol files within the .zip will end with extension `.sym.so`. or `.dbg.so` Backtrace will only match symbols to files based on the ending with `.so` extension. Please ensure all files have a single `.so` extention before uploading the zip. 
+
+To learn more about how to submit those symbol files to Backtrace, please see the Project Settings / Symbols. You can manage submission tokens, upload via the UI, or configure external Symbol Servers to connect and discover required symbols. Please review additional Symbol documentaion at https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview
 
 # iOS Specific information
 The backtrace-unity library includes support for capturing native iOS crashes as well as iOS native memory and process information from underlying iOS layer.
@@ -399,6 +411,10 @@ Sample code:
  
 For example, to only get error reporting for hangs or crashes then only return false for Hang or UnhandledException or set the corresponding options in the user interface as shown below.
 ![Sample report filter](./Documentation~/images/report-filter.PNG)
+
+## Sampling Log Errors
+`BacktraceClient` allows a configuration setting for log error sampling rate, which enables a random sampling mechanism for the errors captured via the DebugLog.error call. By default this sampling is equal to 0.01 - which means 1 of randomly sampled DebugLog Error Reports will be sent to Backtrace. This is a  measure to prevent users from inadvertantly collecting hundreds of thousands of error messages from released games that they may not intend to. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1.
+
 ## Flush database
 
 When your application starts, database can send stored offline reports. If you want to do make it manually you can use `Flush` method that allows you to send report to server and then remove it from hard drive. If `Send` method fails, database will no longer store data.

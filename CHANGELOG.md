@@ -13,18 +13,18 @@
 ## Version 3.2.6
 - `BacktraceClient` will apply sampling only to errors lacking exception information.
 - Fixed annotations nullable value.
-- Renamed `BacktraceUnhandledException` classifier to `error`.
+- Renamed `BacktraceUnhandledException` classifier, which was generated from a Debug.LogError call, to `error`.
 - Fixed nullable environment annotation value.
 
 ## Version 3.2.5
 - Added `BacktraceClient` Initialization method that allows developer to intialize Backtrace integration without adding game object to game scene.
 - Fixed invalid `meta` file for iOS integration for Unity 2019.2.13f1.
 - HTTP communication messages improvements - right now Backtrace-Unity plugin will print only one error message when network failure happen. Backtrace-Unity will stop printing failures until next successfull report upload.
-- Sampling skip fraction - Backtrace reports on different `error.types`, including debug error messages, unhandled exceptions, handled exceptions, crashes, and hangs. The Sampling Skip Fraction setting allows for nables a new random sampling mechanism for debug error messages. By default, sampling is equal to 0.01, which means only 1% of randomly sampled debug error message reports will be sent to Backtrace. If you would like to send all debug error messages to Backtrace,  please replace 0.01 value with 1. 
+- Sampling skip fraction - Enables a new random sampling mechanism for BacktraceUnhandledExceptions (errors from Debug.LogError), by setting default sampling  equal to 0.01 - which means only 1% of randomly sampled Debug.LogError reports will be send to Backtrace. If you would like to send all Debug.LogError to Backtrace - please replace 0.01 value with 1. 
 
 **Be aware**
 
-By default Backtrace library will send only 1% of your debug error reports - please change this value if you would like to send more unhandled error to server.
+By default Backtrace library will send only 1% of your Debug.LogError reports - please change this value if you would like to send more Debug.LogErrors to server.
 
 
 
