@@ -70,7 +70,7 @@ There are some differences in capabilities that backtrace-unity provides based o
 * All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
 * Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
 * iOS - Identified by attribute uname.sysname = IOS; ANRs (Hangs), Native Engine and Plugin Crashes.
-* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details in https://docs.unity3d.com/Manual/webgl-building.html 
+* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html) 
 * Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
 * PlayStation4 - Identified by attribute uname.sysname = PS4
 * Windows - Identified by attribute uname.sysname = Windows. Provides an option to capture Minidumps for Engine Crashes.
@@ -84,7 +84,7 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 ## Installation guide
 
-- Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded from https://github.com/backtrace-labs/backtrace-unity/releases
+- Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded [here](https://github.com/backtrace-labs/backtrace-unity/releases)
 - Open your Unity project
 - Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> KnownFolder/package.json)
 
@@ -127,7 +127,7 @@ If you need to use more advanced configuration, `Initialize` method accepts a `B
 ## Plugin best practices
 
 The plugin will report on 5 'classes' or errors:
-1) Log Errors - Programmers use Debug.LogError(https://docs.unity3d.com/ScriptReference/Debug.LogError.html), a variant of Debug.Log, to log error messages to the console.
+1) Log Errors - Programmers use [Debug.LogError](https://docs.unity3d.com/ScriptReference/Debug.LogError.html), a variant of Debug.Log, to log error messages to the console.
 2) Unhandled Exceptions - Unhandled Exceptions are exceptions in a game that occur outside of an explicit try / catch statement. 
 3) Handled Exceptions - Exceptions that are explicitly caught and handled.
 4) Crashes - An end to the game play experience. The game crashes or restarts. 
