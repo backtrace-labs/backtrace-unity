@@ -68,13 +68,13 @@ Web - WebGL
 Game Consoles - PlayStation4, Xbox One, Nintendo Switch
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 * All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
-* Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
-* iOS - Identified by attribute uname.sysname = IOS; ANRs (Hangs), Native Engine and Plugin Crashes.
-* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html) 
-* Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
-* PlayStation4 - Identified by attribute uname.sysname = PS4
-* Windows - Identified by attribute uname.sysname = Windows. Provides an option to capture Minidumps for Engine Crashes.
-* MacOS - Identified by attribute uname.sysname = MacOS.
+* Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
+* iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine and Plugin Crashes.
+* WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html) 
+* Switch - Identified by attribute `uname.sysname` = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
+* PlayStation4 - Identified by attribute `uname.sysname` = PS4
+* Windows - Identified by attribute `uname.sysname` = Windows. Provides an option to capture Minidumps for Engine Crashes.
+* MacOS - Identified by attribute `uname.sysname` = MacOS.
 
 Note: Unity allows you to disable stack trace information in player properties. If this is set, the call stack and the log lines section in Backtrace will be empty.
 
@@ -131,7 +131,7 @@ The plugin will report on 5 'classes' or errors:
 2) Unhandled Exceptions - Unhandled Exceptions are exceptions in a game that occur outside of an explicit try / catch statement. 
 3) Handled Exceptions - Exceptions that are explicitly caught and handled.
 4) Crashes - An end to the game play experience. The game crashes or restarts. 
-5) Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
+5) Hangs - A game is non responsive. Some platforms will tell the user "This app has stopped responding"
 
 The plugin provide 2 controls for manaing what the client will report. [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors, and [Log Error Sampling](#sampling-log-errors) will allow you to tell the client to sample the Debug Log errors so programmers don't 'shoot themselves in the foot' by releasing the plugin to a many users and report on hundreds of low priority and recoverable errors that they may not be intending to capture. 
 
@@ -176,7 +176,7 @@ The backtrace-unity library includes support for capturing Android NDK crashes a
 
 ## Native process and memory related information
 
-system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
+`system.memory` usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
 
 ## ANRs and Hangs
 
