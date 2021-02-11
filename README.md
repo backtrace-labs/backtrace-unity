@@ -40,7 +40,7 @@ catch(Exception exception){
 
 - Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace 
   - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
-  - Install via Universal Package Manager
+  - Install via [OpenUPM](https://openupm.com/packages/io.backtrace.unity/) and the Unity Package Manager
 - Collect detailed context 
   - Callstacks, including function names and line numbers where possible
   - System metadata including device GUID, OS version, memory usage, process age
@@ -85,9 +85,16 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 ## Installation guide
 
+### OpenUPM
+- See [our package](https://openupm.com/packages/io.backtrace.unity/) and installation instructions on OpenUPM.
+
+### Git Url
+Since Unity 2018.3 the Unity Package Manager allows you to install a package directly via [Git](https://docs.unity3d.com/Manual/upm-ui-giturl.html). You can use the clone URL on the main page of our repository.
+
+### Manual download
 - Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded [here](https://github.com/backtrace-labs/backtrace-unity/releases)
 - Open your Unity project
-- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> KnownFolder/package.json)
+- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> `KnownFolder/package.json`)
 
 ## Integrating into your project
 
