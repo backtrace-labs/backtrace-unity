@@ -205,12 +205,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return false;
             }
-            // set temporary attribute to "Hang"
-            SetAttribute("error.type", "Low Memory");
-            NativeReport("OOMException: Out of memory detected.");
-            // update error.type attribute in case when crash happen 
-            SetAttribute("error.type", "Crash");   
-            
+
+            // oom support will be handled by native plugin - this will prevent
+            // false positive reports
+            // to avoid reporting low memory warning when application didn't crash 
+            // native plugin will analyse previous application session             
             return true;
         }
 
