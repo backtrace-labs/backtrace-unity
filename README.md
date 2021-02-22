@@ -60,6 +60,7 @@ catch(Exception exception){
 - Unity environment 2017.4.x
 - .NET 2.0/3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
+- Backtrace instance - Create your own at https://backtrace.io/create-unity
 
 # Platforms Supported
 Backtrace-unity has been tested and certified for games deployed on the following platforms:
