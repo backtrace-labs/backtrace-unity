@@ -712,12 +712,10 @@ namespace Backtrace.Unity
             const string lowMemoryMessage = "OOMException: Out of memory detected.";
             _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
 
-            // try to send report about OOM from managed layer if native layer is disabled.
-            bool nativeSendResult = _nativeClient != null ? _nativeClient.OnOOM() : false;
-            if (!nativeSendResult)
+            if (Configuration.OomReports && _nativeClient != null)
             {
-                var oom = new BacktraceUnhandledException(lowMemoryMessage, string.Empty);
-                SendUnhandledException(oom);
+                // inform native layer about oom error
+                _nativeClient.OnOOM();
             }
         }
 #endif

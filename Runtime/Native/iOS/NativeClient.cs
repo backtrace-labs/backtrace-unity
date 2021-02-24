@@ -97,7 +97,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, true);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports);
         }
 
         /// <summary>

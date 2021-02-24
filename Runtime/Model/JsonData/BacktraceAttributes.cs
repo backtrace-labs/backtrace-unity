@@ -66,7 +66,29 @@ namespace Backtrace.Unity.Model.JsonData
             SetMachineAttributes(onlyBuiltInAttributes);
             SetProcessAttributes(onlyBuiltInAttributes);
             SetSceneInformation(onlyBuiltInAttributes);
+#if UNITY_ANDROID
+            ReadAndroidSpecificAttributes(onlyBuiltInAttributes);
+#endif
         }
+#if UNITY_ANDROID
+        private void ReadAndroidSpecificAttributes(bool onlyBuiltInAttributes)
+        {
+            if (!onlyBuiltInAttributes)
+            {
+                return;
+            }
+            // version is an inner class in build - to pass `.` in java we need to use `$`
+            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            {
+                Attributes["device.sdk"] = version.GetStatic<int>("SDK_INT").ToString();
+            }
+            using (var build = new AndroidJavaClass("android.os.Build"))
+            {
+                Attributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
+            }
+        }
+#endif
+
         private BacktraceAttributes() { }
 
         public BacktraceJObject ToJson()
