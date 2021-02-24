@@ -29,6 +29,15 @@ namespace Backtrace.Unity.Runtime.Native.Android
         [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
         private static extern bool NativeReport(IntPtr message);
 
+        /// <summary>
+        /// Native client built-in specific attributes
+        /// </summary>
+        private readonly Dictionary<string, string> _builtInAttributes = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Attribute maps - list of attribute maps that allows Backtrace-Unity to rename attributes 
+        /// grabbed from android specific directories
+        /// </summary>
         private readonly Dictionary<string, string> _attributeMapping = new Dictionary<string, string>();
 
         private void SetDefaultAttributeMaps()
@@ -103,10 +112,19 @@ namespace Backtrace.Unity.Runtime.Native.Android
             _handlerANR = _configuration.HandleANR;
             HandleNativeCrashes();
             HandleAnr(gameObjectName, "OnAnrDetected");
-#endif
 
+            // read device manufacturer
+            using (var build = new AndroidJavaClass("android.os.Build"))
+            {
+                _builtInAttributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
+            }
+#endif
         }
 
+        /// <summary>
+        /// Get path to the native libraries directory
+        /// </summary>
+        /// <returns>Path to the native libraries directory</returns>
         private string GetNativeDirectoryPath()
         {
             using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
@@ -153,6 +171,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
             {
                 int apiLevel = version.GetStatic<int>("SDK_INT");
+                _builtInAttributes["device.sdk"] = apiLevel.ToString();
                 if (apiLevel < 21)
                 {
                     Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
@@ -213,6 +232,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (!_enabled)
             {
                 return;
+            }
+            // rewrite built in attributes to report attributes
+            foreach (var builtInAttribute in _builtInAttributes)
+            {
+                result.Add(builtInAttribute.Key, builtInAttribute.Value);
             }
 
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;

@@ -123,8 +123,6 @@ namespace Backtrace.Unity.Model
 #endif
         public bool OomReports = false;
 
-
-
 #if UNITY_2019_2_OR_NEWER
         /// <summary>
         /// Symbols upload token

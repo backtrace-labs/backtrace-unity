@@ -205,7 +205,6 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return false;
             }
-
             // oom support will be handled by native plugin - this will prevent
             // false positive reports
             // to avoid reporting low memory warning when application didn't crash 

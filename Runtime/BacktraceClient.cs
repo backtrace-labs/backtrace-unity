@@ -717,8 +717,6 @@ namespace Backtrace.Unity
             }
             const string lowMemoryMessage = "OOMException: Out of memory detected.";
             _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
-
-
         }
 #endif
 
