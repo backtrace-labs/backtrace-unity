@@ -135,7 +135,7 @@ The plugin will report on 6 'classes' or errors:
 3) Handled Exceptions - Exceptions that are explicitly caught and handled.
 4) Crashes - An end to the game play experience. The game crashes or restarts. 
 5) Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
-6) Low memory warning - A game is receiving signal from the OS that memory is under pressure.
+6) Low memory warning - A game is receiving signals from the OS that memory is under pressure or crashed under memory pressure.
 
 The plugin provide 2 controls for manaing what the client will report. [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors, and [Log Error Sampling](#sampling-log-errors) will allow you to tell the client to sample the Debug Log errors so programmers don't 'shoot themselves in the foot' by releasing the plugin to a many users and report on hundreds of low priority and recoverable errors that they may not be intending to capture. 
 
