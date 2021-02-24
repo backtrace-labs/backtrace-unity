@@ -42,7 +42,7 @@ catch(Exception exception)
 
 - Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace 
   - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
-  - Install via Universal Package Manager
+  - Install via [OpenUPM](https://openupm.com/packages/io.backtrace.unity/) and the Unity Package Manager
 - Collect detailed context 
   - Callstacks, including function names and line numbers where possible
   - System metadata including device GUID, OS version, memory usage, process age
@@ -62,6 +62,7 @@ catch(Exception exception)
 - Unity environment 2017.4.x
 - .NET 2.0/3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
+- Backtrace instance - Create your own at https://backtrace.io/create-unity
 
 # Platforms Supported
 Backtrace-unity has been tested and certified for games deployed on the following platforms:
@@ -87,9 +88,16 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 ## Installation guide
 
-- Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded from https://github.com/backtrace-labs/backtrace-unity/releases
+### OpenUPM
+- See [our package](https://openupm.com/packages/io.backtrace.unity/) and installation instructions on OpenUPM.
+
+### Git Url
+Since Unity 2018.3 the Unity Package Manager allows you to install a package directly via [Git](https://docs.unity3d.com/Manual/upm-ui-giturl.html). You can use the clone URL on the main page of our repository.
+
+### Manual download
+- Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded [here](https://github.com/backtrace-labs/backtrace-unity/releases)
 - Open your Unity project
-- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> KnownFolder/package.json)
+- Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> `KnownFolder/package.json`)
 
 ## Integrating into your project
 
@@ -127,19 +135,21 @@ If you need to use more advanced configuration, `Initialize` method accepts a `B
       attributes: attributes);
 ```
 
-## Plugin best practices
+# Plugin best practices
 
 The plugin will report on 6 'classes' or errors:
-1) Log Errors - Programmers use Debug.LogError(https://docs.unity3d.com/ScriptReference/Debug.LogError.html), a variant of Debug.Log, to log error messages to the console.
+1) Log Errors - Programmers use [Debug.LogError](https://docs.unity3d.com/ScriptReference/Debug.LogError.html), a variant of Debug.Log, to log error messages to the console.
 2) Unhandled Exceptions - Unhandled Exceptions are exceptions in a game that occur outside of an explicit try / catch statement. 
 3) Handled Exceptions - Exceptions that are explicitly caught and handled.
 4) Crashes - An end to the game play experience. The game crashes or restarts. 
 5) Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
 6) Low memory warning - A game is receiving signals from the OS that memory is under pressure or crashed under memory pressure.
 
-The plugin provide 2 controls for manaing what the client will report. [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors, and [Log Error Sampling](#sampling-log-errors) will allow you to tell the client to sample the Debug Log errors so programmers don't 'shoot themselves in the foot' by releasing the plugin to a many users and report on hundreds of low priority and recoverable errors that they may not be intending to capture. 
+The plugin provides 3 controls for managing what the client will report. 
+- [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors.
+- [Log Error Sampling](#sampling-log-errors) allows you to tell the client to sample the Debug Log errors. Programmers may not be aware of the frequency that Debug Log errors are being generated when released in retail, and we recommend you are intentional about capturing these types of errors. 
+- [Client Side Deduplication](#client-side-deduplication) allows you to aggregate the reports based on callstack, error message, or classifier, and send only a single message to Backtrace each time the offline database is flushed. 
 
-The plugin allows you to collect game objects if you like by specifying a depth of hierarchy to inspect to for game objects. By default its disabled (Game object depth is equal to -1). If you will use 0 as maximum depth of game object we will use default game object limit - 16. If you would like to specify game object depth size to n, please insert n in Backtrace configuration text box. If you require game obejct depth to be above 30, please contact support.
 
 ## Backtrace Client and Offline Database Settings
 
@@ -180,7 +190,7 @@ The backtrace-unity library includes support for capturing Android NDK crashes a
 
 ## Native process and memory related information
 
-system.memory usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
+`system.memory` usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
 
 ## ANRs and Hangs
 
@@ -443,17 +453,17 @@ You can clear all data from database without sending it to server by using `Clea
 backtraceDatabase.Clear();
 ```
 
-#### Client side Deduplication
+## Client side Deduplication
 
 Backtrace unity integration allows you to aggregate the same reports and send only one message to Backtrace Api. As a developer you can choose deduplication options. Please use `DeduplicationStrategy` enum to setup possible deduplication rules in Unity UI:
 ![Backtrace deduplicaiton setup](./Documentation~/images/deduplication-setup.PNG)
 
 Deduplication strategy types:
 
-- Ignore - ignore deduplication strategy,
-- Default - deduplication strategy will only use current strack trace to find duplicated reports,
-- Classifier - deduplication strategy will use stack trace and exception type to find duplicated reports,
-- Message - deduplication strategy will use stack trace and exception message to find duplicated reports,
+- Ignore - ignore deduplication strategy
+- Default - deduplication strategy will  use current strack trace to find duplicated reports
+- Classifier - deduplication strategy will use stack trace and exception type to find duplicated reports
+- Message - deduplication strategy will use stack trace and exception message to find duplicated reports
 
 Notes:
 
