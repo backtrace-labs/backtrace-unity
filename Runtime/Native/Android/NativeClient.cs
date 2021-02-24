@@ -216,8 +216,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
 
-            var stopWatch = new System.Diagnostics.Stopwatch();
-            stopWatch.Start();
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
             var filesToRead = new string[2] { $"/proc/{processId}/status", "/proc/meminfo" };
             foreach (var diagnosticFilePath in filesToRead)
