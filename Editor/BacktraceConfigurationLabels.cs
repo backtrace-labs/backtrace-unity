@@ -13,9 +13,9 @@
 
         internal static string LABEL_HANDLE_OOM =
 #if UNITY_ANDROID
-            "Send Low memory warnings to Backtrace";
+            "(Early access) Send Low memory warnings to Backtrace";
 #else
-            "Send Out of memory exceptions to Backtrace";
+            "(Early access) Send Out of memory exceptions to Backtrace";
 #endif
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";

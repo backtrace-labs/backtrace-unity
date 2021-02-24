@@ -114,12 +114,12 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Send Low memory warnings to Backtrace
         /// </summary>
-        [Tooltip("Send Low memory warnings to Backtrace")]
+        [Tooltip("(Early access) Send Low memory warnings to Backtrace")]
 #elif UNITY_IOS
          /// <summary>
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
-        [Tooltip("Send Out of memory exceptions to Backtrace")]
+        [Tooltip("(Early access) Send Out of memory exceptions to Backtrace")]
 #endif
         public bool OomReports = false;
 
