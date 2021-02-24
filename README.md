@@ -12,6 +12,7 @@
 - [Prerequisites](#prerequisites)
 - [Platforms Supported](#platforms-supported)
 - [Setup](#installation)
+- [Plugin Best Practices](#plugin-best-practices)
 - [Android Specific information](#android-specific-information)
 - [iOS Specific information](#ios-specific-information)
 - [Data Privacy](#data-privacy)
@@ -128,7 +129,7 @@ If you need to use more advanced configuration, `Initialize` method accepts a `B
 
 ## Plugin best practices
 
-The plugin will report on 5 'classes' or errors:
+The plugin will report on 6 'classes' or errors:
 1) Log Errors - Programmers use Debug.LogError(https://docs.unity3d.com/ScriptReference/Debug.LogError.html), a variant of Debug.Log, to log error messages to the console.
 2) Unhandled Exceptions - Unhandled Exceptions are exceptions in a game that occur outside of an explicit try / catch statement. 
 3) Handled Exceptions - Exceptions that are explicitly caught and handled.
