@@ -346,7 +346,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public bool OnOOM()
         {
             SetAttribute("memory.warning", "true");
-            SetAttribute("memory.warning.date", DateTime.Now.ToLongDateString());
+            SetAttribute("memory.warning.date", DateTime.Now.ToString());
             return true;
         }
 

@@ -709,14 +709,16 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
-            const string lowMemoryMessage = "OOMException: Out of memory detected.";
-            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
-
             if (Configuration.OomReports && _nativeClient != null)
             {
                 // inform native layer about oom error
                 _nativeClient.OnOOM();
+
             }
+            const string lowMemoryMessage = "OOMException: Out of memory detected.";
+            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
+
+
         }
 #endif
 
