@@ -71,7 +71,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
         private const string _namespace = "backtrace.io.backtrace_unity_android_plugin";
-        private readonly string _nativeAttributesPath = string.Format("{0}.{1}", _namespace, "BacktraceAttributes");
         private readonly string _anrPath = string.Format("{0}.{1}", _namespace, "BacktraceANRWatchdog");
 
         /// <summary>
