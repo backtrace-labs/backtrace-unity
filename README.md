@@ -26,10 +26,12 @@
 
  //Read from manager BacktraceClient instance
 var backtraceClient = GameObject.Find("_Manager").GetComponent<BacktraceClient>();
-try{
+try 
+{
     //throw exception here
 }
-catch(Exception exception){
+catch(Exception exception)
+{
     var report = new BacktraceReport(exception);
     backtraceClient.Send(report);
 }
@@ -70,11 +72,11 @@ There are some differences in capabilities that backtrace-unity provides based o
 * All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
 * Android -Identified by attribute uname.sysname = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes.
 * iOS - Identified by attribute uname.sysname = IOS; ANRs (Hangs), Native Engine and Plugin Crashes.
-* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details in https://docs.unity3d.com/Manual/webgl-building.html 
+* WebGL - Identified by attribute uname.sysname = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html) 
 * Switch - Identified by attribute uname.sysname = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
-* PlayStation4 - Identified by attribute uname.sysname = PS4
-* Windows - Identified by attribute uname.sysname = Windows. Provides an option to capture Minidumps for Engine Crashes.
-* MacOS - Identified by attribute uname.sysname = MacOS.
+* PlayStation4 - Identified by attribute `uname.sysname` = PS4
+* Windows - Identified by attribute `uname.sysname` = Windows. Provides an option to capture Minidumps for Engine Crashes.
+* MacOS - Identified by attribute `uname.sysname` = MacOS.
 
 Note: Unity allows you to disable stack trace information in player properties. If this is set, the call stack and the log lines section in Backtrace will be empty.
 
@@ -132,6 +134,7 @@ The plugin will report on 5 'classes' or errors:
 3) Handled Exceptions - Exceptions that are explicitly caught and handled.
 4) Crashes - An end to the game play experience. The game crashes or restarts. 
 5) Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
+6) Low memory warning - A game is receiving signal from the OS that memory is under pressure.
 
 The plugin provide 2 controls for manaing what the client will report. [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors, and [Log Error Sampling](#sampling-log-errors) will allow you to tell the client to sample the Debug Log errors so programmers don't 'shoot themselves in the foot' by releasing the plugin to a many users and report on hundreds of low priority and recoverable errors that they may not be intending to capture. 
 
@@ -180,10 +183,11 @@ system.memory usage related information including memfree, swapfree, and vmalloc
 
 ## ANRs and Hangs
 
-When configuring the backtrace-unity client for an Android deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
+When configuring the backtrace-unity client for an Android deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
 
-## Low Memory Reports
-Backtrace can detect low memory situations for a game running in Unity on Android devices, and attempt to generate an error report with an associated dump object for further investigation. The `error.type` for these reports wiill be `Low Memory`.
+## Low Memory Reports (Early Access)
+
+Backtrace can detect low memory situations for a game running in Unity on Android devices, and attempt to generate an error report with an associated dump object for further investigation. When configuring the backtrace-unity client for an Android deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable sending Low memory warnings to Backtrace. The `error.type` for these reports wiill be `Low Memory`.
 
 ## Symbols upload
 
@@ -208,13 +212,13 @@ The backtrace-unity library includes support for capturing native iOS crashes as
 system and vm usage related information including system.memory.free, system.memory.used, system.memory.total, system.memory.active, system.memory.inactive, system.memory.wired are avaialble.
 
 ## Hangs
-When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
+When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
 
-## Low Memory Reports
-Backtrace can detect low memory situations for a game running in Unity on iOS devices, and attempt to generate an error report with an associated dump object for further investigation. The `error.type` for these reports wiill be `Low Memory`.
+## Low Memory Reports (Early access)
+Backtrace can detect low memory situations for a game running in Unity on iOS devices, and attempt to generate an error report with an associated dump object for further investigation. When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable sending Out of memory exceptions to Backtrace. The `error.type` for these reports wiill be `Low Memory`.
 
 ## Native Crashes
-When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporte from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
+When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporter from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
 ![Enable symbols](./Documentation~/images/Disable-ios-unity-crash-reporter.png)
 
 ## Debug Symbol upload
