@@ -400,6 +400,11 @@ namespace Backtrace.Unity
             }
         }
 
+        private void OnApplicationQuit()
+        {
+            _nativeClient?.Disable();
+        }
+
         private void Awake()
         {
             Refresh();
