@@ -20,7 +20,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.3.1";
+        public const string VERSION = "3.3.2";
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -415,7 +415,7 @@ namespace Backtrace.Unity
         /// </summary>
         private void Update()
         {
-            _nativeClient?.UpdateClientTime(Time.time);
+            _nativeClient?.UpdateClientTime(Time.unscaledTime);
         }
 
         private void OnDestroy()
