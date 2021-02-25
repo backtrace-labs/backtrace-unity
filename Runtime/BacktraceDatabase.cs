@@ -174,7 +174,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            LastFrameTime = Time.tiunscaledTimeme;
+            LastFrameTime = Time.unscaledTime;
             if (!DatabaseSettings.AutoSendMode)
             {
                 return;
