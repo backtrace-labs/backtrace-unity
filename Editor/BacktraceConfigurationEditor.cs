@@ -46,6 +46,10 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("HandleANR"),
                      new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
 
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("OomReports"),
+                     new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_OOM));
+
 #if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("SymbolsUploadToken"),

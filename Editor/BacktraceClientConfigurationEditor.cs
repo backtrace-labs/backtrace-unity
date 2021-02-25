@@ -28,6 +28,7 @@ namespace Backtrace.Unity.Editor
 #endif
 #if UNITY_ANDROID || UNITY_IOS
             settings.HandleANR = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_HANDLE_ANR, settings.HandleANR);
+            settings.OomReports = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_HANDLE_OOM, settings.OomReports);
 #endif
             settings.GameObjectDepth = EditorGUILayout.IntField(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH, settings.GameObjectDepth);
         }

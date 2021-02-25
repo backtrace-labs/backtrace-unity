@@ -29,12 +29,57 @@ namespace Backtrace.Unity.Runtime.Native.Android
         [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
         private static extern bool NativeReport(IntPtr message);
 
+        /// <summary>
+        /// Native client built-in specific attributes
+        /// </summary>
+        private readonly Dictionary<string, string> _builtInAttributes = new Dictionary<string, string>();
 
+        /// <summary>
+        /// Attribute maps - list of attribute maps that allows Backtrace-Unity to rename attributes 
+        /// grabbed from android specific directories
+        /// </summary>
+        private readonly Dictionary<string, string> _attributeMapping = new Dictionary<string, string>();
+
+        private void SetDefaultAttributeMaps()
+        {
+            _attributeMapping.Add("FDSize", "descriptor.count");
+            _attributeMapping.Add("VmPeak", "vm.vma.peak");
+            _attributeMapping.Add("VmSize", "vm.vma.size");
+            _attributeMapping.Add("VmLck", "vm.locked.size");
+            _attributeMapping.Add("VmHWM", "vm.rss.peak");
+            _attributeMapping.Add("VmRSS", "vm.rss.size");
+            _attributeMapping.Add("VmStk", "vm.stack.size");
+            _attributeMapping.Add("VmData", "vm.data");
+            _attributeMapping.Add("VmExe", "vm.exe");
+            _attributeMapping.Add("VmLib", "vm.shared.size");
+            _attributeMapping.Add("VmPTE", "vm.pte.size");
+            _attributeMapping.Add("VmSwap", "vm.swap.size");
+            _attributeMapping.Add("State", "state");
+            _attributeMapping.Add("voluntary_ctxt_switches", "sched.cs.voluntary");
+            _attributeMapping.Add("nonvoluntary_ctxt_switches", "sched.cs.involuntary");
+            _attributeMapping.Add("SigPnd", "vm.sigpnd");
+            _attributeMapping.Add("ShdPnd", "vm.shdpnd");
+            _attributeMapping.Add("Threads", "vm.threads");
+            _attributeMapping.Add("MemTotal", "system.memory.total");
+            _attributeMapping.Add("MemFree", "system.memory.free");
+            _attributeMapping.Add("Buffers", "system.memory.buffers");
+            _attributeMapping.Add("Cached", "system.memory.cached");
+            _attributeMapping.Add("SwapCached", "system.memory.swap.cached");
+            _attributeMapping.Add("Active", "system.memory.active");
+            _attributeMapping.Add("Inactive", "system.memory.inactive");
+            _attributeMapping.Add("SwapTotal", "system.memory.swap.total");
+            _attributeMapping.Add("SwapFree", "system.memory.swap.free");
+            _attributeMapping.Add("Dirty", "system.memory.dirty");
+            _attributeMapping.Add("Writeback", "system.memory.writeback");
+            _attributeMapping.Add("Slab", "system.memory.slab");
+            _attributeMapping.Add("VmallocTotal", "system.memory.vmalloc.total");
+            _attributeMapping.Add("VmallocUsed", "system.memory.vmalloc.used");
+            _attributeMapping.Add("VmallocChunk", "system.memory.vmalloc.chunk");
+        }
 
         private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
         private const string _namespace = "backtrace.io.backtrace_unity_android_plugin";
-        private readonly string _nativeAttributesPath = string.Format("{0}.{1}", _namespace, "BacktraceAttributes");
         private readonly string _anrPath = string.Format("{0}.{1}", _namespace, "BacktraceANRWatchdog");
 
         /// <summary>
@@ -57,17 +102,40 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
         {
             _configuration = configuration;
+            SetDefaultAttributeMaps();
             if (!_enabled)
             {
                 return;
             }
+
 #if UNITY_ANDROID
             _handlerANR = _configuration.HandleANR;
             HandleNativeCrashes();
             HandleAnr(gameObjectName, "OnAnrDetected");
-#endif
 
+            // read device manufacturer
+            using (var build = new AndroidJavaClass("android.os.Build"))
+            {
+                _builtInAttributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
+            }
+#endif
         }
+
+        /// <summary>
+        /// Get path to the native libraries directory
+        /// </summary>
+        /// <returns>Path to the native libraries directory</returns>
+        private string GetNativeDirectoryPath()
+        {
+            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+            using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
+            using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
+            {
+                return applicationInfo.Get<string>("nativeLibraryDir");
+            }
+        }
+
         /// <summary>
         /// Start crashpad process to handle native Android crashes
         /// </summary>
@@ -103,18 +171,22 @@ namespace Backtrace.Unity.Runtime.Native.Android
             using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
             {
                 int apiLevel = version.GetStatic<int>("SDK_INT");
+                _builtInAttributes["device.sdk"] = apiLevel.ToString();
                 if (apiLevel < 21)
                 {
                     Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
                     return;
                 }
             }
-            var libDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
+
+            var libDirectory = GetNativeDirectoryPath();
             if (!Directory.Exists(libDirectory))
             {
                 return;
             }
-            var crashpadHandlerPath = Directory.GetFiles(libDirectory, "libcrashpad_handler.so", SearchOption.AllDirectories).FirstOrDefault();
+            const string crashpadHandlerName = "libcrashpad_handler.so";
+            var crashpadHandlerPath = Path.Combine(libDirectory, crashpadHandlerName);
+
             if (string.IsNullOrEmpty(crashpadHandlerPath))
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
@@ -161,22 +233,39 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 return;
             }
-
-            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-            using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
-            using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
-            using (var backtraceAttributes = new AndroidJavaObject(_nativeAttributesPath))
+            // rewrite built in attributes to report attributes
+            foreach (var builtInAttribute in _builtInAttributes)
             {
-                var androidAttributes = backtraceAttributes.Call<AndroidJavaObject>("GetAttributes", new object[] { context });
-                var entrySet = androidAttributes.Call<AndroidJavaObject>("entrySet");
-                var iterator = entrySet.Call<AndroidJavaObject>("iterator");
-                while (iterator.Call<bool>("hasNext"))
-                {
-                    var pair = iterator.Call<AndroidJavaObject>("next");
+                result.Add(builtInAttribute.Key, builtInAttribute.Value);
+            }
 
-                    var key = pair.Call<string>("getKey");
-                    var value = pair.Call<string>("getValue");
-                    result[key] = value;
+            var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
+            var filesToRead = new string[2] { $"/proc/{processId}/status", "/proc/meminfo" };
+            foreach (var diagnosticFilePath in filesToRead)
+            {
+                if (!File.Exists(diagnosticFilePath))
+                {
+                    continue;
+                }
+                foreach (var line in File.ReadLines(diagnosticFilePath))
+                {
+                    string[] entries = line.Split(':');
+                    if (entries.Length != 2)
+                    {
+                        continue;
+                    }
+                    var key = entries[0].Trim();
+                    if (!_attributeMapping.ContainsKey(key))
+                    {
+                        continue;
+                    }
+                    key = _attributeMapping[key];
+                    var value = entries[1];
+                    if (value.EndsWith("kB"))
+                    {
+                        value = value.Substring(0, value.LastIndexOf("k")).Trim();
+                    }
+                    result.Add(key, value);
                 }
             }
         }
@@ -226,7 +315,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                             reported = true;
                             if (AndroidJNI.AttachCurrentThread() == 0)
                             {
-                                 // set temporary attribute to "Hang"
+                                // set temporary attribute to "Hang"
                                 AddAttribute(
                                     AndroidJNI.NewStringUTF("error.type"),
                                     AndroidJNI.NewStringUTF("Hang"));
@@ -279,17 +368,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <returns>true - if native crash reprorter is enabled. Otherwise false.</returns>
         public bool OnOOM()
         {
-            if (!_enabled || _captureNativeCrashes)
-            {
-                return false;
-            }
-
-            // set temporary attribute to "Hang"
-            SetAttribute("error.type", "Low Memory");
-            NativeReport(AndroidJNI.NewStringUTF("OOMException: Out of memory detected."));
-            // update error.type attribute in case when crash happen 
-            SetAttribute("error.type", "Crash");
-
+            SetAttribute("memory.warning", "true");
+            SetAttribute("memory.warning.date", DateTime.Now.ToString());
             return true;
         }
 

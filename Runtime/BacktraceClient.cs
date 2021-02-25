@@ -20,7 +20,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.3.0";
+        public const string VERSION = "3.3.1";
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -400,6 +400,11 @@ namespace Backtrace.Unity
             }
         }
 
+        private void OnApplicationQuit()
+        {
+            _nativeClient?.Disable();
+        }
+
         private void Awake()
         {
             Refresh();
@@ -709,16 +714,14 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
+            if (Configuration.OomReports && _nativeClient != null)
+            {
+                // inform native layer about oom error
+                _nativeClient.OnOOM();
+
+            }
             const string lowMemoryMessage = "OOMException: Out of memory detected.";
             _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
-
-            // try to send report about OOM from managed layer if native layer is disabled.
-            bool nativeSendResult = _nativeClient != null ? _nativeClient.OnOOM() : false;
-            if (!nativeSendResult)
-            {
-                var oom = new BacktraceUnhandledException(lowMemoryMessage, string.Empty);
-                SendUnhandledException(oom);
-            }
         }
 #endif
 

@@ -10,12 +10,20 @@
         internal static string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
         internal static string LABEL_SAMPLING = "Log random sampling rate";
         internal static string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
+#if UNITY_ANDROID || UNITY_IOS
+        internal static string LABEL_HANDLE_OOM =
+#if UNITY_ANDROID
+            "(Early access) Send Low memory warnings to Backtrace";
+#elif UNITY_IOS
+            "(Early access) Send Out of memory exceptions to Backtrace";
+#endif
+#endif
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";
         internal static string LABEL_NUMBER_OF_LOGS = "Collect last n game logs";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
         internal static string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
-        internal static string LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP= "Send unhandled native game crashes on startup";
+        internal static string LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP = "Send unhandled native game crashes on startup";
         internal static string LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE = "Use normalized exception message";
         internal static string LABEL_PERFORMANCE_STATISTICS = "Enable performance statistics";
         internal static string LABEL_SYMBOLS_UPLOAD_TOKEN = "Symbols upload token";
@@ -35,6 +43,5 @@
         internal static string LABEL_RETRY_LIMIT = "Maximum retries";
         internal static string LABEL_RETRY_ORDER = "Retry order (FIFO/LIFO)";
 
-        
     }
 }

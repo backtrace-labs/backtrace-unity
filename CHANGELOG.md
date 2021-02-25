@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 3.3.1
+- Improved Out-of-memory detection on iOS - Backtrace will report Out-of-memory exceptions when a memory warning occured and the application unexpectly closed. The Out-of-memory watcher will analyse game version, system version, debugger information and even more to determine if application closed by Out-of-memory exception or not.
+- Backtrace will no longer send low memory warnings reports from Android or iOS. Instead, Backtrace will utilize iOS OOM detection and extend the embedded native report attributes on Android.
+- Users can now enable or disable out-of-memory detection any time via UI/Backtrace API.
+
 ## Version 3.3.0
 - `BacktraceReport` stack trace now includes the file name of the stack frame.
 - Performance improvements:

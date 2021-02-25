@@ -28,19 +28,19 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         }
 
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
-        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int size);
+        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int size, bool enableOomSupport);
 
         [DllImport("__Internal", EntryPoint = "NativeReport")]
-        public static extern void NativeReport(string message);
+        private static extern void NativeReport(string message);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
-        public static extern string Crash();
+        private static extern string Crash();
 
-        [DllImport("__Internal", EntryPoint = "GetAttibutes")]
-        public static extern void GetNativeAttibutes(out IntPtr attributes, out int keysCount);
+        [DllImport("__Internal", EntryPoint = "GetAttributes")]
+        private static extern void GetNativeAttributes(out IntPtr attributes, out int keysCount);
 
         [DllImport("__Internal", EntryPoint = "AddAttribute")]
-        public static extern void AddAttribute(string key, string value);
+        private static extern void AddAttribute(string key, string value);
 
         private static bool INITIALIZED = false;
 
@@ -97,7 +97,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return;
             }
-            GetNativeAttibutes(out IntPtr pUnmanagedArray, out int keysCount);
+            GetNativeAttributes(out IntPtr pUnmanagedArray, out int keysCount);
 
             for (int i = 0; i < keysCount; i++)
             {
@@ -153,7 +153,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                             SetAttribute("error.type", "Hang");
                             NativeReport("ANRException: Blocked thread detected.");
                             // update error.type attribute in case when crash happen 
-                            SetAttribute("error.type", "Crash");   
+                            SetAttribute("error.type", "Crash");
                             reported = true;
                         }
                     }
@@ -205,12 +205,10 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return false;
             }
-            // set temporary attribute to "Hang"
-            SetAttribute("error.type", "Low Memory");
-            NativeReport("OOMException: Out of memory detected.");
-            // update error.type attribute in case when crash happen 
-            SetAttribute("error.type", "Crash");   
-            
+            // oom support will be handled by native plugin - this will prevent
+            // false positive reports
+            // to avoid reporting low memory warning when application didn't crash 
+            // native plugin will analyse previous application session             
             return true;
         }
 

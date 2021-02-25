@@ -104,14 +104,24 @@ namespace Backtrace.Unity.Model
 #endif
 
         public bool CaptureNativeCrashes = true;
-#endif
-
-#if UNITY_ANDROID  || UNITY_IOS
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
         [Tooltip("Handle ANR events - Application not responding")]
         public bool HandleANR = true;
+
+#if UNITY_ANDROID
+        /// <summary>
+        /// Send Low memory warnings to Backtrace
+        /// </summary>
+        [Tooltip("(Early access) Send Low memory warnings to Backtrace")]
+#elif UNITY_IOS
+         /// <summary>
+        /// Send Out of memory exceptions to Backtrace. 
+        /// </summary>
+        [Tooltip("(Early access) Send Out of memory exceptions to Backtrace")]
+#endif
+        public bool OomReports = false;
 
 #if UNITY_2019_2_OR_NEWER
         /// <summary>

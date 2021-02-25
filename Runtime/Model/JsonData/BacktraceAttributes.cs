@@ -67,6 +67,7 @@ namespace Backtrace.Unity.Model.JsonData
             SetProcessAttributes(onlyBuiltInAttributes);
             SetSceneInformation(onlyBuiltInAttributes);
         }
+
         private BacktraceAttributes() { }
 
         public BacktraceJObject ToJson()
