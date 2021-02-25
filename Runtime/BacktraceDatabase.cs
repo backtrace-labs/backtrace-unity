@@ -139,8 +139,8 @@ namespace Backtrace.Unity
             //setup database object
             DatabaseSettings = new BacktraceDatabaseSettings(DatabasePath, Configuration);
             SetupMultisceneSupport();
-            _lastConnection = Time.time;
-            LastFrameTime = Time.time;
+            _lastConnection = Time.unscaledTime;
+            LastFrameTime = Time.unscaledTime;
             //Setup database context
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabaseSettings);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabaseSettings.DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
@@ -174,15 +174,15 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            LastFrameTime = Time.time;
+            LastFrameTime = Time.tiunscaledTimeme;
             if (!DatabaseSettings.AutoSendMode)
             {
                 return;
             }
 
-            if (Time.time - _lastConnection > DatabaseSettings.RetryInterval)
+            if (Time.unscaledTime - _lastConnection > DatabaseSettings.RetryInterval)
             {
-                _lastConnection = Time.time;
+                _lastConnection = Time.unscaledTime;
                 if (_timerBackgroundWork || !BacktraceDatabaseContext.Any())
                 {
                     return;
@@ -206,7 +206,7 @@ namespace Backtrace.Unity
             RemoveOrphaned();
             if (DatabaseSettings.AutoSendMode)
             {
-                _lastConnection = Time.time;
+                _lastConnection = Time.unscaledTime;
                 SendData(BacktraceDatabaseContext.FirstOrDefault());
             }
         }

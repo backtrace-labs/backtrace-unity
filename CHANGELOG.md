@@ -1,5 +1,8 @@
 # Backtrace Unity Release Notes
 
+## Version 3.3.2
+- ANR detection algorithm now uses `Time.unscaledTime` instead of `Time.time` to prevent ANR detection when game is paused.
+
 ## Version 3.3.1
 - Improved Out-of-memory detection on iOS - Backtrace will report Out-of-memory exceptions when a memory warning occured and the application unexpectly closed. The Out-of-memory watcher will analyse game version, system version, debugger information and even more to determine if application closed by Out-of-memory exception or not.
 - Backtrace will no longer send low memory warnings reports from Android or iOS. Instead, Backtrace will utilize iOS OOM detection and extend the embedded native report attributes on Android.
