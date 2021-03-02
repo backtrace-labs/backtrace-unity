@@ -9,6 +9,10 @@ namespace Backtrace.Unity.Editor
     {
         public override void OnInspectorGUI()
         {
+            if (Application.isPlaying)
+            { 
+                return;
+            }
             var component = (BacktraceClient)target;
             component.Configuration =
                 (BacktraceConfiguration)EditorGUILayout.ObjectField(
