@@ -1,8 +1,8 @@
 # Backtrace Unity Release Notes
 
 ## Version 3.3.3
-- Fixed iOS compilation issue with Backtrace namespace,
-- Prevents from displaying Backtrace configuration when Application.isPlaying is true to avoid user mistakes.
+- Fixed iOS compilation issue with Backtrace namespace.
+- Prevent displaying Backtrace configuration when Application.isPlaying is true.
 
 ## Version 3.3.2
 - ANR detection algorithm now uses `Time.unscaledTime` instead of `Time.time` to prevent ANR detection when game is paused.
