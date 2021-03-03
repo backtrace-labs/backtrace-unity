@@ -8,6 +8,7 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
@@ -20,13 +21,15 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.3.3";
+        public const string VERSION = "3.3.4";
         public bool Enabled { get; private set; }
 
         /// <summary>
         /// Client attributes
         /// </summary>
         private readonly Dictionary<string, string> _clientAttributes = new Dictionary<string, string>();
+
+        private readonly Stack<Exception> _backgroundExceptions = new Stack<Exception>();
 
         /// <summary>
         /// Attribute object accessor
@@ -352,7 +355,7 @@ namespace Backtrace.Unity
             }
 
             Enabled = true;
-
+            _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
@@ -413,15 +416,25 @@ namespace Backtrace.Unity
         /// <summary>
         /// Update native client internal ANR timer.
         /// </summary>
-        private void Update()
+        private void LateUpdate()
         {
             _nativeClient?.UpdateClientTime(Time.unscaledTime);
+
+            if (_backgroundExceptions.Count == 0)
+            {
+                return;
+            }
+            while (_backgroundExceptions.Count > 0)
+            {
+                Send(_backgroundExceptions.Pop());
+            }
         }
 
         private void OnDestroy()
         {
             Enabled = false;
             Application.logMessageReceived -= HandleUnityMessage;
+            Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
             Application.lowMemory -= HandleLowMemory;
             _nativeClient?.Disable();
@@ -691,6 +704,8 @@ namespace Backtrace.Unity
         }
 #endif
 
+        private Thread _current;
+
         /// <summary>
         /// Handle Unity unhandled exceptions
         /// </summary>
@@ -700,10 +715,21 @@ namespace Backtrace.Unity
             if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
             {
                 Application.logMessageReceived += HandleUnityMessage;
+                Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
                 Application.lowMemory += HandleLowMemory;
 #endif
             }
+        }
+
+        private void HandleUnityBackgroundException(string message, string stackTrace, LogType type)
+        {
+            // validate if a message is from main thread
+            if (Thread.CurrentThread == _current)
+            {
+                return;
+            }
+            _instance.HandleUnityMessage(message, stackTrace, type);
         }
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -822,6 +848,14 @@ namespace Backtrace.Unity
 
             if (invokeSkipApi && ShouldSkipReport(filterType, exception, string.Empty))
             {
+                return false;
+            }
+            // This condition checks if we should send exception but from correct thread
+            // if this exception is true, then we should save exception and send it on the next Update time
+            // also we should try to avoid adding two reports to limitWatcher class.
+            if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
+            {
+                _backgroundExceptions.Push(exception);
                 return false;
             }
             //check rate limiting
