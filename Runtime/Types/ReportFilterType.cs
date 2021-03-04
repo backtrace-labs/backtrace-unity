@@ -44,6 +44,13 @@ namespace Backtrace.Unity.Types
         /// Game hang
         /// </summary>
         [Tooltip("Game hang.")]
-        Hang = 8
+        Hang = 8,
+
+        /// <summary>
+        /// Game hang
+        /// </summary>
+        [Tooltip("Debug.LogError")]
+        Error = 16
+
     }
 }

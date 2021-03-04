@@ -737,6 +737,10 @@ namespace Backtrace.Unity
             {
                 return;
             }
+
+            if (Configuration.ReportFilterType.HasFlag(ReportFilterType.Error) && type == LogType.Error)
+                return;
+
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
             _backtraceLogManager.Enqueue(unityMessage);
             if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
