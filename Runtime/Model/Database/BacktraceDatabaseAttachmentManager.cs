@@ -94,44 +94,62 @@ namespace Backtrace.Unity.Model.Database
                 else
                 {
 
-                    float ratio = (float)Screen.width / (float)Screen.height;
+                    if (_settings.ScreenshotMaxHeight < Screen.height)
+                    {
 
-                    int targetHeight = Mathf.Min(Screen.height, _settings.ScreenshotMaxHeight);
-                    int targetWidth = Mathf.RoundToInt((float)targetHeight * ratio);
+                        float ratio = (float)Screen.width / (float)Screen.height;
 
-                    // Create a render texture to render into
-                    RenderTexture screenRT = RenderTexture.GetTemporary(Screen.width, Screen.height);
+                        int targetHeight = Mathf.Min(Screen.height, _settings.ScreenshotMaxHeight);
+                        int targetWidth = Mathf.RoundToInt((float)targetHeight * ratio);
 
-                    ScreenCapture.CaptureScreenshotIntoRenderTexture(screenRT);
+                        // Create a render texture to render into
+                        RenderTexture screenRT = RenderTexture.GetTemporary(Screen.width, Screen.height);
 
-                    // Create a render texture to render into
-                    RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
+                        ScreenCapture.CaptureScreenshotIntoRenderTexture(screenRT);
 
-                    if (SystemInfo.graphicsUVStartsAtTop)
-                        Graphics.Blit(screenRT, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
+                        // Create a render texture to render into
+                        RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
+
+                        if (SystemInfo.graphicsUVStartsAtTop)
+                            Graphics.Blit(screenRT, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
+                        else
+                            Graphics.Blit(screenRT, rt);
+
+                        RenderTexture previousActiveRT = RenderTexture.active;
+                        RenderTexture.active = rt;
+
+                        // Create a texture & read data from the active RenderTexture
+                        Texture2D result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
+                        result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
+                        result.Apply();
+
+                        // Reset to initial state
+                        RenderTexture.active = previousActiveRT;
+
+                        RenderTexture.ReleaseTemporary(rt);
+
+                        RenderTexture.ReleaseTemporary(screenRT);
+
+                        File.WriteAllBytes(screenshotPath, result.EncodeToJPG(_settings.ScreenshotQuality));
+
+                        GameObject.Destroy(result);
+
+                    }
                     else
-                        Graphics.Blit(screenRT, rt);
+                    {
 
-                    RenderTexture previousActiveRT = RenderTexture.active;
-                    RenderTexture.active = rt;
+                        var result = ScreenCapture.CaptureScreenshotAsTexture();
 
-                    // Create a texture & read data from the active RenderTexture
-                    Texture2D result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
-                    result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
-                    result.Apply();
+                        File.WriteAllBytes(screenshotPath, result.EncodeToJPG(_settings.ScreenshotQuality));
 
-                    // Reset to initial state
-                    RenderTexture.active = previousActiveRT;
+                        GameObject.Destroy(result);
 
-                    RenderTexture.ReleaseTemporary(rt);
-
-                    RenderTexture.ReleaseTemporary(screenRT);
-
+                    }
                     // For testing purposes, also write to a file in the project folder
-                    File.WriteAllBytes(screenshotPath, result.EncodeToJPG(_settings.ScreenshotQuality));
+                    
                     _lastScreenTime = BacktraceDatabase.LastFrameTime;
                     _lastScreenPath = screenshotPath;
-                    
+
                 }
             }
             return screenshotPath;
