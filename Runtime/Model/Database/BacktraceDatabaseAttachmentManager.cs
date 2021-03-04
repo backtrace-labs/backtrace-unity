@@ -103,7 +103,7 @@ namespace Backtrace.Unity.Model.Database
 
 #if UNITY_2019_1_OR_NEWER
                         RenderTexture screenTexture = RenderTexture.GetTemporary(Screen.width, Screen.height);
-                        ScreenCapture.CaptureScreenshotIntoRenderTexture(screenRT);
+                        ScreenCapture.CaptureScreenshotIntoRenderTexture(screenTexture);
 #else
                         Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
 #endif
