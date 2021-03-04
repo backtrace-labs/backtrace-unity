@@ -98,22 +98,23 @@ namespace Backtrace.Unity.Model.Database
                     {
 
                         float ratio = (float)Screen.width / (float)Screen.height;
-
                         int targetHeight = Mathf.Min(Screen.height, _settings.ScreenshotMaxHeight);
                         int targetWidth = Mathf.RoundToInt((float)targetHeight * ratio);
 
-                        // Create a render texture to render into
-                        RenderTexture screenRT = RenderTexture.GetTemporary(Screen.width, Screen.height);
-
+#if UNITY_2019_1_OR_NEWER
+                        RenderTexture screenTexture = RenderTexture.GetTemporary(Screen.width, Screen.height);
                         ScreenCapture.CaptureScreenshotIntoRenderTexture(screenRT);
+#else
+                        Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
+#endif
 
                         // Create a render texture to render into
                         RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
 
                         if (SystemInfo.graphicsUVStartsAtTop)
-                            Graphics.Blit(screenRT, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
+                            Graphics.Blit(screenTexture, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
                         else
-                            Graphics.Blit(screenRT, rt);
+                            Graphics.Blit(screenTexture, rt);
 
                         RenderTexture previousActiveRT = RenderTexture.active;
                         RenderTexture.active = rt;
@@ -128,7 +129,11 @@ namespace Backtrace.Unity.Model.Database
 
                         RenderTexture.ReleaseTemporary(rt);
 
-                        RenderTexture.ReleaseTemporary(screenRT);
+#if UNITY_2019_1_OR_NEWER
+                        RenderTexture.ReleaseTemporary(screenTexture);
+#else
+                        GameObject.Destroy(screenTexture);
+#endif
 
                         File.WriteAllBytes(screenshotPath, result.EncodeToJPG(_settings.ScreenshotQuality));
 
