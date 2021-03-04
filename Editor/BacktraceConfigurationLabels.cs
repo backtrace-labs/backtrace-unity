@@ -34,6 +34,8 @@
         internal static string LABEL_MINIDUMP_SUPPORT = "Minidump type";
         internal static string LABEL_ADD_UNITY_LOG = "Attach Unity Player.log";
         internal static string LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION = "Attach screenshot";
+        internal static string LABEL_GENERATE_SCREENSHOT_MAX_HEIGHT = "Screenshot max height";
+        internal static string LABEL_GENERATE_SCREENSHOT_QUALITY = "Screenshot quality";
         internal static string LABEL_DEDUPLICATION_RULES = "Client-Side deduplication";
         internal static string LABEL_AUTO_SEND_MODE = "Auto send mode";
         internal static string LABEL_CREATE_DATABASE_DIRECTORY = "Create database directory";

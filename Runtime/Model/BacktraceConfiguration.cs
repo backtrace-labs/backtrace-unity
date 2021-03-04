@@ -164,6 +164,18 @@ namespace Backtrace.Unity.Model
         public bool GenerateScreenshotOnException = false;
 
         /// <summary>
+        /// Generate game screen shot when exception happen
+        /// </summary>
+        [Tooltip("Max screenshot height default 720")]
+        public int ScreenshotMaxHeight = 720;
+
+        /// <summary>
+        /// Generate game screen shot when exception happen
+        /// </summary>
+        [Tooltip("Screenshot JPG quality 0-100, default 50")]
+        public int ScreenshotQuality = 50;
+
+        /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]

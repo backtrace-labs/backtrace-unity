@@ -93,23 +93,45 @@ namespace Backtrace.Unity.Model.Database
                 }
                 else
                 {
-                    // Create a texture the size of the screen, RGB24 format
-                    int width = Screen.width;
-                    int height = Screen.height;
-                    Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
 
-                    // Read screen contents into the texture
-                    tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-                    tex.Apply();
+                    float ratio = (float)Screen.width / (float)Screen.height;
 
-                    // Encode texture into JPG and save it on hard drive
-                    var bytes = tex.EncodeToJPG();
-                    using (var fs = new FileStream(screenshotPath, FileMode.Create, FileAccess.Write))
-                    {
-                        fs.Write(bytes, 0, bytes.Length);
-                    }
+                    int targetHeight = Mathf.Min(Screen.height, _settings.ScreenshotMaxHeight);
+                    int targetWidth = Mathf.RoundToInt((float)targetHeight * ratio);
+
+                    // Create a render texture to render into
+                    RenderTexture screenRT = RenderTexture.GetTemporary(Screen.width, Screen.height);
+
+                    ScreenCapture.CaptureScreenshotIntoRenderTexture(screenRT);
+
+                    // Create a render texture to render into
+                    RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
+
+                    if (SystemInfo.graphicsUVStartsAtTop)
+                        Graphics.Blit(screenRT, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
+                    else
+                        Graphics.Blit(screenRT, rt);
+
+                    RenderTexture previousActiveRT = RenderTexture.active;
+                    RenderTexture.active = rt;
+
+                    // Create a texture & read data from the active RenderTexture
+                    Texture2D result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
+                    result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
+                    result.Apply();
+
+                    // Reset to initial state
+                    RenderTexture.active = previousActiveRT;
+
+                    RenderTexture.ReleaseTemporary(rt);
+
+                    RenderTexture.ReleaseTemporary(screenRT);
+
+                    // For testing purposes, also write to a file in the project folder
+                    File.WriteAllBytes(screenshotPath, result.EncodeToJPG(_settings.ScreenshotQuality));
                     _lastScreenTime = BacktraceDatabase.LastFrameTime;
                     _lastScreenPath = screenshotPath;
+                    
                 }
             }
             return screenshotPath;

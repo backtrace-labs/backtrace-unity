@@ -149,6 +149,14 @@ namespace Backtrace.Unity.Editor
                         serializedObject.FindProperty("GenerateScreenshotOnException"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION));
 
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("ScreenshotMaxHeight"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_MAX_HEIGHT));
+
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("ScreenshotQuality"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_QUALITY));
+
                     SerializedProperty maxRecordCount = serializedObject.FindProperty("MaxRecordCount");
                     EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT));
 
