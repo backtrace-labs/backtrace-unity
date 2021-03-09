@@ -426,7 +426,6 @@ namespace Backtrace.Unity
             Application.lowMemory -= HandleLowMemory;
             _nativeClient?.Disable();
 #endif
-
         }
 
         /// <summary>
@@ -704,6 +703,11 @@ namespace Backtrace.Unity
                 Application.lowMemory += HandleLowMemory;
 #endif
             }
+        }
+
+        internal void OnApplicationPause(bool pause)
+        {
+            _nativeClient?.PauseAnrThread(pause);
         }
 
 #if UNITY_ANDROID || UNITY_IOS
