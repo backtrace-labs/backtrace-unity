@@ -20,9 +20,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         /// <summary>
         /// Determine if the ANR background thread should be disabled or not 
-        /// for some time of period.
+        /// for some period of time.
         /// This option will be used by the native client implementation
-        /// once applicaiton goes to background/foreground
+        /// once application goes to background/foreground
         /// </summary>
         volatile internal bool _preventAnr = false;
 
@@ -180,10 +180,10 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
                         lastUpdatedCache = _lastUpdateTime;
                     }
-                    // make sure when ANR happened just after going to foreground
-                    // we won't false positive ANR report
                     else if (lastUpdatedCache != 0)
                     {
+                        // make sure when ANR happened just after going to foreground
+                        // we won't false positive ANR report
                         lastUpdatedCache = 0;
                     }
                     Thread.Sleep(5000);
@@ -258,7 +258,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <summary>
         /// Pause ANR detection
         /// </summary>
-        /// <param name="stopAnr">True - if native client should pause an ANR detection</param>
+        /// <param name="stopAnr">True - if native client should pause ANR detection"</param>
         public void PauseAnrThread(bool stopAnr)
         {
             _preventAnr = stopAnr;
