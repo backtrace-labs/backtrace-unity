@@ -28,6 +28,8 @@ namespace Backtrace.Unity
         /// </summary>
         private readonly Dictionary<string, string> _clientAttributes = new Dictionary<string, string>();
 
+        public List<string> Attachments { get; internal set; } = new List<string>();
+
         /// <summary>
         /// Attribute object accessor
         /// </summary>
@@ -268,9 +270,10 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="configuration">Backtrace configuration scriptable object</param>
         /// <param name="attributes">Client side attributes</param>
+        /// param name="attachments">List of attachments </param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
-        public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, List<string> attachments = null, string gameObjectName = "BacktraceClient")
         {
             if (string.IsNullOrEmpty(gameObjectName))
             {
@@ -289,6 +292,10 @@ namespace Backtrace.Unity
             var backtrackGameObject = new GameObject(gameObjectName, typeof(BacktraceClient), typeof(BacktraceDatabase));
             BacktraceClient backtraceClient = backtrackGameObject.GetComponent<BacktraceClient>();
             backtraceClient.Configuration = configuration;
+            if (attachments != null && attachments.Count != 0)
+            {
+                backtraceClient.Attachments = attachments;
+            }
             if (configuration.Enabled)
             {
                 BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
@@ -299,6 +306,17 @@ namespace Backtrace.Unity
             backtraceClient.SetAttributes(attributes);
 
             return backtraceClient;
+        }
+        /// <summary>
+        /// Initialize new Backtrace integration
+        /// </summary>
+        /// <param name="configuration">Backtrace configuration scriptable object</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        {
+            return Initialize(configuration, attributes, null, gameObjectName);
         }
 
         /// <summary>
@@ -311,12 +329,25 @@ namespace Backtrace.Unity
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
         {
+            return Initialize(url, databasePath, attributes, null, gameObjectName);
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration with database path. Note - database path will be auto created by Backtrace Unity plugin
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="databasePath">Database path</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, List<string> attachments = null, string gameObjectName = "BacktraceClient")
+        {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
             configuration.Enabled = true;
             configuration.DatabasePath = databasePath;
             configuration.CreateDatabase = true;
-            return Initialize(configuration, attributes, gameObjectName);
+            return Initialize(configuration, attributes, attachments, gameObjectName);
         }
 
         /// <summary>
@@ -328,10 +359,22 @@ namespace Backtrace.Unity
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
         {
+            return Initialize(url, attributes, null, gameObjectName);
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, List<string> attachments = null, string gameObjectName = "BacktraceClient")
+        {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
             configuration.Enabled = false;
-            return Initialize(configuration, attributes, gameObjectName);
+            return Initialize(configuration, attributes, attachments, gameObjectName);
         }
 
         public void OnDisable()
@@ -384,7 +427,7 @@ namespace Backtrace.Unity
                 }
             }
 
-            _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
+            _nativeClient = NativeClientFactory.GetNativeClient(Configuration, Attachments, name);
             if (_nativeClient != null)
             {
                 foreach (var attribute in _clientAttributes)
@@ -653,6 +696,7 @@ namespace Backtrace.Unity
                 : _backtraceLogManager.ToSourceCode();
 
             report.AssignSourceCodeToReport(sourceCode);
+            report.AttachmentPaths.AddRange(Attachments);
 
             // pass copy of dictionary to prevent overriding client attributes
             var result = report.ToBacktraceData(null, GameObjectDepth);
