@@ -28,7 +28,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         }
 
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
-        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int size, bool enableOomSupport);
+        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize);
 
         [DllImport("__Internal", EntryPoint = "NativeReport")]
         private static extern void NativeReport(string message);
@@ -55,7 +55,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
 #endif
 
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
+        public NativeClient(BacktraceConfiguration configuration, List<string> attachments)
         {
             if (INITIALIZED || !_enabled)
             {
@@ -63,12 +63,15 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             if (configuration.CaptureNativeCrashes)
             {
-                HandleNativeCrashes(configuration);
+                HandleNativeCrashes(configuration, attachments);
                 INITIALIZED = true;
             }
             if (configuration.HandleANR)
             {
-                HandleAnr(gameObjectName, string.Empty);
+                // iOS integration doesn't require to pass game object name or callback function
+                // it's required by android to know which one object to call when ANR was detected 
+                // in Java. In this situation we simply ignore them.
+                HandleAnr();
             }
         }
 
@@ -77,7 +80,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes(BacktraceConfiguration configuration)
+        private void HandleNativeCrashes(BacktraceConfiguration configuration, List<string> attachments)
         {
             var databasePath = configuration.GetFullDatabasePath();
             // make sure database is enabled 
@@ -97,7 +100,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments.ToArray(), attachments.Count);
         }
 
         /// <summary>
@@ -125,7 +128,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <summary>
         /// Setup iOS ANR support and set callback function when ANR happened.
         /// </summary>
-        public void HandleAnr(string gameObjectName, string callbackName)
+        public void HandleAnr(string gameObjectName= "", string callbackName = "")
         {
             // if INITIALIZED is equal to false, plcrashreporter instance is disabled
             // so we can't generate native report
