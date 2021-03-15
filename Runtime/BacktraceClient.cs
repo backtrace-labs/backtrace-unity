@@ -21,7 +21,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.4.0";
+        public const string VERSION = "3.4.0-rc1";
         public bool Enabled { get; private set; }
 
         /// <summary>
