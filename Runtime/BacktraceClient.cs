@@ -8,6 +8,7 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
@@ -20,13 +21,15 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.3.3";
+        public const string VERSION = "3.3.4";
         public bool Enabled { get; private set; }
 
         /// <summary>
         /// Client attributes
         /// </summary>
         private readonly Dictionary<string, string> _clientAttributes = new Dictionary<string, string>();
+
+        internal readonly Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
 
         /// <summary>
         /// Attribute object accessor
@@ -352,7 +355,7 @@ namespace Backtrace.Unity
             }
 
             Enabled = true;
-
+            _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
 
@@ -413,15 +416,28 @@ namespace Backtrace.Unity
         /// <summary>
         /// Update native client internal ANR timer.
         /// </summary>
-        private void Update()
+        private void LateUpdate()
         {
             _nativeClient?.UpdateClientTime(Time.unscaledTime);
+
+            if (BackgroundExceptions.Count == 0)
+            {
+                return;
+            }
+            while (BackgroundExceptions.Count > 0)
+            {
+                // use SendReport method isntead of Send method
+                // because we already applied all watchdog/skipReport rules
+                // so we don't need to apply them once again
+                SendReport(BackgroundExceptions.Pop());
+            }
         }
 
         private void OnDestroy()
         {
             Enabled = false;
             Application.logMessageReceived -= HandleUnityMessage;
+            Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
             Application.lowMemory -= HandleLowMemory;
             _nativeClient?.Disable();
@@ -690,6 +706,8 @@ namespace Backtrace.Unity
         }
 #endif
 
+        private Thread _current;
+
         /// <summary>
         /// Handle Unity unhandled exceptions
         /// </summary>
@@ -699,6 +717,7 @@ namespace Backtrace.Unity
             if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
             {
                 Application.logMessageReceived += HandleUnityMessage;
+                Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
                 Application.lowMemory += HandleLowMemory;
 #endif
@@ -708,6 +727,17 @@ namespace Backtrace.Unity
         internal void OnApplicationPause(bool pause)
         {
             _nativeClient?.PauseAnrThread(pause);
+        }
+
+        internal void HandleUnityBackgroundException(string message, string stackTrace, LogType type)
+        {
+            // validate if a message is from main thread
+            // and skip messages from main thread
+            if (Thread.CurrentThread == _current)
+            {
+                return;
+            }
+            HandleUnityMessage(message, stackTrace, type);
         }
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -828,10 +858,22 @@ namespace Backtrace.Unity
             {
                 return false;
             }
+
             //check rate limiting
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
             {
+                // This condition checks if we should send exception from current thread
+                // if comparision result confirm that we're trying to send an exception from different
+                // thread than main, we should add the exception object to the exception list 
+                // and let update method send data to Backtrace.
+                if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
+                {
+                    var report = new BacktraceReport(exception, attributes, attachmentPaths);
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    BackgroundExceptions.Push(report);
+                    return false;
+                }
                 return true;
             }
             if (OnClientReportLimitReached != null)
@@ -856,6 +898,17 @@ namespace Backtrace.Unity
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
             {
+                // This condition checks if we should send exception from current thread
+                // if comparision result confirm that we're trying to send an exception from different
+                // thread than main, we should add the exception object to the exception list 
+                // and let update method send data to Backtrace.
+                if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
+                {
+                    var report = new BacktraceReport(message, attributes, attachmentPaths);
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    BackgroundExceptions.Push(report);
+                    return false;
+                }
                 return true;
             }
             if (OnClientReportLimitReached != null)
@@ -884,6 +937,16 @@ namespace Backtrace.Unity
             bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
             if (shouldProcess)
             {
+                // This condition checks if we should send exception from current thread
+                // if comparision result confirm that we're trying to send an exception from different
+                // thread than main, we should add the exception object to the exception list 
+                // and let update method send data to Backtrace.
+                if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
+                {
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    BackgroundExceptions.Push(report);
+                    return false;
+                }
                 return true;
             }
             if (OnClientReportLimitReached != null)
