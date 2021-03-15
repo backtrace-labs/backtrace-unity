@@ -165,6 +165,12 @@ namespace Backtrace.Unity.Model
         public bool GenerateScreenshotOnException = false;
 
         /// <summary>
+        /// List of path to attachments that Backtrace client will include in the native and managed reports.
+        /// </summary>
+        [Tooltip("List of path to attachments that Backtrace client will include in the native and managed reports.")]
+        public string[] AttachmentPaths;
+
+        /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]
@@ -214,11 +220,8 @@ namespace Backtrace.Unity.Model
 
         /// <summary>
         /// Maximum number of retries
-        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
+        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.")]
         public int RetryLimit = 3;
-
-        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
-        public string[] AttachmentPaths;
 
         /// <summary>
         /// Retry order
