@@ -32,6 +32,11 @@ namespace Backtrace.Unity
         internal readonly Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
 
         /// <summary>
+        /// Client report attachments
+        /// </summary>
+        private List<string> _clientReportAttachments;
+
+        /// <summary>
         /// Attribute object accessor
         /// </summary>
         public string this[string index]
@@ -48,6 +53,26 @@ namespace Backtrace.Unity
                     _nativeClient.SetAttribute(index, value);
                 }
             }
+        }
+
+        /// <summary>
+        /// Add attachment to managed reports.
+        /// Note: this option won't add attachment to your native reports. You can add attachments to
+        /// native reports only on BacktraceClient initialization.
+        /// </summary>
+        /// <param name="pathToAttachment">Path to attachment</param>
+        public void AddAttachment(string pathToAttachment)
+        {
+            _clientReportAttachments.Add(pathToAttachment);
+        }
+
+        /// <summary>
+        /// Returns list of defined path to attachments stored by Backtrace client.
+        /// </summary>
+        /// <returns>List of client attachments</returns>
+        public List<string> GetAttachments()
+        {
+            return _clientReportAttachments;
         }
 
         /// <summary>
@@ -271,6 +296,7 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="configuration">Backtrace configuration scriptable object</param>
         /// <param name="attributes">Client side attributes</param>
+        /// param name="attachments">List of attachments </param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
@@ -314,8 +340,23 @@ namespace Backtrace.Unity
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
         {
+            return Initialize(url, databasePath, attributes, null, gameObjectName);
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration with database path. Note - database path will be auto created by Backtrace Unity plugin
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="databasePath">Database path</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="attachments">Paths to attachments that Backtrace client will include in managed/native reports</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = "BacktraceClient")
+        {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
+            configuration.AttachmentPaths = attachments;
             configuration.Enabled = true;
             configuration.DatabasePath = databasePath;
             configuration.CreateDatabase = true;
@@ -331,8 +372,22 @@ namespace Backtrace.Unity
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
         {
+            return Initialize(url, attributes, new string[0], gameObjectName);
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="attachments">Paths to attachments that Backtrace client will include in managed/native reports</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = "BacktraceClient")
+        {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
+            configuration.AttachmentPaths = attachments;
             configuration.Enabled = false;
             return Initialize(configuration, attributes, gameObjectName);
         }
@@ -358,7 +413,7 @@ namespace Backtrace.Unity
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
-
+            _clientReportAttachments = Configuration.GetAttachmentPaths();
 
             BacktraceApi = new BacktraceApi(
                 credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
@@ -668,6 +723,7 @@ namespace Backtrace.Unity
                 : _backtraceLogManager.ToSourceCode();
 
             report.AssignSourceCodeToReport(sourceCode);
+            report.AttachmentPaths.AddRange(_clientReportAttachments);
 
             // pass copy of dictionary to prevent overriding client attributes
             var result = report.ToBacktraceData(null, GameObjectDepth);

@@ -34,13 +34,13 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private Thread _anrThread;
 
         [DllImport("backtrace-native")]
-        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values);
+        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
 
         [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
-        private static extern bool NativeReport(IntPtr message);
+        private static extern bool NativeReport(IntPtr message, bool setMainThreadAsFaultingThread);
 
         /// <summary>
         /// Native client built-in specific attributes
@@ -206,9 +206,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
             // get default built-in Backtrace-Unity attributes
-            var backtraceAttributes = new BacktraceAttributes(null, null, true);
+            var backtraceAttributes = new BacktraceAttributes(null, null, true).Attributes;
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
+            var attachments = _configuration.GetAttachmentPaths().ToArray();
 
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad
@@ -217,12 +218,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Keys.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Values.ToArray()));
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Keys.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Values.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(attachments));
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
             }
+
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
             // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
             // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
@@ -335,7 +338,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                                         AndroidJNI.NewStringUTF("error.type"),
                                         AndroidJNI.NewStringUTF("Hang"));
 
-                                    NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."));
+                                    NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."), true);
                                     // update error.type attribute in case when crash happen 
                                     SetAttribute("error.type", "Crash");
                                 }

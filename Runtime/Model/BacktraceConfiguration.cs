@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Types;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -164,6 +165,12 @@ namespace Backtrace.Unity.Model
         public bool GenerateScreenshotOnException = false;
 
         /// <summary>
+        /// List of path to attachments that Backtrace client will include in the native and managed reports.
+        /// </summary>
+        [Tooltip("List of path to attachments that Backtrace client will include in the native and managed reports.")]
+        public string[] AttachmentPaths;
+
+        /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]
@@ -213,7 +220,7 @@ namespace Backtrace.Unity.Model
 
         /// <summary>
         /// Maximum number of retries
-        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
+        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.")]
         public int RetryLimit = 3;
 
         /// <summary>
@@ -222,9 +229,28 @@ namespace Backtrace.Unity.Model
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
 
+        /// <summary>
+        /// Get full paths to attachments added by client
+        /// </summary>
+        /// <returns>List of absolute path to attachments</returns>
+        public List<string> GetAttachmentPaths()
+        {
+            var result = new List<string>();
+            if (AttachmentPaths == null || AttachmentPaths.Length == 0)
+            {
+                return result;
+            }
+
+            foreach (var path in AttachmentPaths)
+            {
+                result.Add(ClientPathHelper.GetFulLPath(path));
+            }
+            return result;
+        }
+
         public string GetFullDatabasePath()
         {
-            return DatabasePathHelper.GetFullDatabasePath(DatabasePath);
+            return ClientPathHelper.GetFulLPath(DatabasePath);
         }
         public string CrashpadDatabasePath
         {
