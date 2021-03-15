@@ -55,7 +55,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
 #endif
 
-        public NativeClient(BacktraceConfiguration configuration, List<string> attachments)
+        public NativeClient(BacktraceConfiguration configuration)
         {
             if (INITIALIZED || !_enabled)
             {
@@ -63,7 +63,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             if (configuration.CaptureNativeCrashes)
             {
-                HandleNativeCrashes(configuration, attachments);
+                HandleNativeCrashes(configuration);
                 INITIALIZED = true;
             }
             if (configuration.HandleANR)
@@ -80,7 +80,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes(BacktraceConfiguration configuration, List<string> attachments)
+        private void HandleNativeCrashes(BacktraceConfiguration configuration)
         {
             var databasePath = configuration.GetFullDatabasePath();
             // make sure database is enabled 
@@ -99,8 +99,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             backtraceAttributes.Attributes["error.type"] = "Crash";
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
+            var attachments =  configuration.GetAttachmentPaths().ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments.ToArray(), attachments.Count);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments, attachments.Length);
         }
 
         /// <summary>

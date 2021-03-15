@@ -18,6 +18,7 @@
             "(Early access) Send Out of memory exceptions to Backtrace";
 #endif
 #endif
+        internal static string LABEL_REPORT_ATTACHMENTS = "Report attachment paths";
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";
         internal static string LABEL_NUMBER_OF_LOGS = "Collect last n game logs";

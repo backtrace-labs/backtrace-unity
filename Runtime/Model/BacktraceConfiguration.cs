@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Types;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -216,15 +217,37 @@ namespace Backtrace.Unity.Model
         [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
         public int RetryLimit = 3;
 
+        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
+        public string[] AttachmentPaths;
+
         /// <summary>
         /// Retry order
         /// </summary>
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
 
+        /// <summary>
+        /// Get full paths to attachments added by client
+        /// </summary>
+        /// <returns>List of absolute path to attachments</returns>
+        public List<string> GetAttachmentPaths()
+        {
+            var result = new List<string>();
+            if (AttachmentPaths == null || AttachmentPaths.Length == 0)
+            {
+                return result;
+            }
+
+            foreach (var path in AttachmentPaths)
+            {
+                result.Add(ClientPathHelper.GetFulLPath(path));
+            }
+            return result;
+        }
+
         public string GetFullDatabasePath()
         {
-            return DatabasePathHelper.GetFullDatabasePath(DatabasePath);
+            return ClientPathHelper.GetFulLPath(DatabasePath);
         }
         public string CrashpadDatabasePath
         {
