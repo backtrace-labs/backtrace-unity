@@ -40,7 +40,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
 
         [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
-        private static extern bool NativeReport(IntPtr message);
+        private static extern bool NativeReport(IntPtr message, bool setMainThreadAsFaultingThread);
 
         /// <summary>
         /// Native client built-in specific attributes
@@ -338,7 +338,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                                         AndroidJNI.NewStringUTF("error.type"),
                                         AndroidJNI.NewStringUTF("Hang"));
 
-                                    NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."));
+                                    NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."), true);
                                     // update error.type attribute in case when crash happen 
                                     SetAttribute("error.type", "Crash");
                                 }
