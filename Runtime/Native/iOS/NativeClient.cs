@@ -31,7 +31,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize);
 
         [DllImport("__Internal", EntryPoint = "NativeReport")]
-        private static extern void NativeReport(string message);
+        private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         private static extern string Crash();
@@ -99,7 +99,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             backtraceAttributes.Attributes["error.type"] = "Crash";
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
-            var attachments =  configuration.GetAttachmentPaths().ToArray();
+            var attachments = configuration.GetAttachmentPaths().ToArray();
 
             Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments, attachments.Length);
         }
@@ -129,7 +129,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <summary>
         /// Setup iOS ANR support and set callback function when ANR happened.
         /// </summary>
-        public void HandleAnr(string gameObjectName= "", string callbackName = "")
+        public void HandleAnr(string gameObjectName = "", string callbackName = "")
         {
             // if INITIALIZED is equal to false, plcrashreporter instance is disabled
             // so we can't generate native report
@@ -155,7 +155,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                         {
                             // set temporary attribute to "Hang"
                             SetAttribute("error.type", "Hang");
-                            NativeReport("ANRException: Blocked thread detected.");
+                            NativeReport("ANRException: Blocked thread detected.", true);
                             // update error.type attribute in case when crash happen 
                             SetAttribute("error.type", "Crash");
                             reported = true;
