@@ -243,7 +243,10 @@ namespace Backtrace.Unity.Model
 
             foreach (var path in AttachmentPaths)
             {
-                result.Add(ClientPathHelper.GetFulLPath(path));
+                if (!string.IsNullOrEmpty(path))
+                {
+                    result.Add(ClientPathHelper.GetFulLPath(path));
+                }
             }
             return result;
         }
