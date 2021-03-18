@@ -3,6 +3,8 @@
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
+Create your Backtrace instance at https://backtrace.io/create-unity today and then integrate this library into your game.
+
 [![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
 
 
