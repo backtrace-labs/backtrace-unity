@@ -8,6 +8,7 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using UnityEngine;
 
@@ -916,7 +917,7 @@ namespace Backtrace.Unity
             }
 
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
                 // This condition checks if we should send exception from current thread
@@ -951,7 +952,7 @@ namespace Backtrace.Unity
             }
 
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
                 // This condition checks if we should send exception from current thread
@@ -990,7 +991,7 @@ namespace Backtrace.Unity
                 return false;
             }
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
                 // This condition checks if we should send exception from current thread

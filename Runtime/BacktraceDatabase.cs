@@ -418,7 +418,7 @@ namespace Backtrace.Unity
                              BacktraceDatabaseContext.IncrementBatchRetry();
                              return;
                          }
-                         bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+                         bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
                          if (!shouldProcess)
                          {
                              return;

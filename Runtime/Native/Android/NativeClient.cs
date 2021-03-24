@@ -2,6 +2,7 @@
 using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -393,7 +394,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public bool OnOOM()
         {
             SetAttribute("memory.warning", "true");
-            SetAttribute("memory.warning.date", DateTime.Now.ToString());
+            SetAttribute("memory.warning.date", DateTime.Now.ToString(CultureInfo.InvariantCulture));
             return true;
         }
 

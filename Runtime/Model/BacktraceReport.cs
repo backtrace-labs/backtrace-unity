@@ -30,7 +30,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// UTC timestamp in seconds
         /// </summary>
-        public readonly long Timestamp = new DateTime().Timestamp();
+        public readonly long Timestamp = DateTimeHelper.Timestamp();
 
         /// <summary>
         /// Get information aboout report type. If value is true the BacktraceReport has an error information
