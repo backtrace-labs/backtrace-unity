@@ -6,6 +6,7 @@ using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
 
@@ -372,7 +373,7 @@ namespace Backtrace.Unity
                 return;
             }
 
-            queryAttributes["_mod_duplicate"] = record.Count.ToString();
+            queryAttributes["_mod_duplicate"] = record.Count.ToString(CultureInfo.InvariantCulture);
 
             StartCoroutine(
                 BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult result) =>
@@ -403,7 +404,7 @@ namespace Backtrace.Unity
                     stopWatch.Stop();
                     queryAttributes["performance.database.send"] = stopWatch.GetMicroseconds();
                 }
-                queryAttributes["_mod_duplicate"] = record.Count.ToString();
+                queryAttributes["_mod_duplicate"] = record.Count.ToString(CultureInfo.InvariantCulture);
 
                 StartCoroutine(
                      BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>

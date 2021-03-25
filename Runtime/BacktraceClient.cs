@@ -677,7 +677,7 @@ namespace Backtrace.Unity
 
             if (data.Deduplication != 0)
             {
-                queryAttributes["_mod_duplicate"] = data.Deduplication.ToString();
+                queryAttributes["_mod_duplicate"] = data.Deduplication.ToString(CultureInfo.InvariantCulture);
             }
 
             StartCoroutine(BacktraceApi.Send(json, data.Attachments, queryAttributes, (BacktraceResult result) =>
@@ -927,7 +927,7 @@ namespace Backtrace.Unity
                 if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
                 {
                     var report = new BacktraceReport(exception, attributes, attachmentPaths);
-                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
                     BackgroundExceptions.Push(report);
                     return false;
                 }
@@ -962,7 +962,7 @@ namespace Backtrace.Unity
                 if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
                 {
                     var report = new BacktraceReport(message, attributes, attachmentPaths);
-                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
                     BackgroundExceptions.Push(report);
                     return false;
                 }
@@ -1000,7 +1000,7 @@ namespace Backtrace.Unity
                 // and let update method send data to Backtrace.
                 if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
                 {
-                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
                     BackgroundExceptions.Push(report);
                     return false;
                 }
