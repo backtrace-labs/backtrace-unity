@@ -14,7 +14,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
         {
             uint reportLimitWatcherSize = 5;
             var reportLimitWatcher = new ReportLimitWatcher(reportLimitWatcherSize);
-            var timestamp = new DateTime().Timestamp();
+            var timestamp = DateTimeHelper.Timestamp();
             for (int i = 0; i < reportLimitWatcherSize; i++)
             {
                 var result = reportLimitWatcher.WatchReport(timestamp);
@@ -29,7 +29,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
         {
             uint reportLimitWatcherSize = 5;
             var reportLimitWatcher = new ReportLimitWatcher(reportLimitWatcherSize);
-            var timestamp = new DateTime().Timestamp();
+            var timestamp = DateTimeHelper.Timestamp();
             for (int i = 0; i < reportLimitWatcherSize; i++)
             {
                 var result = reportLimitWatcher.WatchReport(timestamp);
@@ -60,7 +60,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 {
                     for (int i = 0; i < reportLimitWatcherSize; i++)
                     {
-                        var result = reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+                        var result = reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
                         if (result)
                         {
                             acceptedReports++;

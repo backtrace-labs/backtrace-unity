@@ -8,6 +8,7 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using UnityEngine;
 
@@ -21,7 +22,7 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.4.0-rc1";
+        public const string VERSION = "3.4.0-rc2";
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -676,7 +677,7 @@ namespace Backtrace.Unity
 
             if (data.Deduplication != 0)
             {
-                queryAttributes["_mod_duplicate"] = data.Deduplication.ToString();
+                queryAttributes["_mod_duplicate"] = data.Deduplication.ToString(CultureInfo.InvariantCulture);
             }
 
             StartCoroutine(BacktraceApi.Send(json, data.Attachments, queryAttributes, (BacktraceResult result) =>
@@ -916,7 +917,7 @@ namespace Backtrace.Unity
             }
 
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
                 // This condition checks if we should send exception from current thread
@@ -926,7 +927,7 @@ namespace Backtrace.Unity
                 if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
                 {
                     var report = new BacktraceReport(exception, attributes, attachmentPaths);
-                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
                     BackgroundExceptions.Push(report);
                     return false;
                 }
@@ -951,7 +952,7 @@ namespace Backtrace.Unity
             }
 
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
                 // This condition checks if we should send exception from current thread
@@ -961,7 +962,7 @@ namespace Backtrace.Unity
                 if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
                 {
                     var report = new BacktraceReport(message, attributes, attachmentPaths);
-                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
                     BackgroundExceptions.Push(report);
                     return false;
                 }
@@ -990,7 +991,7 @@ namespace Backtrace.Unity
                 return false;
             }
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
                 // This condition checks if we should send exception from current thread
@@ -999,7 +1000,7 @@ namespace Backtrace.Unity
                 // and let update method send data to Backtrace.
                 if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
                 {
-                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
                     BackgroundExceptions.Push(report);
                     return false;
                 }

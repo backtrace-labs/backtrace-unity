@@ -4,6 +4,7 @@ using Backtrace.Unity.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -196,7 +197,7 @@ namespace Backtrace.Unity.Services
             var queryAttributes = new Dictionary<string, string>();
             if (deduplication > 0)
             {
-                queryAttributes["_mod_duplicate"] = deduplication.ToString();
+                queryAttributes["_mod_duplicate"] = deduplication.ToString(CultureInfo.InvariantCulture);
             }
             yield return Send(json, attachments, queryAttributes, callback);
 

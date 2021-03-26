@@ -3,6 +3,7 @@ using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 #if !UNITY_WEBGL
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -121,15 +122,15 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["application.id"] = Application.identifier;
             Attributes["application.installer.name"] = Application.installerName;
             Attributes["application.internet_reachability"] = Application.internetReachability.ToString();
-            Attributes["application.editor"] = Application.isEditor.ToString();
-            Attributes["application.focused"] = Application.isFocused.ToString();
-            Attributes["application.mobile"] = Application.isMobilePlatform.ToString();
-            Attributes["application.playing"] = Application.isPlaying.ToString();
-            Attributes["application.background"] = Application.runInBackground.ToString();
+            Attributes["application.editor"] = Application.isEditor.ToString(CultureInfo.InvariantCulture);
+            Attributes["application.focused"] = Application.isFocused.ToString(CultureInfo.InvariantCulture);
+            Attributes["application.mobile"] = Application.isMobilePlatform.ToString(CultureInfo.InvariantCulture);
+            Attributes["application.playing"] = Application.isPlaying.ToString(CultureInfo.InvariantCulture);
+            Attributes["application.background"] = Application.runInBackground.ToString(CultureInfo.InvariantCulture);
             Attributes["application.sandboxType"] = Application.sandboxType.ToString();
             Attributes["application.system.language"] = Application.systemLanguage.ToString();
             Attributes["application.unity.version"] = Application.unityVersion;
-            Attributes["application.debug"] = Debug.isDebugBuild.ToString();
+            Attributes["application.debug"] = Debug.isDebugBuild.ToString(CultureInfo.InvariantCulture);
 #if !UNITY_SWITCH
             Attributes["application.temporary_cache"] = Application.temporaryCachePath;
 #endif
@@ -220,21 +221,21 @@ namespace Backtrace.Unity.Model.JsonData
             //The number of Scenes which have been added to the Build Settings. The Editor will contain Scenes that were opened before entering playmode.
             if (SceneManager.sceneCountInBuildSettings > 0)
             {
-                Attributes["scene.count.build"] = SceneManager.sceneCountInBuildSettings.ToString();
+                Attributes["scene.count.build"] = SceneManager.sceneCountInBuildSettings.ToString(CultureInfo.InvariantCulture);
             }
-            Attributes["scene.count"] = SceneManager.sceneCount.ToString();
+            Attributes["scene.count"] = SceneManager.sceneCount.ToString(CultureInfo.InvariantCulture);
             if (onlyBuiltInAttributes)
             {
                 return;
             }
             var activeScene = SceneManager.GetActiveScene();
             Attributes["scene.active"] = activeScene.name;
-            Attributes["scene.buildIndex"] = activeScene.buildIndex.ToString();
+            Attributes["scene.buildIndex"] = activeScene.buildIndex.ToString(CultureInfo.InvariantCulture);
 #if UNITY_2018_4_OR_NEWER
-            Attributes["scene.handle"] = activeScene.handle.ToString();
+            Attributes["scene.handle"] = activeScene.handle.ToString(CultureInfo.InvariantCulture);
 #endif
-            Attributes["scene.isDirty"] = activeScene.isDirty.ToString();
-            Attributes["scene.isLoaded"] = activeScene.isLoaded.ToString();
+            Attributes["scene.isDirty"] = activeScene.isDirty.ToString(CultureInfo.InvariantCulture);
+            Attributes["scene.isLoaded"] = activeScene.isLoaded.ToString(CultureInfo.InvariantCulture);
             Attributes["scene.name"] = activeScene.name;
             Attributes["scene.path"] = activeScene.path;
         }
@@ -248,8 +249,8 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 return;
             }
-            Attributes["gc.heap.used"] = GC.GetTotalMemory(false).ToString();
-            Attributes["process.age"] = Math.Round(Time.realtimeSinceStartup).ToString();
+            Attributes["gc.heap.used"] = GC.GetTotalMemory(false).ToString(CultureInfo.InvariantCulture);
+            Attributes["process.age"] = Math.Round(Time.realtimeSinceStartup).ToString(CultureInfo.InvariantCulture);
         }
 
         private void SetGraphicCardInformation()
@@ -259,19 +260,19 @@ namespace Backtrace.Unity.Model.JsonData
             //The number is the same across operating systems and driver versions.
             //Note that device IDs are only implemented on PC(Windows / Mac / Linux) platforms and on Android when running
             //Vulkan; on other platforms you'll have to do name-based detection if needed.
-            Attributes["graphic.id"] = SystemInfo.graphicsDeviceID.ToString();
+            Attributes["graphic.id"] = SystemInfo.graphicsDeviceID.ToString(CultureInfo.InvariantCulture);
             Attributes["graphic.name"] = SystemInfo.graphicsDeviceName;
             Attributes["graphic.type"] = SystemInfo.graphicsDeviceType.ToString();
             Attributes["graphic.vendor"] = SystemInfo.graphicsDeviceVendor;
-            Attributes["graphic.vendor.id"] = SystemInfo.graphicsDeviceVendorID.ToString();
+            Attributes["graphic.vendor.id"] = SystemInfo.graphicsDeviceVendorID.ToString(CultureInfo.InvariantCulture);
 
             Attributes["graphic.driver.version"] = SystemInfo.graphicsDeviceVersion;
 
-            Attributes["graphic.memory"] = SystemInfo.graphicsMemorySize.ToString();
-            Attributes["graphic.multithreaded"] = SystemInfo.graphicsMultiThreaded.ToString();
+            Attributes["graphic.memory"] = SystemInfo.graphicsMemorySize.ToString(CultureInfo.InvariantCulture);
+            Attributes["graphic.multithreaded"] = SystemInfo.graphicsMultiThreaded.ToString(CultureInfo.InvariantCulture);
 
-            Attributes["graphic.shader"] = SystemInfo.graphicsShaderLevel.ToString();
-            Attributes["graphic.topUv"] = SystemInfo.graphicsUVStartsAtTop.ToString();
+            Attributes["graphic.shader"] = SystemInfo.graphicsShaderLevel.ToString(CultureInfo.InvariantCulture);
+            Attributes["graphic.topUv"] = SystemInfo.graphicsUVStartsAtTop.ToString(CultureInfo.InvariantCulture);
 
 
         }
@@ -286,7 +287,7 @@ namespace Backtrace.Unity.Model.JsonData
                 var batteryLevel = SystemInfo.batteryLevel == -1
                         ? -1
                         : SystemInfo.batteryLevel * 100;
-                Attributes["battery.level"] = batteryLevel.ToString();
+                Attributes["battery.level"] = batteryLevel.ToString(CultureInfo.InvariantCulture);
                 Attributes["battery.status"] = SystemInfo.batteryStatus.ToString();
             }
 
@@ -312,11 +313,11 @@ namespace Backtrace.Unity.Model.JsonData
             Attributes["uname.version"] = Environment.OSVersion.Version.ToString();
             Attributes["uname.fullname"] = SystemInfo.operatingSystem;
             Attributes["uname.family"] = SystemInfo.operatingSystemFamily.ToString();
-            Attributes["cpu.count"] = SystemInfo.processorCount.ToString();
-            Attributes["cpu.frequency"] = SystemInfo.processorFrequency.ToString();
+            Attributes["cpu.count"] = SystemInfo.processorCount.ToString(CultureInfo.InvariantCulture);
+            Attributes["cpu.frequency"] = SystemInfo.processorFrequency.ToString(CultureInfo.InvariantCulture);
             Attributes["cpu.brand"] = SystemInfo.processorType;
 
-            Attributes["audio.supported"] = SystemInfo.supportsAudio.ToString();
+            Attributes["audio.supported"] = SystemInfo.supportsAudio.ToString(CultureInfo.InvariantCulture);
 
             //Time when system was booted
             int boottime = Environment.TickCount;
@@ -324,7 +325,7 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 boottime = int.MaxValue;
             }
-            Attributes["cpu.boottime"] = boottime.ToString();
+            Attributes["cpu.boottime"] = boottime.ToString(CultureInfo.InvariantCulture);
 
             //The hostname of the crashing system.
             Attributes["hostname"] = Environment.MachineName;
@@ -332,7 +333,7 @@ namespace Backtrace.Unity.Model.JsonData
             if (SystemInfo.systemMemorySize != 0)
             {
                 //number of kilobytes that application is using.
-                Attributes["vm.rss.size"] = (SystemInfo.systemMemorySize * 1048576L).ToString();
+                Attributes["vm.rss.size"] = (SystemInfo.systemMemorySize * 1048576L).ToString(CultureInfo.InvariantCulture);
             }
 #endif
         }
