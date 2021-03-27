@@ -123,7 +123,7 @@ namespace Backtrace.Unity.Services
                 if (File.Exists(file) && new FileInfo(file).Length < 10000000)
                 {
                     formData.Add(new MultipartFormFileSection(
-                        string.Format("attachment__{0}", Path.GetFileName(file)),
+                        string.Format("attachment_{0}", Path.GetFileName(file)),
                         File.ReadAllBytes(file)));
                 }
             }
@@ -231,7 +231,7 @@ namespace Backtrace.Unity.Services
                 if (File.Exists(file) && new FileInfo(file).Length < 10000000)
                 {
                     formData.Add(new MultipartFormFileSection(
-                        string.Format("attachment__{0}", Path.GetFileName(file)),
+                        string.Format("attachment_{0}", Path.GetFileName(file)),
                         File.ReadAllBytes(file)));
                 }
             }
