@@ -19,6 +19,10 @@ namespace Backtrace.Unity.Services
     internal class BacktraceApi : IBacktraceApi
     {
         /// <summary>
+        /// Name reserved file with diagnostic data - JSON diagnostic data/minidump file
+        /// </summary>
+        private const string DiagnosticFileName = "upload_file";
+        /// <summary>
         /// User custom request method
         /// </summary>
         [Obsolete("RequestHandler is obsolete. BacktraceApi won't be able to provide BacktraceData in every situation")]
@@ -281,7 +285,7 @@ namespace Backtrace.Unity.Services
         {
             List<IMultipartFormSection> formData = new List<IMultipartFormSection>
             {
-                new MultipartFormFileSection("upload_file",  json, "upload_file.json", "application/json")
+                new MultipartFormFileSection(DiagnosticFileName,  json, string.Format("{0}.json",DiagnosticFileName), "application/json")
             };
             AddAttachmentToFormData(formData, attachments);
             return formData;
@@ -295,9 +299,10 @@ namespace Backtrace.Unity.Services
         /// <returns>Minidump form data</returns>
         private List<IMultipartFormSection> CreateMinidumpFormData(byte[] minidump, IEnumerable<string> attachments)
         {
+
             List<IMultipartFormSection> formData = new List<IMultipartFormSection>
             {
-                new MultipartFormFileSection("upload_file", minidump)
+                new MultipartFormFileSection(DiagnosticFileName, minidump)
             };
             AddAttachmentToFormData(formData, attachments);
             return formData;
@@ -307,12 +312,13 @@ namespace Backtrace.Unity.Services
         {
             // make sure attachments are not bigger than 10 Mb.
             const int maximumAttachmentSize = 10000000;
+            const string attachmentPrefix = "attachment_";
             foreach (var file in attachments)
             {
                 if (File.Exists(file) && new FileInfo(file).Length < maximumAttachmentSize)
                 {
                     formData.Add(new MultipartFormFileSection(
-                        string.Format("attachment_{0}", Path.GetFileName(file)),
+                        string.Format("{0}{1}", attachmentPrefix, Path.GetFileName(file)),
                         File.ReadAllBytes(file)));
                 }
             }
