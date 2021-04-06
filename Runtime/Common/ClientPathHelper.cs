@@ -12,14 +12,14 @@ namespace Backtrace.Unity.Common
         /// </summary>
         /// <param name="path">Backtrace path with interpolated string and other Backtrace's improvements</param>
         /// <returns>Full path to Backtrace file/directory</returns>
-        internal static string GetFulLPath(string path)
+        internal static string GetFullPath(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
                 return string.Empty;
             }
 
-            return path.ParseInterpolatedString().GetFullPath();
+            return path.ParseInterpolatedString().GenerateFullPath();
         }
 
         private static string ParseInterpolatedString(this string path)
@@ -53,7 +53,7 @@ namespace Backtrace.Unity.Common
 
         }
 
-        private static string GetFullPath(this string path)
+        private static string GenerateFullPath(this string path)
         {
             if (!Path.IsPathRooted(path))
             {

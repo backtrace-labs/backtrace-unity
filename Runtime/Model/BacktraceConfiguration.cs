@@ -245,7 +245,7 @@ namespace Backtrace.Unity.Model
             {
                 if (!string.IsNullOrEmpty(path))
                 {
-                    result.Add(ClientPathHelper.GetFulLPath(path));
+                    result.Add(ClientPathHelper.GetFullPath(path));
                 }
             }
             return result;
@@ -253,7 +253,7 @@ namespace Backtrace.Unity.Model
 
         public string GetFullDatabasePath()
         {
-            return ClientPathHelper.GetFulLPath(DatabasePath);
+            return ClientPathHelper.GetFullPath(DatabasePath);
         }
         public string CrashpadDatabasePath
         {
