@@ -8,6 +8,7 @@
 - `thread.main` attribute support - attribute stores an identifier of a main thread. In this situation user can use value available in this attribute to detect main thread.
 - Backtrace native integration will set `_mod_faulting_tid` attribute for ANR reports to set default faulting thread.
 - Fixed arabic language bug, that generated an unhandled exception on new Unity message.
+- Fixed attachment prefix `attachment__` -> `attachment_`
 
 ## Version 3.3.3
 
