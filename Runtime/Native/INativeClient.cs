@@ -40,5 +40,11 @@ namespace Backtrace.Unity.Runtime.Native
         /// Disable native integration
         /// </summary>
         void Disable();
+
+        /// <summary>
+        /// Pause ANR thread
+        /// </summary>
+        /// <param name="state">True if should pause, otherwise false.</param>
+        void PauseAnrThread(bool state);
     }
 }

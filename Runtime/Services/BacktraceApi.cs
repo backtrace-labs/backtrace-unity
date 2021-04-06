@@ -4,6 +4,7 @@ using Backtrace.Unity.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,10 @@ namespace Backtrace.Unity.Services
     /// </summary>
     internal class BacktraceApi : IBacktraceApi
     {
+        /// <summary>
+        /// Name reserved file with diagnostic data - JSON diagnostic data/minidump file
+        /// </summary>
+        private const string DiagnosticFileName = "upload_file";
         /// <summary>
         /// User custom request method
         /// </summary>
@@ -113,20 +118,7 @@ namespace Backtrace.Unity.Services
             {
                 yield break;
             }
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
-            {
-                new MultipartFormFileSection("upload_file", minidumpBytes)
-            };
-
-            foreach (var file in attachments)
-            {
-                if (File.Exists(file) && new FileInfo(file).Length < 10000000)
-                {
-                    formData.Add(new MultipartFormFileSection(
-                        string.Format("attachment__{0}", Path.GetFileName(file)),
-                        File.ReadAllBytes(file)));
-                }
-            }
+            var formData = CreateMinidumpFormData(minidumpBytes, attachments);
 
             yield return new WaitForEndOfFrame();
             var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
@@ -196,7 +188,7 @@ namespace Backtrace.Unity.Services
             var queryAttributes = new Dictionary<string, string>();
             if (deduplication > 0)
             {
-                queryAttributes["_mod_duplicate"] = deduplication.ToString();
+                queryAttributes["_mod_duplicate"] = deduplication.ToString(CultureInfo.InvariantCulture);
             }
             yield return Send(json, attachments, queryAttributes, callback);
 
@@ -220,22 +212,7 @@ namespace Backtrace.Unity.Services
                 ? GetParametrizedQuery(_serverUrl.ToString(), queryAttributes)
                 : ServerUrl;
 
-
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
-            {
-                new MultipartFormFileSection("upload_file",  Encoding.UTF8.GetBytes(json), "upload_file.json", "application/json")
-            };
-
-            foreach (var file in attachments)
-            {
-                if (File.Exists(file) && new FileInfo(file).Length < 10000000)
-                {
-                    formData.Add(new MultipartFormFileSection(
-                        string.Format("attachment__{0}", Path.GetFileName(file)),
-                        File.ReadAllBytes(file)));
-                }
-            }
-
+            var formData = CreateJsonFormData(Encoding.UTF8.GetBytes(json), attachments);
 
             var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
             using (var request = UnityWebRequest.Post(requestUrl, formData, boundaryIdBytes))
@@ -295,6 +272,55 @@ namespace Backtrace.Unity.Services
                     Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
+            }
+        }
+
+        /// <summary>
+        /// Generate JSON form data
+        /// </summary>
+        /// <param name="json">Diagnostic JSON bytes</param>
+        /// <param name="attachments">List of attachments</param>
+        /// <returns>Diagnostic JSON form data</returns>
+        private List<IMultipartFormSection> CreateJsonFormData(byte[] json, IEnumerable<string> attachments)
+        {
+            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
+            {
+                new MultipartFormFileSection(DiagnosticFileName,  json, string.Format("{0}.json",DiagnosticFileName), "application/json")
+            };
+            AddAttachmentToFormData(formData, attachments);
+            return formData;
+        }
+
+        /// <summary>
+        /// Create minidump form data
+        /// </summary>
+        /// <param name="minidump">Minidump bytes</param>
+        /// <param name="attachments">list of attachments</param>
+        /// <returns>Minidump form data</returns>
+        private List<IMultipartFormSection> CreateMinidumpFormData(byte[] minidump, IEnumerable<string> attachments)
+        {
+
+            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
+            {
+                new MultipartFormFileSection(DiagnosticFileName, minidump)
+            };
+            AddAttachmentToFormData(formData, attachments);
+            return formData;
+        }
+
+        private void AddAttachmentToFormData(List<IMultipartFormSection> formData, IEnumerable<string> attachments)
+        {
+            // make sure attachments are not bigger than 10 Mb.
+            const int maximumAttachmentSize = 10000000;
+            const string attachmentPrefix = "attachment_";
+            foreach (var file in attachments)
+            {
+                if (File.Exists(file) && new FileInfo(file).Length < maximumAttachmentSize)
+                {
+                    formData.Add(new MultipartFormFileSection(
+                        string.Format("{0}{1}", attachmentPrefix, Path.GetFileName(file)),
+                        File.ReadAllBytes(file)));
+                }
             }
         }
 

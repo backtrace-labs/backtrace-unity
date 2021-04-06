@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using System.Collections.Generic;
 
 namespace Backtrace.Unity.Runtime.Native
 {
@@ -12,7 +13,7 @@ namespace Backtrace.Unity.Runtime.Native
 #if UNITY_ANDROID
             return new Android.NativeClient(gameObjectName, configuration);
 #elif UNITY_IOS
-            return new iOS.NativeClient(gameObjectName, configuration);
+            return new iOS.NativeClient(configuration);
 #else
             return null;
 #endif

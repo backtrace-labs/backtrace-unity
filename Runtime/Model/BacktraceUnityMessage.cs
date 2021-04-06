@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text;
 using UnityEngine;
 
@@ -48,7 +49,7 @@ namespace Backtrace.Unity.Model
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendFormat(
                        "[{0}] {1}<{2}>: {3}", new object[4] {
-                            DateTime.Now.ToUniversalTime().ToString(),
+                            DateTime.Now.ToUniversalTime().ToString(CultureInfo.InvariantCulture),
                             backtraceFrame ? "(Backtrace)" : string.Empty,
                             Enum.GetName(typeof(LogType), Type),
                             Message}
