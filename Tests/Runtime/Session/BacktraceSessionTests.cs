@@ -53,7 +53,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
                 }
             };
 
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
             backtraceSession.Send();
 
             Assert.IsNotEmpty(jsonString);
@@ -84,7 +84,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             };
             backtraceSession.RequestHandler = requestHandler;
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
             backtraceSession.Send();
 
             Assert.AreEqual(requestHandler.NumberOfRequests, BacktraceSession.DefaultNumberOfRetries);
@@ -100,7 +100,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             };
             backtraceSession.RequestHandler = requestHandler;
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
             backtraceSession.Send();
 
             Assert.AreEqual(requestHandler.NumberOfRequests, 1);
@@ -116,7 +116,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
 
             for (int i = 0; i < numberOfTestEvents; i++)
             {
-                backtraceSession.AddUniqueEventAttribute($"{UniqueAttributeName} {i}", new Dictionary<string, string>() { { $"{UniqueAttributeName} {i}", "value" } });
+                backtraceSession.AddUniqueEvent($"{UniqueAttributeName} {i}", new Dictionary<string, string>() { { $"{UniqueAttributeName} {i}", "value" } });
             }
 
             Assert.AreEqual(maximumNumberOfEvents, backtraceSession.Count());
@@ -185,7 +185,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             backtraceSession.RequestHandler = requestHandler;
 
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
             backtraceSession.Tick(timeInterval + 1);
 
@@ -203,7 +203,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             backtraceSession.RequestHandler = requestHandler;
 
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
             backtraceSession.Tick(timeInterval - 1);
 
@@ -221,12 +221,12 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             backtraceSession.RequestHandler = requestHandler;
 
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
             backtraceSession.Tick(timeInterval + 1);
 
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
             backtraceSession.Tick((timeInterval * 2) + 1);
 
@@ -242,12 +242,12 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             backtraceSession.RequestHandler = requestHandler;
 
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
             backtraceSession.Tick(timeInterval + 1);
 
             backtraceSession.AddSessionEvent(SessionEventName);
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
             backtraceSession.Tick(timeInterval + 2);
 

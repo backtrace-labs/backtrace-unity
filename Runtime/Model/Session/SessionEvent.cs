@@ -5,7 +5,7 @@ namespace Backtrace.Unity.Model.Session
 {
     internal sealed class SessionEvent : EventAggregationBase
     {
-        internal const string MetircsGroupName = "metric_group";
+        internal const string MetricGroupName = "metric_group";
         internal readonly IDictionary<string, string> Attributes;
         internal SessionEvent(string name, long timestamp, IDictionary<string, string> attributes) : base(name, timestamp)
         {
@@ -22,7 +22,7 @@ namespace Backtrace.Unity.Model.Session
                 }
             }
             var jObject = ToBaseObject(attributes);
-            jObject.Add(MetircsGroupName, Name);
+            jObject.Add(MetricGroupName, Name);
 
             return jObject;
         }

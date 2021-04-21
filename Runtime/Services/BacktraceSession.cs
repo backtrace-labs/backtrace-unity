@@ -38,7 +38,7 @@ namespace Backtrace.Unity.Services
             }
         }
 
-        private int _numberOfDroppedEvents = 0;
+        private int _numberOfDroppedRequests = 0;
 
         /// <summary>
         /// List of unique events that will be added to next session submission payload
@@ -131,31 +131,36 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void Send()
         {
-            Send(numberOfRetries: 3);
+            Send(DefaultNumberOfRetries);
         }
 
         /// <summary>
         /// Force BacktraceSession to Send data to Backtrace with retry settings
         /// </summary>
-        public void Send(int numberOfRetries = DefaultNumberOfRetries)
+        public void Send(uint numberOfRetries = DefaultNumberOfRetries)
+        {
+            Send(
+               uniqueEvents: UniqueEvents.ToArray(),
+               sessionEvents: SessionEvents.ToArray(),
+               numberOfRetries: numberOfRetries);
+        }
+
+        private void Send(UniqueEvent[] uniqueEvents, SessionEvent[] sessionEvents, uint numberOfRetries)
         {
             if (numberOfRetries == 0)
             {
                 Debug.LogWarning("Backtrace Session: Cannot send session data to Backtrace due to submission issue.");
-                CleanEvents();
+                ClearEvents();
                 return;
             }
-            if (Count() == 0)
+            if (uniqueEvents.Length + sessionEvents.Length == 0)
             {
                 return;
             }
-            // create a copy of events 
-            var uniqueEvents = UniqueEvents.ToArray();
-            var sessionEvents = SessionEvents.ToArray();
             var payload = CreateJsonPayload(uniqueEvents, sessionEvents);
 
             // cleanup existing copy of events
-            CleanEvents();
+            ClearEvents();
 
             // submit data to Backtrace
             RequestHandler.Post(SubmissionUrl, payload, (long statusCode, bool httpError, string response) =>
@@ -164,11 +169,11 @@ namespace Backtrace.Unity.Services
                 {
                     OnRequestCompleted();
                 }
-                else
+                else if (statusCode == 503)
                 {
-                    OnRequestFailure(uniqueEvents, sessionEvents);
+                    _numberOfDroppedRequests++;
                     // assume that we should try to retry request on 503
-                    Send(numberOfRetries - 1);
+                    Send(uniqueEvents, sessionEvents, numberOfRetries - 1);
                 }
             });
         }
@@ -177,7 +182,7 @@ namespace Backtrace.Unity.Services
         /// Add unique event to next Backtrace session request
         /// </summary>
         /// <param name="attributeName">attribute name</param>
-        public bool AddUniqueEventAttribute(string attributeName, IDictionary<string, string> attributes = null)
+        public bool AddUniqueEvent(string attributeName, IDictionary<string, string> attributes = null)
         {
             if (!ShouldProcessEvent(attributeName))
             {
@@ -198,12 +203,6 @@ namespace Backtrace.Unity.Services
                 Debug.LogWarning("Attribute name is not available in attribute scope. Please define attribute to set unique event.");
                 return false;
             }
-            var existingEvent = UniqueEvents.FirstOrDefault(m => m.Name == attributeName);
-            if (existingEvent != null)
-            {
-                UniqueEvents.Remove(existingEvent);
-            }
-
             var @event = new UniqueEvent(attributeName, DateTimeHelper.Timestamp(), attributes);
             UniqueEvents.AddLast(@event);
             return true;
@@ -240,11 +239,6 @@ namespace Backtrace.Unity.Services
                 Debug.LogWarning("Skipping report: Reached store limit or event has empty name.");
                 return false;
             }
-            var existingEvent = SessionEvents.FirstOrDefault(m => m.Name == eventName);
-            if (existingEvent != null)
-            {
-                SessionEvents.Remove(existingEvent);
-            }
 
             var @event = new SessionEvent(eventName, DateTimeHelper.Timestamp(), attributes);
             SessionEvents.AddLast(@event);
@@ -254,7 +248,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Clean unique and session events stored in Backtrace Session
         /// </summary>
-        public void CleanEvents()
+        public void ClearEvents()
         {
             UniqueEvents.Clear();
             SessionEvents.Clear();
@@ -262,21 +256,8 @@ namespace Backtrace.Unity.Services
 
         private void OnRequestCompleted()
         {
-            _numberOfDroppedEvents = 0;
+            _numberOfDroppedRequests = 0;
             return;
-        }
-
-        private void OnRequestFailure(ICollection<UniqueEvent> uniqueEvents, ICollection<SessionEvent> sessionEvents)
-        {
-            _numberOfDroppedEvents++;
-            foreach (var uniqueEvent in uniqueEvents)
-            {
-                UniqueEvents.AddFirst(uniqueEvent);
-            }
-            foreach (var sessionEvent in sessionEvents)
-            {
-                SessionEvents.AddFirst(sessionEvent);
-            }
         }
 
         private BacktraceJObject CreateJsonPayload(ICollection<UniqueEvent> uniqueEvents, ICollection<SessionEvent> sessionEvents)
@@ -310,7 +291,7 @@ namespace Backtrace.Unity.Services
         private BacktraceJObject CreatePayloadMetadata()
         {
             var payload = new BacktraceJObject();
-            payload.Add("dropped_events", _numberOfDroppedEvents);
+            payload.Add("dropped_events", _numberOfDroppedRequests);
             return payload;
         }
     }

@@ -6,7 +6,7 @@ namespace Backtrace.Unity.Interfaces
     {
         string SubmissionUrl { get; set; }
         void Send();
-        bool AddUniqueEventAttribute(string attributeName, IDictionary<string, string> attributes);
+        bool AddUniqueEvent(string attributeName, IDictionary<string, string> attributes);
         bool AddSessionEvent(string sessionEvent, IDictionary<string, string> attributes);
         void Tick(long time);
     }

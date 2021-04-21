@@ -18,7 +18,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName, null);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName, null);
 
             Assert.AreEqual(backtraceSession.UniqueEvents.Count, 1);
             var uniqueEvent = backtraceSession.UniqueEvents.First.Value;
@@ -37,7 +37,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
 
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName, attributes);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName, attributes);
 
             Assert.AreEqual(backtraceSession.UniqueEvents.Count, 1);
             var uniqueEvent = backtraceSession.UniqueEvents.First.Value;
@@ -51,7 +51,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            var added = backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            var added = backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
             Assert.IsTrue(added);
             Assert.AreEqual(backtraceSession.UniqueEvents.Count, 1);
@@ -66,7 +66,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            var added = backtraceSession.AddUniqueEventAttribute($"{UniqueAttributeName}-not-existing");
+            var added = backtraceSession.AddUniqueEvent($"{UniqueAttributeName}-not-existing");
 
             Assert.IsFalse(added);
             Assert.AreEqual(backtraceSession.UniqueEvents.Count, 0);
@@ -78,7 +78,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            var added = backtraceSession.AddUniqueEventAttribute(string.Empty);
+            var added = backtraceSession.AddUniqueEvent(string.Empty);
 
             Assert.IsFalse(added);
             Assert.AreEqual(backtraceSession.UniqueEvents.Count, 0);
@@ -90,7 +90,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            backtraceSession.AddUniqueEventAttribute(null);
+            backtraceSession.AddUniqueEvent(null);
 
             Assert.AreEqual(backtraceSession.UniqueEvents.Count, 0);
         }
@@ -103,7 +103,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             _attributeProvider[UniqueAttributeName] = initializationValue;
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
             _attributeProvider[UniqueAttributeName] = updatedValue;
 
             var uniqueEvent = backtraceSession.UniqueEvents.First.Value;
@@ -119,7 +119,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             _attributeProvider[UniqueAttributeName] = initializationValue;
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            backtraceSession.AddUniqueEventAttribute(UniqueAttributeName);
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
             _attributeProvider[UniqueAttributeName] = string.Empty;
 
             var uniqueEvent = backtraceSession.UniqueEvents.First.Value;

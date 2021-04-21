@@ -25,28 +25,6 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             Assert.AreNotEqual(sessionEvent.Timestamp, 0);
         }
 
-
-        [Test]
-        public void BacktraceSessionSessionEvents_ShouldPreventFromAddingMultipleTheSameEvents_LastValueIsAvailable()
-        {
-            const string sessionEventName = "scene-changed";
-            const int numberOfTheSameEvents = 3;
-            string expectedLastKeyName = $"key-{numberOfTheSameEvents}";
-            string expectedLastKeyValue = numberOfTheSameEvents.ToString();
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
-
-            for (int i = 0; i <= numberOfTheSameEvents; i++)
-            {
-                backtraceSession.AddSessionEvent(sessionEventName, new Dictionary<string, string>() { { $"key-{i}", i.ToString() } });
-            }
-
-            Assert.AreEqual(backtraceSession.SessionEvents.Count, 1);
-            var sessionEvent = backtraceSession.SessionEvents.First.Value;
-            Assert.AreEqual(sessionEvent.Name, sessionEventName);
-            Assert.AreEqual(expectedLastKeyValue, sessionEvent.Attributes[expectedLastKeyName]);
-            Assert.AreEqual(1, sessionEvent.Attributes.Count);
-        }
-
         [Test]
         public void BacktraceSessionSessionEvents_ShouldntAddEmptyUniqueEvent_UniqueEventsAreEmpty()
         {
@@ -63,7 +41,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
 
-            backtraceSession.AddUniqueEventAttribute(null);
+            backtraceSession.AddUniqueEvent(null);
 
             Assert.AreEqual(backtraceSession.UniqueEvents.Count, 0);
         }
