@@ -141,7 +141,8 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         public void BacktraceSession_ShouldTriggerDownloadViaTickMethodWhenReachedMaximumNumberOfEvents_DataWasSendToBacktrace()
         {
             const int maximumNumberOfEvents = 3;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, maximumNumberOfEvents);
+            const int defaultTimeIntervalInMs = 10;
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, defaultTimeIntervalInMs, maximumNumberOfEvents);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
             for (int i = 0; i < maximumNumberOfEvents; i++)
@@ -149,7 +150,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
                 backtraceSession.AddSessionEvent($"{SessionEventName} {i}");
             }
 
-            backtraceSession.Tick(0);
+            backtraceSession.Tick(defaultTimeIntervalInMs + 1);
 
             Assert.AreEqual(0, backtraceSession.Count());
             Assert.AreEqual(1, requestHandler.NumberOfRequests);

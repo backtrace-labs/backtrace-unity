@@ -64,7 +64,7 @@ namespace Backtrace.Unity.Services
         /// Maximum number of events in store. If number of events in store hit the limit
         /// BacktraceSession instance will send data to Backtrace.
         /// </summary>
-        private int _maximumNumberOfEventsInStore;
+        private uint _maximumNumberOfEventsInStore;
 
         /// <summary>
         /// Http client
@@ -93,7 +93,7 @@ namespace Backtrace.Unity.Services
             AttributeProvider attributeProvider,
             string uploadUrl,
             long timeIntervalInMs,
-            int maximumNumberOfEventsInStore)
+            uint maximumNumberOfEventsInStore)
         {
             SubmissionUrl = uploadUrl;
             _attributeProvider = attributeProvider;
@@ -108,10 +108,14 @@ namespace Backtrace.Unity.Services
         /// <param name="time">Current game time</param>
         public void Tick(long time)
         {
+            if (_timeIntervalInMs == 0)
+            {
+                return;
+            }
             lock (_object)
             {
                 var intervalUpdate = (time - _lastUpdateTime) >= _timeIntervalInMs;
-                var reachedEventLimit = _maximumNumberOfEventsInStore == Count();
+                var reachedEventLimit = _maximumNumberOfEventsInStore == Count() && _maximumNumberOfEventsInStore != 0;
                 if (intervalUpdate == false && reachedEventLimit == false)
                 {
                     // nothing more to update
@@ -212,7 +216,7 @@ namespace Backtrace.Unity.Services
         /// <returns>True if we're able to add. Otherwise false.</returns>
         private bool ShouldProcessEvent(string name)
         {
-            return !string.IsNullOrEmpty(name) && (Count() + 1 <= _maximumNumberOfEventsInStore);
+            return !string.IsNullOrEmpty(name) && (_maximumNumberOfEventsInStore == 0 || (Count() + 1 <= _maximumNumberOfEventsInStore));
         }
 
 
