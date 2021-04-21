@@ -2,6 +2,7 @@
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
+using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Runtime.Native;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
@@ -26,11 +27,16 @@ namespace Backtrace.Unity
         public bool Enabled { get; private set; }
 
         /// <summary>
-        /// Client attributes
+        /// Client attribute provider
         /// </summary>
-        private readonly Dictionary<string, string> _clientAttributes = new Dictionary<string, string>();
+        private AttributeProvider _attributeProvider;
 
-        internal readonly Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
+        /// <summary>
+        /// Backtrace session instance
+        /// </summary>
+        public IBacktraceSession Session { get; internal set; }
+
+        internal Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
 
         /// <summary>
         /// Client report attachments
@@ -44,11 +50,11 @@ namespace Backtrace.Unity
         {
             get
             {
-                return _clientAttributes[index];
+                return _attributeProvider[index];
             }
             set
             {
-                _clientAttributes[index] = value;
+                _attributeProvider[index] = value;
                 if (_nativeClient != null)
                 {
                     _nativeClient.SetAttribute(index, value);
@@ -97,7 +103,7 @@ namespace Backtrace.Unity
         /// </summary>
         public int GetAttributesCount()
         {
-            return _clientAttributes.Count;
+            return _attributeProvider.Count();
         }
 
         /// <summary>
@@ -413,6 +419,7 @@ namespace Backtrace.Unity
             Enabled = true;
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
+            _attributeProvider = new AttributeProvider();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
             _clientReportAttachments = Configuration.GetAttachmentPaths();
 
@@ -443,20 +450,37 @@ namespace Backtrace.Unity
                 }
             }
 
-            _nativeClient = NativeClientFactory.GetNativeClient(Configuration, name);
-            if (_nativeClient != null)
-            {
-                foreach (var attribute in _clientAttributes)
-                {
-                    _nativeClient.SetAttribute(attribute.Key, attribute.Value);
-                }
-            }
+            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _attributeProvider.Get());
+            _attributeProvider.AddDynamicAttributeProvider(_nativeClient);
+
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
                 var nativeCrashUplaoder = new NativeCrashUploader();
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
+            if (Configuration.EnableEventAggregationSupport && !string.IsNullOrEmpty(Configuration.EventAggregationSubmissionUrl))
+            {
+                EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.TimeIntervalInMs, 10);
+            }
+        }
+
+        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, int maximumNumberOfEventsInStore)
+        {
+            if (Session != null)
+            {
+                Debug.LogWarning("Backtrace session aggregation support is enabled. Please use BacktraceClient.Session.");
+                return;
+            }
+            Session = new BacktraceSession(
+                attributeProvider: _attributeProvider,
+                uploadUrl: submissionUrl,
+                timeIntervalInMs: timeIntervalInMs,
+                maximumNumberOfEventsInStore: maximumNumberOfEventsInStore)
+            {
+                IgnoreSslValidation = Configuration.IgnoreSslValidation
+            };
+
         }
 
         private void OnApplicationQuit()
@@ -713,10 +737,7 @@ namespace Backtrace.Unity
             // apply _mod fingerprint attribute when client should use
             // normalized exception message instead environment stack trace
             // for exceptions without stack trace.
-            if (Configuration.UseNormalizedExceptionMessage)
-            {
-                report.SetReportFingerPrintForEmptyStackTrace();
-            }
+            report.SetReportFingerprint(Configuration.UseNormalizedExceptionMessage);
 
             // add environment information to backtrace report
             var sourceCode = _backtraceLogManager.Disabled
@@ -728,18 +749,7 @@ namespace Backtrace.Unity
 
             // pass copy of dictionary to prevent overriding client attributes
             var result = report.ToBacktraceData(null, GameObjectDepth);
-
-            // add native attributes to client report
-            if (_nativeClient != null)
-            {
-                _nativeClient.GetAttributes(result.Attributes.Attributes);
-            }
-
-            // apply client attributes
-            foreach (var attribute in _clientAttributes)
-            {
-                result.Attributes.Attributes[attribute.Key] = attribute.Value;
-            }
+            _attributeProvider.AddAttributes(result.Attributes.Attributes);
 
             return result;
         }

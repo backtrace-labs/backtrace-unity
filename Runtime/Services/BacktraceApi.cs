@@ -19,9 +19,9 @@ namespace Backtrace.Unity.Services
     internal class BacktraceApi : IBacktraceApi
     {
         /// <summary>
-        /// Name reserved file with diagnostic data - JSON diagnostic data/minidump file
+        /// Backtrace Http client instance.
         /// </summary>
-        private const string DiagnosticFileName = "upload_file";
+        private BacktraceHttpClient _httpClient = new BacktraceHttpClient();
         /// <summary>
         /// User custom request method
         /// </summary>
@@ -74,8 +74,6 @@ namespace Backtrace.Unity.Services
         private readonly BacktraceCredentials _credentials;
 
 
-
-        private readonly bool _ignoreSslValidation;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
@@ -90,9 +88,9 @@ namespace Backtrace.Unity.Services
                 throw new ArgumentException(string.Format("{0} cannot be null", "BacktraceCredentials"));
             }
 
-            _ignoreSslValidation = ignoreSslValidation;
             _serverUrl = credentials.GetSubmissionUrl();
             _minidumpUrl = credentials.GetMinidumpSubmissionUrl().ToString();
+            _httpClient.IgnoreSslValidation = ignoreSslValidation;
         }
 
         /// <summary>
@@ -118,20 +116,8 @@ namespace Backtrace.Unity.Services
             {
                 yield break;
             }
-            var formData = CreateMinidumpFormData(minidumpBytes, attachments);
-
-            yield return new WaitForEndOfFrame();
-            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
-            using (var request = UnityWebRequest.Post(_minidumpUrl, formData, boundaryIdBytes))
+            using (var request = _httpClient.Post(_minidumpUrl, minidumpBytes, attachments))
             {
-#if UNITY_2018_4_OR_NEWER
-                if (_ignoreSslValidation)
-                {
-                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
-                }
-#endif
-                request.SetRequestHeader("Content-Type", string.Format("multipart/form-data; boundary={0}", Encoding.UTF8.GetString(boundaryIdBytes)));
-                request.timeout = 15000;
                 yield return request.SendWebRequest();
                 var result = request.isNetworkError || request.isHttpError
                     ? new BacktraceResult()
@@ -212,21 +198,9 @@ namespace Backtrace.Unity.Services
                 ? GetParametrizedQuery(_serverUrl.ToString(), queryAttributes)
                 : ServerUrl;
 
-            var formData = CreateJsonFormData(Encoding.UTF8.GetBytes(json), attachments);
-
-            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
-            using (var request = UnityWebRequest.Post(requestUrl, formData, boundaryIdBytes))
+            using (var request = _httpClient.Post(requestUrl, json, attachments))
             {
-#if UNITY_2018_4_OR_NEWER
-                if (_ignoreSslValidation)
-                {
-                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
-                }
-#endif
-                request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + Encoding.UTF8.GetString(boundaryIdBytes));
-                request.timeout = 15000;
                 yield return request.SendWebRequest();
-
                 BacktraceResult result;
                 if (request.responseCode == 429)
                 {
@@ -272,55 +246,6 @@ namespace Backtrace.Unity.Services
                     Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
-            }
-        }
-
-        /// <summary>
-        /// Generate JSON form data
-        /// </summary>
-        /// <param name="json">Diagnostic JSON bytes</param>
-        /// <param name="attachments">List of attachments</param>
-        /// <returns>Diagnostic JSON form data</returns>
-        private List<IMultipartFormSection> CreateJsonFormData(byte[] json, IEnumerable<string> attachments)
-        {
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
-            {
-                new MultipartFormFileSection(DiagnosticFileName,  json, string.Format("{0}.json",DiagnosticFileName), "application/json")
-            };
-            AddAttachmentToFormData(formData, attachments);
-            return formData;
-        }
-
-        /// <summary>
-        /// Create minidump form data
-        /// </summary>
-        /// <param name="minidump">Minidump bytes</param>
-        /// <param name="attachments">list of attachments</param>
-        /// <returns>Minidump form data</returns>
-        private List<IMultipartFormSection> CreateMinidumpFormData(byte[] minidump, IEnumerable<string> attachments)
-        {
-
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
-            {
-                new MultipartFormFileSection(DiagnosticFileName, minidump)
-            };
-            AddAttachmentToFormData(formData, attachments);
-            return formData;
-        }
-
-        private void AddAttachmentToFormData(List<IMultipartFormSection> formData, IEnumerable<string> attachments)
-        {
-            // make sure attachments are not bigger than 10 Mb.
-            const int maximumAttachmentSize = 10000000;
-            const string attachmentPrefix = "attachment_";
-            foreach (var file in attachments)
-            {
-                if (File.Exists(file) && new FileInfo(file).Length < maximumAttachmentSize)
-                {
-                    formData.Add(new MultipartFormFileSection(
-                        string.Format("{0}{1}", attachmentPrefix, Path.GetFileName(file)),
-                        File.ReadAllBytes(file)));
-                }
             }
         }
 

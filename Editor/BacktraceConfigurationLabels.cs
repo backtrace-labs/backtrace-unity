@@ -18,6 +18,12 @@
             "(Early access) Send Out of memory exceptions to Backtrace";
 #endif
 #endif
+
+        internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable event aggregation support";
+        internal const string LABEL_EVENT_AGGREGATION_URL = "Event aggregation submission URL";
+        internal const string LABEL_EVENT_AGGREGATION_TIME_INTERVAL = "Event aggregation time interval in ms";
+
+
         internal static string LABEL_REPORT_ATTACHMENTS = "Report attachment paths";
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";

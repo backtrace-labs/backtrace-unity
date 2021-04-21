@@ -19,7 +19,7 @@ namespace Backtrace.Unity.Json
         /// <summary>
         /// JSON object source - primitive values
         /// </summary>
-        internal readonly Dictionary<string, string> UserPrimitives;
+        internal readonly IDictionary<string, string> UserPrimitives;
 
         /// <summary>
         /// Inner objects
@@ -34,7 +34,7 @@ namespace Backtrace.Unity.Json
 
         public BacktraceJObject() : this(null) { }
 
-        public BacktraceJObject(Dictionary<string, string> source)
+        public BacktraceJObject(IDictionary<string, string> source)
         {
             UserPrimitives = source == null ? new Dictionary<string, string>() : source;
         }

@@ -85,6 +85,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Enable performance statistics")]
         public bool PerformanceStatistics = false;
+
         /// <summary>
         /// Try to find game native crashes and send them on Game startup
         /// </summary>
@@ -175,6 +176,25 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]
         public string DatabasePath;
+
+        /// <summary>
+        /// Enable event aggregation support
+        /// </summary>
+        [Header("Backtrace event aggregation")]
+        [Tooltip("Enable event aggregation support")]
+        public bool EnableEventAggregationSupport = false;
+
+        /// <summary>
+        /// Event aggregation submission url
+        /// </summary>
+        [Tooltip("Event aggregation submission url")]
+        public string EventAggregationSubmissionUrl;
+
+        /// <summary>
+        /// Time interval in ms
+        /// </summary>
+        [Tooltip("Event aggregation submission url")]
+        public long TimeIntervalInMs = 0;
 
         /// <summary>
         /// Determine if database is enable

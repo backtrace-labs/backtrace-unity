@@ -1,5 +1,4 @@
 ﻿using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -113,7 +112,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
         private bool _captureNativeCrashes = false;
         private readonly bool _handlerANR = false;
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
+        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes)
         {
             _configuration = configuration;
             SetDefaultAttributeMaps();
@@ -124,7 +123,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
 #if UNITY_ANDROID
             _handlerANR = _configuration.HandleANR;
-            HandleNativeCrashes();
+            HandleNativeCrashes(clientAttributes);
             HandleAnr(gameObjectName, "OnAnrDetected");
 
             // read device manufacturer
@@ -154,7 +153,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes()
+        private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes)
         {
             // make sure database is enabled 
             var integrationDisabled =
@@ -206,8 +205,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
                 return;
             }
-            // get default built-in Backtrace-Unity attributes
-            var backtraceAttributes = new BacktraceAttributes(null, null, true).Attributes;
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
             var attachments = _configuration.GetAttachmentPaths().ToArray();
@@ -244,7 +241,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
         /// <returns>Backtrace Attributes from the Android build</returns>
-        public void GetAttributes(Dictionary<string, string> result)
+        public void GetAttributes(IDictionary<string, string> result)
         {
             if (!_enabled)
             {

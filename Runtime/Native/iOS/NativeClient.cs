@@ -68,7 +68,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
 #endif
 
-        public NativeClient(BacktraceConfiguration configuration)
+        public NativeClient(BacktraceConfiguration configuration, , IDictionary<string, string> clientAttributes)
         {
             if (INITIALIZED || !_enabled)
             {
@@ -76,7 +76,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             if (configuration.CaptureNativeCrashes)
             {
-                HandleNativeCrashes(configuration);
+                HandleNativeCrashes(configuration, clientAttributes);
                 INITIALIZED = true;
             }
             if (configuration.HandleANR)
@@ -93,7 +93,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes(BacktraceConfiguration configuration)
+        private void HandleNativeCrashes(BacktraceConfiguration configuration, IDictionary<string, string> attributes)
         {
             var databasePath = configuration.GetFullDatabasePath();
             // make sure database is enabled 
@@ -109,9 +109,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             // add exception.type attribute to PLCrashReporter reports
             // The library will send PLCrashReporter crashes to Backtrace
             // only when Crash occured
-            backtraceAttributes.Attributes["error.type"] = "Crash";
-            var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
-            var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
+            attributes["error.type"] = "Crash";
+            var attributeKeys = attributes.Keys.ToArray();
+            var attributeValues = attributes.Values.ToArray();
             var attachments = configuration.GetAttachmentPaths().ToArray();
 
             Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments, attachments.Length);
@@ -121,7 +121,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
         /// <returns>Backtrace Attributes from the Android build</returns>
-        public void GetAttributes(Dictionary<string, string> result)
+        public void GetAttributes(IDictionary<string, string> result)
         {
             if (!_enabled)
             {

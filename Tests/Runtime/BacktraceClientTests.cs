@@ -232,7 +232,7 @@ namespace Backtrace.Unity.Tests.Runtime
             {
                 DiagnosticStack = new System.Collections.Generic.List<BacktraceStackFrame>()
             };
-            report.SetReportFingerPrintForEmptyStackTrace();
+            report.SetReportFingerprint(true);
 
             Assert.AreEqual(message.OnlyLetters().GetSha(), report.Attributes["_mod_fingerprint"]);
         }
