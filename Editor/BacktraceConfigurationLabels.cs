@@ -19,7 +19,7 @@
 #endif
 #endif
 
-        internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable event aggregation support";
+        internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable default crash free events";
         internal const string LABEL_EVENT_AGGREGATION_URL = "Event aggregation submission URL";
         internal const string LABEL_EVENT_AGGREGATION_TIME_INTERVAL = "Event aggregation time interval in ms";
 

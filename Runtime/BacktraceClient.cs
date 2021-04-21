@@ -461,11 +461,11 @@ namespace Backtrace.Unity
             }
             if (Configuration.EnableEventAggregationSupport && !string.IsNullOrEmpty(Configuration.EventAggregationSubmissionUrl))
             {
-                EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.TimeIntervalInMs, 10);
+                EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs(), Configuration.MaximumNumberOfEvents);
             }
         }
 
-        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, int maximumNumberOfEventsInStore)
+        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, uint maximumNumberOfEventsInStore)
         {
             if (Session != null)
             {

@@ -96,7 +96,7 @@ namespace Backtrace.Unity.Editor
             }
 
             GUIStyle eventAggregationFoldout = new GUIStyle(EditorStyles.foldout);
-            showEventAggregationSettings = EditorGUILayout.Foldout(showEventAggregationSettings, "Event aggregation settings", eventAggregationFoldout);
+            showEventAggregationSettings = EditorGUILayout.Foldout(showEventAggregationSettings, "Crash-free event configuration", eventAggregationFoldout);
             if (showEventAggregationSettings)
             {
                 var enableEventAggregation = serializedObject.FindProperty("EnableEventAggregationSupport");
