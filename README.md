@@ -145,7 +145,7 @@ The plugin will report on 6 'classes' or errors:
 3) Handled Exceptions - Exceptions that are explicitly caught and handled.
 4) Crashes - An end to the game play experience. The game crashes or restarts. 
 5) Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
-6) Low memory warning - A game is receiving signals from the OS that memory is under pressure or crashed under memory pressure.
+6) Out of memory crashes (mobile only) - A game crashed under memory pressure.
 
 The plugin provides 3 controls for managing what the client will report. 
 - [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors.
@@ -171,7 +171,7 @@ The following is a reference guide to the Backtrace Client fields:
 - Enabled performance statistics: Allows `BacktraceClient` to measure execution time and include performance information as report attributes.
 - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
 - Handle ANR (Application not responding) - this option is available in Android and iOS build only.  It allows to catch and report on ANR (application not responding) events happening in your game on mobile platform. See [here](#anr-reporting) for details.
-- (Early Access) Send out of memory exceptions to Backtrace - this option is available in Android and iOS build only. See [here](#oom-reporting) for details.
+- (Early Access) Send out of memory crashes to Backtrace - this option is available in mobile builds only.
 - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
 - Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS 
 `${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
@@ -203,11 +203,13 @@ The `error.type` for these reports will be `Hang`.
 
 ## (Early Access) Low Memory Reports <a name="oom-reporting"></a>
 
-Backtrace can detect low memory situations for a game running in Unity on Android devices, and attempt to generate an error report with an associated dump object for further investigation. When configuring the backtrace-unity client for an Android deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable sending Low memory warnings to Backtrace. 
+Backtrace can detect flag low memory conditions for a Unity game running on Android devices. If the operating system decides to kill the game due to memory pressure, that will be registered as a native crash, but two addition attributes will be set:
+- `memory.warning` will be set to `true` 
+- `memory.warning.date` will be set to the local time of the device when the low memory condition was detected. 
+
+These attributes will be cleared 2 minutes after the low memory event has been detected. This functionality can be toggled on or off in the Backtrace configuration.
 
 The `error.type` for these reports will be `Low Memory`.
-
-Our integration is built in such a way that if multiple low memory warnings are being generated in rapid succession, we will only send a report every 2 minutes. Currently, this is not configurable.
 
 Note that this functionality is released as 'early access' and will be functionally improved in the near future to aid root cause resolution.
 
@@ -237,7 +239,9 @@ system and vm usage related information including system.memory.free, system.mem
 When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
 
 ## Low Memory Reports (Early access)
-Backtrace can detect low memory situations for a game running in Unity on iOS devices, and attempt to generate an error report with an associated dump object for further investigation. When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable sending Out of memory exceptions to Backtrace. The `error.type` for these reports wiill be `Low Memory`.
+On iOS devices, when the operation system indicates there's memory pressure, Backtrace can save the application state on the mobile device. When the operating system ends up killing the game, upon restart Backtrace will inspect the state file and deduce if the game was terminated because of memory pressure (for more information on the algorithm, see the [backtrace-cocoa repository](https://github.com/backtrace-labs/backtrace-cocoa#how-does-your-out-of-memory-detection-algorithm-work-)). If so, an error will be sent based on the data that was previously collected and persisted.  This functionality can be toggled on or off in the Backtrace configuration.
+
+The `error.type` for these reports will be `Low Memory`.
 
 ## Native Crashes
 When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporter from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
