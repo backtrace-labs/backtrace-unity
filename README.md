@@ -221,10 +221,6 @@ This functionality can be toggled on or off in the Backtrace configuration.
 
 Note that this functionality is released as 'early access' and will be functionally improved in the near future to aid root cause resolution.
 
-The `error.type` for these reports will be `Low Memory`.
-
-Note that this functionality is released as 'early access' and will be functionally improved in the near future to aid root cause resolution.
-
 ## Symbols upload
 
 Unity allows developer to generate symbols archive called `symbols.zip` in the il2cpp build pipeline in the root directory of your game. In this archive you can find generated symbols for your game libraries. When your game crashes due to a native exception, your stack trace will contain only memory addresses instead of function name. Symbols from `symbols.zip` archive allows Backtrace to match function address to function name in your source code.
@@ -258,6 +254,8 @@ When configuring the backtrace-unity client for an iOS deployment, programmers w
 On iOS devices, when the operation system indicates there's memory pressure, Backtrace take a snapshot of the application state and persists it on the mobile device. When the operating system ends up killing the game, upon restart Backtrace will inspect the state file and deduce if the game was terminated because of memory pressure (for more information on the algorithm, see the [backtrace-cocoa repository](https://github.com/backtrace-labs/backtrace-cocoa#how-does-your-out-of-memory-detection-algorithm-work-)). If so, an error will be sent based on the data that was previously collected and persisted. Note that a snapshot will be taken every 2 minutes at most if low memory conditions persist.
 
 Backtrace can detect low memory situations for a game running in Unity on iOS devices, and attempt to generate an error report with an associated dump object for further investigation. When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable sending Out of memory exceptions to Backtrace. The `error.type` for these reports wiill be `Low Memory`.
+
+This functionality can be toggled on or off in the Backtrace configuration.
 
 This functionality can be toggled on or off in the Backtrace configuration.
 
