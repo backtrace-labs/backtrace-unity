@@ -151,7 +151,7 @@ The plugin will report on 6 'classes' or errors:
 3. Handled Exceptions - Exceptions that are explicitly caught and handled.
 4. Crashes - An end to the game play experience. The game crashes or restarts.
 5. Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
-6. Low memory warning - A game is receiving signals from the OS that memory is under pressure or crashed under memory pressure.
+6. Out of memory crashes (mobile only) - A game crashed under memory pressure.
 
 The plugin provides 3 controls for managing what the client will report.
 
@@ -221,7 +221,7 @@ This functionality can be toggled on or off in the Backtrace configuration.
 
 Note that this functionality is released as 'early access' and will be functionally improved in the near future to aid root cause resolution.
 
-Our integration is built in such a way that if multiple low memory warnings are being generated in rapid succession, we will only send a report every 2 minutes. Currently, this is not configurable.
+The `error.type` for these reports will be `Low Memory`.
 
 Note that this functionality is released as 'early access' and will be functionally improved in the near future to aid root cause resolution.
 
