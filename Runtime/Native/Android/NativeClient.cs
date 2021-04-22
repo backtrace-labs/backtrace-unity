@@ -2,6 +2,7 @@
 using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -16,18 +17,31 @@ namespace Backtrace.Unity.Runtime.Native.Android
     internal class NativeClient : INativeClient
     {
         // Last Backtrace client update time 
-        internal float _lastUpdateTime;
+        volatile internal float _lastUpdateTime;
+
+        /// <summary>
+        /// Determine if the ANR background thread should be disabled or not 
+        /// for some period of time.
+        /// This option will be used by the native client implementation
+        /// once application goes to background/foreground
+        /// </summary>
+        volatile internal bool _preventAnr = false;
+
+        /// <summary>
+        /// Determine if ANR thread should exit
+        /// </summary>
+        volatile internal bool _stopAnr = false;
 
         private Thread _anrThread;
 
         [DllImport("backtrace-native")]
-        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values);
+        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
 
         [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
-        private static extern bool NativeReport(IntPtr message);
+        private static extern bool NativeReport(IntPtr message, bool setMainThreadAsFaultingThread);
 
         /// <summary>
         /// Native client built-in specific attributes
@@ -193,9 +207,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
             // get default built-in Backtrace-Unity attributes
-            var backtraceAttributes = new BacktraceAttributes(null, null, true);
+            var backtraceAttributes = new BacktraceAttributes(null, null, true).Attributes;
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
+            var attachments = _configuration.GetAttachmentPaths().ToArray();
 
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad
@@ -204,12 +219,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Keys.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Attributes.Values.ToArray()));
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Keys.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Values.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(attachments));
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
             }
+
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
             // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
             // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
@@ -301,42 +318,50 @@ namespace Backtrace.Unity.Runtime.Native.Android
             _anrThread = new Thread(() =>
             {
                 float lastUpdatedCache = 0;
-                while (true)
+                while (_anrThread.IsAlive && _stopAnr == false)
                 {
-                    if (lastUpdatedCache == 0)
+                    if (!_preventAnr)
                     {
-                        lastUpdatedCache = _lastUpdateTime;
-                    }
-                    else if (lastUpdatedCache == _lastUpdateTime)
-                    {
-                        if (!reported)
+                        if (lastUpdatedCache == 0)
                         {
-
-                            reported = true;
-                            if (AndroidJNI.AttachCurrentThread() == 0)
+                            lastUpdatedCache = _lastUpdateTime;
+                        }
+                        else if (lastUpdatedCache == _lastUpdateTime)
+                        {
+                            if (!reported)
                             {
-                                // set temporary attribute to "Hang"
-                                AddAttribute(
-                                    AndroidJNI.NewStringUTF("error.type"),
-                                    AndroidJNI.NewStringUTF("Hang"));
 
-                                NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."));
-                                // update error.type attribute in case when crash happen 
-                                SetAttribute("error.type", "Crash");
+                                reported = true;
+                                if (AndroidJNI.AttachCurrentThread() == 0)
+                                {
+                                    // set temporary attribute to "Hang"
+                                    AddAttribute(
+                                        AndroidJNI.NewStringUTF("error.type"),
+                                        AndroidJNI.NewStringUTF("Hang"));
+
+                                    NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."), true);
+                                    // update error.type attribute in case when crash happen 
+                                    SetAttribute("error.type", "Crash");
+                                }
                             }
                         }
+                        else
+                        {
+                            reported = false;
+                        }
+
+                        lastUpdatedCache = _lastUpdateTime;
                     }
-                    else
+                    else if (lastUpdatedCache != 0)
                     {
-                        reported = false;
+                        // make sure when ANR happened just after going to foreground
+                        // we won't false positive ANR report
+                        lastUpdatedCache = 0;
                     }
-
-                    lastUpdatedCache = _lastUpdateTime;
                     Thread.Sleep(5000);
-
                 }
             });
-
+            _anrThread.IsBackground = true;
             _anrThread.Start();
         }
 
@@ -369,7 +394,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public bool OnOOM()
         {
             SetAttribute("memory.warning", "true");
-            SetAttribute("memory.warning.date", DateTime.Now.ToString());
+            SetAttribute("memory.warning.date", DateTime.Now.ToString(CultureInfo.InvariantCulture));
             return true;
         }
 
@@ -389,8 +414,17 @@ namespace Backtrace.Unity.Runtime.Native.Android
         {
             if (_anrThread != null)
             {
-                _anrThread.Abort();
+                _stopAnr = true;
             }
+        }
+
+        /// <summary>
+        /// Pause ANR detection
+        /// </summary>
+        /// <param name="stopAnr">True - if native client should pause ANR detection"</param>
+        public void PauseAnrThread(bool stopAnr)
+        {
+            _preventAnr = stopAnr;
         }
     }
 }

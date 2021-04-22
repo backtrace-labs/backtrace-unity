@@ -1,7 +1,9 @@
 ﻿using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace Backtrace.Unity.Tests.Runtime
@@ -57,11 +59,15 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
 
-        [TestCase(5)]
-        [TestCase(10)]
-        [TestCase(25)]
-        public void TestLogManagerLimit_AddMessagesThatMatchLimitCriteria_AllMessagesShouldBeInLogManager(int numberOfLogs)
+        [TestCase(5, "ar-DZ")]
+        [TestCase(10, "ar-SA")]
+        [TestCase(25, "ko-KR")]
+        public void TestLogManagerLimit_AddMessagesThatMatchLimitCriteria_AllMessagesShouldBeInLogManager(int numberOfLogs, string cultureName)
         {
+            var culture = CultureInfo.GetCultureInfo(cultureName);
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+
             var message = "fake message";
             var stackTrace = string.Empty;
             var type = LogType.Log;

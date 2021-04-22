@@ -8,6 +8,8 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
@@ -20,13 +22,20 @@ namespace Backtrace.Unity
     {
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.3.3";
+        public const string VERSION = "3.4.0";
         public bool Enabled { get; private set; }
 
         /// <summary>
         /// Client attributes
         /// </summary>
         private readonly Dictionary<string, string> _clientAttributes = new Dictionary<string, string>();
+
+        internal readonly Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
+
+        /// <summary>
+        /// Client report attachments
+        /// </summary>
+        private List<string> _clientReportAttachments;
 
         /// <summary>
         /// Attribute object accessor
@@ -45,6 +54,26 @@ namespace Backtrace.Unity
                     _nativeClient.SetAttribute(index, value);
                 }
             }
+        }
+
+        /// <summary>
+        /// Add attachment to managed reports.
+        /// Note: this option won't add attachment to your native reports. You can add attachments to
+        /// native reports only on BacktraceClient initialization.
+        /// </summary>
+        /// <param name="pathToAttachment">Path to attachment</param>
+        public void AddAttachment(string pathToAttachment)
+        {
+            _clientReportAttachments.Add(pathToAttachment);
+        }
+
+        /// <summary>
+        /// Returns list of defined path to attachments stored by Backtrace client.
+        /// </summary>
+        /// <returns>List of client attachments</returns>
+        public List<string> GetAttachments()
+        {
+            return _clientReportAttachments;
         }
 
         /// <summary>
@@ -268,6 +297,7 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="configuration">Backtrace configuration scriptable object</param>
         /// <param name="attributes">Client side attributes</param>
+        /// param name="attachments">List of attachments </param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
@@ -311,8 +341,23 @@ namespace Backtrace.Unity
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
         {
+            return Initialize(url, databasePath, attributes, null, gameObjectName);
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration with database path. Note - database path will be auto created by Backtrace Unity plugin
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="databasePath">Database path</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="attachments">Paths to attachments that Backtrace client will include in managed/native reports</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = "BacktraceClient")
+        {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
+            configuration.AttachmentPaths = attachments;
             configuration.Enabled = true;
             configuration.DatabasePath = databasePath;
             configuration.CreateDatabase = true;
@@ -328,8 +373,22 @@ namespace Backtrace.Unity
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
         {
+            return Initialize(url, attributes, new string[0], gameObjectName);
+        }
+
+        /// <summary>
+        /// Initialize new Backtrace integration
+        /// </summary>
+        /// <param name="url">Server url</param>
+        /// <param name="attributes">Client side attributes</param>
+        /// <param name="attachments">Paths to attachments that Backtrace client will include in managed/native reports</param>
+        /// <param name="gameObjectName">game object name</param>
+        /// <returns>Backtrace client</returns>
+        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = "BacktraceClient")
+        {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
+            configuration.AttachmentPaths = attachments;
             configuration.Enabled = false;
             return Initialize(configuration, attributes, gameObjectName);
         }
@@ -352,10 +411,10 @@ namespace Backtrace.Unity
             }
 
             Enabled = true;
-
+            _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
-
+            _clientReportAttachments = Configuration.GetAttachmentPaths();
 
             BacktraceApi = new BacktraceApi(
                 credentials: new BacktraceCredentials(Configuration.GetValidServerUrl()),
@@ -413,20 +472,32 @@ namespace Backtrace.Unity
         /// <summary>
         /// Update native client internal ANR timer.
         /// </summary>
-        private void Update()
+        private void LateUpdate()
         {
             _nativeClient?.UpdateClientTime(Time.unscaledTime);
+
+            if (BackgroundExceptions.Count == 0)
+            {
+                return;
+            }
+            while (BackgroundExceptions.Count > 0)
+            {
+                // use SendReport method isntead of Send method
+                // because we already applied all watchdog/skipReport rules
+                // so we don't need to apply them once again
+                SendReport(BackgroundExceptions.Pop());
+            }
         }
 
         private void OnDestroy()
         {
             Enabled = false;
             Application.logMessageReceived -= HandleUnityMessage;
+            Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
             Application.lowMemory -= HandleLowMemory;
             _nativeClient?.Disable();
 #endif
-
         }
 
         /// <summary>
@@ -606,7 +677,7 @@ namespace Backtrace.Unity
 
             if (data.Deduplication != 0)
             {
-                queryAttributes["_mod_duplicate"] = data.Deduplication.ToString();
+                queryAttributes["_mod_duplicate"] = data.Deduplication.ToString(CultureInfo.InvariantCulture);
             }
 
             StartCoroutine(BacktraceApi.Send(json, data.Attachments, queryAttributes, (BacktraceResult result) =>
@@ -653,6 +724,7 @@ namespace Backtrace.Unity
                 : _backtraceLogManager.ToSourceCode();
 
             report.AssignSourceCodeToReport(sourceCode);
+            report.AttachmentPaths.AddRange(_clientReportAttachments);
 
             // pass copy of dictionary to prevent overriding client attributes
             var result = report.ToBacktraceData(null, GameObjectDepth);
@@ -691,6 +763,8 @@ namespace Backtrace.Unity
         }
 #endif
 
+        private Thread _current;
+
         /// <summary>
         /// Handle Unity unhandled exceptions
         /// </summary>
@@ -700,10 +774,27 @@ namespace Backtrace.Unity
             if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
             {
                 Application.logMessageReceived += HandleUnityMessage;
+                Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
                 Application.lowMemory += HandleLowMemory;
 #endif
             }
+        }
+
+        internal void OnApplicationPause(bool pause)
+        {
+            _nativeClient?.PauseAnrThread(pause);
+        }
+
+        internal void HandleUnityBackgroundException(string message, string stackTrace, LogType type)
+        {
+            // validate if a message is from main thread
+            // and skip messages from main thread
+            if (Thread.CurrentThread == _current)
+            {
+                return;
+            }
+            HandleUnityMessage(message, stackTrace, type);
         }
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -824,10 +915,22 @@ namespace Backtrace.Unity
             {
                 return false;
             }
+
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
+                // This condition checks if we should send exception from current thread
+                // if comparision result confirm that we're trying to send an exception from different
+                // thread than main, we should add the exception object to the exception list 
+                // and let update method send data to Backtrace.
+                if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
+                {
+                    var report = new BacktraceReport(exception, attributes, attachmentPaths);
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
+                    BackgroundExceptions.Push(report);
+                    return false;
+                }
                 return true;
             }
             if (OnClientReportLimitReached != null)
@@ -849,9 +952,20 @@ namespace Backtrace.Unity
             }
 
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
+                // This condition checks if we should send exception from current thread
+                // if comparision result confirm that we're trying to send an exception from different
+                // thread than main, we should add the exception object to the exception list 
+                // and let update method send data to Backtrace.
+                if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
+                {
+                    var report = new BacktraceReport(message, attributes, attachmentPaths);
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
+                    BackgroundExceptions.Push(report);
+                    return false;
+                }
                 return true;
             }
             if (OnClientReportLimitReached != null)
@@ -877,9 +991,19 @@ namespace Backtrace.Unity
                 return false;
             }
             //check rate limiting
-            bool shouldProcess = _reportLimitWatcher.WatchReport(new DateTime().Timestamp());
+            bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
             if (shouldProcess)
             {
+                // This condition checks if we should send exception from current thread
+                // if comparision result confirm that we're trying to send an exception from different
+                // thread than main, we should add the exception object to the exception list 
+                // and let update method send data to Backtrace.
+                if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
+                {
+                    report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
+                    BackgroundExceptions.Push(report);
+                    return false;
+                }
                 return true;
             }
             if (OnClientReportLimitReached != null)

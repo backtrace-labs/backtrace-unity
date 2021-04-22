@@ -47,7 +47,7 @@ namespace Backtrace.Unity.Json
         /// <param name="value">value</param>
         public void Add(string key, bool value)
         {
-            PrimitiveValues.Add(key, value.ToString().ToLower());
+            PrimitiveValues.Add(key, value.ToString(CultureInfo.InvariantCulture).ToLower());
         }
 
 
@@ -100,7 +100,7 @@ namespace Backtrace.Unity.Json
         /// <param name="value">value</param>
         public void Add(string key, long value)
         {
-            PrimitiveValues.Add(key, value.ToString());
+            PrimitiveValues.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>

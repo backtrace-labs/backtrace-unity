@@ -16,7 +16,20 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     internal class NativeClient : INativeClient
     {
         // Last Backtrace client update time 
-        internal float _lastUpdateTime;
+        volatile internal float _lastUpdateTime;
+
+        /// <summary>
+        /// Determine if the ANR background thread should be disabled or not 
+        /// for some period of time.
+        /// This option will be used by the native client implementation
+        /// once application goes to background/foreground
+        /// </summary>
+        volatile internal bool _preventAnr = false;
+
+        /// <summary>
+        /// Determine if ANR thread should exit
+        /// </summary>
+        volatile internal bool _stopAnr = false;
 
         private Thread _anrThread;
 
@@ -28,10 +41,10 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         }
 
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
-        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int size, bool enableOomSupport);
+        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize);
 
         [DllImport("__Internal", EntryPoint = "NativeReport")]
-        private static extern void NativeReport(string message);
+        private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         private static extern string Crash();
@@ -55,7 +68,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
 #endif
 
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
+        public NativeClient(BacktraceConfiguration configuration)
         {
             if (INITIALIZED || !_enabled)
             {
@@ -68,7 +81,10 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             if (configuration.HandleANR)
             {
-                HandleAnr(gameObjectName, string.Empty);
+                // iOS integration doesn't require to pass game object name or callback function
+                // it's required by android to know which one object to call when ANR was detected 
+                // in Java. In this situation we simply ignore them.
+                HandleAnr();
             }
         }
 
@@ -96,8 +112,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             backtraceAttributes.Attributes["error.type"] = "Crash";
             var attributeKeys = backtraceAttributes.Attributes.Keys.ToArray();
             var attributeValues = backtraceAttributes.Attributes.Values.ToArray();
+            var attachments = configuration.GetAttachmentPaths().ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments, attachments.Length);
         }
 
         /// <summary>
@@ -125,7 +142,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// <summary>
         /// Setup iOS ANR support and set callback function when ANR happened.
         /// </summary>
-        public void HandleAnr(string gameObjectName, string callbackName)
+        public void HandleAnr(string gameObjectName = "", string callbackName = "")
         {
             // if INITIALIZED is equal to false, plcrashreporter instance is disabled
             // so we can't generate native report
@@ -139,35 +156,45 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             _anrThread = new Thread(() =>
             {
                 float lastUpdatedCache = 0;
-                while (true)
+                while (_anrThread.IsAlive && _stopAnr == false)
                 {
-                    if (lastUpdatedCache == 0)
+                    if (!_preventAnr)
                     {
+                        if (lastUpdatedCache == 0)
+                        {
+                            lastUpdatedCache = _lastUpdateTime;
+                        }
+                        else if (lastUpdatedCache == _lastUpdateTime)
+                        {
+                            if (!reported)
+                            {
+                                // set temporary attribute to "Hang"
+                                SetAttribute("error.type", "Hang");
+                                NativeReport("ANRException: Blocked thread detected.", true);
+                                // update error.type attribute in case when crash happen 
+                                SetAttribute("error.type", "Crash");
+                                reported = true;
+                            }
+                        }
+                        else
+                        {
+                            reported = false;
+                        }
+
+
                         lastUpdatedCache = _lastUpdateTime;
                     }
-                    else if (lastUpdatedCache == _lastUpdateTime)
+                    else if (lastUpdatedCache != 0)
                     {
-                        if (!reported)
-                        {
-                            // set temporary attribute to "Hang"
-                            SetAttribute("error.type", "Hang");
-                            NativeReport("ANRException: Blocked thread detected.");
-                            // update error.type attribute in case when crash happen 
-                            SetAttribute("error.type", "Crash");
-                            reported = true;
-                        }
+                        // make sure when ANR happened just after going to foreground
+                        // we won't false positive ANR report
+                        lastUpdatedCache = 0;
                     }
-                    else
-                    {
-                        reported = false;
-                    }
-
-                    lastUpdatedCache = _lastUpdateTime;
                     Thread.Sleep(5000);
 
                 }
             });
-
+            _anrThread.IsBackground = true;
             _anrThread.Start();
         }
 
@@ -228,8 +255,17 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         {
             if (_anrThread != null)
             {
-                _anrThread.Abort();
+                _stopAnr = true;
             }
+        }
+
+        /// <summary>
+        /// Pause ANR detection
+        /// </summary>
+        /// <param name="stopAnr">True - if native client should pause ANR detection"</param>
+        public void PauseAnrThread(bool stopAnr)
+        {
+            _preventAnr = stopAnr;
         }
     }
 }

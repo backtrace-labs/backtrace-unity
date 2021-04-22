@@ -1,10 +1,8 @@
-
 # Backtrace Unity support
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
 [![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
-
 
 [github release]: (https://github.com/backtrace-labs/backtrace-labs/)
 
@@ -20,14 +18,13 @@
 - [Architecture description](#architecture-description)
 - [Investigating an Error in Backtrace](#investigating-an-error-in-backtrace)
 
-
 ## Usage
 
 ```csharp
 
  //Read from manager BacktraceClient instance
 var backtraceClient = GameObject.Find("_Manager").GetComponent<BacktraceClient>();
-try 
+try
 {
     //throw exception here
 }
@@ -40,10 +37,10 @@ catch(Exception exception)
 
 # Feature Summary <a name="features-summary"></a>
 
-- Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace 
+- Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace
   - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
   - Install via [OpenUPM](https://openupm.com/packages/io.backtrace.unity/) and the Unity Package Manager
-- Collect detailed context 
+- Collect detailed context
   - Callstacks, including function names and line numbers where possible
   - System metadata including device GUID, OS version, memory usage, process age
   - Custom metadata including app version, scene info, device drivers
@@ -65,20 +62,22 @@ catch(Exception exception)
 - Backtrace instance - Create your own at https://backtrace.io/create-unity
 
 # Platforms Supported
+
 Backtrace-unity has been tested and certified for games deployed on the following platforms:
 Mobile - Android, iOS
 PC - Windows, Mac
 Web - WebGL
 Game Consoles - PlayStation4, Xbox One, Nintendo Switch
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
-* All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database*(Except Nintendo Switch)
-* Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings.
-* iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
-* WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html) 
-* Switch - Identified by attribute `uname.sysname` = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
-* PlayStation4 - Identified by attribute `uname.sysname` = PS4
-* Windows - Identified by attribute `uname.sysname` = Windows. Provides an option to capture Minidumps for Engine Crashes.
-* MacOS - Identified by attribute `uname.sysname` = MacOS.
+
+- All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
+- Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings.
+- iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
+- WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html)
+- Switch - Identified by attribute `uname.sysname` = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
+- PlayStation4 - Identified by attribute `uname.sysname` = PS4
+- Windows - Identified by attribute `uname.sysname` = Windows. Provides an option to capture Minidumps for Engine Crashes.
+- MacOS - Identified by attribute `uname.sysname` = MacOS.
 
 Note: Unity allows you to disable stack trace information in player properties. If this is set, the call stack and the log lines section in Backtrace will be empty.
 
@@ -91,12 +90,15 @@ List of steps necessary to setup full Backtrace Unity integration.
 You have three options, we recommend using OpenUPM for most users.
 
 ### OpenUPM
+
 - See [our package](https://openupm.com/packages/io.backtrace.unity/) and installation instructions on OpenUPM.
 
 ### Git Url
+
 Since Unity 2018.3 the Unity Package Manager allows you to install a package directly via [Git](https://docs.unity3d.com/Manual/upm-ui-giturl.html). You can use the clone URL on the main page of our repository.
 
 ### Manual download
+
 - Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded [here](https://github.com/backtrace-labs/backtrace-unity/releases)
 - Open your Unity project
 - Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> `KnownFolder/package.json`)
@@ -123,7 +125,8 @@ One of the integration paths require to create game object in your game scene. I
       attributes: attributes);
 ```
 
-If you need to use more advanced configuration, `Initialize` method accepts a `BacktraceConfiguration` scriptable object. 
+If you need to use more advanced configuration, `Initialize` method accepts a `BacktraceConfiguration` scriptable object.
+
 ```csharp
   var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
   configuration.ServerUrl = serverUrl;
@@ -152,6 +155,18 @@ The plugin provides 3 controls for managing what the client will report.
 - [Log Error Sampling](#sampling-log-errors) allows you to tell the client to sample the Debug Log errors. Programmers may not be aware of the frequency that Debug Log errors are being generated when released in retail, and we recommend you are intentional about capturing these types of errors. 
 - [Client Side Deduplication](#client-side-deduplication) allows you to aggregate the reports based on callstack, error message, or classifier, and send only a single message to Backtrace each time the offline database is flushed. 
 
+1. Log Errors - Programmers use [Debug.LogError](https://docs.unity3d.com/ScriptReference/Debug.LogError.html), a variant of Debug.Log, to log error messages to the console.
+2. Unhandled Exceptions - Unhandled Exceptions are exceptions in a game that occur outside of an explicit try / catch statement.
+3. Handled Exceptions - Exceptions that are explicitly caught and handled.
+4. Crashes - An end to the game play experience. The game crashes or restarts.
+5. Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
+6. Low memory warning - A game is receiving signals from the OS that memory is under pressure or crashed under memory pressure.
+
+The plugin provides 3 controls for managing what the client will report.
+
+- [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors.
+- [Log Error Sampling](#sampling-log-errors) allows you to tell the client to sample the Debug Log errors. Programmers may not be aware of the frequency that Debug Log errors are being generated when released in retail, and we recommend you are intentional about capturing these types of errors.
+- [Client Side Deduplication](#client-side-deduplication) allows you to aggregate the reports based on callstack, error message, or classifier, and send only a single message to Backtrace each time the offline database is flushed.
 
 ## Backtrace Client and Offline Database Settings
 
@@ -165,16 +180,16 @@ The following is a reference guide to the Backtrace Client fields:
 - Send unhandled native game crashes on startup: Try to find game native crashes and send them on Game startup.
 - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
 - Symbols upload token - If you want to upload Unity debug symbols for Android NDK Native Crash debugging, enter your Backtrace Symbol upload token here. This option is available only in Android build.
-- Log random sampling rate - Enables a random sampling mechanism for DebugLog.error messages - **by default** sampling is equal to **0.01** - which means only **1%** of randomply sampling **reports will be send** to Backtrace. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1. 
+- Log random sampling rate - Enables a random sampling mechanism for DebugLog.error messages - **by default** sampling is equal to **0.01** - which means only **1%** of randomply sampling **reports will be send** to Backtrace. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1.
 - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
-- Collect last n game logs: Collect last n number of logs generated by game. 
+- Collect last n game logs: Collect last n number of logs generated by game.
 - Enabled performance statistics: Allows `BacktraceClient` to measure execution time and include performance information as report attributes.
 - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
 - Handle ANR (Application not responding) - this option is available in Android and iOS build only.  It allows to catch and report on ANR (application not responding) events happening in your game on mobile platform. See [here](#anr-reporting) for details.
 - (Early Access) Send out of memory crashes to Backtrace - this option is available in mobile builds only.
 - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
-- Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS 
-`${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.  
+- Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS
+  `${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.
 - Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
 - Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
 - Capture native crashes: This option will appear for games being deployed to Android or iOS and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Plugin.
@@ -187,6 +202,7 @@ The following is a reference guide to the Backtrace Client fields:
 - Retry interval: If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries.
 - Maximum retries: If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.
 - Retry order: This specifies in which order records are sent to the Backtrace server.
+
 # Android Specific information
 
 The backtrace-unity library includes support for capturing Android NDK crashes and additional Android Native information, from underlying Android OS (Memory and process related), JNI, and NDK layers.
@@ -215,20 +231,22 @@ Note that this functionality is released as 'early access' and will be functiona
 
 ## Symbols upload
 
-Unity allows developer to generate symbols archive called `symbols.zip` in the il2cpp build pipeline in the root directory of your game. In this archive you can find generated symbols for your game libraries. When your game crashes due to a native exception, your stack trace will contain only memory addresses instead of function name. Symbols from `symbols.zip` archive allows Backtrace to match function address to function name in your source code. 
+Unity allows developer to generate symbols archive called `symbols.zip` in the il2cpp build pipeline in the root directory of your game. In this archive you can find generated symbols for your game libraries. When your game crashes due to a native exception, your stack trace will contain only memory addresses instead of function name. Symbols from `symbols.zip` archive allows Backtrace to match function address to function name in your source code.
 
 To generate `symbols.zip` archive make sure:
-* you selected il2cpp build,
-* you checked `Create symbols.zip` in the Build settings window
-![Create symbols.zip](./Documentation~/images/symbols.png)
+
+- you selected il2cpp build,
+- you checked `Create symbols.zip` in the Build settings window
+  ![Create symbols.zip](./Documentation~/images/symbols.png)
 
 Backtrace offers to upload symbols automatically from Unity Editor to your Backtrace instance. Backtrace symbols upload pipeline will be triggered after successfull build of il2cpp Android game and when Symbols upload token is available in Backtrace Client options. After successfull build, upload pipeline will confirm symbols upload.
 
-If you build outside the Unity Editor and need to manually upload symbols to Backtrace, you must rename symbols generated by Unity end simply with a `.so` extension. By default, symbol files within the .zip will end with extension `.sym.so`. or `.dbg.so` Backtrace will only match symbols to files based on the ending with `.so` extension. Please ensure all files have a single `.so` extention before uploading the zip. 
+If you build outside the Unity Editor and need to manually upload symbols to Backtrace, you must rename symbols generated by Unity end simply with a `.so` extension. By default, symbol files within the .zip will end with extension `.sym.so`. or `.dbg.so` Backtrace will only match symbols to files based on the ending with `.so` extension. Please ensure all files have a single `.so` extention before uploading the zip.
 
 To learn more about how to submit those symbol files to Backtrace, please see the Project Settings / Symbols. You can manage submission tokens, upload via the UI, or configure external Symbol Servers to connect and discover required symbols. Please review additional Symbol documentaion at https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview
 
 # iOS Specific information
+
 The backtrace-unity library includes support for capturing native iOS crashes as well as iOS native memory and process information from underlying iOS layer.
 
 ## Native process and memory related information
@@ -236,6 +254,7 @@ The backtrace-unity library includes support for capturing native iOS crashes as
 system and vm usage related information including system.memory.free, system.memory.used, system.memory.total, system.memory.active, system.memory.inactive, system.memory.wired are avaialble.
 
 ## Hangs
+
 When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
 
 ## Out of Memory Reports (Early access)
@@ -246,10 +265,12 @@ The `error.type` for these reports will be `Low Memory`.
 This functionality can be toggled on or off in the Backtrace configuration.
 
 ## Native Crashes
+
 When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporter from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
 ![Enable symbols](./Documentation~/images/Disable-ios-unity-crash-reporter.png)
 
 ## Debug Symbol upload
+
 When building your iOS game in Xcode, you must make sure you configure the build settings to generate "`DWARF with dSYM files` for any build that you want to debug with Backtrace (By default, it may only generate `DWARF`). In the example below, `DWARF with dSYM files` is enabled in the `Project Build Settings` for each `Target`.
 ![Enable symbols](./Documentation~/images/xCode-enable-debugging-symbols.png)
 
@@ -263,8 +284,8 @@ To learn more about how to submit those symbol files to Backtrace, please see th
 
 Backtrace-Unity allows developers to remove and modify data that the library collects when an exception occurs using the following methods:
 
-* BeforeSend event
-The library will fire an event every time an exception in the managed environment occurs. The BeforeEvent trigger allows you to skip the report (you can do that by returning null value) or to modify data that library collected before sending the report. BeforeSend event might be useful in case if you would like to extend attributes or json object data based on data that application has at the time of exception.
+- BeforeSend event
+  The library will fire an event every time an exception in the managed environment occurs. The BeforeEvent trigger allows you to skip the report (you can do that by returning null value) or to modify data that library collected before sending the report. BeforeSend event might be useful in case if you would like to extend attributes or json object data based on data that application has at the time of exception.
 
 Example code:
 
@@ -279,14 +300,15 @@ _backtraceClient.BeforeSend = (BacktraceData data) =>
 };
 ```
 
-* Environment Variable Management
-The `Annotations` class exposes the EnvironmentVariableCache dictionary - a dictionary that stores environment variables collected by the library. You can manipulate the data in this cache before the report is sent. For example - to replace the`USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+- Environment Variable Management
+  The `Annotations` class exposes the EnvironmentVariableCache dictionary - a dictionary that stores environment variables collected by the library. You can manipulate the data in this cache before the report is sent. For example - to replace the`USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
 
 ```csharp
 Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";
 ```
 
 Also you can still use BeforeSend event to edit collected diagnostic data:
+
 ```csharp
   client.BeforeSend = (BacktraceData data) =>
   {
@@ -294,7 +316,6 @@ Also you can still use BeforeSend event to edit collected diagnostic data:
       return data;
   }
 ```
-
 
 # API Overview
 
@@ -402,7 +423,7 @@ backtraceClient.BeforeSend =
     {
         var data = model;
         //do something with data for example:
-        data.Attributes.Add("eventAttribute", "EventAttributeValue");
+        data.Attributes.Attributes.Add("eventAttribute", "EventAttributeValue");
         if(data.Classifier == null || !data.Classifier.Any())
         {
             data.Attachments.Add("path to attachment");
@@ -421,12 +442,14 @@ backtraceClient.BeforeSend =
 
 ## Reporting unhandled application exceptions
 
-`BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions please use Backtrace configuration UI available in the Unity IDE. 
+`BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions please use Backtrace configuration UI available in the Unity IDE.
 
-## Filtering a report 
+## Filtering a report
+
 Report filtering is enabled by using the `Filter reports` option in the user interface or for more advanced use-cases, the `SkipReport` delegate available in the BacktraceClient.
- 
-Sample code: 
+
+Sample code:
+
 ```csharp
   // Return true to ignore a report, return false to handle the report
   // and generate one for the error.
@@ -440,12 +463,13 @@ Sample code:
     return type != ReportFilterType.Hang && type != ReportFilterType.UnhandledException;
   };
 ```
- 
+
 For example, to only get error reporting for hangs or crashes then only return false for Hang or UnhandledException or set the corresponding options in the user interface as shown below.
 ![Sample report filter](./Documentation~/images/report-filter.PNG)
 
 ## Sampling Log Errors
-`BacktraceClient` allows a configuration setting for log error sampling rate, which enables a random sampling mechanism for the errors captured via the DebugLog.error call. By default this sampling is equal to 0.01 - which means 1 of randomly sampled DebugLog Error Reports will be sent to Backtrace. This is a  measure to prevent users from inadvertantly collecting hundreds of thousands of error messages from released games that they may not intend to. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1.
+
+`BacktraceClient` allows a configuration setting for log error sampling rate, which enables a random sampling mechanism for the errors captured via the DebugLog.error call. By default this sampling is equal to 0.01 - which means 1 of randomly sampled DebugLog Error Reports will be sent to Backtrace. This is a measure to prevent users from inadvertantly collecting hundreds of thousands of error messages from released games that they may not intend to. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1.
 
 ## Flush database
 
@@ -456,6 +480,7 @@ backtraceDatabase.Flush();
 ```
 
 ## Send database
+
 This method will try to send all objects from the database respecting the client side deduplication and retry setting. This can be used as an alternative to the `Flush` method which will try to send all objects from the database ignoring any client side deduplication and retry settings.
 
 ```csharp
@@ -478,7 +503,7 @@ Backtrace unity integration allows you to aggregate the same reports and send on
 Deduplication strategy types:
 
 - Ignore - ignore deduplication strategy
-- Default - deduplication strategy will  use current strack trace to find duplicated reports
+- Default - deduplication strategy will use current strack trace to find duplicated reports
 - Classifier - deduplication strategy will use stack trace and exception type to find duplicated reports
 - Message - deduplication strategy will use stack trace and exception message to find duplicated reports
 

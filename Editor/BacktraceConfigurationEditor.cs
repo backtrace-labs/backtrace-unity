@@ -64,7 +64,6 @@ namespace Backtrace.Unity.Editor
                  serializedObject.FindProperty("SendUnhandledGameCrashesOnGameStartup"),
                  new GUIContent(BacktraceConfigurationLabels.LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP));
 #endif
-
                 EditorGUILayout.PropertyField(
                        serializedObject.FindProperty("ReportFilterType"),
                        new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_FILTER));
@@ -93,6 +92,13 @@ namespace Backtrace.Unity.Editor
                     EditorGUILayout.HelpBox("Please insert value greater or equal -1", MessageType.Error);
                 }
             }
+
+#if UNITY_ANDROID || UNITY_IOS
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("AttachmentPaths"),
+                new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_ATTACHMENTS));
+#endif
+
 #if !UNITY_SWITCH
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");
             EditorGUILayout.PropertyField(enabled, new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_DATABASE));

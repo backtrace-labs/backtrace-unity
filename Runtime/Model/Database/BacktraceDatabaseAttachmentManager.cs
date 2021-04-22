@@ -108,6 +108,8 @@ namespace Backtrace.Unity.Model.Database
                     {
                         fs.Write(bytes, 0, bytes.Length);
                     }
+
+                    GameObject.Destroy(tex);
                     _lastScreenTime = BacktraceDatabase.LastFrameTime;
                     _lastScreenPath = screenshotPath;
                 }
