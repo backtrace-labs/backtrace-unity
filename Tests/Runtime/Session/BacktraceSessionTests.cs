@@ -254,5 +254,18 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             Assert.AreEqual(2, backtraceSession.Count());
             Assert.AreEqual(1, requestHandler.NumberOfRequests);
         }
+
+        [Test]
+        public void BacktraceSessionDefaultEvent_ShouldSendDefaultEventOnTheApplicationStartup_DataWasSendToBacktrace()
+        {
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 10, 3);
+            var requestHandler = new BacktraceHttpClientMock();
+            backtraceSession.RequestHandler = requestHandler;
+
+            backtraceSession.SendStartupEvent();
+
+            Assert.AreEqual(1, requestHandler.NumberOfRequests);
+        }
+
     }
 }

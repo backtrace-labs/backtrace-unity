@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Json;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Json;
 using System.Collections.Generic;
 
 namespace Backtrace.Unity.Model.Session
@@ -7,6 +8,9 @@ namespace Backtrace.Unity.Model.Session
     {
         internal const string MetricGroupName = "metric_group";
         internal readonly IDictionary<string, string> Attributes;
+        internal SessionEvent(string name) : this(name, DateTimeHelper.Timestamp(), new Dictionary<string, string>())
+        { }
+
         internal SessionEvent(string name, long timestamp, IDictionary<string, string> attributes) : base(name, timestamp)
         {
             Attributes = attributes;

@@ -14,6 +14,11 @@ namespace Backtrace.Unity.Services
     internal sealed class BacktraceSession : IBacktraceSession
     {
         /// <summary>
+        /// Startup event name that will be send on the application startup
+        /// </summary>
+        private const string StartupEventName = "Application Launches";
+
+        /// <summary>
         /// Default number of retries
         /// </summary>
         public const int DefaultNumberOfRetries = 3;
@@ -100,6 +105,14 @@ namespace Backtrace.Unity.Services
             _maximumNumberOfEventsInStore = maximumNumberOfEventsInStore;
             _timeIntervalInMs = timeIntervalInMs;
             RequestHandler = new BacktraceHttpClient();
+        }
+
+        /// <summary>
+        /// Send startup event ot Backtrace
+        /// </summary>
+        public void SendStartupEvent()
+        {
+            Send(new UniqueEvent[0], new SessionEvent[1] { new SessionEvent(StartupEventName) }, DefaultNumberOfRetries);
         }
 
         /// <summary>
