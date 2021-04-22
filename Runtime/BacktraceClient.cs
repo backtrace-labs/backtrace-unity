@@ -480,7 +480,7 @@ namespace Backtrace.Unity
             {
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };
-
+            Session.SendStartupEvent();
         }
 
         private void OnApplicationQuit()

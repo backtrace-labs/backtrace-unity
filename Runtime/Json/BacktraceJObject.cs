@@ -171,7 +171,7 @@ namespace Backtrace.Unity.Json
                     AppendKey(entry.Key, stringBuilder);
                     if (string.IsNullOrEmpty(entry.Value))
                     {
-                        stringBuilder.Append("null");
+                        stringBuilder.Append("\"\"");
                     }
                     else
                     {
@@ -198,7 +198,7 @@ namespace Backtrace.Unity.Json
                     propertyIndex++;
                     var entry = enumerator.Current;
                     AppendKey(entry.Key, stringBuilder);
-                    stringBuilder.Append(string.IsNullOrEmpty(entry.Value) ? "null" : entry.Value);
+                    stringBuilder.Append(string.IsNullOrEmpty(entry.Value) ? "\"\"" : entry.Value);
 
                     if (propertyIndex != PrimitiveValues.Count)
                     {
@@ -255,7 +255,7 @@ namespace Backtrace.Unity.Json
                     AppendKey(entry.Key, stringBuilder);
                     if (entry.Value == null)
                     {
-                        stringBuilder.Append("null");
+                        stringBuilder.Append("\"\"");
                     }
                     else if (entry.Value is IEnumerable && !(entry.Value is IDictionary))
                     {
@@ -269,7 +269,7 @@ namespace Backtrace.Unity.Json
                             }
                             if (item == null)
                             {
-                                stringBuilder.Append("null");
+                                stringBuilder.Append("\"\"");
                             }
                             else if (item is BacktraceJObject)
                             {
@@ -305,7 +305,7 @@ namespace Backtrace.Unity.Json
             builder.Append("\"");
             if (string.IsNullOrEmpty(value))
             {
-                builder.Append("null");
+                builder.Append("\"\"");
             }
             else
             {
