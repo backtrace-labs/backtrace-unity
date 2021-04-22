@@ -201,15 +201,15 @@ When configuring the backtrace-unity client for an Android deployment, programme
 
 The `error.type` for these reports will be `Hang`.
 
-## (Early Access) Low Memory Reports <a name="oom-reporting"></a>
+## (Early Access) Out of Memory Reports <a name="oom-reporting"></a>
 
-Backtrace can detect flag low memory conditions for a Unity game running on Android devices. If the operating system decides to kill the game due to memory pressure, that will be registered as a native crash, but two addition attributes will be set:
-- `memory.warning` will be set to `true` 
-- `memory.warning.date` will be set to the local time of the device when the low memory condition was detected. 
+Backtrace can detect and flag low memory conditions for Unity games running on Android devices. When low memory conditions are detected, two attributes will be set:
+- `memory.warning` will be set to `true`
+- `memory.warning.date` will be set to the local time of the device at the moment the low memory condition was detected.
 
-These attributes will be cleared 2 minutes after the low memory event has been detected. This functionality can be toggled on or off in the Backtrace configuration.
+If the games does not recover from low memory conditions and the operating system does decide to kill the game, a crash report will be submitted to Backtrace with `memory.warning` and `memory.warning.date` set.
 
-The `error.type` for these reports will be `Low Memory`.
+This functionality can be toggled on or off in the Backtrace configuration.
 
 Note that this functionality is released as 'early access' and will be functionally improved in the near future to aid root cause resolution.
 
@@ -238,10 +238,12 @@ system and vm usage related information including system.memory.free, system.mem
 ## Hangs
 When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
 
-## Low Memory Reports (Early access)
-On iOS devices, when the operation system indicates there's memory pressure, Backtrace can save the application state on the mobile device. When the operating system ends up killing the game, upon restart Backtrace will inspect the state file and deduce if the game was terminated because of memory pressure (for more information on the algorithm, see the [backtrace-cocoa repository](https://github.com/backtrace-labs/backtrace-cocoa#how-does-your-out-of-memory-detection-algorithm-work-)). If so, an error will be sent based on the data that was previously collected and persisted.  This functionality can be toggled on or off in the Backtrace configuration.
+## Out of Memory Reports (Early access)
+On iOS devices, when the operation system indicates there's memory pressure, Backtrace take a snapshot of the application state and persists it on the mobile device. When the operating system ends up killing the game, upon restart Backtrace will inspect the state file and deduce if the game was terminated because of memory pressure (for more information on the algorithm, see the [backtrace-cocoa repository](https://github.com/backtrace-labs/backtrace-cocoa#how-does-your-out-of-memory-detection-algorithm-work-)). If so, an error will be sent based on the data that was previously collected and persisted. Note that a snapshot will be taken every 2 minutes at most if low memory conditions persist.
 
 The `error.type` for these reports will be `Low Memory`.
+
+This functionality can be toggled on or off in the Backtrace configuration.
 
 ## Native Crashes
 When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporter from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
