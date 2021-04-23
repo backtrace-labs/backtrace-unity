@@ -200,7 +200,7 @@ namespace Backtrace.Unity.Services
                 {
                     OnRequestCompleted();
                 }
-                else /*if (statusCode == 503)*/
+                else if (statusCode == 503)
                 {
                     _numberOfDroppedRequests++;
                     if (numberOfRetries - 1 != 0)
