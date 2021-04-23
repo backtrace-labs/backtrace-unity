@@ -24,6 +24,11 @@ namespace Backtrace.Unity.Services
         public const int DefaultNumberOfRetries = 3;
 
         /// <summary>
+        /// Time between 
+        /// </summary>
+        public const int TimeoutTimeInSec = 10;
+
+        /// <summary>
         /// Submission url
         /// </summary>
         public string SubmissionUrl { get; set; }
@@ -63,7 +68,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Last update time that will be updated after each update start
         /// </summary>
-        private long _lastUpdateTime = 0;
+        private float _lastUpdateTime = 0;
 
         /// <summary>
         /// Maximum number of events in store. If number of events in store hit the limit
@@ -86,6 +91,9 @@ namespace Backtrace.Unity.Services
         /// Lock object
         /// </summary>
         private object _object = new object();
+
+        private float _lastUpdateInvoke = 0;
+        private readonly Stack<SessionSubmissionJob> _submissionJobs = new Stack<SessionSubmissionJob>();
 
         /// <summary>
         /// Create new Backtrace session instance
@@ -119,14 +127,25 @@ namespace Backtrace.Unity.Services
         /// Backtrace session update interval method used by Backtrace client to update session events time
         /// </summary>
         /// <param name="time">Current game time</param>
-        public void Tick(long time)
+        public void Tick(float time)
         {
+            _lastUpdateInvoke = time;
+            lock (_object)
+            {
+                // check submission job
+                while (_submissionJobs.Count != 0 && _submissionJobs.First().NextInvokeTime < time)
+                {
+                    var submissionJob = _submissionJobs.Pop();
+                    Send(submissionJob.UniqueEvents, submissionJob.SessionEvents, submissionJob.NumberOfRetries);
+                }
+            }
             if (_timeIntervalInMs == 0)
             {
                 return;
             }
             lock (_object)
             {
+
                 var intervalUpdate = (time - _lastUpdateTime) >= _timeIntervalInMs;
                 var reachedEventLimit = _maximumNumberOfEventsInStore == Count() && _maximumNumberOfEventsInStore != 0;
                 if (intervalUpdate == false && reachedEventLimit == false)
@@ -157,7 +176,6 @@ namespace Backtrace.Unity.Services
                sessionEvents: SessionEvents.ToArray(),
                numberOfRetries: numberOfRetries);
         }
-
         private void Send(UniqueEvent[] uniqueEvents, SessionEvent[] sessionEvents, uint numberOfRetries)
         {
             if (numberOfRetries == 0)
@@ -182,11 +200,20 @@ namespace Backtrace.Unity.Services
                 {
                     OnRequestCompleted();
                 }
-                else if (statusCode == 503)
+                else /*if (statusCode == 503)*/
                 {
                     _numberOfDroppedRequests++;
-                    // assume that we should try to retry request on 503
-                    Send(uniqueEvents, sessionEvents, numberOfRetries - 1);
+                    if (numberOfRetries - 1 != 0)
+                    {
+                        // assume that we should try to retry request on 503
+                        _submissionJobs.Push(new SessionSubmissionJob()
+                        {
+                            UniqueEvents = uniqueEvents,
+                            SessionEvents = sessionEvents,
+                            NextInvokeTime = _lastUpdateInvoke + TimeoutTimeInSec,
+                            NumberOfRetries = numberOfRetries - 1
+                        });
+                    }
                 }
             });
         }

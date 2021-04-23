@@ -9,6 +9,6 @@ namespace Backtrace.Unity.Interfaces
         void Send();
         bool AddUniqueEvent(string attributeName, IDictionary<string, string> attributes);
         bool AddSessionEvent(string sessionEvent, IDictionary<string, string> attributes);
-        void Tick(long time);
+        void Tick(float time);
     }
 }

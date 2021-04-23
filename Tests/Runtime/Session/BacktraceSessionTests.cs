@@ -3,7 +3,10 @@ using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Tests.Runtime.Session.Mocks;
 using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime.Session
 {
@@ -74,8 +77,8 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             Assert.IsFalse(requestHandler.Called);
         }
 
-        [Test]
-        public void BacktraceSession_ShouldTry3TimesOn503BeforeDroppingEvents_DataWasntSendToBacktrace()
+        [UnityTest]
+        public IEnumerator BacktraceSession_ShouldTry3TimesOn503BeforeDroppingEvents_DataWasntSendToBacktrace()
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
             var requestHandler = new BacktraceHttpClientMock()
@@ -86,8 +89,16 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             backtraceSession.AddSessionEvent(SessionEventName);
             backtraceSession.AddUniqueEvent(UniqueAttributeName);
             backtraceSession.Send();
+            for (int i = 0; i < BacktraceSession.DefaultNumberOfRetries; i++)
+            {
+                yield return new WaitForSeconds(1);
+                // immidiately run next update
+                var time = BacktraceSession.TimeoutTimeInSec + (BacktraceSession.TimeoutTimeInSec * i) + i + 1;
+                backtraceSession.Tick(time);
+            }
 
-            Assert.AreEqual(requestHandler.NumberOfRequests, BacktraceSession.DefaultNumberOfRetries);
+            yield return new WaitForSeconds(1);
+            Assert.AreEqual(BacktraceSession.DefaultNumberOfRetries, requestHandler.NumberOfRequests);
         }
 
         [Test]
