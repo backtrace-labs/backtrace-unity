@@ -257,8 +257,6 @@ Backtrace can detect low memory situations for a game running in Unity on iOS de
 
 This functionality can be toggled on or off in the Backtrace configuration.
 
-This functionality can be toggled on or off in the Backtrace configuration.
-
 ## Native Crashes
 
 When configuring the backtrace-unity client for an iOS deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Unity crash reporter might prevent Backtrace Crash reporter from sending crashes to Backtrace. To be sure Backtrace is able to collect and send data please set "Enable CrashReport API" to false.
