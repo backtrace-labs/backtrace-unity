@@ -20,9 +20,9 @@ namespace Backtrace.Unity.Services
         private const string StartupEventName = "Application Launches";
 
         /// <summary>
-        /// Default number of retries
+        /// Default maximum number of attemps
         /// </summary>
-        public const int DefaultNumberOfRetries = 3;
+        public const int MaxNumberOfAttemps = 3;
 
         /// <summary>
         /// Time between 
@@ -32,7 +32,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Maximum time between requests
         /// </summary>
-        public const int RetryTimeMax = 5 * 60;
+        public const int MaxTimeBetweenRequests = 5 * 60;
 
         /// <summary>
         /// Submission url
@@ -98,8 +98,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private object _object = new object();
 
-        private float _lastUpdateInvoke = 0;
-        private readonly Stack<SessionSubmissionJob> _submissionJobs = new Stack<SessionSubmissionJob>();
+        private readonly List<SessionSubmissionJob> _submissionJobs = new List<SessionSubmissionJob>();
 
         /// <summary>
         /// Create new Backtrace session instance
@@ -126,7 +125,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void SendStartupEvent()
         {
-            Send(new UniqueEvent[0], new SessionEvent[1] { new SessionEvent(StartupEventName) }, DefaultNumberOfRetries);
+            SendPayload(new UniqueEvent[0], new SessionEvent[1] { new SessionEvent(StartupEventName) });
         }
 
         /// <summary>
@@ -135,15 +134,9 @@ namespace Backtrace.Unity.Services
         /// <param name="time">Current game time</param>
         public void Tick(float time)
         {
-            _lastUpdateInvoke = time;
             lock (_object)
             {
-                // check submission job
-                while (_submissionJobs.Count != 0 && _submissionJobs.First().NextInvokeTime < time)
-                {
-                    var submissionJob = _submissionJobs.Pop();
-                    Send(submissionJob.UniqueEvents, submissionJob.SessionEvents, submissionJob.NumberOfRetries);
-                }
+                SendPendingSubmissionJobs(time);
             }
             if (_timeIntervalInMs == 0)
             {
@@ -169,59 +162,9 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void Send()
         {
-            Send(DefaultNumberOfRetries);
-        }
-
-        /// <summary>
-        /// Force BacktraceSession to Send data to Backtrace with retry settings
-        /// </summary>
-        internal void Send(uint numberOfRetries = DefaultNumberOfRetries)
-        {
-            Send(
-               uniqueEvents: UniqueEvents.ToArray(),
-               sessionEvents: SessionEvents.ToArray(),
-               numberOfRetries: numberOfRetries);
-        }
-        private void Send(UniqueEvent[] uniqueEvents, SessionEvent[] sessionEvents, uint numberOfRetries)
-        {
-            if (numberOfRetries == 0)
-            {
-                Debug.LogWarning("Backtrace Session: Cannot send session data to Backtrace due to submission issue.");
-                ClearEvents();
-                return;
-            }
-            if (uniqueEvents.Length + sessionEvents.Length == 0)
-            {
-                return;
-            }
-            var payload = CreateJsonPayload(uniqueEvents, sessionEvents);
-
-            // cleanup existing copy of events
-            ClearEvents();
-
-            // submit data to Backtrace
-            RequestHandler.Post(SubmissionUrl, payload, (long statusCode, bool httpError, string response) =>
-            {
-                if (statusCode == 200)
-                {
-                    OnRequestCompleted();
-                }
-                else if (statusCode == 503)
-                {
-                    _numberOfDroppedRequests++;
-                    if (numberOfRetries - 1 != 0)
-                    {
-                        // assume that we should try to retry request on 503
-                        _submissionJobs.Push(new SessionSubmissionJob()
-                        {
-                            UniqueEvents = uniqueEvents,
-                            SessionEvents = sessionEvents,
-                            NextInvokeTime = CalculateNextRetryTime(DefaultNumberOfRetries - numberOfRetries),
-                            NumberOfRetries = numberOfRetries - 1
-                        });
-                    }
-                }
-            });
+            SendPayload(
+              uniqueEvents: UniqueEvents.ToArray(),
+              sessionEvents: SessionEvents.ToArray());
         }
 
         /// <summary>
@@ -253,17 +196,6 @@ namespace Backtrace.Unity.Services
             UniqueEvents.AddLast(@event);
             return true;
         }
-
-        /// <summary>
-        /// Determine if Backtrace Session can add next event to store
-        /// </summary>
-        /// <param name="name">event name</param>
-        /// <returns>True if we're able to add. Otherwise false.</returns>
-        private bool ShouldProcessEvent(string name)
-        {
-            return !string.IsNullOrEmpty(name) && (_maximumNumberOfEventsInStore == 0 || (Count() + 1 <= _maximumNumberOfEventsInStore));
-        }
-
 
         /// <summary>
         /// Get number of events available right now in store
@@ -298,6 +230,87 @@ namespace Backtrace.Unity.Services
         {
             UniqueEvents.Clear();
             SessionEvents.Clear();
+        }
+
+        /// <summary>
+        /// Check submission job failures and start submission for jobs that NextInvokeTime 
+        /// is lower than time now.
+        /// </summary>
+        /// <param name="time">Current time</param>
+        private void SendPendingSubmissionJobs(float time)
+        {
+            for (int index = 0; index < _submissionJobs.Count; index++)
+            {
+                var submissionJob = _submissionJobs.ElementAt(index);
+                if (submissionJob.NextInvokeTime < time)
+                {
+                    SendPayload(submissionJob.UniqueEvents, submissionJob.SessionEvents, submissionJob.NumberOfAttemps);
+                    _submissionJobs.RemoveAt(index);
+                }
+            }
+        }
+
+        private void SendPayload(UniqueEvent[] uniqueEvents, SessionEvent[] sessionEvents, uint attemps = 0)
+        {
+            if (attemps == MaxNumberOfAttemps)
+            {
+                Debug.LogWarning("Backtrace Session: Cannot send session data to Backtrace due to submission issue.");
+                return;
+            }
+            if (uniqueEvents.Length + sessionEvents.Length == 0)
+            {
+                return;
+            }
+            var payload = CreateJsonPayload(uniqueEvents, sessionEvents);
+
+            // cleanup existing copy of events
+            ClearEvents();
+
+            // submit data to Backtrace
+            RequestHandler.Post(SubmissionUrl, payload, (long statusCode, bool httpError, string response) =>
+            {
+                if (statusCode == 200)
+                {
+                    OnRequestCompleted();
+                }
+                else if (statusCode > 501 && statusCode != 505)
+                {
+                    _numberOfDroppedRequests++;
+                    if (attemps + 1 == MaxNumberOfAttemps)
+                    {
+                        return;
+                    }
+                    // schedule a job on the specific server failure.
+                    _submissionJobs.Add(new SessionSubmissionJob()
+                    {
+                        UniqueEvents = uniqueEvents,
+                        SessionEvents = sessionEvents,
+                        NextInvokeTime = CalculateNextRetryTime(MaxNumberOfAttemps - attemps),
+                        NumberOfAttemps = attemps + 1
+                    });
+
+                }
+            });
+        }
+
+        private double CalculateNextRetryTime(uint attemps)
+        {
+            const int jitterFraction = 1;
+            const int backoffBase = 10;
+            var value = DefaultTimeInSecBetweenRequests * Math.Pow(backoffBase, attemps);
+            var retryLower = MathHelper.Clamp(value, 0, MaxTimeBetweenRequests);
+            var retryUpper = retryLower + retryLower * jitterFraction;
+            return MathHelper.Uniform(retryLower, retryUpper);
+        }
+
+        /// <summary>
+        /// Determine if Backtrace Session can add next event to store
+        /// </summary>
+        /// <param name="name">event name</param>
+        /// <returns>True if we're able to add. Otherwise false.</returns>
+        private bool ShouldProcessEvent(string name)
+        {
+            return !string.IsNullOrEmpty(name) && (_maximumNumberOfEventsInStore == 0 || (Count() + 1 <= _maximumNumberOfEventsInStore));
         }
 
         private void OnRequestCompleted()
@@ -339,16 +352,6 @@ namespace Backtrace.Unity.Services
             var payload = new BacktraceJObject();
             payload.Add("dropped_events", _numberOfDroppedRequests);
             return payload;
-        }
-
-        private double CalculateNextRetryTime(uint numberOfRetries)
-        {
-            const int jitterFraction = 1;
-            const int backoffBase = 10;
-            var value = DefaultTimeInSecBetweenRequests * Math.Pow(backoffBase, numberOfRetries);
-            var retryLower = Math.Max(0, Math.Min(RetryTimeMax, value));
-            var retryUpper = retryLower + retryLower * jitterFraction;
-            return new System.Random().NextDouble() * (retryUpper - retryLower) + retryLower;
         }
     }
 }

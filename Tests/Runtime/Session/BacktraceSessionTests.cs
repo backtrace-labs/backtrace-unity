@@ -89,16 +89,16 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             backtraceSession.AddSessionEvent(SessionEventName);
             backtraceSession.AddUniqueEvent(UniqueAttributeName);
             backtraceSession.Send();
-            for (int i = 0; i < BacktraceSession.DefaultNumberOfRetries; i++)
+            for (int i = 0; i < BacktraceSession.MaxNumberOfAttemps; i++)
             {
                 yield return new WaitForSeconds(1);
                 // immidiately run next update
-                var time = BacktraceSession.RetryTimeMax + (BacktraceSession.RetryTimeMax * i) + i + 1;
+                var time = BacktraceSession.MaxTimeBetweenRequests + (BacktraceSession.MaxTimeBetweenRequests * i) + i + 1;
                 backtraceSession.Tick(time);
             }
 
             yield return new WaitForSeconds(1);
-            Assert.AreEqual(BacktraceSession.DefaultNumberOfRetries, requestHandler.NumberOfRequests);
+            Assert.AreEqual(BacktraceSession.MaxNumberOfAttemps, requestHandler.NumberOfRequests);
         }
 
         [Test]

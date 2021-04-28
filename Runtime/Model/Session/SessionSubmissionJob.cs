@@ -5,6 +5,6 @@
         public double NextInvokeTime { get; set; }
         public UniqueEvent[] UniqueEvents { get; set; }
         public SessionEvent[] SessionEvents { get; set; }
-        public uint NumberOfRetries { get; set; }
+        public uint NumberOfAttemps { get; set; }
     }
 }
