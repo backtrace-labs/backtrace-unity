@@ -322,7 +322,7 @@ namespace Backtrace.Unity.Services
 
             jsonData.Add("unique_events", uniqueEventsJson);
 
-            // add unique events
+            // add session events
             var sessionEventsJson = new List<BacktraceJObject>();
             var attributes = _attributeProvider.Get();
             foreach (var sessionEvent in sessionEvents)

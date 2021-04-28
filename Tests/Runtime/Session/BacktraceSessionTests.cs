@@ -26,7 +26,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
             backtraceSession.RequestHandler = new BacktraceHttpClientMock()
             {
-                OnIvoke = (string url, BacktraceJObject json) =>
+                OnInvoke = (string url, BacktraceJObject json) =>
                 {
                     jsonString = json.ToJson();
                     submissionUrl = url;
@@ -49,7 +49,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
             backtraceSession.RequestHandler = new BacktraceHttpClientMock()
             {
-                OnIvoke = (string url, BacktraceJObject json) =>
+                OnInvoke = (string url, BacktraceJObject json) =>
                 {
                     jsonString = json.ToJson();
                     submissionUrl = url;
@@ -102,7 +102,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         }
 
         [Test]
-        public void BacktraceSession_ShouldTryAtLeastOneOnHttpFailure_DataWasntSendToBacktrace()
+        public void BacktraceSession_ShouldTryOnlyOnceOnHttpFailure_DataWasntSendToBacktrace()
         {
             var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
             var requestHandler = new BacktraceHttpClientMock()

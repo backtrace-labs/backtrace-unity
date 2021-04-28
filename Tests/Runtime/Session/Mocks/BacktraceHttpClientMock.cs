@@ -10,7 +10,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session.Mocks
     {
         public int NumberOfRequests { get; set; } = 0;
         public bool Called { get; set; } = false;
-        public Action<string, BacktraceJObject> OnIvoke { get; set; }
+        public Action<string, BacktraceJObject> OnInvoke { get; set; }
         public string Response { get; set; } = string.Empty;
         public long StatusCode { get; set; } = 200;
         public bool IsHttpError { get; set; } = false;
@@ -21,7 +21,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session.Mocks
         {
             NumberOfRequests++;
             Called = true;
-            OnIvoke?.Invoke(submissionUrl, jObject);
+            OnInvoke?.Invoke(submissionUrl, jObject);
             onComplete?.Invoke(StatusCode, IsHttpError, Response);
         }
 
