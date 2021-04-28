@@ -175,7 +175,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Force BacktraceSession to Send data to Backtrace with retry settings
         /// </summary>
-        public void Send(uint numberOfRetries = DefaultNumberOfRetries)
+        internal void Send(uint numberOfRetries = DefaultNumberOfRetries)
         {
             Send(
                uniqueEvents: UniqueEvents.ToArray(),
@@ -216,7 +216,7 @@ namespace Backtrace.Unity.Services
                         {
                             UniqueEvents = uniqueEvents,
                             SessionEvents = sessionEvents,
-                            NextInvokeTime = CalculateNextRetryTime(numberOfRetries - 1),
+                            NextInvokeTime = CalculateNextRetryTime(DefaultNumberOfRetries - numberOfRetries),
                             NumberOfRetries = numberOfRetries - 1
                         });
                     }
@@ -341,14 +341,14 @@ namespace Backtrace.Unity.Services
             return payload;
         }
 
-        private float CalculateNextRetryTime(uint numberOfAvailableRetries)
+        private double CalculateNextRetryTime(uint numberOfRetries)
         {
             const int jitterFraction = 1;
             const int backoffBase = 10;
-            var value = Convert.ToSingle(Math.Pow(DefaultTimeInSecBetweenRequests * backoffBase, numberOfAvailableRetries));
-            var retryLower = Mathf.Clamp(value, 0, RetryTimeMax);
+            var value = DefaultTimeInSecBetweenRequests * Math.Pow(backoffBase, numberOfRetries);
+            var retryLower = Math.Max(0, Math.Min(RetryTimeMax, value));
             var retryUpper = retryLower + retryLower * jitterFraction;
-            return UnityEngine.Random.Range(retryLower, retryUpper);
+            return new System.Random().NextDouble() * (retryUpper - retryLower) + retryLower;
         }
     }
 }
