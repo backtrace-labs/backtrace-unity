@@ -4,6 +4,7 @@ using Backtrace.Unity.Json;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Model.Session;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,7 +27,12 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Time between 
         /// </summary>
-        public const int TimeoutTimeInSec = 10;
+        public const int DefaultTimeInSecBetweenRequests = 10;
+
+        /// <summary>
+        /// Maximum time between requests
+        /// </summary>
+        public const int RetryTimeMax = 5 * 60;
 
         /// <summary>
         /// Submission url
@@ -210,7 +216,7 @@ namespace Backtrace.Unity.Services
                         {
                             UniqueEvents = uniqueEvents,
                             SessionEvents = sessionEvents,
-                            NextInvokeTime = _lastUpdateInvoke + TimeoutTimeInSec,
+                            NextInvokeTime = CalculateNextRetryTime(numberOfRetries - 1),
                             NumberOfRetries = numberOfRetries - 1
                         });
                     }
@@ -333,6 +339,16 @@ namespace Backtrace.Unity.Services
             var payload = new BacktraceJObject();
             payload.Add("dropped_events", _numberOfDroppedRequests);
             return payload;
+        }
+
+        private float CalculateNextRetryTime(uint numberOfAvailableRetries)
+        {
+            const int jitterFraction = 1;
+            const int backoffBase = 10;
+            var value = Convert.ToSingle(Math.Pow(DefaultTimeInSecBetweenRequests * backoffBase, numberOfAvailableRetries));
+            var retryLower = Mathf.Clamp(value, 0, RetryTimeMax);
+            var retryUpper = retryLower + retryLower * jitterFraction;
+            return UnityEngine.Random.Range(retryLower, retryUpper);
         }
     }
 }

@@ -93,7 +93,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             {
                 yield return new WaitForSeconds(1);
                 // immidiately run next update
-                var time = BacktraceSession.TimeoutTimeInSec + (BacktraceSession.TimeoutTimeInSec * i) + i + 1;
+                var time = BacktraceSession.RetryTimeMax + (BacktraceSession.RetryTimeMax * i) + i + 1;
                 backtraceSession.Tick(time);
             }
 
