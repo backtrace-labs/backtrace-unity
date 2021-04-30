@@ -1,5 +1,4 @@
 ﻿using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.JsonData;
 using System.Collections.Generic;
 
 namespace Backtrace.Unity.Runtime.Native
