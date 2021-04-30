@@ -465,7 +465,7 @@ namespace Backtrace.Unity
             }
         }
 
-        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, int maximumNumberOfEventsInStore)
+        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, uint maximumNumberOfEventsInStore)
         {
             if (Session != null)
             {

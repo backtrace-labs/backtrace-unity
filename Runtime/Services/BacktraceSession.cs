@@ -285,7 +285,7 @@ namespace Backtrace.Unity.Services
                     {
                         UniqueEvents = uniqueEvents,
                         SessionEvents = sessionEvents,
-                        NextInvokeTime = CalculateNextRetryTime(MaxNumberOfAttemps - attemps),
+                        NextInvokeTime = CalculateNextRetryTime(attemps + 1),
                         NumberOfAttemps = attemps + 1
                     });
 
