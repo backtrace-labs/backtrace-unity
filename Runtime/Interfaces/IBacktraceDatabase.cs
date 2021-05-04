@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
@@ -13,6 +14,11 @@ namespace Backtrace.Unity.Interfaces
     /// </summary>
     public interface IBacktraceDatabase
     {
+        /// <summary>
+        /// Backtrace Breadcrumbs
+        /// </summary>
+        IBacktraceBreadcrumbs Breadcrumbs { get; }
+
         /// <summary>
         /// Send all reports stored in BacktraceDatabase and clean database
         /// </summary>
@@ -89,5 +95,11 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         /// <returns>true if BacktraceDatabase is enabled. Otherwise false.</returns>
         bool Enabled();
+
+        /// <summary>
+        /// Enables Breadcrumbs support
+        /// </summary>
+        /// <returns>True if the breadcrumbs file was initialized correctly. Otherwise false.</returns>
+        bool EnableBreadcrumbsSupport();
     }
 }

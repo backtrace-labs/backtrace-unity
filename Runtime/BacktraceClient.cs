@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Runtime.Native;
@@ -21,9 +22,21 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
+        public const string VERSION = "3.4.0";
+
         public BacktraceConfiguration Configuration;
 
-        public const string VERSION = "3.4.0";
+        /// <summary>
+        /// Backtrace Breadcrumbs
+        /// </summary>
+        public IBacktraceBreadcrumbs Breadcrumbs
+        {
+            get
+            {
+                return Database?.Breadcrumbs;
+            }
+        }
+
         public bool Enabled { get; private set; }
 
         /// <summary>
@@ -295,9 +308,6 @@ namespace Backtrace.Unity
             }
         }
 
-        private BacktraceLogManager _backtraceLogManager;
-
-
         /// <summary>
         /// Initialize new Backtrace integration
         /// </summary>
@@ -447,6 +457,7 @@ namespace Backtrace.Unity
                     Database.Reload();
                     Database.SetApi(BacktraceApi);
                     Database.SetReportWatcher(_reportLimitWatcher);
+                    EnableBreadcrumbsSupport();
                 }
             }
 
@@ -465,7 +476,21 @@ namespace Backtrace.Unity
             }
         }
 
-        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, int maximumNumberOfEventsInStore)
+        public bool EnableBreadcrumbsSupport()
+        {
+            if (Database == null)
+            {
+                return false;
+            }
+            var initializationResult = Database.EnableBreadcrumbsSupport();
+            if (initializationResult)
+            {
+                _clientReportAttachments.Add(Breadcrumbs.GetBreadcrumbLogPath());
+            }
+            return initializationResult;
+        }
+
+        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, uint maximumNumberOfEventsInStore)
         {
             if (Session != null)
             {
@@ -490,6 +515,7 @@ namespace Backtrace.Unity
 
         private void Awake()
         {
+            Breadcrumbs?.FromMonoBehavior("Application awake", LogType.Assert, null);
             Refresh();
         }
 
@@ -516,6 +542,8 @@ namespace Backtrace.Unity
         private void OnDestroy()
         {
             Enabled = false;
+            Breadcrumbs?.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
+            Breadcrumbs?.UnregisterEvents();
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
@@ -554,8 +582,8 @@ namespace Backtrace.Unity
               message: message,
               attachmentPaths: attachmentPaths,
               attributes: attributes);
-            _backtraceLogManager.Enqueue(report);
 
+            Breadcrumbs?.FromBacktrace(report);
             SendReport(report);
         }
 
@@ -573,7 +601,7 @@ namespace Backtrace.Unity
             }
 
             var report = new BacktraceReport(exception, attributes, attachmentPaths);
-            _backtraceLogManager.Enqueue(report);
+            Breadcrumbs?.FromBacktrace(report);
             SendReport(report);
         }
 
@@ -588,7 +616,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            _backtraceLogManager.Enqueue(report);
+            Breadcrumbs?.FromBacktrace(report);
             SendReport(report, sendCallback);
         }
 
@@ -738,13 +766,6 @@ namespace Backtrace.Unity
             // normalized exception message instead environment stack trace
             // for exceptions without stack trace.
             report.SetReportFingerprint(Configuration.UseNormalizedExceptionMessage);
-
-            // add environment information to backtrace report
-            var sourceCode = _backtraceLogManager.Disabled
-                ? new BacktraceUnityMessage(report).ToString()
-                : _backtraceLogManager.ToSourceCode();
-
-            report.AssignSourceCodeToReport(sourceCode);
             report.AttachmentPaths.AddRange(_clientReportAttachments);
 
             // pass copy of dictionary to prevent overriding client attributes
@@ -766,6 +787,7 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
+            Breadcrumbs?.FromMonoBehavior("Application ANR Detected", LogType.Warning, null);
             const string anrMessage = "ANRException: Blocked thread detected";
             _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
             var hang = new BacktraceUnhandledException(anrMessage, stackTrace);
@@ -780,8 +802,7 @@ namespace Backtrace.Unity
         /// </summary>
         private void CaptureUnityMessages()
         {
-            _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
-            if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
+            if (Configuration.HandleUnhandledExceptions)
             {
                 Application.logMessageReceived += HandleUnityMessage;
                 Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
@@ -793,6 +814,7 @@ namespace Backtrace.Unity
 
         internal void OnApplicationPause(bool pause)
         {
+            Breadcrumbs?.FromMonoBehavior("Application pause", LogType.Assert, new Dictionary<string, string> { { "paused", pause.ToString(CultureInfo.InvariantCulture).ToLower() } });
             _nativeClient?.PauseAnrThread(pause);
         }
 
@@ -839,7 +861,6 @@ namespace Backtrace.Unity
                 return;
             }
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
-            _backtraceLogManager.Enqueue(unityMessage);
             if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
             {
                 BacktraceUnhandledException exception = null;

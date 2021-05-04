@@ -124,32 +124,6 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [UnityTest]
-        public IEnumerator PiiTests_ShouldChangeSourceCodeIntegration_SourceCodeTextDoesntHaveUserNameAnymore()
-        {
-            var trigger = false;
-            var exception = new Exception("custom exception message");
-            var sourceCodeTestString = "source-code-test-string";
-            client.BeforeSend = (BacktraceData data) =>
-            {
-                Assert.IsNotNull(data.SourceCode);
-                Assert.IsNotEmpty(data.SourceCode.Text);
-                data.SourceCode.Text = sourceCodeTestString;
-                return data;
-            };
-            client.RequestHandler = (string url, BacktraceData data) =>
-            {
-                trigger = true;
-                Assert.AreEqual(sourceCodeTestString, data.SourceCode.Text);
-                return new BacktraceResult();
-            };
-            client.Send(exception);
-
-            yield return new WaitForEndOfFrame();
-            Assert.IsTrue(trigger);
-            yield return null;
-        }
-
-        [UnityTest]
         public IEnumerator PiiTests_ShouldModifyEnvironmentVariable_IntegrationShouldUseModifiedEnvironmentVariables()
         {
             var trigger = false;

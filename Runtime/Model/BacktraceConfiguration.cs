@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
@@ -77,7 +78,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
-        [Tooltip("Number of logs collected by Backtrace-Unity")]
+        [Obsolete("Please set breadcrumbs integration")]
         public uint NumberOfLogs = 10;
 
         /// <summary>
@@ -146,6 +147,23 @@ namespace Backtrace.Unity.Model
 
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
+        /// <summary>
+        /// Enable breadcrumbs support
+        /// </summary>
+        [Tooltip("Enable breadcurmbs integration that will include game breadcrumbs in each report (native + managed).")]
+        public bool EnableBreadcrumbsSupport = false;
+
+        /// <summary>
+        /// Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumbs file
+        /// </summary>
+        [Tooltip("Breadcrumbs support breadcrumbs level- Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumb file")]
+        public BacktraceBreadcrumbsLevel BacktraceBreadcrumbsLevel;
+
+        /// <summary>
+        /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
+        /// </summary>
+        [Tooltip("Braeadcrumbs log level")]
+        public UnityEngineLogLevel LogLevel;
 
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
