@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
@@ -21,6 +22,11 @@ namespace Backtrace.Unity
         private bool _timerBackgroundWork = false;
 
         public BacktraceConfiguration Configuration;
+
+        /// <summary>
+        /// Backtrace Breadcrumbs
+        /// </summary>
+        public IBacktraceBreadcrumbs Breadcrumbs { get; private set; }
 
         internal static float LastFrameTime = 0;
 
@@ -147,6 +153,7 @@ namespace Backtrace.Unity
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabaseSettings.DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
+            EnableBreadcrumbsSupport();
 
         }
 
@@ -592,6 +599,20 @@ namespace Backtrace.Unity
         public void SetReportWatcher(ReportLimitWatcher reportLimitWatcher)
         {
             _reportLimitWatcher = reportLimitWatcher;
+        }
+
+        public bool EnableBreadcrumbsSupport()
+        {
+            if (!Enable || !Configuration.EnableBreadcrumbsSupport)
+            {
+                return false;
+            }
+            if (Breadcrumbs != null)
+            {
+                return true;
+            }
+            Breadcrumbs = new BacktraceBreadcrumbs(new BacktraceStorageLogManager(Configuration.GetFullDatabasePath()));
+            return Breadcrumbs.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel);
         }
     }
 }

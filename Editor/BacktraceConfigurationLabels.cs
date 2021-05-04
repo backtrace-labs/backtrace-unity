@@ -23,11 +23,15 @@
         internal const string LABEL_EVENT_AGGREGATION_URL = "Event aggregation submission URL";
         internal const string LABEL_EVENT_AGGREGATION_TIME_INTERVAL = "Event aggregation time interval in ms";
 
+        internal const string LABEL_BREADCRUMBS_SECTION = "Breadcrumbs support";
+        internal const string LABEL_ENABLE_BREADCRUMBS = "Enable breadcrumbs support";
+        internal const string LABEL_BREADCRUMBS_EVENTS = "Breadcrumbs events type";
+        internal const string LABEL_BREADCRUMNS_LOG_LEVEL = "Breadcrumbs log level";
+
 
         internal static string LABEL_REPORT_ATTACHMENTS = "Report attachment paths";
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";
-        internal static string LABEL_NUMBER_OF_LOGS = "Collect last n game logs";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
         internal static string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
         internal static string LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP = "Send unhandled native game crashes on startup";

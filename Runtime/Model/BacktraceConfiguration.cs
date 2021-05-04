@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Common;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
@@ -77,7 +78,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
-        [Tooltip("Number of logs collected by Backtrace-Unity")]
+        [Obsolete("Please set breadcrumbs integration")]
         public uint NumberOfLogs = 10;
 
         /// <summary>
@@ -146,6 +147,23 @@ namespace Backtrace.Unity.Model
 
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
+        /// <summary>
+        /// Enable breadcrumbs support
+        /// </summary>
+        [Tooltip("Enable breadcurmbs integration that will include game breadcrumbs in each report (native + managed).")]
+        public bool EnableBreadcrumbsSupport = false;
+
+        /// <summary>
+        /// Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumbs file
+        /// </summary>
+        [Tooltip("Breadcrumbs support breadcrumbs level- Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumb file")]
+        public BacktraceBreadcrumbsLevel BacktraceBreadcrumbsLevel;
+
+        /// <summary>
+        /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
+        /// </summary>
+        [Tooltip("Braeadcrumbs log level")]
+        public UnityEngineLogLevel LogLevel;
 
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
@@ -180,7 +198,8 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Enable event aggregation support
         /// </summary>
-        [Tooltip("Enable default crash free events")]
+        [Header("Backtrace event aggregation")]
+        [Tooltip("Enable event aggregation support")]
         public bool EnableEventAggregationSupport = false;
 
         /// <summary>
@@ -192,15 +211,8 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Time interval in ms
         /// </summary>
-        [Range(0, 60)]
-        [Tooltip("Event aggregation time interval in min")]
-        public long TimeIntervalInMin = 30;
-
-        /// <summary>
-        /// Maximum number of events in Event aggregation store
-        /// </summary>
-        [Tooltip("Maximum number of events stored by Backtrace")]
-        public uint MaximumNumberOfEvents = 10;
+        [Tooltip("Event aggregation submission url")]
+        public long TimeIntervalInMs = 0;
 
         /// <summary>
         /// Determine if database is enable
@@ -333,10 +345,6 @@ namespace Backtrace.Unity.Model
             return ValidateServerUrl(ServerUrl);
         }
 
-        public long GetEventAggregationIntervalTimerInMs()
-        {
-            return TimeIntervalInMin * 60;
-        }
 
         public BacktraceCredentials ToCredentials()
         {

@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Interfaces;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Database;
 using System;
 using System.Collections.Generic;
@@ -79,6 +80,11 @@ namespace Backtrace.Unity.Services
                 //database only store data in json and files in dmp extension
                 try
                 {
+                    // prevent from removing breadcrumbs file
+                    if (file.Name.StartsWith(BacktraceStorageLogManager.BreadcrumbLogFileName))
+                    {
+                        continue;
+                    }
                     if (!_possibleDatabaseExtension.Any(n => n == file.Extension))
                     {
                         file.Delete();
@@ -156,5 +162,6 @@ namespace Backtrace.Unity.Services
                 file.Delete();
             }
         }
+
     }
 }

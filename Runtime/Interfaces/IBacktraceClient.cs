@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
 using System;
 using System.Collections.Generic;
 
@@ -9,6 +10,10 @@ namespace Backtrace.Unity.Interfaces
     /// </summary>
     public interface IBacktraceClient
     {
+        /// <summary>
+        /// Backtrace Breadcrumbs
+        /// </summary>
+        IBacktraceBreadcrumbs Breadcrumbs { get; }
         /// <summary>
         /// Send a new report to a Backtrace API
         /// </summary>
