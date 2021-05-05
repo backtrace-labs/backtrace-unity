@@ -54,7 +54,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Client report attachments
         /// </summary>
-        private List<string> _clientReportAttachments;
+        private HashSet<string> _clientReportAttachments;
 
         /// <summary>
         /// Attribute object accessor
@@ -90,7 +90,7 @@ namespace Backtrace.Unity
         /// Returns list of defined path to attachments stored by Backtrace client.
         /// </summary>
         /// <returns>List of client attachments</returns>
-        public List<string> GetAttachments()
+        public IEnumerable<string> GetAttachments()
         {
             return _clientReportAttachments;
         }
@@ -472,7 +472,7 @@ namespace Backtrace.Unity
             }
             if (Configuration.EnableEventAggregationSupport && !string.IsNullOrEmpty(Configuration.EventAggregationSubmissionUrl))
             {
-                EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs(), Configuration.MaximumNumberOfEvents);
+                //EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs(), Configuration.MaximumNumberOfEvents);
             }
         }
 

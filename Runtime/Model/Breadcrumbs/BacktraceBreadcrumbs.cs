@@ -9,7 +9,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// <summary>
         /// Breadcrumbs log level
         /// </summary>
-        public BacktraceBreadcrumbsLevel BreadcrumbsLevel { get; internal set; }
+        public BacktraceBreadcrumbType BreadcrumbsLevel { get; internal set; }
 
         /// <summary>
         /// Unity engine log level
@@ -58,7 +58,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             return AddBreadcrumbs(message, LogType.Assert);
         }
 
-        public bool EnableBreadcrumbs(BacktraceBreadcrumbsLevel level, UnityEngineLogLevel unityLogLevel)
+        public bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
         {
             if (_enabled)
             {
@@ -88,7 +88,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         public bool FromBacktrace(BacktraceReport report)
         {
-            var type = report.ExceptionTypeReport ? LogType.Exception : LogType.Log;
+            var type = report.ExceptionTypeReport ? UnityEngineLogLevel.Error : UnityEngineLogLevel.Info;
             if (!ShouldLog(type))
             {
                 return false;
@@ -102,7 +102,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         public bool FromMonoBehavior(string message, LogType type, IDictionary<string, string> attributes)
         {
-            return AddBreadcrumbs(message, BreadcrumbLevel.System, type, attributes);
+            return AddBreadcrumbs(message, BreadcrumbLevel.System, ConvertLogTypeToLogLevel(type), attributes);
         }
 
         public string GetBreadcrumbLogPath()
@@ -144,43 +144,48 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             return AddBreadcrumbs(message, LogType.Exception, attributes);
         }
-        public bool AddBreadcrumbs(string message, LogType type, IDictionary<string, string> attributes)
+        public bool AddBreadcrumbs(string message, LogType logType, IDictionary<string, string> attributes)
         {
+            var type = ConvertLogTypeToLogLevel(logType);
             if (!ShouldLog(type))
             {
                 return false;
             }
             return AddBreadcrumbs(message, BreadcrumbLevel.Manual, type, attributes);
         }
-        internal bool AddBreadcrumbs(string message, BreadcrumbLevel level, LogType type, IDictionary<string, string> attributes = null)
+        internal bool AddBreadcrumbs(string message, BreadcrumbLevel level, UnityEngineLogLevel type, IDictionary<string, string> attributes = null)
         {
-            if (!BreadcrumbsLevel.HasFlag((BacktraceBreadcrumbsLevel)level))
+            if (!BreadcrumbsLevel.HasFlag((BacktraceBreadcrumbType)level))
             {
                 return false;
             }
             return LogManager.Add(message, level, type, attributes);
         }
-
-        internal bool ShouldLog(LogType type)
+        internal bool ShouldLog(UnityEngineLogLevel type)
         {
-            if (!BreadcrumbsLevel.HasFlag(BacktraceBreadcrumbsLevel.Manual))
+            if (!BreadcrumbsLevel.HasFlag(BacktraceBreadcrumbType.Manual))
             {
                 return false;
             }
+            return UnityLogLevel.HasFlag(type);
+        }
+
+        internal UnityEngineLogLevel ConvertLogTypeToLogLevel(LogType type)
+        {
             switch (type)
             {
-                case LogType.Log:
-                    return UnityLogLevel.HasFlag(UnityEngineLogLevel.Log);
                 case LogType.Warning:
-                    return UnityLogLevel.HasFlag(UnityEngineLogLevel.Warning);
+                    return UnityEngineLogLevel.Warning;
                 case LogType.Exception:
-                    return UnityLogLevel.HasFlag(UnityEngineLogLevel.Exception);
+                    return UnityEngineLogLevel.Fatal;
                 case LogType.Error:
-                    return UnityLogLevel.HasFlag(UnityEngineLogLevel.Error);
+                    return UnityEngineLogLevel.Error;
                 case LogType.Assert:
-                    return UnityLogLevel.HasFlag(UnityEngineLogLevel.Assert);
+                    return UnityEngineLogLevel.Debug;
+                case LogType.Log:
+                default:
+                    return UnityEngineLogLevel.Info;
             }
-            return false;
         }
     }
 }

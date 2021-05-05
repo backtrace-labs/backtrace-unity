@@ -2,8 +2,8 @@
 using Backtrace.Unity.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
-using UnityEngine;
 
 namespace Backtrace.Unity.Model.Breadcrumbs
 {
@@ -128,7 +128,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// <param name="type">Breadcrumb type</param>
         /// <param name="attributes">Breadcrumb attributs</param>
         /// <returns>True if breadcrumb was stored in the breadcrumbs file. Otherwise false.</returns>
-        public bool Add(string message, BreadcrumbLevel level, LogType type, IDictionary<string, string> attributes)
+        public bool Add(string message, BreadcrumbLevel level, UnityEngineLogLevel type, IDictionary<string, string> attributes)
         {
             byte[] bytes;
             lock (_lockObject)
@@ -173,14 +173,15 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             long id,
             string message,
             BreadcrumbLevel level,
-            LogType type,
+            UnityEngineLogLevel type,
             IDictionary<string, string> attributes)
         {
             var jsonObject = new BacktraceJObject();
-            jsonObject.Add("timestamp", DateTimeHelper.Timestamp());
+            // breadcrumbs integration accepts timestamp in ms not in sec.
+            jsonObject.Add("timestamp", DateTimeHelper.TimestampMs(), "F0");
             jsonObject.Add("id", id);
-            jsonObject.Add("level", Enum.GetName(typeof(BreadcrumbLevel), level));
-            jsonObject.Add("type", Enum.GetName(typeof(LogType), type));
+            jsonObject.Add("type", Enum.GetName(typeof(BreadcrumbLevel), level).ToLower());
+            jsonObject.Add("level", Enum.GetName(typeof(UnityEngineLogLevel), type).ToLower());
             jsonObject.Add("message", message);
             jsonObject.Add("attributes", new BacktraceJObject(attributes));
             return jsonObject;

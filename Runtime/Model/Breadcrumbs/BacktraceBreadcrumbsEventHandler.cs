@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,7 +8,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
     internal sealed class BacktraceBreadcrumbsEventHandler
     {
         private readonly BacktraceBreadcrumbs _breadcrumbs;
-        private BacktraceBreadcrumbsLevel _registeredLevel;
+        private BacktraceBreadcrumbType _registeredLevel;
         private Thread _thread;
         public BacktraceBreadcrumbsEventHandler(BacktraceBreadcrumbs breadcrumbs)
         {
@@ -20,10 +19,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// Register unity events that will generate logs in the breadcrumbs file
         /// </summary>
         /// <param name="level">Breadcrumbs level</param>
-        public void Register(BacktraceBreadcrumbsLevel level)
+        public void Register(BacktraceBreadcrumbType level)
         {
             _registeredLevel = level;
-            if (!level.HasFlag(BacktraceBreadcrumbsLevel.System))
+            if (!level.HasFlag(BacktraceBreadcrumbType.System))
             {
                 return;
             }
@@ -42,7 +41,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// </summary>
         public void Unregister()
         {
-            if (!_registeredLevel.HasFlag(BacktraceBreadcrumbsLevel.System))
+            if (!_registeredLevel.HasFlag(BacktraceBreadcrumbType.System))
             {
                 return;
             }
@@ -107,11 +106,12 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         private void Log(string message, LogType level, IDictionary<string, string> attributes = null)
         {
-            if (!_breadcrumbs.ShouldLog(level))
+            var type = _breadcrumbs.ConvertLogTypeToLogLevel(level);
+            if (!_breadcrumbs.ShouldLog(type))
             {
                 return;
             }
-            _breadcrumbs.AddBreadcrumbs(message, BreadcrumbLevel.System, level, attributes);
+            _breadcrumbs.AddBreadcrumbs(message, BreadcrumbLevel.System, type, attributes);
         }
     }
 }

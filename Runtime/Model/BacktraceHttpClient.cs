@@ -127,7 +127,8 @@ namespace Backtrace.Unity.Model
             // make sure attachments are not bigger than 10 Mb.
             const int maximumAttachmentSize = 10000000;
             const string attachmentPrefix = "attachment_";
-            foreach (var file in attachments)
+            var uniqueAttachments = new HashSet<string>(attachments);
+            foreach (var file in uniqueAttachments)
             {
                 if (File.Exists(file) && new FileInfo(file).Length < maximumAttachmentSize)
                 {

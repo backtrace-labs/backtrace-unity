@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -57,9 +56,9 @@ namespace Backtrace.Unity.Json
         /// </summary>
         /// <param name="key">JSON key</param>
         /// <param name="value">value</param>
-        public void Add(string key, float value)
+        public void Add(string key, float value, string format = "G")
         {
-            PrimitiveValues.Add(key, value.ToString("G", CultureInfo.InvariantCulture));
+            PrimitiveValues.Add(key, value.ToString(format, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -67,9 +66,9 @@ namespace Backtrace.Unity.Json
         /// </summary>
         /// <param name="key">JSON key</param>
         /// <param name="value">value</param>
-        public void Add(string key, double value)
+        public void Add(string key, double value, string format = "G")
         {
-            PrimitiveValues.Add(key, value.ToString("G", CultureInfo.InvariantCulture));
+            PrimitiveValues.Add(key, value.ToString(format, CultureInfo.InvariantCulture));
         }
 
         /// <summary>

@@ -8,10 +8,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
     [Flags]
     public enum UnityEngineLogLevel
     {
-        Assert = 1,
+        Debug = 1,
         Warning = 2,
-        Log = 4,
-        Exception = 8,
+        Info = 4,
+        Fatal = 8,
         Error = 16
     }
 }

@@ -6,8 +6,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 {
     public interface IBacktraceBreadcrumbs
     {
-        BacktraceBreadcrumbsLevel BreadcrumbsLevel { get; }
-        bool EnableBreadcrumbs(BacktraceBreadcrumbsLevel level, UnityEngineLogLevel unityLogLevel);
+        BacktraceBreadcrumbType BreadcrumbsLevel { get; }
+        bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel);
         bool ClearBreadcrumbs();
         bool AddBreadcrumbs(string message, LogType type, IDictionary<string, string> attributes);
         bool AddBreadcrumbs(string message, LogType type);

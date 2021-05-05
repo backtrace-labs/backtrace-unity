@@ -6,7 +6,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
     /// Breadcrumbs level
     /// </summary>
     [Flags]
-    public enum BacktraceBreadcrumbsLevel
+    public enum BacktraceBreadcrumbType
     {
         Manual = BreadcrumbLevel.Manual,
         Log = BreadcrumbLevel.Log,

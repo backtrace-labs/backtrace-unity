@@ -157,7 +157,7 @@ namespace Backtrace.Unity.Model
         /// Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumbs file
         /// </summary>
         [Tooltip("Breadcrumbs support breadcrumbs level- Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumb file")]
-        public BacktraceBreadcrumbsLevel BacktraceBreadcrumbsLevel;
+        public BacktraceBreadcrumbType BacktraceBreadcrumbsLevel;
 
         /// <summary>
         /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
@@ -271,9 +271,9 @@ namespace Backtrace.Unity.Model
         /// Get full paths to attachments added by client
         /// </summary>
         /// <returns>List of absolute path to attachments</returns>
-        public List<string> GetAttachmentPaths()
+        public HashSet<string> GetAttachmentPaths()
         {
-            var result = new List<string>();
+            var result = new HashSet<string>();
             if (AttachmentPaths == null || AttachmentPaths.Length == 0)
             {
                 return result;

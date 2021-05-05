@@ -104,7 +104,7 @@ namespace Backtrace.Unity.Services
         {
             if (attachments == null)
             {
-                attachments = new List<string>();
+                attachments = new HashSet<string>();
             }
 
             var stopWatch = EnablePerformanceStatistics
