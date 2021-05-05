@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Backtrace.Unity
@@ -150,7 +151,7 @@ namespace Backtrace.Unity
             LastFrameTime = Time.unscaledTime;
             //Setup database context
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabaseSettings);
-            BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabaseSettings.DatabasePath, DatabaseSettings.MaxDatabaseSize, DatabaseSettings.MaxRecordCount);
+            BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabaseSettings);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
             EnableBreadcrumbsSupport();
@@ -215,7 +216,10 @@ namespace Backtrace.Unity
             if (DatabaseSettings.AutoSendMode)
             {
                 _lastConnection = Time.unscaledTime;
-                SendData(BacktraceDatabaseContext.FirstOrDefault());
+                if (BacktraceDatabaseContext.Any())
+                {
+                    SendData(BacktraceDatabaseContext.FirstOrDefault());
+                }
             }
         }
 
@@ -279,7 +283,47 @@ namespace Backtrace.Unity
             {
                 return null;
             }
-            var record = BacktraceDatabaseContext.Add(data);
+
+            // validate if record already exists in the database object
+            var hash = BacktraceDatabaseContext.GetHash(data);
+            if (!string.IsNullOrEmpty(hash))
+            {
+                var existingRecord = BacktraceDatabaseContext.GetRecordByHash(hash);
+                if (existingRecord != null)
+                {
+                    BacktraceDatabaseContext.AddDuplicate(existingRecord);
+                    return existingRecord;
+                }
+            }
+
+            // now we now we're adding new unique report to database
+            var record = new BacktraceDatabaseRecord(data)
+            {
+                Hash = hash
+            };
+
+            //add built-in attachments
+            var attachments = BacktraceDatabaseFileContext.GenerateRecordAttachments(data);
+            for (int attachmentIndex = 0; attachmentIndex < attachments.Count(); attachmentIndex++)
+            {
+                if (!string.IsNullOrEmpty(attachments.ElementAt(attachmentIndex)))
+                {
+                    data.Attachments.Add(attachments.ElementAt(attachmentIndex));
+                    record.Attachments.Add(attachments.ElementAt(attachmentIndex));
+                }
+            }
+
+            // save record on the hard drive and add it to database context
+            var saveResult = BacktraceDatabaseFileContext.Save(record);
+            if (!saveResult)
+            {
+                // file context won't remove json object that wasn't stored in the previous method
+                // but will clean up attachments associated with this record.
+                BacktraceDatabaseFileContext.Delete(record);
+                return null;
+            }
+
+            BacktraceDatabaseContext.Add(record);
             if (!@lock)
             {
                 record.Unlock();
@@ -297,15 +341,8 @@ namespace Backtrace.Unity
             {
                 return null;
             }
-            //remove old reports (if database is full)
-            //and check database health state
-            var validationResult = ValidateDatabaseSize();
-            if (!validationResult)
-            {
-                return null;
-            }
             var data = backtraceReport.ToBacktraceData(attributes, Configuration.GameObjectDepth);
-            return BacktraceDatabaseContext.Add(data);
+            return Add(data);
         }
 
 
@@ -328,7 +365,13 @@ namespace Backtrace.Unity
         public void Delete(BacktraceDatabaseRecord record)
         {
             if (BacktraceDatabaseContext != null)
+            {
                 BacktraceDatabaseContext.Delete(record);
+            }
+            if (BacktraceDatabaseFileContext != null)
+            {
+                BacktraceDatabaseFileContext.Delete(record);
+            }
         }
 
         /// <summary>
@@ -423,7 +466,7 @@ namespace Backtrace.Unity
                          }
                          else
                          {
-                             BacktraceDatabaseContext.IncrementBatchRetry();
+                             IncrementBatchRetry();
                              return;
                          }
                          bool shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
@@ -521,13 +564,12 @@ namespace Backtrace.Unity
                 {
                     continue;
                 }
-                record.DatabasePath(DatabaseSettings.DatabasePath);
-                if (!record.Valid())
+                if (!BacktraceDatabaseFileContext.IsValidRecord(record))
                 {
                     try
                     {
                         Debug.Log("Removing record from Backtrace Database path - invalid record.");
-                        record.Delete();
+                        BacktraceDatabaseFileContext.Delete(record);
                     }
                     catch (Exception)
                     {
@@ -566,7 +608,12 @@ namespace Backtrace.Unity
                 int deletePolicyRetry = 5;
                 while (BacktraceDatabaseContext.GetSize() > DatabaseSettings.MaxDatabaseSize)
                 {
-                    BacktraceDatabaseContext.RemoveLastRecord();
+                    var lastRecord = BacktraceDatabaseContext.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        BacktraceDatabaseContext.Delete(lastRecord);
+                        BacktraceDatabaseFileContext.Delete(lastRecord);
+                    }
                     deletePolicyRetry--;
                     if (deletePolicyRetry != 0)
                     {
@@ -600,6 +647,20 @@ namespace Backtrace.Unity
         {
             _reportLimitWatcher = reportLimitWatcher;
         }
+
+        private void IncrementBatchRetry()
+        {
+            var data = BacktraceDatabaseContext.GetRecordsToDelete();
+            BacktraceDatabaseContext.IncrementBatchRetry();
+            if (data != null && data.Count() != 0)
+            {
+                foreach (var item in data)
+                {
+                    BacktraceDatabaseFileContext.Delete(item);
+                }
+            }
+        }
+
 
         public bool EnableBreadcrumbsSupport()
         {

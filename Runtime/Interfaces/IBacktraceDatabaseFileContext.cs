@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model.Database;
+﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Database;
 using System.Collections.Generic;
 using System.IO;
 
@@ -33,5 +34,31 @@ namespace Backtrace.Unity.Interfaces
         /// Remove all files from database directory
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Deletes backtrace database record from persistent data storage
+        /// </summary>
+        /// <param name="record">Database record</param>
+        void Delete(BacktraceDatabaseRecord record);
+
+        /// <summary>
+        /// Generates list of attachments for current diagnostic data record
+        /// </summary>
+        /// <param name="data">Backtrace data</param>
+        IEnumerable<string> GenerateRecordAttachments(BacktraceData data);
+
+        /// <summary>
+        /// Saves BacktraceDatabaseRerord on the hard drive
+        /// </summary>
+        /// <param name="record">BacktraceDatabaseRecord</param>
+        /// <returns>true if file context was able to save data on the hard drive. Otherwise false</returns>
+        bool Save(BacktraceDatabaseRecord record);
+
+        /// <summary>
+        /// Determine if BacktraceDatabaseRecord is valid.
+        /// </summary>
+        /// <param name="record">Database record</param>
+        /// <returns>True, if the record exists. Otherwise false.</returns>
+        bool IsValidRecord(BacktraceDatabaseRecord record);
     }
 }
