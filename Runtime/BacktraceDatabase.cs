@@ -216,10 +216,7 @@ namespace Backtrace.Unity
             if (DatabaseSettings.AutoSendMode)
             {
                 _lastConnection = Time.unscaledTime;
-                if (BacktraceDatabaseContext.Any())
-                {
-                    SendData(BacktraceDatabaseContext.FirstOrDefault());
-                }
+                SendData(BacktraceDatabaseContext.FirstOrDefault());
             }
         }
 
