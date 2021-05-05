@@ -117,7 +117,7 @@ namespace Backtrace.Unity.Editor
                     }
 
                     EditorGUILayout.PropertyField(
-                        serializedObject.FindProperty("TimeIntervalInMs"),
+                        serializedObject.FindProperty("TimeIntervalInMin"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_TIME_INTERVAL));
                 }
             }
