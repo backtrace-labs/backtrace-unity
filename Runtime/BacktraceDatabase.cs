@@ -177,7 +177,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Backtrace database update event
         /// </summary>
-        private void Update()
+        internal void Update()
         {
             if (!Enable)
             {
@@ -593,20 +593,17 @@ namespace Backtrace.Unity
             //check how many records are stored in database
             //remove in case when we want to store one more than expected number
             //If record count == 0 then we ignore this condition
-            var noMoreSpaceForReport = BacktraceDatabaseContext.Count() + 1 > DatabaseSettings.MaxRecordCount && DatabaseSettings.MaxRecordCount != 0;
-            if (noMoreSpaceForReport)
-            {
-                return false;
-            }
+            var noMoreSpaceForReport = ReachedMaximumNumberOfRecords();
 
             //check database size. If database size == 0 then we ignore this condition
             //remove all records till database use enough space
-            if (DatabaseSettings.MaxDatabaseSize != 0 && BacktraceDatabaseContext.GetSize() > DatabaseSettings.MaxDatabaseSize)
+            var noMoreSpace = ReachedDiskSpaceLimit();
+            if (noMoreSpaceForReport || noMoreSpace)
             {
                 //if your database is entry or every record is locked
                 //deletePolicyRetry avoid infinity loop
                 int deletePolicyRetry = 5;
-                while (BacktraceDatabaseContext.GetSize() > DatabaseSettings.MaxDatabaseSize)
+                while (ReachedDiskSpaceLimit() || ReachedMaximumNumberOfRecords())
                 {
                     var lastRecord = BacktraceDatabaseContext.LastOrDefault();
                     if (lastRecord != null)
@@ -615,7 +612,7 @@ namespace Backtrace.Unity
                         BacktraceDatabaseFileContext.Delete(lastRecord);
                     }
                     deletePolicyRetry--;
-                    if (deletePolicyRetry != 0)
+                    if (deletePolicyRetry == 0)
                     {
                         break;
                     }
@@ -623,6 +620,16 @@ namespace Backtrace.Unity
                 return deletePolicyRetry != 0;
             }
             return true;
+        }
+
+        private bool ReachedDiskSpaceLimit()
+        {
+            return DatabaseSettings.MaxDatabaseSize != 0 && BacktraceDatabaseContext.GetSize() > DatabaseSettings.MaxDatabaseSize;
+        }
+
+        private bool ReachedMaximumNumberOfRecords()
+        {
+            return BacktraceDatabaseContext.Count() + 1 > DatabaseSettings.MaxRecordCount && DatabaseSettings.MaxRecordCount != 0;
         }
 
         /// <summary>
