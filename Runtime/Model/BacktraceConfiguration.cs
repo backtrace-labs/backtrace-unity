@@ -198,8 +198,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Enable event aggregation support
         /// </summary>
-        [Header("Backtrace event aggregation")]
-        [Tooltip("Enable event aggregation support")]
+        [Tooltip("Enable default crash free events")]
         public bool EnableEventAggregationSupport = false;
 
         /// <summary>
@@ -211,8 +210,15 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Time interval in ms
         /// </summary>
-        [Tooltip("Event aggregation submission url")]
-        public long TimeIntervalInMs = 0;
+        [Range(0, 60)]
+        [Tooltip("Event aggregation time interval in min")]
+        public long TimeIntervalInMin = 30;
+
+        /// <summary>
+        /// Maximum number of events in Event aggregation store
+        /// </summary>
+        [Tooltip("Maximum number of events stored by Backtrace")]
+        public uint MaximumNumberOfEvents = 10;
 
         /// <summary>
         /// Determine if database is enable
@@ -343,6 +349,11 @@ namespace Backtrace.Unity.Model
         public bool IsValid()
         {
             return ValidateServerUrl(ServerUrl);
+        }
+
+        public long GetEventAggregationIntervalTimerInMs()
+        {
+            return TimeIntervalInMin * 60;
         }
 
 

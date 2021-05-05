@@ -472,7 +472,7 @@ namespace Backtrace.Unity
             }
             if (Configuration.EnableEventAggregationSupport && !string.IsNullOrEmpty(Configuration.EventAggregationSubmissionUrl))
             {
-                //EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs(), Configuration.MaximumNumberOfEvents);
+                EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs(), Configuration.MaximumNumberOfEvents);
             }
         }
 
