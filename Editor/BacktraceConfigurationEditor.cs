@@ -119,6 +119,10 @@ namespace Backtrace.Unity.Editor
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("TimeIntervalInMin"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_TIME_INTERVAL));
+
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("MaximumNumberOfEvents"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_MAXIMUM_NUMBER_OF_EVENTS));
                 }
             }
 
