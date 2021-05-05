@@ -435,6 +435,10 @@ namespace Backtrace.Unity
 
         private void SendData(BacktraceDatabaseRecord record)
         {
+            if (record == null)
+            {
+                return;
+            }
             var stopWatch = Configuration.PerformanceStatistics
                ? System.Diagnostics.Stopwatch.StartNew()
                : new System.Diagnostics.Stopwatch();
@@ -566,15 +570,8 @@ namespace Backtrace.Unity
                 }
                 if (!BacktraceDatabaseFileContext.IsValidRecord(record))
                 {
-                    try
-                    {
-                        Debug.Log("Removing record from Backtrace Database path - invalid record.");
-                        BacktraceDatabaseFileContext.Delete(record);
-                    }
-                    catch (Exception)
-                    {
-                        Debug.LogWarning(string.Format("Cannot remove file from database. File name: {0}", file.FullName));
-                    }
+                    Debug.Log("Removing record from Backtrace Database path - invalid record.");
+                    BacktraceDatabaseFileContext.Delete(record);
                     continue;
                 }
                 BacktraceDatabaseContext.Add(record);
