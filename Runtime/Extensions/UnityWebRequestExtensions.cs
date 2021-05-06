@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Extensions
 {
-    internal static class UnityWebReqeustExtensions
+    internal static class UnityWebRequestExtensions
     {
         internal const string ContentTypeHeader = "Content-Type";
         internal static UnityWebRequest SetMultipartFormData(this UnityWebRequest source, byte[] boundaryId)
