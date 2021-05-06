@@ -184,23 +184,11 @@ namespace Backtrace.Unity.Model
         public bool EnableEventAggregationSupport = false;
 
         /// <summary>
-        /// Event aggregation submission url
-        /// </summary>
-        [Tooltip("Event aggregation submission url")]
-        public string EventAggregationSubmissionUrl;
-
-        /// <summary>
         /// Time interval in ms
         /// </summary>
         [Range(0, 60)]
         [Tooltip("Event aggregation time interval in min")]
         public long TimeIntervalInMin = 30;
-
-        /// <summary>
-        /// Maximum number of events in Event aggregation store
-        /// </summary>
-        [Tooltip("Maximum number of events stored by Backtrace")]
-        public uint MaximumNumberOfEvents = 0;
 
         /// <summary>
         /// Determine if database is enable
@@ -275,6 +263,17 @@ namespace Backtrace.Unity.Model
                 }
             }
             return result;
+        }
+
+        public string GetEventAggregationUrl()
+        {
+            const int tokenLength = 64;
+            const string tokenQueryParam = "token=";
+            var submissionUrl = GetValidServerUrl();
+            var token = submissionUrl.Contains("submit.backtrace.io")
+                ? submissionUrl.Substring(submissionUrl.LastIndexOf("/") - tokenLength, tokenLength)
+                : submissionUrl.Substring(submissionUrl.IndexOf(tokenQueryParam) + tokenQueryParam.Length, tokenLength);
+            return $"https://events.backtrace.io/api/event-aggregation/events?token={token}";
         }
 
         public string GetFullDatabasePath()

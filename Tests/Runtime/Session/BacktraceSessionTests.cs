@@ -23,7 +23,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var jsonString = string.Empty;
             var submissionUrl = string.Empty;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
             backtraceSession.RequestHandler = new BacktraceHttpClientMock()
             {
                 OnInvoke = (string url, BacktraceJObject json) =>
@@ -46,7 +46,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             var jsonString = string.Empty;
             var submissionUrl = string.Empty;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
             backtraceSession.RequestHandler = new BacktraceHttpClientMock()
             {
                 OnInvoke = (string url, BacktraceJObject json) =>
@@ -68,7 +68,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSession_ShouldntTriggerUploadWhenDataIsNotAvailable_DataWasntSendToBacktrace()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
 
@@ -80,7 +80,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [UnityTest]
         public IEnumerator BacktraceSession_ShouldTry3TimesOn503BeforeDroppingEvents_DataWasntSendToBacktrace()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
             var requestHandler = new BacktraceHttpClientMock()
             {
                 StatusCode = 503
@@ -104,7 +104,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSession_ShouldTryOnlyOnceOnHttpFailure_DataWasntSendToBacktrace()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, 1);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
             var requestHandler = new BacktraceHttpClientMock()
             {
                 IsHttpError = true
@@ -123,7 +123,10 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             const int maximumNumberOfEvents = 3;
             const int numberOfTestEvents = 10;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, maximumNumberOfEvents);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0)
+            {
+                MaximumNumberOfEventsInStore = maximumNumberOfEvents
+            };
 
             for (int i = 0; i < numberOfTestEvents; i++)
             {
@@ -138,7 +141,10 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             const int maximumNumberOfEvents = 3;
             const int numberOfTestEvents = 10;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, maximumNumberOfEvents);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0)
+            {
+                MaximumNumberOfEventsInStore = maximumNumberOfEvents
+            };
 
             for (int i = 0; i < numberOfTestEvents; i++)
             {
@@ -153,7 +159,10 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             const int maximumNumberOfEvents = 3;
             const int defaultTimeIntervalInMs = 10;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, defaultTimeIntervalInMs, maximumNumberOfEvents);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, defaultTimeIntervalInMs)
+            {
+                MaximumNumberOfEventsInStore = maximumNumberOfEvents
+            };
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
             for (int i = 0; i < maximumNumberOfEvents; i++)
@@ -172,7 +181,10 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             const int maximumNumberOfEvents = 3;
             const int expectedNumberOfEvents = 2;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 1, maximumNumberOfEvents);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 1)
+            {
+                MaximumNumberOfEventsInStore = maximumNumberOfEvents
+            };
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
             for (int i = 0; i < expectedNumberOfEvents; i++)
@@ -191,7 +203,9 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         public void BacktraceSession_ShouldTriggerDownloadAfterTimeIntervalHit_DataWasSendToBacktrace()
         {
             const int timeInterval = 10;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval, 3);
+            const int expectedNumberOfEvents = 1;// unique event
+            const int expectedNumberOfRequests = 1; //should combine data together
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
 
@@ -200,8 +214,9 @@ namespace Backtrace.Unity.Tests.Runtime.Session
 
             backtraceSession.Tick(timeInterval + 1);
 
-            Assert.AreEqual(0, backtraceSession.Count());
-            Assert.AreEqual(1, requestHandler.NumberOfRequests);
+
+            Assert.AreEqual(expectedNumberOfEvents, backtraceSession.Count());
+            Assert.AreEqual(expectedNumberOfRequests, requestHandler.NumberOfRequests);
         }
 
         [Test]
@@ -209,7 +224,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         {
             const int timeInterval = 10;
             const int numberOfAddedEvents = 2;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval, 3);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
 
@@ -227,7 +242,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         public void BacktraceSession_ShouldTriggerDownloadAfterTimeIntervalHitAgain_DataWasSendToBacktrace()
         {
             const int timeInterval = 10;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval, 3);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
 
@@ -241,14 +256,16 @@ namespace Backtrace.Unity.Tests.Runtime.Session
 
             backtraceSession.Tick((timeInterval * 2) + 1);
 
-            Assert.AreEqual(0, backtraceSession.Count());
+            // we added two unique events - but because we added two the same reports
+            // they should be combined
+            Assert.AreEqual(1, backtraceSession.Count());
             Assert.AreEqual(2, requestHandler.NumberOfRequests);
         }
         [Test]
         public void BacktraceSession_ShouldntTriggerDownloadAfterTimeIntervalFirstHit_DataWasSendToBacktrace()
         {
             const int timeInterval = 10;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval, 3);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, timeInterval);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
 
@@ -269,7 +286,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionDefaultEvent_ShouldSendDefaultEventOnTheApplicationStartup_DataWasSendToBacktrace()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 10, 3);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 10);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceSession.RequestHandler = requestHandler;
 

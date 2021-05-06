@@ -470,13 +470,13 @@ namespace Backtrace.Unity
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
-            if (Configuration.EnableEventAggregationSupport && !string.IsNullOrEmpty(Configuration.EventAggregationSubmissionUrl))
+            if (Configuration.EnableEventAggregationSupport)
             {
-                EnableSessionAgregationSupport(Configuration.EventAggregationSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs(), Configuration.MaximumNumberOfEvents);
+                EnableSessionAgregationSupport(Configuration.GetEventAggregationUrl(), Configuration.GetEventAggregationIntervalTimerInMs());
             }
         }
 
-        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs, uint maximumNumberOfEventsInStore)
+        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs)
         {
             if (Session != null)
             {
@@ -486,8 +486,7 @@ namespace Backtrace.Unity
             Session = new BacktraceSession(
                 attributeProvider: _attributeProvider,
                 uploadUrl: submissionUrl,
-                timeIntervalInMs: timeIntervalInMs,
-                maximumNumberOfEventsInStore: maximumNumberOfEventsInStore)
+                timeIntervalInMs: timeIntervalInMs)
             {
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };

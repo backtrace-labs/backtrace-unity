@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Backtrace.Unity.Model.Session
 {
-    internal abstract class EventAggregationBase
+    public abstract class EventAggregationBase
     {
         private const string TimestampName = "timestamp";
         private const string AttributesName = "attributes";

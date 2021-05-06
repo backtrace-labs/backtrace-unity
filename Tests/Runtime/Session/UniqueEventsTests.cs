@@ -16,7 +16,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionUniqueEvents_ShouldAddCorrectlyUniqueEventWithEmptyAttributes_StoreValidUniqueEvent()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddUniqueEvent(UniqueAttributeName, null);
 
@@ -35,7 +35,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             var attributes = new Dictionary<string, string>() { { expectedAttributeName, expectedAttributeValue } };
             int expectedNumberOfAttributes = _attributeProvider.GenerateAttributes().Count + attributes.Count;
 
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddUniqueEvent(UniqueAttributeName, attributes);
 
@@ -49,7 +49,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionUniqueEvents_ShouldAddCorrectlyUniqueEvent_StoreValidUniqueEvent()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             var added = backtraceSession.AddUniqueEvent(UniqueAttributeName);
 
@@ -64,7 +64,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionUniqueEvents_ShouldPreventFromAddingEventIfThereIsNoAttribute_StoreValidUniqueEvent()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             var added = backtraceSession.AddUniqueEvent($"{UniqueAttributeName}-not-existing");
 
@@ -76,7 +76,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionUniqueEvents_ShouldntAddEmptyUniqueEvent_UniqueEventsAreEmpty()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             var added = backtraceSession.AddUniqueEvent(string.Empty);
 
@@ -88,7 +88,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionUniqueEvents_ShouldntAddNullableUniqueEvent_UniqueEventsAreEmpty()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddUniqueEvent(null);
 
@@ -101,7 +101,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
             const string initializationValue = "foo";
             const string updatedValue = "bar";
             _attributeProvider[UniqueAttributeName] = initializationValue;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddUniqueEvent(UniqueAttributeName);
             _attributeProvider[UniqueAttributeName] = updatedValue;
@@ -117,7 +117,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
 
             const string initializationValue = "foo";
             _attributeProvider[UniqueAttributeName] = initializationValue;
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddUniqueEvent(UniqueAttributeName);
             _attributeProvider[UniqueAttributeName] = string.Empty;

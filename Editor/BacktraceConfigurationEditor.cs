@@ -106,16 +106,6 @@ namespace Backtrace.Unity.Editor
 
                 if (enableEventAggregation.boolValue)
                 {
-                    var eventAggregationSubmissionUrl = serializedObject.FindProperty("EventAggregationSubmissionUrl");
-                    EditorGUILayout.PropertyField(
-                        eventAggregationSubmissionUrl,
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_URL));
-
-                    if (!BacktraceConfiguration.ValidateServerUrl(eventAggregationSubmissionUrl.stringValue))
-                    {
-                        EditorGUILayout.HelpBox("Please insert valid Backtrace server url!", MessageType.Error);
-                    }
-
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("TimeIntervalInMin"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_TIME_INTERVAL));
