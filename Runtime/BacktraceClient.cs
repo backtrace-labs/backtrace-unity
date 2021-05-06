@@ -457,7 +457,10 @@ namespace Backtrace.Unity
                     Database.SetReportWatcher(_reportLimitWatcher);
                 }
             }
-
+            if (_attributeProvider == null)
+            {
+                _attributeProvider = new AttributeProvider();
+            }
             _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _attributeProvider.Get());
             _attributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
