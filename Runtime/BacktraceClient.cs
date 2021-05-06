@@ -22,7 +22,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.4.0";
+        public const string VERSION = "3.5.0";
 
         public BacktraceConfiguration Configuration;
 
@@ -63,10 +63,18 @@ namespace Backtrace.Unity
         {
             get
             {
+                if (_attributeProvider == null)
+                {
+                    _attributeProvider = new AttributeProvider();
+                }
                 return _attributeProvider[index];
             }
             set
             {
+                if (_attributeProvider == null)
+                {
+                    _attributeProvider = new AttributeProvider();
+                }
                 _attributeProvider[index] = value;
                 if (_nativeClient != null)
                 {
@@ -429,7 +437,6 @@ namespace Backtrace.Unity
             Enabled = true;
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
-            _attributeProvider = new AttributeProvider();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
             _clientReportAttachments = Configuration.GetAttachmentPaths();
 
