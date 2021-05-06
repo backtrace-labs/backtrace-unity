@@ -111,7 +111,7 @@ namespace Backtrace.Unity.Services
             AttributeProvider attributeProvider,
             string uploadUrl,
             long timeIntervalInMs,
-            uint maximumNumberOfEventsInStore)
+            uint maximumNumberOfEventsInStore = 0)
         {
             SubmissionUrl = uploadUrl;
             _attributeProvider = attributeProvider;

@@ -200,7 +200,7 @@ namespace Backtrace.Unity.Model
         /// Maximum number of events in Event aggregation store
         /// </summary>
         [Tooltip("Maximum number of events stored by Backtrace")]
-        public uint MaximumNumberOfEvents = 10;
+        public uint MaximumNumberOfEvents = 0;
 
         /// <summary>
         /// Determine if database is enable
