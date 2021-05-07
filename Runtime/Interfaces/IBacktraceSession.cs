@@ -9,6 +9,11 @@ namespace Backtrace.Unity.Interfaces
         /// List of unique events stored in the BacktraceSession class
         /// </summary>
         LinkedList<UniqueEvent> UniqueEvents { get; }
+
+        /// <summary>
+        /// Default unique event name that will be generated on the application startup
+        /// </summary>
+        string DefaultUniqueEventName { get; set; }
         /// <summary>
         /// Maximum number of events in store. If number of events in store hit the limit
         /// BacktraceSession instance will send data to Backtrace.

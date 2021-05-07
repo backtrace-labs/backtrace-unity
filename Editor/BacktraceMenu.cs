@@ -1,5 +1,4 @@
 ﻿#if UNITY_EDITOR
-using System;
 using Backtrace.Unity.Model;
 using System.IO;
 using System.Linq;

@@ -15,6 +15,11 @@ namespace Backtrace.Unity.Services
     internal sealed class BacktraceSession : IBacktraceSession
     {
         /// <summary>
+        /// Default unique event name that will be generated on the application startup
+        /// </summary>
+        public string DefaultUniqueEventName { get; set; } = "guid";
+
+        /// <summary>
         /// Maximum number of events in store. If number of events in store hit the limit
         /// BacktraceSession instance will send data to Backtrace.
         /// </summary>
@@ -63,6 +68,8 @@ namespace Backtrace.Unity.Services
         /// List of unique events that will be added to next session submission payload
         /// </summary>
         public LinkedList<UniqueEvent> UniqueEvents { get; internal set; } = new LinkedList<UniqueEvent>();
+
+
 
         private int _numberOfDroppedRequests = 0;
 
@@ -124,8 +131,13 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void SendStartupEvent()
         {
+            var uniqueEventAttributes = _attributeProvider.GenerateAttributes();
+            var uniqueEvents = (uniqueEventAttributes.TryGetValue(DefaultUniqueEventName, out string value) && !string.IsNullOrEmpty(value))
+                ? new UniqueEvent[1] { new UniqueEvent(DefaultUniqueEventName, DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes()) }
+                : new UniqueEvent[0];
+
             SendPayload(
-                new UniqueEvent[1] { new UniqueEvent("guid", DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes()) },
+                uniqueEvents,
                 new SessionEvent[1] { new SessionEvent(StartupEventName) });
         }
 
