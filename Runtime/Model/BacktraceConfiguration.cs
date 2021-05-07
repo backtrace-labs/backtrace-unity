@@ -180,14 +180,14 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Enable event aggregation support
         /// </summary>
-        [Tooltip("Enable default crash free events")]
+        [Tooltip("This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.")]
         public bool EnableEventAggregationSupport = false;
 
         /// <summary>
         /// Time interval in ms
         /// </summary>
         [Range(0, 60)]
-        [Tooltip("Event aggregation time interval in min")]
+        [Tooltip("How often events should be sent to the Backtrace endpoints, in minutes. Zero (0) disables auto send and will require manual periodic sending using the API. For more information, see the README.")]
         public long TimeIntervalInMin = 30;
 
         /// <summary>

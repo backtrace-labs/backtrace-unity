@@ -13,7 +13,7 @@ namespace Backtrace.Unity.Interfaces
         /// Maximum number of events in store. If number of events in store hit the limit
         /// BacktraceSession instance will send data to Backtrace.
         /// </summary>
-        uint MaximumNumberOfEventsInStore { get; set; }
+        uint MaximumEvents { get; set; }
 
         /// <summary>
         /// Submission url

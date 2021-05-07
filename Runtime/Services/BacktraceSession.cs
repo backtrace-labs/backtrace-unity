@@ -18,7 +18,7 @@ namespace Backtrace.Unity.Services
         /// Maximum number of events in store. If number of events in store hit the limit
         /// BacktraceSession instance will send data to Backtrace.
         /// </summary>
-        public uint MaximumNumberOfEventsInStore { get; set; } = 350;
+        public uint MaximumEvents { get; set; } = 350;
         /// <summary>
         /// Startup event name that will be send on the application startup
         /// </summary>
@@ -124,7 +124,9 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void SendStartupEvent()
         {
-            SendPayload(new UniqueEvent[1] { new UniqueEvent("guid") }, new SessionEvent[1] { new SessionEvent(StartupEventName) });
+            SendPayload(
+                new UniqueEvent[1] { new UniqueEvent("guid", DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes()) },
+                new SessionEvent[1] { new SessionEvent(StartupEventName) });
         }
 
         /// <summary>
@@ -145,7 +147,7 @@ namespace Backtrace.Unity.Services
             {
 
                 var intervalUpdate = (time - _lastUpdateTime) >= _timeIntervalInMs;
-                var reachedEventLimit = MaximumNumberOfEventsInStore == Count() && MaximumNumberOfEventsInStore != 0;
+                var reachedEventLimit = MaximumEvents == Count() && MaximumEvents != 0;
                 if (intervalUpdate == false && reachedEventLimit == false)
                 {
                     // nothing more to update
@@ -273,7 +275,7 @@ namespace Backtrace.Unity.Services
                     _numberOfDroppedRequests++;
                     if (attemps + 1 == MaxNumberOfAttemps)
                     {
-                        if (Count() + sessionEvents.Length < MaximumNumberOfEventsInStore)
+                        if (Count() + sessionEvents.Length < MaximumEvents)
                         {
                             foreach (var sessionEvent in sessionEvents)
                             {
@@ -313,7 +315,7 @@ namespace Backtrace.Unity.Services
         /// <returns>True if we're able to add. Otherwise false.</returns>
         private bool ShouldProcessEvent(string name)
         {
-            return !string.IsNullOrEmpty(name) && (MaximumNumberOfEventsInStore == 0 || (Count() + 1 <= MaximumNumberOfEventsInStore));
+            return !string.IsNullOrEmpty(name) && (MaximumEvents == 0 || (Count() + 1 <= MaximumEvents));
         }
 
         private void OnRequestCompleted()
@@ -334,7 +336,7 @@ namespace Backtrace.Unity.Services
             foreach (var uniqueEvent in uniqueEvents)
             {
                 uniqueEventsJson.Add(uniqueEvent.ToJson());
-                uniqueEvent.UpdateTimestamp();
+                uniqueEvent.UpdateTimestamp(DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes());
             }
 
             jsonData.Add("unique_events", uniqueEventsJson);

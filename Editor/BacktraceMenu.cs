@@ -17,12 +17,14 @@ namespace Backtrace.Unity.Editor
         [MenuItem("Assets/Backtrace/Configuration", false, 1)]
         public static void CreateClientConfigurationFile()
         {
-            CreateAsset<BacktraceConfiguration>(DEFAULT_CLIENT_CONFIGURATION_NAME);
+            CreateAsset(DEFAULT_CLIENT_CONFIGURATION_NAME);
         }
 
-        private static void CreateAsset<T>(string fileName) where T : ScriptableObject
+        private static void CreateAsset(string fileName)
         {
-            T asset = ScriptableObject.CreateInstance<T>();
+            BacktraceConfiguration asset = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            // apply default only for new installations
+            asset.EnableEventAggregationSupport = true;
             var currentProjectPath = AssetDatabase.GetAssetPath(Selection.activeObject);
             if (string.IsNullOrEmpty(currentProjectPath))
             {
