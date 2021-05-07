@@ -132,12 +132,13 @@ namespace Backtrace.Unity.Services
         public void SendStartupEvent()
         {
             var uniqueEventAttributes = _attributeProvider.GenerateAttributes();
-            var uniqueEvents = (uniqueEventAttributes.TryGetValue(DefaultUniqueEventName, out string value) && !string.IsNullOrEmpty(value))
-                ? new UniqueEvent[1] { new UniqueEvent(DefaultUniqueEventName, DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes()) }
-                : new UniqueEvent[0];
+            if (uniqueEventAttributes.TryGetValue(DefaultUniqueEventName, out string value) && !string.IsNullOrEmpty(value))
+            {
+                UniqueEvents.AddLast(new UniqueEvent(DefaultUniqueEventName, DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes()));
+            }
 
             SendPayload(
-                uniqueEvents,
+                UniqueEvents.ToArray(),
                 new SessionEvent[1] { new SessionEvent(StartupEventName) });
         }
 

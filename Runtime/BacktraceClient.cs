@@ -87,18 +87,10 @@ namespace Backtrace.Unity
         {
             get
             {
-                if (AttributeProvider == null)
-                {
-                    _attributeProvider = new AttributeProvider();
-                }
                 return AttributeProvider[index];
             }
             set
             {
-                if (AttributeProvider == null)
-                {
-                    AttributeProvider = new AttributeProvider();
-                }
                 AttributeProvider[index] = value;
                 if (_nativeClient != null)
                 {
@@ -493,10 +485,7 @@ namespace Backtrace.Unity
                     Database.SetReportWatcher(_reportLimitWatcher);
                 }
             }
-            if (AttributeProvider == null)
-            {
-                AttributeProvider = new AttributeProvider();
-            }
+
             _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get());
             AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
@@ -545,6 +534,7 @@ namespace Backtrace.Unity
         private void LateUpdate()
         {
             _nativeClient?.UpdateClientTime(Time.unscaledTime);
+            Session?.Tick(Time.unscaledTime);
 
             if (BackgroundExceptions.Count == 0)
             {
