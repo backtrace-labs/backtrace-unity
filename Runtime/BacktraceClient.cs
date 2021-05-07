@@ -27,15 +27,51 @@ namespace Backtrace.Unity
 
         public bool Enabled { get; private set; }
 
+        private AttributeProvider _attributeProvider;
         /// <summary>
         /// Client attribute provider
         /// </summary>
-        private AttributeProvider _attributeProvider;
+        internal AttributeProvider AttributeProvider
+        {
+            get
+            {
+                if (_attributeProvider == null)
+                {
+                    _attributeProvider = new AttributeProvider();
+                }
+                return _attributeProvider;
+            }
+            set
+            {
+                _attributeProvider = value;
+            }
+        }
 
+        private IBacktraceSession _session;
         /// <summary>
         /// Backtrace session instance
         /// </summary>
-        public IBacktraceSession Session { get; internal set; }
+        public IBacktraceSession Session
+        {
+            get
+            {
+                if (_session == null && Configuration != null && Configuration.EnableEventAggregationSupport)
+                {
+                    _session = new BacktraceSession(
+                        AttributeProvider,
+                        Configuration.GetEventAggregationUrl(),
+                        Configuration.GetEventAggregationIntervalTimerInMs())
+                    {
+                        IgnoreSslValidation = Configuration.IgnoreSslValidation
+                    };
+                }
+                return _session;
+            }
+            internal set
+            {
+                _session = value;
+            }
+        }
 
         internal Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
 
@@ -51,19 +87,19 @@ namespace Backtrace.Unity
         {
             get
             {
-                if (_attributeProvider == null)
+                if (AttributeProvider == null)
                 {
                     _attributeProvider = new AttributeProvider();
                 }
-                return _attributeProvider[index];
+                return AttributeProvider[index];
             }
             set
             {
-                if (_attributeProvider == null)
+                if (AttributeProvider == null)
                 {
-                    _attributeProvider = new AttributeProvider();
+                    AttributeProvider = new AttributeProvider();
                 }
-                _attributeProvider[index] = value;
+                AttributeProvider[index] = value;
                 if (_nativeClient != null)
                 {
                     _nativeClient.SetAttribute(index, value);
@@ -112,7 +148,7 @@ namespace Backtrace.Unity
         /// </summary>
         public int GetAttributesCount()
         {
-            return _attributeProvider.Count();
+            return AttributeProvider.Count();
         }
 
         /// <summary>
@@ -457,12 +493,12 @@ namespace Backtrace.Unity
                     Database.SetReportWatcher(_reportLimitWatcher);
                 }
             }
-            if (_attributeProvider == null)
+            if (AttributeProvider == null)
             {
-                _attributeProvider = new AttributeProvider();
+                AttributeProvider = new AttributeProvider();
             }
-            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _attributeProvider.Get());
-            _attributeProvider.AddDynamicAttributeProvider(_nativeClient);
+            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get());
+            AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
@@ -472,7 +508,7 @@ namespace Backtrace.Unity
             }
             if (Configuration.EnableEventAggregationSupport)
             {
-                EnableSessionAgregationSupport(Configuration.GetEventAggregationUrl(), Configuration.GetEventAggregationIntervalTimerInMs());
+                Session.SendStartupEvent();
             }
         }
 
@@ -484,7 +520,7 @@ namespace Backtrace.Unity
                 return;
             }
             Session = new BacktraceSession(
-                attributeProvider: _attributeProvider,
+                attributeProvider: AttributeProvider,
                 uploadUrl: submissionUrl,
                 timeIntervalInMs: timeIntervalInMs)
             {
@@ -759,7 +795,7 @@ namespace Backtrace.Unity
 
             // pass copy of dictionary to prevent overriding client attributes
             var result = report.ToBacktraceData(null, GameObjectDepth);
-            _attributeProvider.AddAttributes(result.Attributes.Attributes);
+            AttributeProvider.AddAttributes(result.Attributes.Attributes);
 
             return result;
         }
