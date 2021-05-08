@@ -19,16 +19,9 @@
 #endif
 #endif
 
-        internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable default crash free events";
-        internal const string LABEL_EVENT_AGGREGATION_URL = "Event aggregation submission URL";
-        internal const string LABEL_EVENT_AGGREGATION_TIME_INTERVAL = "Event aggregation time interval in ms";
-        internal const string LABEL_EVENT_AGGREGATION_MAXIMUM_NUMBER_OF_EVENTS = "Maximum number of events in the event aggregation storage";
-
-        internal const string LABEL_BREADCRUMBS_SECTION = "Breadcrumbs support";
-        internal const string LABEL_ENABLE_BREADCRUMBS = "Enable breadcrumbs support";
-        internal const string LABEL_BREADCRUMBS_EVENTS = "Breadcrumbs events type";
-        internal const string LABEL_BREADCRUMNS_LOG_LEVEL = "Breadcrumbs log level";
-
+        internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable crash free metrics reporting";
+        internal const string LABEL_EVENT_AGGREGATION_TIME_INTERVAL = "Auto send interval in sec";
+        internal const string LABEL_CRASH_FREE_SECTION = "Crash Free Metrics Reporting";
 
         internal static string LABEL_REPORT_ATTACHMENTS = "Report attachment paths";
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
@@ -54,7 +47,5 @@
         internal static string LABEL_RETRY_INTERVAL = "Retry interval";
         internal static string LABEL_RETRY_LIMIT = "Maximum retries";
         internal static string LABEL_RETRY_ORDER = "Retry order (FIFO/LIFO)";
-
-
     }
 }

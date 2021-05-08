@@ -93,7 +93,7 @@ namespace Backtrace.Unity.Editor
             }
 
             GUIStyle eventAggregationFoldout = new GUIStyle(EditorStyles.foldout);
-            showEventAggregationSettings = EditorGUILayout.Foldout(showEventAggregationSettings, "Crash-free event configuration", eventAggregationFoldout);
+            showEventAggregationSettings = EditorGUILayout.Foldout(showEventAggregationSettings, BacktraceConfigurationLabels.LABEL_CRASH_FREE_SECTION, eventAggregationFoldout);
             if (showEventAggregationSettings)
             {
                 var enableEventAggregation = serializedObject.FindProperty("EnableEventAggregationSupport");
@@ -103,16 +103,6 @@ namespace Backtrace.Unity.Editor
 
                 if (enableEventAggregation.boolValue)
                 {
-                    var eventAggregationSubmissionUrl = serializedObject.FindProperty("EventAggregationSubmissionUrl");
-                    EditorGUILayout.PropertyField(
-                        eventAggregationSubmissionUrl,
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_URL));
-
-                    if (!BacktraceConfiguration.ValidateServerUrl(eventAggregationSubmissionUrl.stringValue))
-                    {
-                        EditorGUILayout.HelpBox("Please insert valid Backtrace server url!", MessageType.Error);
-                    }
-
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("TimeIntervalInMin"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_TIME_INTERVAL));

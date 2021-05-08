@@ -15,7 +15,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         public void BacktraceSessionSessionEvents_ShouldAddCorrectlyUniqueEvent_StoreValidUniqueEvent()
         {
             const string sessionEventName = "scene-changed";
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddSessionEvent(sessionEventName);
 
@@ -28,7 +28,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionSessionEvents_ShouldntAddEmptyUniqueEvent_UniqueEventsAreEmpty()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddSessionEvent(string.Empty);
 
@@ -39,7 +39,7 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         [Test]
         public void BacktraceSessionSessionEvents_ShouldntAddNullableUniqueEvent_UniqueEventsAreEmpty()
         {
-            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0, DefaultMaximumNumberOfEventsInStore);
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
 
             backtraceSession.AddUniqueEvent(null);
 

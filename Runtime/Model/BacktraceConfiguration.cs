@@ -198,27 +198,15 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Enable event aggregation support
         /// </summary>
-        [Tooltip("Enable default crash free events")]
+        [Tooltip("This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.")]
         public bool EnableEventAggregationSupport = false;
-
-        /// <summary>
-        /// Event aggregation submission url
-        /// </summary>
-        [Tooltip("Event aggregation submission url")]
-        public string EventAggregationSubmissionUrl;
 
         /// <summary>
         /// Time interval in ms
         /// </summary>
         [Range(0, 60)]
-        [Tooltip("Event aggregation time interval in min")]
+        [Tooltip("How often events should be sent to the Backtrace endpoints, in minutes. Zero (0) disables auto send and will require manual periodic sending using the API. For more information, see the README.")]
         public long TimeIntervalInMin = 30;
-
-        /// <summary>
-        /// Maximum number of events in Event aggregation store
-        /// </summary>
-        [Tooltip("Maximum number of events stored by Backtrace")]
-        public uint MaximumNumberOfEvents = 10;
 
         /// <summary>
         /// Determine if database is enable
@@ -293,6 +281,17 @@ namespace Backtrace.Unity.Model
                 }
             }
             return result;
+        }
+
+        public string GetEventAggregationUrl()
+        {
+            const int tokenLength = 64;
+            const string tokenQueryParam = "token=";
+            var submissionUrl = GetValidServerUrl();
+            var token = submissionUrl.Contains("submit.backtrace.io")
+                ? submissionUrl.Substring(submissionUrl.LastIndexOf("/") - tokenLength, tokenLength)
+                : submissionUrl.Substring(submissionUrl.IndexOf(tokenQueryParam) + tokenQueryParam.Length, tokenLength);
+            return $"https://events.backtrace.io/api/event-aggregation/events?token={token}";
         }
 
         public string GetFullDatabasePath()
