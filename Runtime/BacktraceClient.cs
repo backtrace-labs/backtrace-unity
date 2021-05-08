@@ -99,19 +99,11 @@ namespace Backtrace.Unity
         {
             get
             {
-                if (_attributeProvider == null)
-                {
-                    _attributeProvider = new AttributeProvider();
-                }
-                return _attributeProvider[index];
+                return AttributeProvider[index];
             }
             set
             {
-                if (_attributeProvider == null)
-                {
-                    _attributeProvider = new AttributeProvider();
-                }
-                _attributeProvider[index] = value;
+                AttributeProvider[index] = value;
                 if (_nativeClient != null)
                 {
                     _nativeClient.SetAttribute(index, value);
