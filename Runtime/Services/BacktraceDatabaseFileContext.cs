@@ -1,6 +1,6 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.Breadcrumbs;
+using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Model.Database;
 using System;
 using System.Collections.Generic;

@@ -1,6 +1,6 @@
 ﻿namespace Backtrace.Unity.Model.Breadcrumbs
 {
-    internal enum BreadcrumbLevel
+    public enum BreadcrumbLevel
     {
         Manual = 1,
         Log = 2,

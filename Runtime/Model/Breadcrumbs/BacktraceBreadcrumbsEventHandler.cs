@@ -7,6 +7,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 {
     internal sealed class BacktraceBreadcrumbsEventHandler
     {
+        public bool HasRegisteredEvents { get; set; } = false;
         private readonly BacktraceBreadcrumbs _breadcrumbs;
         private BacktraceBreadcrumbType _registeredLevel;
         private Thread _thread;
@@ -22,8 +23,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         public void Register(BacktraceBreadcrumbType level)
         {
             _registeredLevel = level;
-            if (!level.HasFlag(BacktraceBreadcrumbType.System))
+            HasRegisteredEvents = level.HasFlag(BacktraceBreadcrumbType.System);
+            if (!HasRegisteredEvents)
             {
+
                 return;
             }
             SceneManager.activeSceneChanged += HandleSceneChanged;
@@ -41,7 +44,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// </summary>
         public void Unregister()
         {
-            if (!_registeredLevel.HasFlag(BacktraceBreadcrumbType.System))
+            if (HasRegisteredEvents)
             {
                 return;
             }

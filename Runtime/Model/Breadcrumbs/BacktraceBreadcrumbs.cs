@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Model.Breadcrumbs
 {
     internal sealed class BacktraceBreadcrumbs : IBacktraceBreadcrumbs
@@ -21,7 +22,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// </summary>
         internal readonly IBacktraceLogManager LogManager;
 
-        internal readonly BacktraceBreadcrumbsEventHandler _eventHandler;
+        internal readonly BacktraceBreadcrumbsEventHandler EventHandler;
 
         /// <summary>
         /// Determine if breadcrumbs are enabled
@@ -30,11 +31,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         public BacktraceBreadcrumbs(IBacktraceLogManager logManager)
         {
             LogManager = logManager;
-            _eventHandler = new BacktraceBreadcrumbsEventHandler(this);
+            EventHandler = new BacktraceBreadcrumbsEventHandler(this);
         }
         public void UnregisterEvents()
         {
-            _eventHandler.Unregister();
+            EventHandler.Unregister();
         }
 
         public bool ClearBreadcrumbs()
@@ -72,7 +73,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             {
                 return false;
             }
-            _eventHandler.Register(level);
+            EventHandler.Register(level);
             return true;
         }
 
