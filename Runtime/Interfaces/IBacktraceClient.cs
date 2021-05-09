@@ -10,6 +10,10 @@ namespace Backtrace.Unity.Interfaces
     public interface IBacktraceClient
     {
         /// <summary>
+        /// Backtrace session instance
+        /// </summary>
+        IBacktraceSession Session { get; }
+        /// <summary>
         /// Send a new report to a Backtrace API
         /// </summary>
         /// <param name="report">New backtrace report</param>
@@ -42,5 +46,15 @@ namespace Backtrace.Unity.Interfaces
         /// Refresh client configuration
         /// </summary>
         void Refresh();
+
+        /// <summary>
+        /// Enable event aggregation support.
+        /// </summary>
+        void EnableSessionAggregationSupport();
+
+        /// <summary>
+        /// Enable event aggregation support.
+        /// </summary>
+        void EnableSessionAggregationSupport(string submissionUrl, long timeIntervalInMs);
     }
 }

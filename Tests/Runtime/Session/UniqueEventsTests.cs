@@ -35,6 +35,20 @@ namespace Backtrace.Unity.Tests.Runtime.Session
         }
 
         [Test]
+        public void BacktraceSessionUniqueEvents_ShouldAddCorrectlyUniqueEventWithoutAttributes_StoreValidUniqueEvent()
+        {
+            var backtraceSession = new BacktraceSession(_attributeProvider, _submissionUrl, 0);
+
+            backtraceSession.AddUniqueEvent(UniqueAttributeName);
+
+            Assert.AreEqual(backtraceSession.UniqueEvents.Count, 1);
+            var uniqueEvent = backtraceSession.UniqueEvents.First.Value;
+            Assert.AreEqual(uniqueEvent.Name, UniqueAttributeName);
+            Assert.AreNotEqual(uniqueEvent.Timestamp, 0);
+            Assert.AreEqual(uniqueEvent.Attributes.Count, _attributeProvider.GenerateAttributes().Count);
+        }
+
+        [Test]
         public void BacktraceSessionUniqueEvents_ShouldAddCorrectlyUniqueEventWithAttributes_StoreValidUniqueEvent()
         {
             const string expectedAttributeName = "foo";
