@@ -47,5 +47,11 @@ namespace Backtrace.Unity.Interfaces
         /// Refresh client configuration
         /// </summary>
         void Refresh();
+
+        /// <summary>
+        /// Enabled Backtrace database breadcrumbs integration
+        /// </summary>
+        /// <returns>True, if breadcrumbs file was initialized correctly. Otherwise false.</returns>
+        bool EnableBreadcrumbsSupport();
     }
 }
