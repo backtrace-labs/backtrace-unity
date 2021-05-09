@@ -527,6 +527,14 @@ namespace Backtrace.Unity
 
         public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs)
         {
+            if (!Configuration.EnableEventAggregationSupport)
+            {
+                Debug.LogWarning("Event aggregation configuration was disabled. Enabling it manually via API");
+            }
+            EnableSessionAggregationSupport(Configuration.GetEventAggregationUrl(), Configuration.TimeIntervalInMin);
+        }
+        public void EnableSessionAggregationSupport(string submissionUrl, long timeIntervalInMs)
+        {
             if (Session != null)
             {
                 Debug.LogWarning("Backtrace session aggregation support is enabled. Please use BacktraceClient.Session.");

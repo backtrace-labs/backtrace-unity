@@ -14,6 +14,9 @@ namespace Backtrace.Unity.Interfaces
         /// Backtrace Breadcrumbs
         /// </summary>
         IBacktraceBreadcrumbs Breadcrumbs { get; }
+        /// Backtrace session instance
+        /// </summary>
+        IBacktraceSession Session { get; }
         /// <summary>
         /// Send a new report to a Backtrace API
         /// </summary>
@@ -53,5 +56,14 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         /// <returns>True, if breadcrumbs file was initialized correctly. Otherwise false.</returns>
         bool EnableBreadcrumbsSupport();
+        
+        /// Enable event aggregation support.
+        /// </summary>
+        void EnableSessionAggregationSupport();
+
+        /// <summary>
+        /// Enable event aggregation support.
+        /// </summary>
+        void EnableSessionAggregationSupport(string submissionUrl, long timeIntervalInMs);
     }
 }

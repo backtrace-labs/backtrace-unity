@@ -180,11 +180,20 @@ namespace Backtrace.Unity.Services
               uniqueEvents: UniqueEvents.ToArray(),
               sessionEvents: SessionEvents.ToArray());
         }
+        /// <summary>
+        /// Add unique event to next Backtrace session request
+        /// </summary>
+        /// <param name="attributeName">attribute name</param>
+        public bool AddUniqueEvent(string attributeName)
+        {
+            return AddUniqueEvent(attributeName, null);
+        }
 
         /// <summary>
         /// Add unique event to next Backtrace session request
         /// </summary>
         /// <param name="attributeName">attribute name</param>
+        /// <param name="attributes">Event attributes</param>
         public bool AddUniqueEvent(string attributeName, IDictionary<string, string> attributes = null)
         {
             if (!ShouldProcessEvent(attributeName))
@@ -229,6 +238,15 @@ namespace Backtrace.Unity.Services
         /// Add session event to next Backtrace session request
         /// </summary>
         /// <param name="eventName">session event name</param>
+        public bool AddSessionEvent(string eventName)
+        {
+            return AddSessionEvent(eventName, null);
+        }
+        /// <summary>
+        /// Add session event to next Backtrace session request
+        /// </summary>
+        /// <param name="eventName">Session event name</param>
+        /// <param name="attributes">Session event attribute</param>
         public bool AddSessionEvent(string eventName, IDictionary<string, string> attributes = null)
         {
             if (!ShouldProcessEvent(eventName))
