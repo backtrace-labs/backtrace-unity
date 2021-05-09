@@ -525,7 +525,7 @@ namespace Backtrace.Unity
             return initializationResult;
         }
 
-        public void EnableSessionAgregationSupport(string submissionUrl, long timeIntervalInMs)
+        public void EnableSessionAggregationSupport()
         {
             if (!Configuration.EnableEventAggregationSupport)
             {
