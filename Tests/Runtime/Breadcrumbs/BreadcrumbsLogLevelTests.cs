@@ -59,8 +59,8 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             Assert.AreEqual(expectedNumberOfLogs, inMemoryBreadcrumbStorage.Breadcrumbs.Count);
             var breadcrumb = inMemoryBreadcrumbStorage.Breadcrumbs.ElementAt(0);
             Assert.AreEqual(message, breadcrumb.Message);
-            Assert.AreEqual(unityEngineLogLevel, breadcrumb.Type);
-            Assert.AreEqual(BreadcrumbLevel.Manual, breadcrumb.Level);
+            Assert.AreEqual(unityEngineLogLevel, breadcrumb.Level);
+            Assert.AreEqual(BreadcrumbLevel.Manual, breadcrumb.Type);
             Assert.IsNull(breadcrumb.Attributes);
         }
 

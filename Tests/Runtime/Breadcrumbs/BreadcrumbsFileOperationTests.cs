@@ -59,8 +59,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             var added = breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, testedLevel);
 
             Assert.IsTrue(added);
-            var json = Encoding.UTF8.GetString(breadcrumbFile.MemoryStream.ToArray());
-            var data = ConvertToBreadcrumbs(json);
+            var data = ConvertToBreadcrumbs(breadcrumbFile);
             Assert.AreEqual(1, data.Count());
             var breadcrumb = data.First();
             Assert.AreEqual(ManualBreadcrumbsType, (BacktraceBreadcrumbType)breadcrumb.Type);
@@ -69,7 +68,10 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
 
         }
 
-
+        private IEnumerable<InMemoryBreadcrumb> ConvertToBreadcrumbs(InMemoryBreadcrumbFile file)
+        {
+            return ConvertToBreadcrumbs(Encoding.UTF8.GetString(file.MemoryStream.ToArray()));
+        }
         private IEnumerable<InMemoryBreadcrumb> ConvertToBreadcrumbs(string json)
         {
             if (!json.StartsWith(_startOfDocumentString) || !json.EndsWith(_endOfDocumentString))
