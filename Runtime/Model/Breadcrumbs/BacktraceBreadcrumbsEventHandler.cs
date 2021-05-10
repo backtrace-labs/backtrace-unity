@@ -99,7 +99,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         private void HandleMessage(string condition, string stackTrace, LogType type)
         {
-            Log(condition, type, new Dictionary<string, string> { { "stackTrace", stackTrace } });
+            var attributes = type == LogType.Error || type == LogType.Exception
+                ? new Dictionary<string, string> { { "stackTrace", stackTrace } }
+                : null;
+            Log(condition, type, attributes);
         }
 
         private void Application_focusChanged(bool hasFocus)
