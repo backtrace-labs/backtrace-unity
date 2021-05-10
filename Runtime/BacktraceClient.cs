@@ -486,7 +486,7 @@ namespace Backtrace.Unity
                 }
             }
 
-            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get());
+            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), _clientReportAttachments);
             AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)

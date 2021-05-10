@@ -5,15 +5,15 @@ namespace Backtrace.Unity.Runtime.Native
 {
     internal static class NativeClientFactory
     {
-        internal static INativeClient CreateNativeClient(BacktraceConfiguration configuration, string gameObjectName, IDictionary<string, string> attributes)
+        internal static INativeClient CreateNativeClient(BacktraceConfiguration configuration, string gameObjectName, IDictionary<string, string> attributes, IEnumerable<string> attachments)
         {
 #if UNITY_EDITOR
             return null;
 #else
 #if UNITY_ANDROID
-            return new Android.NativeClient(gameObjectName, configuration, attributes);
+            return new Android.NativeClient(gameObjectName, configuration, attributes, attachments);
 #elif UNITY_IOS
-            return new iOS.NativeClient(configuration, attributes);
+            return new iOS.NativeClient(configuration, attributes, attachments);
 #else
             return null;
 #endif
