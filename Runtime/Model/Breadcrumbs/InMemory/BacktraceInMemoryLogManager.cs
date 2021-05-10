@@ -54,7 +54,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
             Breadcrumbs.Enqueue(new InMemoryBreadcrumb()
             {
                 Message = message,
-                Timestamp = DateTimeHelper.TimestampMs().ToString("F0", CultureInfo.InvariantCulture),
+                Timestamp = DateTimeHelper.TimestampMs(),
                 Level = level,
                 Type = type,
                 Attributes = attributes

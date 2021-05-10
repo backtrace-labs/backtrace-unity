@@ -65,7 +65,36 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             Assert.AreEqual(ManualBreadcrumbsType, (BacktraceBreadcrumbType)breadcrumb.Type);
             Assert.AreEqual(unityEngineLogLevel, breadcrumb.Level);
             Assert.AreEqual(breadcrumbMessage, breadcrumb.Message);
+            Assert.That(currentTime, Is.LessThan(breadcrumb.Timestamp));
+        }
 
+        [Test]
+        public void TestFileLimit_ShouldCleanupTheSpace_SpaceWasCleaned()
+        {
+            const string breadcrumbMessage = "foo";
+            const int minimalSize = 10 * 1000;
+            var breadcrumbFile = new InMemoryBreadcrumbFile();
+            var breadcrumbsStorageManager = new BacktraceStorageLogManager(Application.temporaryCachePath)
+            {
+                BreadcrumbFile = breadcrumbFile,
+                BreadcrumbsSize = minimalSize
+            };
+            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager);
+            var unityEngineLogLevel = UnityEngineLogLevel.Debug;
+
+            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, unityEngineLogLevel);
+            breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+            var breadcrumbSize = breadcrumbFile.Size - 2;
+            while (breadcrumbFile.Size + breadcrumbSize < minimalSize != false)
+            {
+                breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+            }
+            var sizeBeforeCleanup = breadcrumbFile.Size;
+            breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+
+            Assert.That(breadcrumbFile.Size, Is.LessThan(sizeBeforeCleanup));
+            var data = ConvertToBreadcrumbs(breadcrumbFile);
+            Assert.IsNotEmpty(data);
         }
 
         private IEnumerable<InMemoryBreadcrumb> ConvertToBreadcrumbs(InMemoryBreadcrumbFile file)

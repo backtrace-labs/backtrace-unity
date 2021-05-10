@@ -6,6 +6,14 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs.Mocks
     public class InMemoryBreadcrumbFile : IBreadcrumbFile
     {
         public MemoryStream MemoryStream = new MemoryStream();
+
+        public long Size
+        {
+            get
+            {
+                return MemoryStream.ToArray().Length;
+            }
+        }
         public bool FileExists { get; set; } = true;
         public void Delete()
         {

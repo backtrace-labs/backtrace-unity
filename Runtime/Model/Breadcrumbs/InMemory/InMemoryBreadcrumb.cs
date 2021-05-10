@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+
 namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
 {
     [Serializable]
@@ -14,10 +16,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
             }
         }
         public string message;
-        public string Timestamp
+        public double Timestamp
         {
-            get { return timestamp; }
-            set { timestamp = value; }
+            get { return Convert.ToDouble(timestamp); }
+            set { timestamp = value.ToString("F0", CultureInfo.InvariantCulture); }
         }
         public string timestamp;
 
