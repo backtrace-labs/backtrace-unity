@@ -131,7 +131,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 var address = pUnmanagedArray + i * 16;
                 Entry entry = Marshal.PtrToStructure<Entry>(address);
-                result.Add(entry.Key, entry.Value);
+                result[entry.Key] = entry.Value;
             }
 
             Marshal.FreeHGlobal(pUnmanagedArray);
