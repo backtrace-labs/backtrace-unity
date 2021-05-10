@@ -496,7 +496,7 @@ namespace Backtrace.Unity
                 }
             }
 
-            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get());
+            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), _clientReportAttachments);
             AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
@@ -830,10 +830,10 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
-            Breadcrumbs?.FromMonoBehavior("Application ANR Detected", LogType.Warning, null);
+
             const string anrMessage = "ANRException: Blocked thread detected";
-            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
             var hang = new BacktraceUnhandledException(anrMessage, stackTrace);
+            Breadcrumbs?.FromMonoBehavior(anrMessage, LogType.Warning, new Dictionary<string, string> { { "stackTrace", stackTrace } });
             SendUnhandledException(hang);
         }
 #endif
@@ -886,8 +886,8 @@ namespace Backtrace.Unity
                 _nativeClient.OnOOM();
 
             }
-            const string lowMemoryMessage = "OOMException: Out of memory detected.";
-            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
+            const string lowMemoryMessage = "Low memory warning detected.";
+            Breadcrumbs?.FromMonoBehavior(lowMemoryMessage, LogType.Warning, null);
         }
 #endif
 

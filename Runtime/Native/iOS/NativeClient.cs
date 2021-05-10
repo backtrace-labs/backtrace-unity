@@ -68,7 +68,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
 #endif
 
-        public NativeClient(BacktraceConfiguration configuration, , IDictionary<string, string> clientAttributes)
+        public NativeClient(BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
             if (INITIALIZED || !_enabled)
             {
@@ -76,7 +76,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             if (configuration.CaptureNativeCrashes)
             {
-                HandleNativeCrashes(configuration, clientAttributes);
+                HandleNativeCrashes(configuration, clientAttributes, attachments);
                 INITIALIZED = true;
             }
             if (configuration.HandleANR)
@@ -93,7 +93,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes(BacktraceConfiguration configuration, IDictionary<string, string> attributes)
+        private void HandleNativeCrashes(BacktraceConfiguration configuration, IDictionary<string, string> attributes, IEnumerable<string> attachments)
         {
             var databasePath = configuration.GetFullDatabasePath();
             // make sure database is enabled 
@@ -104,7 +104,6 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
 
             var plcrashreporterUrl = new BacktraceCredentials(configuration.GetValidServerUrl()).GetPlCrashReporterSubmissionUrl();
-            var backtraceAttributes = new Model.JsonData.BacktraceAttributes(null, null, true);
 
             // add exception.type attribute to PLCrashReporter reports
             // The library will send PLCrashReporter crashes to Backtrace
@@ -112,9 +111,8 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             attributes["error.type"] = "Crash";
             var attributeKeys = attributes.Keys.ToArray();
             var attributeValues = attributes.Values.ToArray();
-            var attachments = configuration.GetAttachmentPaths().ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments, attachments.Length);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, configuration.OomReports, attachments.ToArray(), attachments.Count());
         }
 
         /// <summary>

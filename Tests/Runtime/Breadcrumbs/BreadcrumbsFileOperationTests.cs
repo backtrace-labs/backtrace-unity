@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
 {
@@ -103,6 +104,40 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             Assert.AreEqual(numberOfAddedBreadcrumbs, breadcrumbsStorageManager.BreadcrumbId());
             Assert.That(breadcrumbsStorageManager.Length(), Is.LessThan(numberOfBreadcurmbsBeforeCleanUp));
 
+        }
+
+        [Test]
+        public void TestBreadcrumbs_BasicBreadcrumbsTestForAllEvents_ShouldStoreEvents()
+        {
+            const int expectedNumberOfBreadcrumbs = 3;
+            string[] messages = new string[expectedNumberOfBreadcrumbs] {
+                "CustomUserBreadcrumb1",
+                "PlayerStarted",
+                "unhandled exception custom message from breadcrumbs test case"
+            };
+
+            var breadcrumb1Attributes = new Dictionary<string, string>() { { "name", "CustomUserBreadcrumb1Value" } };
+
+            var breadcrumbFile = new InMemoryBreadcrumbFile();
+            var breadcrumbsStorageManager = new BacktraceStorageLogManager(Application.temporaryCachePath)
+            {
+                BreadcrumbFile = breadcrumbFile
+            };
+            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager);
+            var unityEngineLogLevel = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Warning | UnityEngineLogLevel.Info | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal;
+
+            breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.Manual | BacktraceBreadcrumbType.System, unityEngineLogLevel);
+            breadcrumbsManager.Warning(messages[0], breadcrumb1Attributes);
+            breadcrumbsManager.Info(messages[1]);
+            breadcrumbsManager.Exception(messages[2]);
+
+            Assert.AreEqual(expectedNumberOfBreadcrumbs, breadcrumbsStorageManager.Length());
+            Assert.AreEqual(expectedNumberOfBreadcrumbs, breadcrumbsStorageManager.BreadcrumbId());
+            var breadcrumbs = ConvertToBreadcrumbs(breadcrumbFile);
+            for (int i = 0; i < expectedNumberOfBreadcrumbs; i++)
+            {
+                Assert.AreEqual(messages[i], breadcrumbs.ElementAt(i).Message);
+            }
         }
 
         private IEnumerable<InMemoryBreadcrumb> ConvertToBreadcrumbs(InMemoryBreadcrumbFile file)

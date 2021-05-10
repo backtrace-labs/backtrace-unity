@@ -112,7 +112,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
         private bool _captureNativeCrashes = false;
         private readonly bool _handlerANR = false;
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes)
+        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
             _configuration = configuration;
             SetDefaultAttributeMaps();
@@ -123,7 +123,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
 #if UNITY_ANDROID
             _handlerANR = _configuration.HandleANR;
-            HandleNativeCrashes(clientAttributes);
+            HandleNativeCrashes(clientAttributes, attachments);
             HandleAnr(gameObjectName, "OnAnrDetected");
 
             // read device manufacturer
@@ -153,7 +153,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes)
+        private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes, IEnumerable<string> attachments)
         {
             // make sure database is enabled 
             var integrationDisabled =
@@ -207,7 +207,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-            var attachments = _configuration.GetAttachmentPaths().ToArray();
 
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad
@@ -218,7 +217,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
                 AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Keys.ToArray()),
                 AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Values.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(attachments));
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()));
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
