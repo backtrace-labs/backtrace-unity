@@ -250,7 +250,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // rewrite built in attributes to report attributes
             foreach (var builtInAttribute in _builtInAttributes)
             {
-                result.Add(builtInAttribute.Key, builtInAttribute.Value);
+                result[builtInAttribute.Key] = builtInAttribute.Value;
             }
 
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
@@ -279,7 +279,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     {
                         value = value.Substring(0, value.LastIndexOf("k")).Trim();
                     }
-                    result.Add(key, value);
+                    result[key] = value;
                 }
             }
         }
