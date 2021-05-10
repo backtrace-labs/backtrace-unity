@@ -65,7 +65,8 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             Assert.AreEqual(ManualBreadcrumbsType, (BacktraceBreadcrumbType)breadcrumb.Type);
             Assert.AreEqual(unityEngineLogLevel, breadcrumb.Level);
             Assert.AreEqual(breadcrumbMessage, breadcrumb.Message);
-            Assert.That(currentTime, Is.LessThan(breadcrumb.Timestamp));
+            // round timestamp because timestamp value in the final json will reduce decimal part.
+            Assert.That(currentTime, Is.LessThanOrEqualTo(Math.Round(breadcrumb.Timestamp, 0)));
         }
 
         [Test]
@@ -83,18 +84,25 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             var unityEngineLogLevel = UnityEngineLogLevel.Debug;
 
             breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, unityEngineLogLevel);
+            int numberOfAddedBreadcrumbs = 1;
             breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
             var breadcrumbSize = breadcrumbFile.Size - 2;
             while (breadcrumbFile.Size + breadcrumbSize < minimalSize != false)
             {
                 breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+                numberOfAddedBreadcrumbs++;
             }
             var sizeBeforeCleanup = breadcrumbFile.Size;
+            var numberOfBreadcurmbsBeforeCleanUp = numberOfAddedBreadcrumbs;
             breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+            numberOfAddedBreadcrumbs++;
 
             Assert.That(breadcrumbFile.Size, Is.LessThan(sizeBeforeCleanup));
             var data = ConvertToBreadcrumbs(breadcrumbFile);
             Assert.IsNotEmpty(data);
+            Assert.AreEqual(numberOfAddedBreadcrumbs, breadcrumbsStorageManager.BreadcrumbId());
+            Assert.That(breadcrumbsStorageManager.Length(), Is.LessThan(numberOfBreadcurmbsBeforeCleanUp));
+
         }
 
         private IEnumerable<InMemoryBreadcrumb> ConvertToBreadcrumbs(InMemoryBreadcrumbFile file)

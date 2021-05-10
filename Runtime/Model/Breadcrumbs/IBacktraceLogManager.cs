@@ -8,5 +8,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         bool Add(string message, BreadcrumbLevel level, UnityEngineLogLevel type, IDictionary<string, string> attributes);
         bool Clear();
         bool Enable();
+        int Length();
+        long BreadcrumbId();
     }
 }

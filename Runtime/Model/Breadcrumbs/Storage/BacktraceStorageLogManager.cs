@@ -279,6 +279,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         {
             try
             {
+                currentSize = 0;
+                _logSize.Clear();
                 BreadcrumbFile.Delete();
                 return true;
             }
@@ -286,6 +288,16 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
             {
                 return false;
             }
+        }
+
+        public int Length()
+        {
+            return _logSize.Count;
+        }
+
+        public long BreadcrumbId()
+        {
+            return _breadcrumbId;
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Backtrace.Unity.Common;
 using System.Collections.Generic;
-using System.Globalization;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
@@ -27,6 +26,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
         /// </summary>
         internal readonly Queue<InMemoryBreadcrumb> Breadcrumbs = new Queue<InMemoryBreadcrumb>(DefaultMaximumNumberOfInMemoryBreadcrumbs);
 
+        private long _breadcrumbId = 0;
+
         /// <summary>
         /// Returns path to breadcrumb file - which is string.Empty for in memory breadcrumb manager
         /// </summary>
@@ -49,6 +50,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
                         Breadcrumbs.Dequeue();
                     }
                 }
+                _breadcrumbId++;
             }
 
             Breadcrumbs.Enqueue(new InMemoryBreadcrumb()
@@ -72,6 +74,16 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
         public bool Enable()
         {
             return true;
+        }
+
+        public int Length()
+        {
+            return Breadcrumbs.Count;
+        }
+
+        public long BreadcrumbId()
+        {
+            return _breadcrumbId;
         }
     }
 }
