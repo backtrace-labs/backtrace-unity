@@ -50,17 +50,17 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// <summary>
         /// default breadcrumb row ending
         /// </summary
-        private byte[] _newRow = System.Text.Encoding.UTF8.GetBytes(",\n");
+        internal static byte[] NewRow = System.Text.Encoding.UTF8.GetBytes(",\n");
 
         /// <summary>
         /// Default breadcrumb document ending
         /// </summary>
-        private byte[] _endOfDocument = System.Text.Encoding.UTF8.GetBytes("\n]");
+        internal static byte[] EndOfDocument = System.Text.Encoding.UTF8.GetBytes("\n]");
 
         /// <summary>
         /// Default breadcrumb end of the document
         /// </summary>
-        private byte[] _startOfDocument = System.Text.Encoding.UTF8.GetBytes("[\n");
+        internal static byte[] StartOfDocument = System.Text.Encoding.UTF8.GetBytes("[\n");
 
         /// <summary>
         /// Breadcrumb id
@@ -82,6 +82,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// </summary>
         private readonly Queue<long> _logSize = new Queue<long>();
 
+        internal IBreadcrumbFile BreadcrumbFile { get; set; }
+
         public BacktraceStorageLogManager(string storagePath)
         {
             if (string.IsNullOrEmpty(storagePath))
@@ -89,6 +91,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
                 throw new ArgumentException("Breadcrumbs storage path is null or empty");
             }
             BreadcrumbsFilePath = Path.Combine(storagePath, BreadcrumbLogFileName);
+            BreadcrumbFile = new BreadcrumbFile(BreadcrumbsFilePath);
         }
 
         /// <summary>
@@ -99,17 +102,17 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         {
             try
             {
-                if (File.Exists(BreadcrumbsFilePath))
+                if (BreadcrumbFile.Exists())
                 {
-                    File.Delete(BreadcrumbsFilePath);
+                    BreadcrumbFile.Delete();
                 }
 
-                using (var _breadcrumbStream = new FileStream(BreadcrumbsFilePath, FileMode.CreateNew, FileAccess.Write))
+                using (var _breadcrumbStream = BreadcrumbFile.GetCreateStream())
                 {
-                    _breadcrumbStream.Write(_startOfDocument, 0, _startOfDocument.Length);
-                    _breadcrumbStream.Write(_endOfDocument, 0, _endOfDocument.Length);
+                    _breadcrumbStream.Write(StartOfDocument, 0, StartOfDocument.Length);
+                    _breadcrumbStream.Write(EndOfDocument, 0, EndOfDocument.Length);
                 }
-                currentSize = _startOfDocument.Length + _endOfDocument.Length;
+                currentSize = StartOfDocument.Length + EndOfDocument.Length;
             }
             catch (Exception e)
             {
@@ -153,8 +156,9 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
             {
                 return AppendBreadcrumb(bytes);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine(string.Format("Cannot append data to the breadcrumbs file. Reason: {0}", e.Message));
                 return false;
             }
         }
@@ -195,24 +199,24 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         private bool AppendBreadcrumb(byte[] bytes)
         {
             // size of the breadcrumb - it's negative at the beginning because we're removing 2 bytes on start
-            long appendingSize = _endOfDocument.Length * -1;
-            using (var breadcrumbStream = new FileStream(BreadcrumbsFilePath, FileMode.Open, FileAccess.Write))
+            long appendingSize = EndOfDocument.Length * -1;
+            using (var breadcrumbStream = BreadcrumbFile.GetWriteStream())
             {
                 //back to position before end of the document \n}
-                breadcrumbStream.Position = breadcrumbStream.Length - _endOfDocument.Length;
+                breadcrumbStream.Position = breadcrumbStream.Length - EndOfDocument.Length;
 
                 // append ,\n when we're appending new row to existing list of rows. If this is first row
                 // ignore it
                 if (_breadcrumbId != 1)
                 {
-                    breadcrumbStream.Write(_newRow, 0, _newRow.Length);
-                    appendingSize += _newRow.Length;
+                    breadcrumbStream.Write(NewRow, 0, NewRow.Length);
+                    appendingSize += NewRow.Length;
                 }
                 // append breadcrumbs json
                 breadcrumbStream.Write(bytes, 0, bytes.Length);
                 // and close JSON document
-                breadcrumbStream.Write(_endOfDocument, 0, _endOfDocument.Length);
-                appendingSize += (bytes.Length + _endOfDocument.Length);
+                breadcrumbStream.Write(EndOfDocument, 0, EndOfDocument.Length);
+                appendingSize += (bytes.Length + EndOfDocument.Length);
             }
             currentSize += appendingSize;
             _logSize.Enqueue(bytes.Length);
@@ -227,7 +231,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         private void ClearOldLogs()
         {
             var startPosition = GetNextStartPosition();
-            using (FileStream breadcrumbsStream = new FileStream(BreadcrumbsFilePath, FileMode.Open, FileAccess.ReadWrite))
+            using (var breadcrumbsStream = BreadcrumbFile.GetIOStream())
             {
                 using (MemoryStream ms = new MemoryStream())
                 {
@@ -235,18 +239,18 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
                     breadcrumbsStream.Seek(size * -1, SeekOrigin.End);
 
                     breadcrumbsStream.CopyTo(ms);
-                    breadcrumbsStream.SetLength(size + _startOfDocument.Length);
+                    breadcrumbsStream.SetLength(size + StartOfDocument.Length);
 
                     ms.Position = 0;
                     breadcrumbsStream.Position = 0;
 
-                    breadcrumbsStream.Write(_startOfDocument, 0, _startOfDocument.Length);
+                    breadcrumbsStream.Write(StartOfDocument, 0, StartOfDocument.Length);
                     ms.CopyTo(breadcrumbsStream);
                 }
             }
             // decrease a size of the breadcrumb file after removing n breadcrumbs
             currentSize -= startPosition;
-            currentSize += _startOfDocument.Length;
+            currentSize += StartOfDocument.Length;
         }
 
         /// <summary>
@@ -258,8 +262,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         private long GetNextStartPosition()
         {
             double expectedFreedBytes = BreadcrumbsSize - (BreadcrumbsSize * 0.7);
-            long numberOfFreeBytes = _startOfDocument.Length;
-            int nextLineBytes = _newRow.Length;
+            long numberOfFreeBytes = StartOfDocument.Length;
+            int nextLineBytes = NewRow.Length;
             while (numberOfFreeBytes < expectedFreedBytes)
             {
                 numberOfFreeBytes += (_logSize.Dequeue() + nextLineBytes);
@@ -275,7 +279,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         {
             try
             {
-                File.Delete(BreadcrumbsFilePath);
+                BreadcrumbFile.Delete();
                 return true;
             }
             catch (Exception)

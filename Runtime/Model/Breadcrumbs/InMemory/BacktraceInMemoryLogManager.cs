@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Backtrace.Unity.Common;
+using System.Collections.Generic;
+using System.Globalization;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
@@ -36,7 +38,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
             }
         }
 
-        public bool Add(string message, BreadcrumbLevel level, UnityEngineLogLevel type, IDictionary<string, string> attributes)
+        public bool Add(string message, BreadcrumbLevel type, UnityEngineLogLevel level, IDictionary<string, string> attributes)
         {
             lock (_lockObject)
             {
@@ -48,9 +50,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
                     }
                 }
             }
+
             Breadcrumbs.Enqueue(new InMemoryBreadcrumb()
             {
                 Message = message,
+                Timestamp = DateTimeHelper.TimestampMs().ToString("F0", CultureInfo.InvariantCulture),
                 Level = level,
                 Type = type,
                 Attributes = attributes
