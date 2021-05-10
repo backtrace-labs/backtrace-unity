@@ -536,8 +536,15 @@ namespace Backtrace.Unity
             // handle situation when Backtrace plugin should create database directory
             if (!databaseDirExists && Configuration.CreateDatabase)
             {
-                var dirInfo = Directory.CreateDirectory(DatabasePath);
-                databaseDirExists = dirInfo.Exists;
+                try
+                {
+                    var dirInfo = Directory.CreateDirectory(DatabasePath);
+                    databaseDirExists = dirInfo.Exists;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
 
             if (!databaseDirExists)
