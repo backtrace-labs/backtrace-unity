@@ -74,7 +74,7 @@ namespace Backtrace.Unity.Services
         private int _numberOfDroppedRequests = 0;
 
         /// <summary>
-        /// List of session events that will be added to next session submission payload
+        /// List of summation events that will be added to next session submission payload
         /// </summary>
         internal readonly LinkedList<SessionEvent> SessionEvents = new LinkedList<SessionEvent>();
 
