@@ -2,6 +2,7 @@
 using Backtrace.Unity.Services;
 using NUnit.Framework;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Backtrace.Unity.Model.Metrics
 {
@@ -9,6 +10,11 @@ namespace Backtrace.Unity.Model.Metrics
     {
         private readonly string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
         private AttributeProvider _attributeProvider = new AttributeProvider();
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            Debug.unityLogger.logEnabled = false;
+        }
 
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldAddCorrectlySummedEvent_StoreValidSummedEvent()

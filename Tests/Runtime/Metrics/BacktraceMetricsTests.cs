@@ -18,6 +18,11 @@ namespace Backtrace.Unity.Model.Metrics
         private const string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
         private AttributeProvider _attributeProvider = new AttributeProvider();
 
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            Debug.unityLogger.logEnabled = false;
+        }
         [Test]
         public void BacktraceMetrics_ShouldTriggerUploadProcessOnSendMethodWithOnlySummedEvent_DataWasSendToTheService()
         {
