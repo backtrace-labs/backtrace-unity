@@ -67,7 +67,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             Assert.AreEqual(unityEngineLogLevel, breadcrumb.Level);
             Assert.AreEqual(breadcrumbMessage, breadcrumb.Message);
             // round timestamp because timestamp value in the final json will reduce decimal part.
-            Assert.That(currentTime, Is.LessThanOrEqualTo(Math.Round(breadcrumb.Timestamp, 0)));
+            Assert.That(Math.Round(currentTime, 0), Is.LessThanOrEqualTo(Math.Round(breadcrumb.Timestamp, 0)));
         }
 
         [Test]
