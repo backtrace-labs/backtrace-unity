@@ -505,7 +505,7 @@ namespace Backtrace.Unity
             }
             EnableMetrics(Configuration.GetEventAggregationUrl(), Configuration.GetEventAggregationIntervalTimerInMs());
         }
-        public void EnableMetrics(string submissionUrl, long timeIntervalInMs = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
+        public void EnableMetrics(string submissionUrl, long timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
         {
             if (_metrics != null)
             {
@@ -515,7 +515,7 @@ namespace Backtrace.Unity
             _metrics = new BacktraceMetrics(
                 attributeProvider: AttributeProvider,
                 uploadUrl: submissionUrl,
-                timeIntervalInMs: timeIntervalInMs)
+                timeIntervalInSec: timeIntervalInSec)
             {
                 StartupUniqueEventName = uniqueEventName,
                 IgnoreSslValidation = Configuration.IgnoreSslValidation

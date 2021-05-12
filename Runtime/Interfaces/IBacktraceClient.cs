@@ -55,6 +55,6 @@ namespace Backtrace.Unity.Interfaces
         /// <summary>
         /// Enable event aggregation support.
         /// </summary>
-        void EnableMetrics(string submissionUrl, long timeIntervalInMs, string uniqueEventName);
+        void EnableMetrics(string submissionUrl, long timeIntervalInSec, string uniqueEventName);
     }
 }
