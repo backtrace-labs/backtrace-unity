@@ -18,6 +18,11 @@
             "(Early access) Send Out of memory exceptions to Backtrace";
 #endif
 #endif
+
+        internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable crash free metrics reporting";
+        internal const string LABEL_EVENT_AGGREGATION_TIME_INTERVAL = "Auto send interval in sec";
+        internal const string LABEL_CRASH_FREE_SECTION = "Crash Free Metrics Reporting";
+
         internal static string LABEL_REPORT_ATTACHMENTS = "Report attachment paths";
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";
@@ -43,6 +48,5 @@
         internal static string LABEL_RETRY_INTERVAL = "Retry interval";
         internal static string LABEL_RETRY_LIMIT = "Maximum retries";
         internal static string LABEL_RETRY_ORDER = "Retry order (FIFO/LIFO)";
-
     }
 }

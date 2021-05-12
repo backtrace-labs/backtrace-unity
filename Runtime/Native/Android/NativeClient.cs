@@ -1,5 +1,4 @@
 ﻿using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.JsonData;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -113,7 +112,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
         private bool _captureNativeCrashes = false;
         private readonly bool _handlerANR = false;
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
+        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
             _configuration = configuration;
             SetDefaultAttributeMaps();
@@ -124,7 +123,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
 #if UNITY_ANDROID
             _handlerANR = _configuration.HandleANR;
-            HandleNativeCrashes();
+            HandleNativeCrashes(clientAttributes, attachments);
             HandleAnr(gameObjectName, "OnAnrDetected");
 
             // read device manufacturer
@@ -154,7 +153,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes()
+        private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes, IEnumerable<string> attachments)
         {
             // make sure database is enabled 
             var integrationDisabled =
@@ -206,11 +205,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
                 return;
             }
-            // get default built-in Backtrace-Unity attributes
-            var backtraceAttributes = new BacktraceAttributes(null, null, true).Attributes;
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-            var attachments = _configuration.GetAttachmentPaths().ToArray();
 
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad
@@ -221,7 +217,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
                 AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Keys.ToArray()),
                 AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Values.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(attachments));
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()));
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
@@ -244,7 +240,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
         /// <returns>Backtrace Attributes from the Android build</returns>
-        public void GetAttributes(Dictionary<string, string> result)
+        public void GetAttributes(IDictionary<string, string> result)
         {
             if (!_enabled)
             {
@@ -253,7 +249,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // rewrite built in attributes to report attributes
             foreach (var builtInAttribute in _builtInAttributes)
             {
-                result.Add(builtInAttribute.Key, builtInAttribute.Value);
+                result[builtInAttribute.Key] = builtInAttribute.Value;
             }
 
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
@@ -282,7 +278,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     {
                         value = value.Substring(0, value.LastIndexOf("k")).Trim();
                     }
-                    result.Add(key, value);
+                    result[key] = value;
                 }
             }
         }

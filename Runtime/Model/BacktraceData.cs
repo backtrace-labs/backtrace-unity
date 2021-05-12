@@ -124,7 +124,7 @@ namespace Backtrace.Unity.Model
             Report = report;
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
-            Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : null;
+            Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : new string[0];
 
             SetAttributes(clientAttributes, gameObjectDepth);
             SetThreadInformations();

@@ -1,4 +1,5 @@
 using Backtrace.Unity.Model;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ namespace Backtrace.Unity.Editor
     [CustomEditor(typeof(BacktraceConfiguration))]
     public class BacktraceConfigurationEditor : UnityEditor.Editor
     {
+        protected static bool showEventAggregationSettings = false;
         protected static bool showClientAdvancedSettings = false;
         protected static bool showDatabaseSettings = false;
 
@@ -93,11 +95,27 @@ namespace Backtrace.Unity.Editor
                 }
             }
 
-#if UNITY_ANDROID || UNITY_IOS
+            GUIStyle eventAggregationFoldout = new GUIStyle(EditorStyles.foldout);
+            showEventAggregationSettings = EditorGUILayout.Foldout(showEventAggregationSettings, BacktraceConfigurationLabels.LABEL_CRASH_FREE_SECTION, eventAggregationFoldout);
+            if (showEventAggregationSettings)
+            {
+                var enableEventAggregation = serializedObject.FindProperty("EnableEventAggregationSupport");
+                EditorGUILayout.PropertyField(
+                    enableEventAggregation,
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_EVENT_AGGREGATION));
+
+                if (enableEventAggregation.boolValue)
+                {
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("TimeIntervalInMin"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_TIME_INTERVAL));
+                }
+            }
+
             EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("AttachmentPaths"),
-                new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_ATTACHMENTS));
-#endif
+            serializedObject.FindProperty("AttachmentPaths"),
+            new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_ATTACHMENTS));
+
 
 #if !UNITY_SWITCH
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");

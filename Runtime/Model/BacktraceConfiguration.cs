@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
@@ -85,6 +86,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Enable performance statistics")]
         public bool PerformanceStatistics = false;
+
         /// <summary>
         /// Try to find game native crashes and send them on Game startup
         /// </summary>
@@ -177,6 +179,19 @@ namespace Backtrace.Unity.Model
         public string DatabasePath;
 
         /// <summary>
+        /// Enable event aggregation support
+        /// </summary>
+        [Tooltip("This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.")]
+        public bool EnableEventAggregationSupport = false;
+
+        /// <summary>
+        /// Time interval in ms
+        /// </summary>
+        [Range(0, 60)]
+        [Tooltip("How often events should be sent to the Backtrace endpoints, in minutes. Zero (0) disables auto send and will require manual periodic sending using the API. For more information, see the README.")]
+        public long TimeIntervalInMin = BacktraceMetrics.DefaultTimeIntervalInMin;
+
+        /// <summary>
         /// Determine if database is enable
         /// </summary>
         [Header("Backtrace database configuration")]
@@ -251,6 +266,17 @@ namespace Backtrace.Unity.Model
             return result;
         }
 
+        public string GetEventAggregationUrl()
+        {
+            const int tokenLength = 64;
+            const string tokenQueryParam = "token=";
+            var submissionUrl = GetValidServerUrl();
+            var token = submissionUrl.Contains("submit.backtrace.io")
+                ? submissionUrl.Substring(submissionUrl.LastIndexOf("/") - tokenLength, tokenLength)
+                : submissionUrl.Substring(submissionUrl.IndexOf(tokenQueryParam) + tokenQueryParam.Length, tokenLength);
+            return $"https://events.backtrace.io/api/event-aggregation/events?token={token}";
+        }
+
         public string GetFullDatabasePath()
         {
             return ClientPathHelper.GetFullPath(DatabasePath);
@@ -307,6 +333,10 @@ namespace Backtrace.Unity.Model
             return ValidateServerUrl(ServerUrl);
         }
 
+        public long GetEventAggregationIntervalTimerInMs()
+        {
+            return TimeIntervalInMin * 60;
+        }
 
         public BacktraceCredentials ToCredentials()
         {

@@ -44,24 +44,27 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [UnityTest]
-        public IEnumerator TesClientAttributes_ReprotShouldntExtendClientAttributes_ClientAttributesWontStoreReportAttributes()
+        public IEnumerator TesClientAttributes_ReportShouldntExtendClientAttributes_ClientAttributesWontStoreReportAttributes()
         {
             var key = "foo";
             var value = "bar";
             BacktraceClient[key] = value;
+            var numberOfKeysBeforeSendRequest = BacktraceClient.GetAttributesCount();
             BacktraceData data = null;
             BacktraceClient.BeforeSend = (BacktraceData reportData) =>
             {
                 data = reportData;
                 return null;
             };
-            BacktraceClient.Send(new Exception("foo"));
-            yield return new WaitForEndOfFrame();
-            Assert.IsNotNull(data);
+            var exceptionsMessage = new string[] { "foo", "bar" };
+            foreach (var exceptionMessage in exceptionsMessage)
+            {
+                BacktraceClient.Send(new Exception(exceptionMessage));
+                yield return new WaitForEndOfFrame();
+            }
+
             Assert.AreEqual(data.Attributes.Attributes[key], value);
-            Assert.AreEqual(1, BacktraceClient.GetAttributesCount());
-            BacktraceClient.Send(new Exception("bar"));
-            Assert.AreEqual(1, BacktraceClient.GetAttributesCount());
+            Assert.AreEqual(numberOfKeysBeforeSendRequest, BacktraceClient.GetAttributesCount());
             yield return null;
         }
 
