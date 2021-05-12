@@ -20,9 +20,9 @@ namespace Backtrace.Unity.Services
         public const uint DefaultTimeIntervalInMin = 30;
 
         /// <summary>
-        /// Default time interval in ms
+        /// Default time interval in sec
         /// </summary>
-        public const uint DefaultTimeIntervalInMs = DefaultTimeIntervalInMin * 60;
+        public const uint DefaultTimeIntervalInSec = DefaultTimeIntervalInMin * 60;
         /// <summary>
         /// Default unique event name that will be generated on the application startup
         /// </summary>
