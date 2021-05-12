@@ -23,7 +23,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
 
             breadcrumbsManager.EnableBreadcrumbs(breadcrumbType, level);
-            var result = breadcrumbsManager.AddBreadcrumbs(message, testedLevel);
+            var result = breadcrumbsManager.AddBreadcrumb(message, testedLevel);
 
             Assert.IsFalse(result);
             Assert.AreEqual(expectedNumberOfLogs, inMemoryBreadcrumbStorage.Breadcrumbs.Count);

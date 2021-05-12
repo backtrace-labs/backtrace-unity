@@ -57,7 +57,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
               .First(n => n == unityEngineLogLevel);
 
             breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
-            var added = breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, testedLevel);
+            var added = breadcrumbsManager.AddBreadcrumb(breadcrumbMessage, testedLevel);
 
             Assert.IsTrue(added);
             var data = ConvertToBreadcrumbs(breadcrumbFile);
@@ -86,16 +86,16 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
 
             breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, unityEngineLogLevel);
             int numberOfAddedBreadcrumbs = 1;
-            breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+            breadcrumbsManager.AddBreadcrumb(breadcrumbMessage, LogType.Assert);
             var breadcrumbSize = breadcrumbFile.Size - 2;
             while (breadcrumbFile.Size + breadcrumbSize < minimalSize != false)
             {
-                breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+                breadcrumbsManager.AddBreadcrumb(breadcrumbMessage, LogType.Assert);
                 numberOfAddedBreadcrumbs++;
             }
             var sizeBeforeCleanup = breadcrumbFile.Size;
             var numberOfBreadcurmbsBeforeCleanUp = numberOfAddedBreadcrumbs;
-            breadcrumbsManager.AddBreadcrumbs(breadcrumbMessage, LogType.Assert);
+            breadcrumbsManager.AddBreadcrumb(breadcrumbMessage, LogType.Assert);
             numberOfAddedBreadcrumbs++;
 
             Assert.That(breadcrumbFile.Size, Is.LessThan(sizeBeforeCleanup));

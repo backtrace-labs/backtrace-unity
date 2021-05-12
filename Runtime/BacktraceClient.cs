@@ -883,8 +883,6 @@ namespace Backtrace.Unity
                 _nativeClient.OnOOM();
 
             }
-            const string lowMemoryMessage = "Low memory warning detected.";
-            Breadcrumbs?.FromMonoBehavior(lowMemoryMessage, LogType.Warning, null);
         }
 #endif
 

@@ -30,7 +30,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
 
             breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
 
-            var result = breadcrumbsManager.AddBreadcrumbs(message, testedLevel);
+            var result = breadcrumbsManager.AddBreadcrumb(message, testedLevel);
 
             Assert.IsFalse(result);
             Assert.AreEqual(expectedNumberOfLogs, inMemoryBreadcrumbStorage.Breadcrumbs.Count);
@@ -53,7 +53,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
                 .First(n => n == unityEngineLogLevel);
 
             breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
-            var result = breadcrumbsManager.AddBreadcrumbs(message, testedLevel);
+            var result = breadcrumbsManager.AddBreadcrumb(message, testedLevel);
 
             Assert.IsTrue(result);
             Assert.AreEqual(expectedNumberOfLogs, inMemoryBreadcrumbStorage.Breadcrumbs.Count);
@@ -83,7 +83,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
                 .First(n => n == unityEngineLogLevel);
 
             breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
-            var result = breadcrumbsManager.AddBreadcrumbs(message, testedLevel, new Dictionary<string, string>() { { attributeName, attributeValue } });
+            var result = breadcrumbsManager.AddBreadcrumb(message, testedLevel, new Dictionary<string, string>() { { attributeName, attributeValue } });
 
             Assert.IsTrue(result);
             Assert.AreEqual(expectedNumberOfLogs, inMemoryBreadcrumbStorage.Breadcrumbs.Count);
