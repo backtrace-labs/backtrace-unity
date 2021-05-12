@@ -14,9 +14,10 @@ namespace Backtrace.Unity.Interfaces
         /// Backtrace Breadcrumbs
         /// </summary>
         IBacktraceBreadcrumbs Breadcrumbs { get; }
-        /// Backtrace session instance
+        
+        /// Backtrace Metrics instance
         /// </summary>
-        IBacktraceSession Session { get; }
+        IBacktraceMetrics Metrics { get; }
         /// <summary>
         /// Send a new report to a Backtrace API
         /// </summary>
@@ -59,11 +60,11 @@ namespace Backtrace.Unity.Interfaces
         
         /// Enable event aggregation support.
         /// </summary>
-        void EnableSessionAggregationSupport();
+        void EnableMetrics();
 
         /// <summary>
         /// Enable event aggregation support.
         /// </summary>
-        void EnableSessionAggregationSupport(string submissionUrl, long timeIntervalInMs);
+        void EnableMetrics(string submissionUrl, long timeIntervalInMs, string uniqueEventName);
     }
 }

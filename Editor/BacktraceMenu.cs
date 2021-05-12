@@ -22,8 +22,6 @@ namespace Backtrace.Unity.Editor
         private static void CreateAsset(string fileName)
         {
             BacktraceConfiguration asset = ScriptableObject.CreateInstance<BacktraceConfiguration>();
-            // apply default only for new installations
-            asset.EnableEventAggregationSupport = true;
             var currentProjectPath = AssetDatabase.GetAssetPath(Selection.activeObject);
             if (string.IsNullOrEmpty(currentProjectPath))
             {

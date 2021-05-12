@@ -59,17 +59,17 @@ namespace Backtrace.Unity
             }
         }
 
-        private IBacktraceSession _session;
+        private BacktraceMetrics _metrics;
         /// <summary>
-        /// Backtrace session instance
+        /// Backtrace metrics instance
         /// </summary>
-        public IBacktraceSession Session
+        public IBacktraceMetrics Metrics
         {
             get
             {
-                if (_session == null && Configuration != null && Configuration.EnableEventAggregationSupport)
+                if (_metrics == null && Configuration != null && Configuration.EnableEventAggregationSupport)
                 {
-                    _session = new BacktraceSession(
+                    _metrics = new BacktraceMetrics(
                         AttributeProvider,
                         Configuration.GetEventAggregationUrl(),
                         Configuration.GetEventAggregationIntervalTimerInMs())
@@ -77,11 +77,7 @@ namespace Backtrace.Unity
                         IgnoreSslValidation = Configuration.IgnoreSslValidation
                     };
                 }
-                return _session;
-            }
-            internal set
-            {
-                _session = value;
+                return _metrics;
             }
         }
 
@@ -505,9 +501,9 @@ namespace Backtrace.Unity
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
-            if (Configuration.EnableEventAggregationSupport)
+            if (Configuration.EnableEventAggregationSupport && Metrics != null)
             {
-                Session.SendStartupEvent();
+                _metrics.SendStartupEvent();
             }
         }
 
@@ -525,29 +521,30 @@ namespace Backtrace.Unity
             return initializationResult;
         }
 
-        public void EnableSessionAggregationSupport()
+        public void EnableMetrics()
         {
             if (!Configuration.EnableEventAggregationSupport)
             {
                 Debug.LogWarning("Event aggregation configuration was disabled. Enabling it manually via API");
             }
-            EnableSessionAggregationSupport(Configuration.GetEventAggregationUrl(), Configuration.TimeIntervalInMin);
+            EnableMetrics(Configuration.GetEventAggregationUrl(), Configuration.GetEventAggregationIntervalTimerInMs());
         }
-        public void EnableSessionAggregationSupport(string submissionUrl, long timeIntervalInMs)
+        public void EnableMetrics(string submissionUrl, long timeIntervalInMs = BacktraceMetrics.DefaultTimeIntervalInMs, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
         {
-            if (Session != null)
+            if (_metrics != null)
             {
-                Debug.LogWarning("Backtrace session aggregation support is enabled. Please use BacktraceClient.Session.");
+                Debug.LogWarning("Backtrace metrics support is enabled. Please use BacktraceClient.Metrics.");
                 return;
             }
-            Session = new BacktraceSession(
+            _metrics = new BacktraceMetrics(
                 attributeProvider: AttributeProvider,
                 uploadUrl: submissionUrl,
                 timeIntervalInMs: timeIntervalInMs)
             {
+                StartupUniqueEventName = uniqueEventName,
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };
-            Session.SendStartupEvent();
+            _metrics.SendStartupEvent();
         }
 
         private void OnApplicationQuit()
@@ -567,7 +564,7 @@ namespace Backtrace.Unity
         private void LateUpdate()
         {
             _nativeClient?.UpdateClientTime(Time.unscaledTime);
-            Session?.Tick(Time.unscaledTime);
+            _metrics?.Tick(Time.unscaledTime);
 
             if (BackgroundExceptions.Count == 0)
             {
