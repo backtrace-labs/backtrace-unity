@@ -23,20 +23,28 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         public void Register(BacktraceBreadcrumbType level)
         {
             _registeredLevel = level;
-            HasRegisteredEvents = level.HasFlag(BacktraceBreadcrumbType.System);
-            if (!HasRegisteredEvents)
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Navigation))
             {
-
-                return;
+                HasRegisteredEvents = true;
+                SceneManager.activeSceneChanged += HandleSceneChanged;
+                SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+                SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
             }
-            SceneManager.activeSceneChanged += HandleSceneChanged;
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
-            Application.lowMemory += HandleLowMemory;
-            Application.quitting += HandleApplicationQuitting;
-            Application.focusChanged += Application_focusChanged;
-            Application.logMessageReceived += HandleMessage;
-            Application.logMessageReceivedThreaded += HandleBackgroundMessage;
+
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.System))
+            {
+                HasRegisteredEvents = true;
+                Application.lowMemory += HandleLowMemory;
+                Application.quitting += HandleApplicationQuitting;
+                Application.focusChanged += Application_focusChanged;
+            }
+
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Log))
+            {
+                HasRegisteredEvents = true;
+                Application.logMessageReceived += HandleMessage;
+                Application.logMessageReceivedThreaded += HandleBackgroundMessage;
+            }
         }
 
         /// <summary>
@@ -44,46 +52,57 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// </summary>
         public void Unregister()
         {
-            if (HasRegisteredEvents)
+            if (HasRegisteredEvents == false)
             {
                 return;
             }
-            SceneManager.activeSceneChanged -= HandleSceneChanged;
-            SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
-            SceneManager.sceneUnloaded -= SceneManager_sceneUnloaded;
-            Application.lowMemory -= HandleLowMemory;
-            Application.quitting -= HandleApplicationQuitting;
-            Application.logMessageReceived -= HandleMessage;
-            Application.logMessageReceivedThreaded -= HandleBackgroundMessage;
-            Application.focusChanged -= Application_focusChanged;
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Navigation))
+            {
+                SceneManager.activeSceneChanged -= HandleSceneChanged;
+                SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
+                SceneManager.sceneUnloaded -= SceneManager_sceneUnloaded;
+            }
+
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.System))
+            {
+                Application.lowMemory -= HandleLowMemory;
+                Application.quitting -= HandleApplicationQuitting;
+                Application.focusChanged -= Application_focusChanged;
+            }
+
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Log))
+            {
+                Application.logMessageReceived -= HandleMessage;
+                Application.logMessageReceivedThreaded -= HandleBackgroundMessage;
+            }
         }
 
         private void SceneManager_sceneUnloaded(Scene scene)
         {
             var message = string.Format("SceneManager:scene {0} unloaded", scene.name);
-            Log(message, LogType.Assert);
+            Log(message, LogType.Assert, BreadcrumbLevel.Navigation);
         }
 
         private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
             var message = string.Format("SceneManager:scene {0} loaded", scene.name);
-            Log(message, LogType.Assert, new Dictionary<string, string>() { { "LoadSceneMode", loadSceneMode.ToString() } });
+            Log(message, LogType.Assert, BreadcrumbLevel.Navigation, new Dictionary<string, string>() { { "LoadSceneMode", loadSceneMode.ToString() } });
         }
 
         private void HandleSceneChanged(Scene sceneFrom, Scene sceneTo)
         {
             var message = string.Format("SceneManager:scene changed from {0} to {1}", sceneFrom.name, sceneTo.name);
-            Log(message, LogType.Assert);
+            Log(message, LogType.Assert, BreadcrumbLevel.Navigation, new Dictionary<string, string>() { { "from", sceneFrom.name }, { "to", sceneTo.name } });
         }
 
         private void HandleLowMemory()
         {
-            Log("Application:low memory", LogType.Warning);
+            Log("Application:low memory", LogType.Warning, BreadcrumbLevel.System);
         }
 
         private void HandleApplicationQuitting()
         {
-            Log("Application:quitting", LogType.Log);
+            Log("Application:quitting", LogType.Log, BreadcrumbLevel.System);
         }
 
         private void HandleBackgroundMessage(string condition, string stackTrace, LogType type)
@@ -102,22 +121,22 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             var attributes = type == LogType.Error || type == LogType.Exception
                 ? new Dictionary<string, string> { { "stackTrace", stackTrace } }
                 : null;
-            Log(condition, type, attributes);
+            Log(condition, type, BreadcrumbLevel.Log, attributes);
         }
 
         private void Application_focusChanged(bool hasFocus)
         {
-            Log("Application:focus changed.", LogType.Assert, new Dictionary<string, string> { { "hasFocus", hasFocus.ToString() } });
+            Log("Application:focus changed.", LogType.Assert, BreadcrumbLevel.System, new Dictionary<string, string> { { "hasFocus", hasFocus.ToString() } });
         }
 
-        private void Log(string message, LogType level, IDictionary<string, string> attributes = null)
+        private void Log(string message, LogType level, BreadcrumbLevel breadcrumbLevel, IDictionary<string, string> attributes = null)
         {
             var type = _breadcrumbs.ConvertLogTypeToLogLevel(level);
             if (!_breadcrumbs.ShouldLog(type))
             {
                 return;
             }
-            _breadcrumbs.AddBreadcrumbs(message, BreadcrumbLevel.System, type, attributes);
+            _breadcrumbs.AddBreadcrumbs(message, breadcrumbLevel, type, attributes);
         }
     }
 }

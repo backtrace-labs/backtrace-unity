@@ -243,7 +243,7 @@ namespace Backtrace.Unity.Services
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Stop();
-                    Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
+                    Debug.Assert(EnablePerformanceStatistics, string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
             }

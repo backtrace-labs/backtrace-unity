@@ -177,9 +177,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             {
                 case LogType.Warning:
                     return UnityEngineLogLevel.Warning;
-                case LogType.Exception:
-                    return UnityEngineLogLevel.Fatal;
                 case LogType.Error:
+                case LogType.Exception:
                     return UnityEngineLogLevel.Error;
                 case LogType.Assert:
                     return UnityEngineLogLevel.Debug;
