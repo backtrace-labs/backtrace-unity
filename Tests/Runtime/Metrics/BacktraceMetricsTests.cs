@@ -196,8 +196,8 @@ namespace Backtrace.Unity.Model.Metrics
         public void BacktraceMetrics_ShouldTriggerUploadViaTickMethodWhenReachedMaximumNumberOfEvents_DataWasSendToBacktrace()
         {
             const int maximumNumberOfEvents = 3;
-            const int defaultTimeIntervalInMs = 10;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, defaultTimeIntervalInMs)
+            const int defaultTimeIntervalInSec = 10;
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, defaultTimeIntervalInSec)
             {
                 MaximumEvents = maximumNumberOfEvents
             };
@@ -208,7 +208,7 @@ namespace Backtrace.Unity.Model.Metrics
                 backtraceMetrics.AddSummedEvent($"{MetricsEventName} {i}");
             }
 
-            backtraceMetrics.Tick(defaultTimeIntervalInMs + 1);
+            backtraceMetrics.Tick(defaultTimeIntervalInSec + 1);
 
             Assert.AreEqual(0, backtraceMetrics.Count());
             Assert.AreEqual(1, requestHandler.NumberOfRequests);
