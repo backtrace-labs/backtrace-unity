@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
