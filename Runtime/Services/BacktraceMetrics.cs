@@ -20,9 +20,9 @@ namespace Backtrace.Unity.Services
         public const uint DefaultTimeIntervalInMin = 30;
 
         /// <summary>
-        /// Default time interval in ms
+        /// Default time interval in sec
         /// </summary>
-        public const uint DefaultTimeIntervalInMs = DefaultTimeIntervalInMin * 60;
+        public const uint DefaultTimeIntervalInSec = DefaultTimeIntervalInMin * 60;
         /// <summary>
         /// Default unique event name that will be generated on the application startup
         /// </summary>
@@ -95,7 +95,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Time interval in ms that algorithm uses to automatically send data to Backtrace
         /// </summary>
-        private readonly long _timeIntervalInMs;
+        private readonly long _timeIntervalInSec;
 
         /// <summary>
         /// Last update time that will be updated after each update start
@@ -128,15 +128,15 @@ namespace Backtrace.Unity.Services
         /// </summary>
         /// <param name="attributeProvider">Backtrace client attribute provider</param>
         /// <param name="uploadUrl">Upload URL</param>
-        /// <param name="timeIntervalInMs">Update time interval in MS</param>
+        /// <param name="timeIntervalInSec">Update time interval in MS</param>
         public BacktraceMetrics(
             AttributeProvider attributeProvider,
             string uploadUrl,
-            long timeIntervalInMs)
+            long timeIntervalInSec)
         {
             SubmissionUrl = uploadUrl;
             _attributeProvider = attributeProvider;
-            _timeIntervalInMs = timeIntervalInMs;
+            _timeIntervalInSec = timeIntervalInSec;
             RequestHandler = new BacktraceHttpClient();
         }
 
@@ -166,14 +166,14 @@ namespace Backtrace.Unity.Services
             {
                 SendPendingSubmissionJobs(time);
             }
-            if (_timeIntervalInMs == 0)
+            if (_timeIntervalInSec == 0)
             {
                 return;
             }
             lock (_object)
             {
 
-                var intervalUpdate = (time - _lastUpdateTime) >= _timeIntervalInMs;
+                var intervalUpdate = (time - _lastUpdateTime) >= _timeIntervalInSec;
                 var reachedEventLimit = MaximumEvents == Count() && MaximumEvents != 0;
                 if (intervalUpdate == false && reachedEventLimit == false)
                 {

@@ -127,9 +127,12 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             GetNativeAttributes(out IntPtr pUnmanagedArray, out int keysCount);
 
+            // calculate struct size for current OS.
+            // We multiply by 2 because Entry struct has two pointers
+            var structSize = IntPtr.Size * 2;
             for (int i = 0; i < keysCount; i++)
             {
-                var address = pUnmanagedArray + i * 16;
+                var address = pUnmanagedArray + i * structSize;
                 Entry entry = Marshal.PtrToStructure<Entry>(address);
                 result[entry.Key] = entry.Value;
             }

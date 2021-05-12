@@ -142,10 +142,42 @@ namespace Backtrace.Unity.Runtime.Native.Android
         {
             using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
             using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
-            using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
-            using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
             {
-                return applicationInfo.Get<string>("nativeLibraryDir");
+                // handle specific case when current activity is not available
+                // this case might happen for example in flutter.
+                if (activity == null)
+                {
+                    return string.Empty;
+                }
+                using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
+                using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
+                {
+                    return applicationInfo.Get<string>("nativeLibraryDir");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Guess native directory path based on the data path directory. 
+        /// GetNativeDirectoryPath method might return empty value when activity is not available
+        /// this might happen in flutter apps.
+        /// </summary>
+        /// <returns>Guessed path to lib directory</returns>
+        private string GuessNativeDirectoryPath()
+        {
+            var sourceDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
+            if (!Directory.Exists(sourceDirectory))
+            {
+                return string.Empty;
+            }
+            var libDirectory = Directory.GetDirectories(sourceDirectory);
+            if (libDirectory.Length == 0)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return libDirectory[0];
             }
         }
 
@@ -193,6 +225,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
             var libDirectory = GetNativeDirectoryPath();
+            if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
+            {
+                libDirectory = GuessNativeDirectoryPath();
+            }
             if (!Directory.Exists(libDirectory))
             {
                 return;
