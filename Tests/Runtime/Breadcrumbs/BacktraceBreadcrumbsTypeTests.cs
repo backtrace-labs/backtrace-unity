@@ -42,5 +42,31 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             breadcrumbsManager.UnregisterEvents();
         }
 
+        [Test]
+        public void TestNavigationLogs_ShouldEnableThem_EventsAreSet()
+        {
+            var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
+            UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+
+            breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.Navigation, level);
+
+            Assert.IsTrue(breadcrumbsManager.EventHandler.HasRegisteredEvents);
+            breadcrumbsManager.UnregisterEvents();
+        }
+
+        [Test]
+        public void TestLogLogs_ShouldEnableThem_EventsAreSet()
+        {
+            var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
+            UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+
+            breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.Log, level);
+
+            Assert.IsTrue(breadcrumbsManager.EventHandler.HasRegisteredEvents);
+            breadcrumbsManager.UnregisterEvents();
+        }
+
     }
 }
