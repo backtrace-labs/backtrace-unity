@@ -9,9 +9,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         BacktraceBreadcrumbType BreadcrumbsLevel { get; }
         bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel);
         bool ClearBreadcrumbs();
-        bool AddBreadcrumb(string message, LogType type, IDictionary<string, string> attributes);
-        bool AddBreadcrumb(string message, LogType type);
-        bool AddBreadcrumb(string message);
+        bool Log(string message, LogType type, IDictionary<string, string> attributes);
+        bool Log(string message, LogType type);
         bool Debug(string message);
         bool Debug(string message, IDictionary<string, string> attributes);
         bool Info(string message);
@@ -26,6 +25,5 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         bool FromMonoBehavior(string message, LogType type, IDictionary<string, string> attributes);
         string GetBreadcrumbLogPath();
         void UnregisterEvents();
-
     }
 }

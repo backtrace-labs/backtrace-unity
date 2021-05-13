@@ -44,19 +44,14 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         }
 
 
-        public bool AddBreadcrumb(string message, LogType type)
+        public bool Log(string message, LogType type)
         {
-            return AddBreadcrumb(message, type, null);
-        }
-
-        public bool AddBreadcrumb(string message)
-        {
-            return AddBreadcrumb(message, LogType.Log);
+            return Log(message, type, null);
         }
 
         public bool Debug(string message)
         {
-            return AddBreadcrumb(message, LogType.Assert);
+            return Log(message, LogType.Assert);
         }
 
         public bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
@@ -79,12 +74,12 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         public bool Exception(Exception exception)
         {
-            return AddBreadcrumb(exception.Message, LogType.Error, null);
+            return Log(exception.Message, LogType.Error, null);
         }
 
         public bool Exception(string message)
         {
-            return AddBreadcrumb(message, LogType.Error, null);
+            return Log(message, LogType.Error, null);
         }
 
         public bool FromBacktrace(BacktraceReport report)
@@ -113,39 +108,39 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         public bool Info(string message)
         {
-            return AddBreadcrumb(message, LogType.Log, null);
+            return Log(message, LogType.Log, null);
         }
 
         public bool Warning(string message)
         {
-            return AddBreadcrumb(message, LogType.Warning, null);
+            return Log(message, LogType.Warning, null);
         }
 
         public bool Debug(string message, IDictionary<string, string> attributes)
         {
-            return AddBreadcrumb(message, LogType.Assert, attributes);
+            return Log(message, LogType.Assert, attributes);
         }
 
         public bool Info(string message, IDictionary<string, string> attributes)
         {
-            return AddBreadcrumb(message, LogType.Assert, attributes);
+            return Log(message, LogType.Assert, attributes);
         }
 
         public bool Warning(string message, IDictionary<string, string> attributes)
         {
-            return AddBreadcrumb(message, LogType.Warning, attributes);
+            return Log(message, LogType.Warning, attributes);
         }
 
         public bool Exception(Exception exception, IDictionary<string, string> attributes)
         {
-            return AddBreadcrumb(exception.Message, LogType.Exception, attributes);
+            return Log(exception.Message, LogType.Exception, attributes);
         }
 
         public bool Exception(string message, IDictionary<string, string> attributes)
         {
-            return AddBreadcrumb(message, LogType.Exception, attributes);
+            return Log(message, LogType.Exception, attributes);
         }
-        public bool AddBreadcrumb(string message, LogType logType, IDictionary<string, string> attributes)
+        public bool Log(string message, LogType logType, IDictionary<string, string> attributes)
         {
             var type = ConvertLogTypeToLogLevel(logType);
             if (!ShouldLog(type))
