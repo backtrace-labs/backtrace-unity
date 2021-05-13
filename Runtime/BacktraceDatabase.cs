@@ -326,6 +326,11 @@ namespace Backtrace.Unity
             {
                 record.Unlock();
             }
+            // add to fresh new record breadcrumb attachment
+            if (Breadcrumbs != null)
+            {
+                record.BacktraceData.Attachments.Add(Breadcrumbs.GetBreadcrumbLogPath());
+            }
             return record;
         }
 

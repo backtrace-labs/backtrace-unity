@@ -480,6 +480,7 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
+            var nativeAttachments = new HashSet<string>(_clientReportAttachments);
             if (Configuration.Enabled)
             {
                 Database = GetComponent<BacktraceDatabase>();
@@ -488,11 +489,14 @@ namespace Backtrace.Unity
                     Database.Reload();
                     Database.SetApi(BacktraceApi);
                     Database.SetReportWatcher(_reportLimitWatcher);
-                    EnableBreadcrumbsSupport();
+                    if (EnableBreadcrumbsSupport())
+                    {
+                        nativeAttachments.Add(Database.Breadcrumbs.GetBreadcrumbLogPath());
+                    }
                 }
             }
 
-            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), _clientReportAttachments);
+            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), nativeAttachments);
             AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
@@ -513,12 +517,7 @@ namespace Backtrace.Unity
             {
                 return false;
             }
-            var initializationResult = Database.EnableBreadcrumbsSupport();
-            if (initializationResult)
-            {
-                _clientReportAttachments.Add(Breadcrumbs.GetBreadcrumbLogPath());
-            }
-            return initializationResult;
+            return Database.EnableBreadcrumbsSupport();
         }
 
         public void EnableMetrics()

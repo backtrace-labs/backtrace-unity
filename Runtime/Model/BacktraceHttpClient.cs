@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Linq;
 
 namespace Backtrace.Unity.Model
 {
@@ -124,18 +125,39 @@ namespace Backtrace.Unity.Model
 
         private void AddAttachmentToFormData(List<IMultipartFormSection> formData, IEnumerable<string> attachments)
         {
+            if (attachments == null)
+            {
+                return;
+            }
             // make sure attachments are not bigger than 10 Mb.
             const int maximumAttachmentSize = 10000000;
             const string attachmentPrefix = "attachment_";
-            var uniqueAttachments = new HashSet<string>(attachments);
+
+            var uniqueAttachments = new HashSet<string>(attachments.Reverse());
+            var addedFiles = new Dictionary<string, int>();
+
             foreach (var file in uniqueAttachments)
             {
-                if (File.Exists(file) && new FileInfo(file).Length < maximumAttachmentSize)
+                if (File.Exists(file) == false && new FileInfo(file).Length > maximumAttachmentSize)
                 {
-                    formData.Add(new MultipartFormFileSection(
-                        string.Format("{0}{1}", attachmentPrefix, Path.GetFileName(file)),
-                        File.ReadAllBytes(file)));
+                    continue;
                 }
+
+                var fileName = Path.GetFileName(file);
+                if (addedFiles.ContainsKey(fileName))
+                {
+                    addedFiles[fileName]++;
+                    fileName = string.Format("{0}({1}){2}", Path.GetFileName(fileName), addedFiles[fileName], Path.GetExtension(fileName));
+                }
+                else
+                {
+                    addedFiles[fileName] = 0;
+                }
+
+                formData.Add(new MultipartFormFileSection(
+                    string.Format("{0}{1}", attachmentPrefix, fileName),
+                    File.ReadAllBytes(file)));
+
             }
         }
     }

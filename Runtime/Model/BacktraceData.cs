@@ -85,7 +85,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Get a path to report attachments
         /// </summary>
-        public List<string> Attachments;
+        public ICollection<string> Attachments;
 
         /// <summary>
         /// Current BacktraceReport
@@ -123,7 +123,7 @@ namespace Backtrace.Unity.Model
 
             SetAttributes(clientAttributes, gameObjectDepth);
             SetThreadInformations();
-            Attachments = Report.AttachmentPaths.Distinct().ToList();
+            Attachments = new HashSet<string>(Report.AttachmentPaths);
         }
 
         /// <summary>

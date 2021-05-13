@@ -48,7 +48,7 @@ namespace Backtrace.Unity.Model.Database
         /// <summary>
         /// Attachments path
         /// </summary>
-        public List<string> Attachments { get; private set; }
+        public ICollection<string> Attachments { get; private set; }
 
         private string _diagnosticDataJson;
 
@@ -127,7 +127,7 @@ namespace Backtrace.Unity.Model.Database
                 dataPath = DiagnosticDataPath,
                 size = Size,
                 hash = Hash,
-                attachments = Attachments
+                attachments = new List<string>(Attachments)
             };
             return JsonUtility.ToJson(rawRecord, false);
         }
