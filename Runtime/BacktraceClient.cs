@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -480,7 +481,10 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
-            var nativeAttachments = new HashSet<string>(_clientReportAttachments);
+            var nativeAttachments = _clientReportAttachments.ToList()
+                .Where(n => !string.IsNullOrEmpty(n))
+                .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase).ToList();
+
             if (Configuration.Enabled)
             {
                 Database = GetComponent<BacktraceDatabase>();
