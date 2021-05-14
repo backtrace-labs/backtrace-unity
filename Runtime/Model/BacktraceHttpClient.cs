@@ -138,7 +138,7 @@ namespace Backtrace.Unity.Model
 
             foreach (var file in uniqueAttachments)
             {
-                if (File.Exists(file) == false && new FileInfo(file).Length > maximumAttachmentSize)
+                if (string.IsNullOrEmpty(file) || File.Exists(file) == false || new FileInfo(file).Length > maximumAttachmentSize)
                 {
                     continue;
                 }
