@@ -316,9 +316,15 @@ namespace Backtrace.Unity.Services
         {
             if (record == null)
             {
+                Debug.LogWarning("record is null");
                 return false;
             }
-            return File.Exists(record.DiagnosticDataPath);
+            var result = File.Exists(record.DiagnosticDataPath);
+            if (result == false)
+            {
+                Debug.LogWarning("record file doesn't exist");
+            }
+            return result;
         }
     }
 }

@@ -25,10 +25,29 @@ namespace Backtrace.Unity
 
         public BacktraceConfiguration Configuration;
 
+        private IBacktraceBreadcrumbs _breadcrumbs;
+
         /// <summary>
         /// Backtrace Breadcrumbs
         /// </summary>
-        public IBacktraceBreadcrumbs Breadcrumbs { get; private set; }
+        public IBacktraceBreadcrumbs Breadcrumbs
+        {
+            get
+            {
+                if (_breadcrumbs == null)
+                {
+                    if (Enable && Configuration.EnableBreadcrumbsSupport)
+                    {
+                        _breadcrumbs = new BacktraceBreadcrumbs(new BacktraceStorageLogManager(Configuration.GetFullDatabasePath()));
+                    }
+                }
+                return _breadcrumbs;
+            }
+            private set
+            {
+                _breadcrumbs = value;
+            }
+        }
 
         internal static float LastFrameTime = 0;
 
@@ -155,8 +174,6 @@ namespace Backtrace.Unity
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabaseSettings);
             BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
-            EnableBreadcrumbsSupport();
-
         }
 
         /// <summary>
@@ -580,7 +597,7 @@ namespace Backtrace.Unity
                 }
                 if (!BacktraceDatabaseFileContext.IsValidRecord(record))
                 {
-                    Debug.Log("Removing record from Backtrace Database path - invalid record.");
+                    Debug.Log($"Removing record from Backtrace Database path - invalid record. Path : {file.FullName} ");
                     BacktraceDatabaseFileContext.Delete(record);
                     continue;
                 }
@@ -678,16 +695,7 @@ namespace Backtrace.Unity
 
         public bool EnableBreadcrumbsSupport()
         {
-            if (!Enable || !Configuration.EnableBreadcrumbsSupport)
-            {
-                return false;
-            }
-            if (Breadcrumbs != null)
-            {
-                return true;
-            }
-            Breadcrumbs = new BacktraceBreadcrumbs(new BacktraceStorageLogManager(Configuration.GetFullDatabasePath()));
-            return Breadcrumbs.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel);
+            return Breadcrumbs?.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel) ?? false;
         }
     }
 }

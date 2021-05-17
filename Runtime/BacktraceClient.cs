@@ -493,14 +493,16 @@ namespace Backtrace.Unity
                     Database.Reload();
                     Database.SetApi(BacktraceApi);
                     Database.SetReportWatcher(_reportLimitWatcher);
-                    if (EnableBreadcrumbsSupport())
+                    if (Database.Breadcrumbs != null)
                     {
                         nativeAttachments.Add(Database.Breadcrumbs.GetBreadcrumbLogPath());
                     }
+                    _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), nativeAttachments);
+                    Database.EnableBreadcrumbsSupport();
                 }
             }
 
-            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), nativeAttachments);
+
             AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
