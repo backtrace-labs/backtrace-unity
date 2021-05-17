@@ -597,7 +597,6 @@ namespace Backtrace.Unity
                 }
                 if (!BacktraceDatabaseFileContext.IsValidRecord(record))
                 {
-                    Debug.Log($"Removing record from Backtrace Database path - invalid record. Path : {file.FullName} ");
                     BacktraceDatabaseFileContext.Delete(record);
                     continue;
                 }
