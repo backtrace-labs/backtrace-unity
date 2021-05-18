@@ -182,5 +182,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
                     return UnityEngineLogLevel.Info;
             }
         }
+
+        public long BreadcrumbId()
+        {
+            return LogManager.BreadcrumbId();
+        }
     }
 }

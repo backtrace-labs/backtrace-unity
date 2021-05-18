@@ -311,12 +311,6 @@ namespace Backtrace.Unity
                 }
             }
 
-            // now we now we're adding new unique report to database
-            var record = new BacktraceDatabaseRecord(data)
-            {
-                Hash = hash
-            };
-
             //add built-in attachments
             var attachments = BacktraceDatabaseFileContext.GenerateRecordAttachments(data);
             for (int attachmentIndex = 0; attachmentIndex < attachments.Count(); attachmentIndex++)
@@ -324,9 +318,20 @@ namespace Backtrace.Unity
                 if (!string.IsNullOrEmpty(attachments.ElementAt(attachmentIndex)))
                 {
                     data.Attachments.Add(attachments.ElementAt(attachmentIndex));
-                    record.Attachments.Add(attachments.ElementAt(attachmentIndex));
                 }
             }
+            // add to fresh new record breadcrumb attachment
+            if (Breadcrumbs != null)
+            {
+                data.Attachments.Add(Breadcrumbs.GetBreadcrumbLogPath());
+                data.Attributes.Attributes["breadcrumbs.lastId"] = Breadcrumbs.BreadcrumbId().ToString(CultureInfo.InvariantCulture);
+
+            }
+            // now we now we're adding new unique report to database
+            var record = new BacktraceDatabaseRecord(data)
+            {
+                Hash = hash
+            };
 
             // save record on the hard drive and add it to database context
             var saveResult = BacktraceDatabaseFileContext.Save(record);
@@ -343,11 +348,7 @@ namespace Backtrace.Unity
             {
                 record.Unlock();
             }
-            // add to fresh new record breadcrumb attachment
-            if (Breadcrumbs != null)
-            {
-                record.BacktraceData.Attachments.Add(Breadcrumbs.GetBreadcrumbLogPath());
-            }
+
             return record;
         }
 
