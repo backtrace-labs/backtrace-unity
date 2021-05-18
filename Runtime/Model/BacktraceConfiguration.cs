@@ -114,16 +114,11 @@ namespace Backtrace.Unity.Model
         [Tooltip("Handle ANR events - Application not responding")]
         public bool HandleANR = true;
 
-#if UNITY_ANDROID
-        /// <summary>
-        /// Send Low memory warnings to Backtrace
-        /// </summary>
-        [Tooltip("(Early access) Send Low memory warnings to Backtrace")]
-#elif UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
          /// <summary>
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
-        [Tooltip("(Early access) Send Out of memory exceptions to Backtrace")]
+        [Tooltip("Send Out of memory exceptions to Backtrace")]
 #endif
         public bool OomReports = false;
 
