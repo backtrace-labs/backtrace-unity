@@ -17,6 +17,8 @@ namespace Backtrace.Unity.Model.Metrics
         const string UniqueAttributeName = "scene.name";
         private const string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
         private AttributeProvider _attributeProvider = new AttributeProvider();
+        private readonly string _token = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458";
+        private readonly string _universeName = "testing-universe-name";
 
         [OneTimeSetUp]
         public void Setup()
@@ -28,7 +30,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             var jsonString = string.Empty;
             var submissionUrl = string.Empty;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
             backtraceMetrics.RequestHandler = new BacktraceHttpClientMock()
             {
                 OnInvoke = (string url, BacktraceJObject json) =>
@@ -51,7 +53,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             var jsonString = string.Empty;
             var submissionUrl = string.Empty;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
             backtraceMetrics.RequestHandler = new BacktraceHttpClientMock()
             {
                 OnInvoke = (string url, BacktraceJObject json) =>
@@ -73,7 +75,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetrics_ShouldntTriggerUploadWhenDataIsNotAvailable_DataWasntSendToBacktrace()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceMetrics.RequestHandler = requestHandler;
 
@@ -86,7 +88,7 @@ namespace Backtrace.Unity.Model.Metrics
         public IEnumerator BacktraceMetrics_ShouldTry3TimesOn503BeforeDroppingEvents_DataWasntSendToBacktrace()
         {
             const int expectedNumberOfEventsAfterFailure = 2;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock()
             {
                 StatusCode = 503
@@ -114,7 +116,7 @@ namespace Backtrace.Unity.Model.Metrics
         public IEnumerator BacktraceMetrics_ShouldTry3TimesOn503AndDropSummedEventsOnMaximumNumberOfEvents_DataWasDeleted()
         {
             const int expectedNumberOfEventsAfterFailure = 1;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock()
             {
                 StatusCode = 503
@@ -142,7 +144,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetrics_ShouldTryOnlyOnceOnHttpFailure_DataWasntSendToBacktrace()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock()
             {
                 IsHttpError = true
@@ -161,7 +163,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             const int maximumNumberOfEvents = 3;
             const int numberOfTestEvents = 10;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0)
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName)
             {
                 MaximumEvents = maximumNumberOfEvents
             };
@@ -179,7 +181,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             const int maximumNumberOfEvents = 3;
             const int numberOfTestEvents = 10;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0)
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName)
             {
                 MaximumEvents = maximumNumberOfEvents
             };
@@ -197,7 +199,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             const int maximumNumberOfEvents = 3;
             const int defaultTimeIntervalInSec = 10;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, defaultTimeIntervalInSec)
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName)
             {
                 MaximumEvents = maximumNumberOfEvents
             };
@@ -219,7 +221,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             const int maximumNumberOfEvents = 3;
             const int expectedNumberOfEvents = 2;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 1)
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName)
             {
                 MaximumEvents = maximumNumberOfEvents
             };
@@ -243,7 +245,7 @@ namespace Backtrace.Unity.Model.Metrics
             const int timeInterval = 10;
             const int expectedNumberOfEvents = 1;// unique event
             const int expectedNumberOfRequests = 1; //should combine data together
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, timeInterval);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, timeInterval, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceMetrics.RequestHandler = requestHandler;
 
@@ -262,7 +264,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             const int timeInterval = 10;
             const int numberOfAddedEvents = 2;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, timeInterval);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, timeInterval, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceMetrics.RequestHandler = requestHandler;
 
@@ -280,7 +282,7 @@ namespace Backtrace.Unity.Model.Metrics
         public void BacktraceMetrics_ShouldTriggerUploadAfterTimeIntervalHitAgain_DataWasSendToBacktrace()
         {
             const int timeInterval = 10;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, timeInterval);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, timeInterval, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceMetrics.RequestHandler = requestHandler;
 
@@ -303,7 +305,7 @@ namespace Backtrace.Unity.Model.Metrics
         public void BacktraceMetrics_ShouldntTriggerDownloadAfterTimeIntervalFirstHit_DataWasSendToBacktrace()
         {
             const int timeInterval = 10;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, timeInterval);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, timeInterval, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceMetrics.RequestHandler = requestHandler;
 
@@ -318,19 +320,19 @@ namespace Backtrace.Unity.Model.Metrics
             backtraceMetrics.Tick(timeInterval + 2);
 
             Assert.AreEqual(2, backtraceMetrics.Count());
-            Assert.AreEqual(1, requestHandler.NumberOfRequests);
+            Assert.AreEqual(2, requestHandler.NumberOfRequests);
         }
 
         [Test]
         public void BacktraceMetricsDefaultEvent_ShouldSendDefaultEventOnTheApplicationStartup_DataWasSendToBacktrace()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 10);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 10, _token, _universeName);
             var requestHandler = new BacktraceHttpClientMock();
             backtraceMetrics.RequestHandler = requestHandler;
 
             backtraceMetrics.SendStartupEvent();
 
-            Assert.AreEqual(1, requestHandler.NumberOfRequests);
+            Assert.AreEqual(2, requestHandler.NumberOfRequests);
         }
 
     }

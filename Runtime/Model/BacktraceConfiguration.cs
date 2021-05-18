@@ -266,7 +266,35 @@ namespace Backtrace.Unity.Model
             return result;
         }
 
-        public string GetEventAggregationUrl()
+        public string GetUniverseName()
+        {
+            var submissionUrl = GetValidServerUrl();
+            var submitUrl = submissionUrl.Contains("submit.backtrace.io");
+            if (submitUrl)
+            {
+                const int tokenLength = 64;
+                // we want to skip the last `/`. Since we're counting from 0 we need to decrease 
+                // position by 2
+                var endPosition = submissionUrl.LastIndexOf("/") - tokenLength - 2;
+                var startPosition = submissionUrl.LastIndexOf('/', endPosition) + 1;
+                return submissionUrl.Substring(startPosition, endPosition - startPosition + 1);
+            }
+            else
+            {
+                const string backtraceDomain = "backtrace.io";
+                var domainIndex = submissionUrl.IndexOf(backtraceDomain);
+                if (domainIndex == -1)
+                {
+                    throw new ArgumentException("Invalid Backtrace url");
+                }
+
+                var uri = new UriBuilder(submissionUrl);
+                return uri.Host.Substring(0, uri.Host.IndexOf("."));
+            }
+
+        }
+
+        public string GetToken()
         {
             const int tokenLength = 64;
             const string tokenQueryParam = "token=";
@@ -274,7 +302,7 @@ namespace Backtrace.Unity.Model
             var token = submissionUrl.Contains("submit.backtrace.io")
                 ? submissionUrl.Substring(submissionUrl.LastIndexOf("/") - tokenLength, tokenLength)
                 : submissionUrl.Substring(submissionUrl.IndexOf(tokenQueryParam) + tokenQueryParam.Length, tokenLength);
-            return $"https://events.backtrace.io/api/event-aggregation/events?token={token}";
+            return token;
         }
 
         public string GetFullDatabasePath()

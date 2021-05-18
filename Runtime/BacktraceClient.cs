@@ -59,8 +59,10 @@ namespace Backtrace.Unity
                 {
                     _metrics = new BacktraceMetrics(
                         AttributeProvider,
-                        Configuration.GetEventAggregationUrl(),
-                        Configuration.GetEventAggregationIntervalTimerInMs())
+                        BacktraceMetrics.DefaultSubmissionUrl,
+                        Configuration.GetEventAggregationIntervalTimerInMs(),
+                        Configuration.GetToken(),
+                        Configuration.GetUniverseName())
                     {
                         IgnoreSslValidation = Configuration.IgnoreSslValidation
                     };
@@ -503,7 +505,7 @@ namespace Backtrace.Unity
             {
                 Debug.LogWarning("Event aggregation configuration was disabled. Enabling it manually via API");
             }
-            EnableMetrics(Configuration.GetEventAggregationUrl(), Configuration.GetEventAggregationIntervalTimerInMs());
+            EnableMetrics(BacktraceMetrics.DefaultSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs());
         }
         public void EnableMetrics(string submissionUrl, long timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
         {
@@ -514,8 +516,10 @@ namespace Backtrace.Unity
             }
             _metrics = new BacktraceMetrics(
                 attributeProvider: AttributeProvider,
-                uploadUrl: submissionUrl,
-                timeIntervalInSec: timeIntervalInSec)
+                submissionBaseUrl: submissionUrl,
+                timeIntervalInSec: timeIntervalInSec,
+                token: Configuration.GetToken(),
+                universeName: Configuration.GetUniverseName())
             {
                 StartupUniqueEventName = uniqueEventName,
                 IgnoreSslValidation = Configuration.IgnoreSslValidation

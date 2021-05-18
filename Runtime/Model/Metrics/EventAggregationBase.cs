@@ -14,7 +14,6 @@ namespace Backtrace.Unity.Model.Metrics
             Name = name;
             Timestamp = timestamp;
         }
-
         internal BacktraceJObject ToBaseObject(IDictionary<string, string> attributes)
         {
             var jObject = new BacktraceJObject();
