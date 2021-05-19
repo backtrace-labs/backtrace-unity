@@ -83,6 +83,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             };
             var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager);
             var unityEngineLogLevel = UnityEngineLogLevel.Debug;
+            var breadcrumbStart = breadcrumbsManager.BreadcrumbId();
 
             breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, unityEngineLogLevel);
             int numberOfAddedBreadcrumbs = 1;
@@ -101,7 +102,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             Assert.That(breadcrumbFile.Size, Is.LessThan(sizeBeforeCleanup));
             var data = ConvertToBreadcrumbs(breadcrumbFile);
             Assert.IsNotEmpty(data);
-            Assert.AreEqual(numberOfAddedBreadcrumbs, breadcrumbsStorageManager.BreadcrumbId());
+            Assert.AreEqual(breadcrumbStart + numberOfAddedBreadcrumbs, breadcrumbsStorageManager.BreadcrumbId());
             Assert.That(breadcrumbsStorageManager.Length(), Is.LessThan(numberOfBreadcurmbsBeforeCleanUp));
 
         }
@@ -124,6 +125,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
                 BreadcrumbFile = breadcrumbFile
             };
             var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager);
+            var expectedBreadcrumbId = breadcrumbsManager.BreadcrumbId();
             var unityEngineLogLevel = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Warning | UnityEngineLogLevel.Info | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal;
 
             breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.Manual | BacktraceBreadcrumbType.System, unityEngineLogLevel);
@@ -132,7 +134,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             breadcrumbsManager.Exception(messages[2]);
 
             Assert.AreEqual(expectedNumberOfBreadcrumbs, breadcrumbsStorageManager.Length());
-            Assert.AreEqual(expectedNumberOfBreadcrumbs, breadcrumbsStorageManager.BreadcrumbId());
+            Assert.AreEqual(expectedNumberOfBreadcrumbs + expectedBreadcrumbId, breadcrumbsStorageManager.BreadcrumbId());
             var breadcrumbs = ConvertToBreadcrumbs(breadcrumbFile);
             for (int i = 0; i < expectedNumberOfBreadcrumbs; i++)
             {

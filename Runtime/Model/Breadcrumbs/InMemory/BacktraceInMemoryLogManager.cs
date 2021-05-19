@@ -26,7 +26,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
         /// </summary>
         internal readonly Queue<InMemoryBreadcrumb> Breadcrumbs = new Queue<InMemoryBreadcrumb>(DefaultMaximumNumberOfInMemoryBreadcrumbs);
 
-        private long _breadcrumbId = 0;
+        private long _breadcrumbId = DateTimeHelper.Timestamp();
 
         /// <summary>
         /// Returns path to breadcrumb file - which is string.Empty for in memory breadcrumb manager

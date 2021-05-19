@@ -62,10 +62,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// </summary>
         internal static byte[] StartOfDocument = System.Text.Encoding.UTF8.GetBytes("[\n");
 
+        private bool _emptyFile = true;
         /// <summary>
         /// Breadcrumb id
         /// </summary>
-        private long _breadcrumbId = 0;
+        private long _breadcrumbId = DateTimeHelper.Timestamp();
 
         /// <summary>
         /// Lock object
@@ -76,6 +77,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// Current breadcurmbs fle size
         /// </summary>
         private long currentSize = 0;
+
 
         /// <summary>
         /// Queue that represents number of bytes in each log stored in the breadcrumb file
@@ -207,10 +209,14 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
 
                 // append ,\n when we're appending new row to existing list of rows. If this is first row
                 // ignore it
-                if (_breadcrumbId != 1)
+                if (_emptyFile == false)
                 {
                     breadcrumbStream.Write(NewRow, 0, NewRow.Length);
                     appendingSize += NewRow.Length;
+                }
+                else
+                {
+                    _emptyFile = false;
                 }
                 // append breadcrumbs json
                 breadcrumbStream.Write(bytes, 0, bytes.Length);
