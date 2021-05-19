@@ -19,7 +19,7 @@ namespace Backtrace.Unity.Extensions
         {
             return
 #if UNITY_2020_2_OR_NEWER
-                 request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError;
+                request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError;
 #else
                 request.isNetworkError || request.isHttpError;
 #endif
