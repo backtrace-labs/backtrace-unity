@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
@@ -120,12 +121,7 @@ namespace Backtrace.Unity.Services
             {
                 yield return request.SendWebRequest();
 
-                var result =
-#if UNITY_2020_2_OR_NEWER
-                    request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError
-#else
-                request.isNetworkError || request.isHttpError
-#endif
+                var result = request.ReceivedNetworkError()
                     ? new BacktraceResult()
                     {
                         Message = request.error,
@@ -208,11 +204,6 @@ namespace Backtrace.Unity.Services
             {
                 yield return request.SendWebRequest();
                 BacktraceResult result;
-#if UNITY_2020_2_OR_NEWER
-                var networkError = request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError;
-#else
-                request.isNetworkError || request.isHttpError;
-#endif
                 if (request.responseCode == 429)
                 {
                     result = new BacktraceResult()
@@ -225,7 +216,7 @@ namespace Backtrace.Unity.Services
                         OnServerResponse.Invoke(result);
                     }
                 }
-                else if (request.responseCode == 200 && networkError != true)
+                else if (request.responseCode == 200 && request.ReceivedNetworkError() != true)
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
                     _shouldDisplayFailureMessage = true;

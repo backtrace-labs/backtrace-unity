@@ -1,5 +1,6 @@
 #if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -190,12 +191,7 @@ namespace Backtrace.Unity.Editor.Build
                     {
                         EditorUtility.DisplayProgressBar("Backtrace symbols upload", "Symbols upload progress:", request.uploadProgress);
                     }
-#if UNITY_2020_2_OR_NEWER
-                    var failure = request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError;
-#else
-                request.isNetworkError || request.isHttpError;
-#endif
-                    if (failure)
+                    if (request.ReceivedNetworkError())
                     {
                         Debug.LogWarning(string.Format("Cannot upload symbols to Backtrace. Reason: {0}", request.downloadHandler.text));
                         return;
