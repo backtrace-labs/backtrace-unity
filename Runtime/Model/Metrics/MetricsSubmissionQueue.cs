@@ -72,9 +72,9 @@ namespace Backtrace.Unity.Model.Metrics
         public abstract void StartWithEvent(string eventName);
         internal void Send()
         {
-            SendPayload(Events);
+            SendPayload(new LinkedList<T>(Events));
         }
-        private void SendPayload(ICollection<T> events, uint attemps = 0)
+        internal void SendPayload(ICollection<T> events, uint attemps = 0)
         {
             if (events.Count == 0)
             {

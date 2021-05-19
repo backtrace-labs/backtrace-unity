@@ -33,6 +33,7 @@ namespace Backtrace.Unity.Model.Metrics
             {
                 summedEventJson.Add(summedEvent.ToJson(attributes));
             }
+            Events.Clear();
             return summedEventJson;
         }
 

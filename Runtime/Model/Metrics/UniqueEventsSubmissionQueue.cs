@@ -3,6 +3,7 @@ using Backtrace.Unity.Json;
 using Backtrace.Unity.Model.JsonData;
 using System.Collections.Generic;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Model.Metrics
 {
     internal sealed class UniqueEventsSubmissionQueue : MetricsSubmissionQueue<UniqueEvent>
@@ -21,10 +22,10 @@ namespace Backtrace.Unity.Model.Metrics
 
         public override void StartWithEvent(string eventName)
         {
-            var uniqueEventAttributes = _attributeProvider.GenerateAttributes();
+            var uniqueEventAttributes = _attributeProvider.Get();
             if (uniqueEventAttributes.TryGetValue(eventName, out string value) && !string.IsNullOrEmpty(value))
             {
-                Events.AddLast(new UniqueEvent(eventName, DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes()));
+                Events.AddLast(new UniqueEvent(eventName, DateTimeHelper.Timestamp(), uniqueEventAttributes));
             }
             Send();
         }

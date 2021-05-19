@@ -161,9 +161,20 @@ namespace Backtrace.Unity.Services
             string submissionBaseUrl,
             long timeIntervalInSec,
             string token,
+            string universeName) : this(new BacktraceHttpClient() { BaseUrl = submissionBaseUrl }, attributeProvider, timeIntervalInSec, token, universeName)
+        { }
+
+        /// <summary>
+        /// Create new Backtrace metrics instance
+        /// </summary>
+        internal BacktraceMetrics(
+            IBacktraceHttpClient httpClient,
+            AttributeProvider attributeProvider,
+            long timeIntervalInSec,
+            string token,
             string universeName)
         {
-            RequestHandler = new BacktraceHttpClient() { BaseUrl = submissionBaseUrl };
+            RequestHandler = httpClient;
             _attributeProvider = attributeProvider;
             _timeIntervalInSec = timeIntervalInSec;
             _uniqueEventSubmissionQueue = new UniqueEventsSubmissionQueue(universeName, token, RequestHandler, _attributeProvider);
