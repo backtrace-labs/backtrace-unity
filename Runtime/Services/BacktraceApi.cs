@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
@@ -119,7 +120,8 @@ namespace Backtrace.Unity.Services
             using (var request = _httpClient.Post(_minidumpUrl, minidumpBytes, attachments))
             {
                 yield return request.SendWebRequest();
-                var result = request.isNetworkError || request.isHttpError
+
+                var result = request.ReceivedNetworkError()
                     ? new BacktraceResult()
                     {
                         Message = request.error,
@@ -214,7 +216,7 @@ namespace Backtrace.Unity.Services
                         OnServerResponse.Invoke(result);
                     }
                 }
-                else if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
+                else if (request.responseCode == 200 && request.ReceivedNetworkError() != true)
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
                     _shouldDisplayFailureMessage = true;

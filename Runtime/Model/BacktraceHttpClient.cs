@@ -47,10 +47,9 @@ namespace Backtrace.Unity.Model
             asyncOperation.completed += (AsyncOperation operation) =>
             {
                 var statusCode = request.responseCode;
-                var isNetworkError = request.isNetworkError || request.isHttpError;
                 var response = request.downloadHandler.text;
                 request.Dispose();
-                onComplete?.Invoke(statusCode, isNetworkError, response);
+                onComplete?.Invoke(statusCode, request.ReceivedNetworkError(), response);
             };
         }
 
