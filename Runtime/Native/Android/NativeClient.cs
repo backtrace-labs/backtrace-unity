@@ -141,18 +141,26 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private string GetNativeDirectoryPath()
         {
             using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-            using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
             {
-                // handle specific case when current activity is not available
+                // handle specific case when unity player is not available or available under different name
                 // this case might happen for example in flutter.
-                if (activity == null)
+                if (unityPlayer == null)
                 {
                     return string.Empty;
                 }
-                using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
-                using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
+                using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
                 {
-                    return applicationInfo.Get<string>("nativeLibraryDir");
+                    // handle specific case when current activity is not available
+                    // this case might happen for example in flutter.
+                    if (activity == null)
+                    {
+                        return string.Empty;
+                    }
+                    using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
+                    using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
+                    {
+                        return applicationInfo.Get<string>("nativeLibraryDir");
+                    }
                 }
             }
         }
