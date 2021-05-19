@@ -102,7 +102,7 @@ namespace Backtrace.Unity.Model.Metrics
             backtraceMetrics.AddSummedEvent(MetricsEventName);
             backtraceMetrics.AddUniqueEvent(UniqueAttributeName);
             backtraceMetrics.Send();
-            for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttemps; i++)
+            for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttempts; i++)
             {
                 yield return new WaitForSeconds(1);
                 // immidiately run next update
@@ -111,7 +111,7 @@ namespace Backtrace.Unity.Model.Metrics
             }
 
             yield return new WaitForSeconds(1);
-            Assert.AreEqual(BacktraceMetrics.MaxNumberOfAttemps * 2, requestHandler.NumberOfRequests);
+            Assert.AreEqual(BacktraceMetrics.MaxNumberOfAttempts * 2, requestHandler.NumberOfRequests);
             Assert.AreEqual(backtraceMetrics.Count(), expectedNumberOfEventsAfterFailure);
         }
 
@@ -131,7 +131,7 @@ namespace Backtrace.Unity.Model.Metrics
             backtraceMetrics.MaximumEvents = expectedNumberOfEventsAfterFailure;
 
             backtraceMetrics.Send();
-            for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttemps; i++)
+            for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttempts; i++)
             {
                 yield return new WaitForSeconds(1);
                 // immidiately run next update
@@ -141,7 +141,7 @@ namespace Backtrace.Unity.Model.Metrics
 
             yield return new WaitForSeconds(1);
             Assert.AreEqual(expectedNumberOfEventsAfterFailure, backtraceMetrics.Count());
-            Assert.AreEqual(BacktraceMetrics.MaxNumberOfAttemps * 2, requestHandler.NumberOfRequests);
+            Assert.AreEqual(BacktraceMetrics.MaxNumberOfAttempts * 2, requestHandler.NumberOfRequests);
         }
 
         [Test]

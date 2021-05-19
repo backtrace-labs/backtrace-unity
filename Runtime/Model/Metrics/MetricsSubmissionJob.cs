@@ -6,6 +6,6 @@ namespace Backtrace.Unity.Model.Metrics
     {
         public double NextInvokeTime { get; set; }
         public ICollection<T> Events { get; set; }
-        public uint NumberOfAttemps { get; set; }
+        public uint NumberOfAttempts { get; set; }
     }
 }

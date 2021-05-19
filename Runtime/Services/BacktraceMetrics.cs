@@ -51,7 +51,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Default maximum number of attemps
         /// </summary>
-        public const int MaxNumberOfAttemps = 3;
+        public const int MaxNumberOfAttempts = 3;
 
         /// <summary>
         /// Unique events submission queue
@@ -66,8 +66,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Startup event name that will be send on the application startup
         /// </summary>
-        private const string StartupEventName = "session";
-
+        private const string StartupEventName = "Application Launches";
 
         /// <summary>
         /// Submission url

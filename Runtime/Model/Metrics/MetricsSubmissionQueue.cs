@@ -74,7 +74,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             SendPayload(new LinkedList<T>(Events));
         }
-        internal void SendPayload(ICollection<T> events, uint attemps = 0)
+        internal void SendPayload(ICollection<T> events, uint attempts = 0)
         {
             if (events.Count == 0)
             {
@@ -91,7 +91,7 @@ namespace Backtrace.Unity.Model.Metrics
                 else if (statusCode > 501 && statusCode != 505)
                 {
                     _numberOfDroppedRequests++;
-                    if (attemps + 1 == BacktraceMetrics.MaxNumberOfAttemps)
+                    if (attempts + 1 == BacktraceMetrics.MaxNumberOfAttempts)
                     {
                         OnMaximumAttemptsReached(events);
                         return;
@@ -100,8 +100,8 @@ namespace Backtrace.Unity.Model.Metrics
                     _submissionJobs.Add(new MetricsSubmissionJob<T>()
                     {
                         Events = events,
-                        NextInvokeTime = CalculateNextRetryTime(attemps + 1),
-                        NumberOfAttemps = attemps + 1
+                        NextInvokeTime = CalculateNextRetryTime(attempts + 1),
+                        NumberOfAttempts = attempts + 1
                     });
 
                 }
@@ -115,7 +115,7 @@ namespace Backtrace.Unity.Model.Metrics
                 var submissionJob = _submissionJobs.ElementAt(index);
                 if (submissionJob.NextInvokeTime < time)
                 {
-                    SendPayload(submissionJob.Events, submissionJob.NumberOfAttemps);
+                    SendPayload(submissionJob.Events, submissionJob.NumberOfAttempts);
                     _submissionJobs.RemoveAt(index);
                 }
             }
