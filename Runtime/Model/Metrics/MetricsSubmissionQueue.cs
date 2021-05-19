@@ -62,11 +62,11 @@ namespace Backtrace.Unity.Model.Metrics
         /// </summary>
         private readonly string _submissionUrl;
 
-        internal MetricsSubmissionQueue(string name, string universeName, string token, IBacktraceHttpClient httpClient)
+        internal MetricsSubmissionQueue(string name, string submissionUrl, IBacktraceHttpClient httpClient)
         {
             _name = name;
             RequestHandler = httpClient;
-            _submissionUrl = $"{_name}/submit?token={token}&universe={universeName}";
+            _submissionUrl = submissionUrl;
         }
 
         public abstract void StartWithEvent(string eventName);

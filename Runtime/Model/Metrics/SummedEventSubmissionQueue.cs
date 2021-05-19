@@ -6,14 +6,15 @@ namespace Backtrace.Unity.Model.Metrics
 {
     internal sealed class SummedEventSubmissionQueue : MetricsSubmissionQueue<SummedEvent>
     {
-        private const string Name = "summed-events";
+        private const string UrlPrefix = "summed-events";
+        private const string Name = "summed_events";
         private readonly AttributeProvider _attributeProvider;
         public SummedEventSubmissionQueue(
           string universeName,
           string token,
           IBacktraceHttpClient httpClient,
           AttributeProvider attributeProvider)
-          : base(Name, universeName, token, httpClient)
+          : base(Name, $"{UrlPrefix}/submit?token={token}&universe={universeName}", httpClient)
         {
             _attributeProvider = attributeProvider;
         }
