@@ -692,7 +692,6 @@ namespace Backtrace.Unity
             }
         }
 
-
         public bool EnableBreadcrumbsSupport()
         {
             return Breadcrumbs?.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel) ?? false;

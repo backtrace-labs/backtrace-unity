@@ -247,7 +247,7 @@ namespace Backtrace.Unity.Services
         }
 
         /// <summary>
-        /// Saves BacktraceDatabaseRerord on the hard drive
+        /// Saves BacktraceDatabaseRecord on the hard drive
         /// </summary>
         /// <param name="record">BacktraceDatabaseRecord</param>
         /// <returns>true if file context was able to save data on the hard drive. Otherwise false</returns>

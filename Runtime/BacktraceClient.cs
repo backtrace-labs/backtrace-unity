@@ -502,7 +502,6 @@ namespace Backtrace.Unity
                 }
             }
 
-
             AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)

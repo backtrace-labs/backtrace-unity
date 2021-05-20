@@ -11,7 +11,7 @@
         internal static string LABEL_SAMPLING = "Log random sampling rate";
         internal static string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
 #if UNITY_ANDROID || UNITY_IOS
-        internal static string LABEL_HANDLE_OOM = "Send Out of memory exceptions to Backtrace";
+        internal static string LABEL_HANDLE_OOM = "Send Out of Memory exceptions to Backtrace";
 #endif
 
         internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable crash free metrics reporting";

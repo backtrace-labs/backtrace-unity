@@ -254,7 +254,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
                     ms.CopyTo(breadcrumbsStream);
                 }
             }
-            // decrease a size of the breadcrumb file after removing n breadcrumbs
+            // decrease the size of the breadcrumb file after removing n breadcrumbs
             currentSize -= startPosition;
             currentSize += StartOfDocument.Length;
         }
