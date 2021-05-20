@@ -43,7 +43,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
         {
             lock (_lockObject)
             {
-                if (Breadcrumbs.Count + 1 < MaximumNumberOfBreadcrumbs)
+                if (Breadcrumbs.Count + 1 > MaximumNumberOfBreadcrumbs)
                 {
                     while (Breadcrumbs.Count + 1 > MaximumNumberOfBreadcrumbs)
                     {
