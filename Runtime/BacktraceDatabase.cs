@@ -325,8 +325,8 @@ namespace Backtrace.Unity
             {
                 data.Attachments.Add(Breadcrumbs.GetBreadcrumbLogPath());
                 data.Attributes.Attributes["breadcrumbs.lastId"] = Breadcrumbs.BreadcrumbId().ToString(CultureInfo.InvariantCulture);
-
             }
+
             // now we now we're adding new unique report to database
             var record = new BacktraceDatabaseRecord(data)
             {
