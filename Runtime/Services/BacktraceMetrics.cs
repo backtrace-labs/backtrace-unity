@@ -1,10 +1,8 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Interfaces;
-using Backtrace.Unity.Json;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Model.Metrics;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -15,6 +13,11 @@ namespace Backtrace.Unity.Services
     internal sealed class BacktraceMetrics : IBacktraceMetrics
     {
         /// <summary>
+        /// Default submission URL
+        /// </summary>
+        public const string DefaultSubmissionUrl = "https://events.backtrace.io/api";
+
+        /// <summary>
         /// Default time interval in min
         /// </summary>
         public const uint DefaultTimeIntervalInMin = 30;
@@ -23,6 +26,7 @@ namespace Backtrace.Unity.Services
         /// Default time interval in sec
         /// </summary>
         public const uint DefaultTimeIntervalInSec = DefaultTimeIntervalInMin * 60;
+
         /// <summary>
         /// Default unique event name that will be generated on the application startup
         /// </summary>
@@ -38,20 +42,6 @@ namespace Backtrace.Unity.Services
         /// BacktraceMetrics instance will send data to Backtrace.
         /// </summary>
         public uint MaximumEvents { get; set; } = 350;
-        /// <summary>
-        /// Startup event name that will be send on the application startup
-        /// </summary>
-        private const string StartupEventName = "Application Launches";
-
-        /// <summary>
-        /// Default maximum number of attemps
-        /// </summary>
-        public const int MaxNumberOfAttemps = 3;
-
-        /// <summary>
-        /// Time between 
-        /// </summary>
-        public const int DefaultTimeInSecBetweenRequests = 10;
 
         /// <summary>
         /// Maximum time between requests
@@ -59,9 +49,39 @@ namespace Backtrace.Unity.Services
         public const int MaxTimeBetweenRequests = 5 * 60;
 
         /// <summary>
+        /// Default maximum number of attemps
+        /// </summary>
+        public const int MaxNumberOfAttempts = 3;
+
+        /// <summary>
+        /// Unique events submission queue
+        /// </summary>
+        internal readonly UniqueEventsSubmissionQueue _uniqueEventSubmissionQueue;
+
+        /// <summary>
+        /// Summed events submission queue
+        /// </summary>
+        internal readonly SummedEventSubmissionQueue _summedEventSubmissionQueue;
+
+        /// <summary>
+        /// Startup event name that will be send on the application startup
+        /// </summary>
+        private const string StartupEventName = "Application Launches";
+
+        /// <summary>
         /// Submission url
         /// </summary>
-        public string SubmissionUrl { get; set; }
+        public string SubmissionUrl
+        {
+            get
+            {
+                return RequestHandler.BaseUrl;
+            }
+            set
+            {
+                RequestHandler.BaseUrl = value;
+            }
+        }
 
         /// <summary>
         /// Determine if http client should ignore ssl validation
@@ -81,16 +101,24 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// List of unique events that will be added to next submission payload
         /// </summary>
-        public LinkedList<UniqueEvent> UniqueEvents { get; internal set; } = new LinkedList<UniqueEvent>();
-
-
-
-        private int _numberOfDroppedRequests = 0;
+        public LinkedList<UniqueEvent> UniqueEvents
+        {
+            get
+            {
+                return _uniqueEventSubmissionQueue.Events;
+            }
+        }
 
         /// <summary>
         /// List of summed events that will be added to next submission payload
         /// </summary>
-        internal readonly LinkedList<SummedEvent> SummedEvents = new LinkedList<SummedEvent>();
+        internal LinkedList<SummedEvent> SummedEvents
+        {
+            get
+            {
+                return _summedEventSubmissionQueue.Events;
+            }
+        }
 
         /// <summary>
         /// Time interval in ms that algorithm uses to automatically send data to Backtrace
@@ -118,26 +146,38 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private object _object = new object();
 
-        /// <summary>
-        /// List of submissions jobs that will store data with unique/summed events that we should try to retry
-        /// </summary>
-        private readonly List<MetricsSubmissionJob> _submissionJobs = new List<MetricsSubmissionJob>();
 
         /// <summary>
         /// Create new Backtrace metrics instance
         /// </summary>
         /// <param name="attributeProvider">Backtrace client attribute provider</param>
-        /// <param name="uploadUrl">Upload URL</param>
+        /// <param name="submissionBaseUrl">Submission base url</param>
         /// <param name="timeIntervalInSec">Update time interval in MS</param>
+        /// <param name="token">Submission token</param>
+        /// <param name="universeName">Universe name</param>
         public BacktraceMetrics(
             AttributeProvider attributeProvider,
-            string uploadUrl,
-            long timeIntervalInSec)
+            string submissionBaseUrl,
+            long timeIntervalInSec,
+            string token,
+            string universeName) : this(new BacktraceHttpClient() { BaseUrl = submissionBaseUrl }, attributeProvider, timeIntervalInSec, token, universeName)
+        { }
+
+        /// <summary>
+        /// Create new Backtrace metrics instance
+        /// </summary>
+        internal BacktraceMetrics(
+            IBacktraceHttpClient httpClient,
+            AttributeProvider attributeProvider,
+            long timeIntervalInSec,
+            string token,
+            string universeName)
         {
-            SubmissionUrl = uploadUrl;
+            RequestHandler = httpClient;
             _attributeProvider = attributeProvider;
             _timeIntervalInSec = timeIntervalInSec;
-            RequestHandler = new BacktraceHttpClient();
+            _uniqueEventSubmissionQueue = new UniqueEventsSubmissionQueue(universeName, token, RequestHandler, _attributeProvider);
+            _summedEventSubmissionQueue = new SummedEventSubmissionQueue(universeName, token, RequestHandler, _attributeProvider);
         }
 
         /// <summary>
@@ -145,15 +185,8 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void SendStartupEvent()
         {
-            var uniqueEventAttributes = _attributeProvider.GenerateAttributes();
-            if (uniqueEventAttributes.TryGetValue(StartupUniqueEventName, out string value) && !string.IsNullOrEmpty(value))
-            {
-                UniqueEvents.AddLast(new UniqueEvent(StartupUniqueEventName, DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes()));
-            }
-
-            SendPayload(
-                UniqueEvents.ToArray(),
-                new SummedEvent[1] { new SummedEvent(StartupEventName) });
+            _uniqueEventSubmissionQueue.StartWithEvent(DefaultUniqueEventName);
+            _summedEventSubmissionQueue.StartWithEvent(StartupEventName);
         }
 
         /// <summary>
@@ -190,9 +223,8 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void Send()
         {
-            SendPayload(
-              uniqueEvents: UniqueEvents.ToArray(),
-              summedEvents: SummedEvents.ToArray());
+            _uniqueEventSubmissionQueue.Send();
+            _summedEventSubmissionQueue.Send();
         }
         /// <summary>
         /// Add unique event to next Backtrace Metrics request
@@ -235,7 +267,7 @@ namespace Backtrace.Unity.Services
                 return false;
             }
             var @event = new UniqueEvent(attributeName, DateTimeHelper.Timestamp(), attributes);
-            UniqueEvents.AddLast(@event);
+            _uniqueEventSubmissionQueue.Events.AddLast(@event);
             return true;
         }
 
@@ -245,7 +277,7 @@ namespace Backtrace.Unity.Services
         /// <returns>number of events in store</returns>
         public int Count()
         {
-            return UniqueEvents.Count + SummedEvents.Count;
+            return _uniqueEventSubmissionQueue.Count + _summedEventSubmissionQueue.Count;
         }
 
         /// <summary>
@@ -270,7 +302,7 @@ namespace Backtrace.Unity.Services
             }
 
             var @event = new SummedEvent(metricsGroupName, DateTimeHelper.Timestamp(), attributes);
-            SummedEvents.AddLast(@event);
+            _summedEventSubmissionQueue.Events.AddLast(@event);
             return true;
         }
 
@@ -281,76 +313,8 @@ namespace Backtrace.Unity.Services
         /// <param name="time">Current time</param>
         private void SendPendingSubmissionJobs(float time)
         {
-            for (int index = 0; index < _submissionJobs.Count; index++)
-            {
-                var submissionJob = _submissionJobs.ElementAt(index);
-                if (submissionJob.NextInvokeTime < time)
-                {
-                    SendPayload(submissionJob.UniqueEvents, submissionJob.SummedEvents, submissionJob.NumberOfAttemps);
-                    _submissionJobs.RemoveAt(index);
-                }
-            }
-        }
-
-        private void SendPayload(UniqueEvent[] uniqueEvents, SummedEvent[] summedEvents, uint attemps = 0)
-        {
-            if (attemps == MaxNumberOfAttemps)
-            {
-                Debug.LogWarning("Backtrace Metrics: Cannot send session data to Backtrace due to submission issue.");
-                return;
-            }
-            if (uniqueEvents.Length + summedEvents.Length == 0)
-            {
-                return;
-            }
-            var payload = CreateJsonPayload(uniqueEvents, summedEvents);
-
-            // cleanup existing copy of events
-            SummedEvents.Clear();
-
-            // submit data to Backtrace
-            RequestHandler.Post(SubmissionUrl, payload, (long statusCode, bool httpError, string response) =>
-            {
-                if (statusCode == 200)
-                {
-                    OnRequestCompleted();
-                }
-                else if (statusCode > 501 && statusCode != 505)
-                {
-                    _numberOfDroppedRequests++;
-                    if (attemps + 1 == MaxNumberOfAttemps)
-                    {
-                        if (Count() + summedEvents.Length < MaximumEvents)
-                        {
-                            foreach (var summedEvent in summedEvents)
-                            {
-                                SummedEvents.AddFirst(summedEvent);
-                            }
-                        }
-
-                        return;
-                    }
-                    // schedule a job on the specific server failure.
-                    _submissionJobs.Add(new MetricsSubmissionJob()
-                    {
-                        UniqueEvents = uniqueEvents,
-                        SummedEvents = summedEvents,
-                        NextInvokeTime = CalculateNextRetryTime(attemps + 1),
-                        NumberOfAttemps = attemps + 1
-                    });
-
-                }
-            });
-        }
-
-        private double CalculateNextRetryTime(uint attemps)
-        {
-            const int jitterFraction = 1;
-            const int backoffBase = 10;
-            var value = DefaultTimeInSecBetweenRequests * Math.Pow(backoffBase, attemps);
-            var retryLower = MathHelper.Clamp(value, 0, MaxTimeBetweenRequests);
-            var retryUpper = retryLower + retryLower * jitterFraction;
-            return MathHelper.Uniform(retryLower, retryUpper);
+            _uniqueEventSubmissionQueue.SendPendingEvents(time);
+            _summedEventSubmissionQueue.SendPendingEvents(time);
         }
 
         /// <summary>
@@ -363,46 +327,5 @@ namespace Backtrace.Unity.Services
             return !string.IsNullOrEmpty(name) && (MaximumEvents == 0 || (Count() + 1 <= MaximumEvents));
         }
 
-        private void OnRequestCompleted()
-        {
-            _numberOfDroppedRequests = 0;
-            return;
-        }
-
-        private BacktraceJObject CreateJsonPayload(ICollection<UniqueEvent> uniqueEvents, ICollection<SummedEvent> summedEvents)
-        {
-            var jsonData = new BacktraceJObject();
-            jsonData.Add("application", Application.productName);
-            jsonData.Add("appversion", Application.version);
-            jsonData.Add("metadata", CreatePayloadMetadata());
-
-            // add unique events
-            var uniqueEventsJson = new List<BacktraceJObject>();
-            foreach (var uniqueEvent in uniqueEvents)
-            {
-                uniqueEventsJson.Add(uniqueEvent.ToJson());
-                uniqueEvent.UpdateTimestamp(DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes());
-            }
-
-            jsonData.Add("unique_events", uniqueEventsJson);
-
-            // add summed events
-            var summedEventJson = new List<BacktraceJObject>();
-            var attributes = _attributeProvider.Get();
-            foreach (var summedEvent in summedEvents)
-            {
-                summedEventJson.Add(summedEvent.ToJson(attributes));
-            }
-
-            jsonData.Add("session_events", summedEventJson);
-            return jsonData;
-        }
-
-        private BacktraceJObject CreatePayloadMetadata()
-        {
-            var payload = new BacktraceJObject();
-            payload.Add("dropped_events", _numberOfDroppedRequests);
-            return payload;
-        }
     }
 }

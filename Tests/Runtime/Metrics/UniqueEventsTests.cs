@@ -10,9 +10,10 @@ namespace Backtrace.Unity.Model.Metrics
     {
         // existing attribute name in Backtrace
         const string UniqueAttributeName = "scene.name";
-        private readonly string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
+        //private readonly string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
         private AttributeProvider _attributeProvider = new AttributeProvider();
-
+        private readonly string _token = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458";
+        private readonly string _universeName = "testing-universe-name";
         [TearDown]
         public void Cleanup()
         {
@@ -22,7 +23,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShouldAddCorrectlyUniqueEventWithEmptyAttributes_StoreValidUniqueEvent()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddUniqueEvent(UniqueAttributeName, null);
 
@@ -36,7 +37,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShouldAddCorrectlyUniqueEventWithoutAttributes_StoreValidUniqueEvent()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddUniqueEvent(UniqueAttributeName);
 
@@ -55,7 +56,7 @@ namespace Backtrace.Unity.Model.Metrics
             var attributes = new Dictionary<string, string>() { { expectedAttributeName, expectedAttributeValue } };
             int expectedNumberOfAttributes = _attributeProvider.GenerateAttributes().Count + attributes.Count;
 
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddUniqueEvent(UniqueAttributeName, attributes);
 
@@ -69,7 +70,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShouldAddCorrectlyUniqueEvent_StoreValidUniqueEvent()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             var added = backtraceMetrics.AddUniqueEvent(UniqueAttributeName);
 
@@ -84,7 +85,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShouldPreventFromAddingEventIfThereIsNoAttribute_StoreValidUniqueEvent()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             var added = backtraceMetrics.AddUniqueEvent($"{UniqueAttributeName}-not-existing");
 
@@ -96,7 +97,7 @@ namespace Backtrace.Unity.Model.Metrics
         public void BacktraceMetricsUniqueEvents_ShouldAddEventIfAttributeIsDefinedInCustomAttributes_StoreValidUniqueEvents()
         {
             var expectedAttributeName = "foo";
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             var added = backtraceMetrics.AddUniqueEvent(expectedAttributeName, new Dictionary<string, string>() { { expectedAttributeName, expectedAttributeName } });
 
@@ -107,7 +108,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShouldntAddEmptyUniqueEvent_UniqueEventsAreEmpty()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             var added = backtraceMetrics.AddUniqueEvent(string.Empty);
 
@@ -119,7 +120,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShouldntAddNullableUniqueEvent_UniqueEventsAreEmpty()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddUniqueEvent(null);
 
@@ -132,7 +133,7 @@ namespace Backtrace.Unity.Model.Metrics
             const string initializationValue = "foo";
             const string updatedValue = "bar";
             _attributeProvider[UniqueAttributeName] = initializationValue;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddUniqueEvent(UniqueAttributeName);
             _attributeProvider[UniqueAttributeName] = updatedValue;
@@ -147,7 +148,7 @@ namespace Backtrace.Unity.Model.Metrics
         {
             const string initializationValue = "foo";
             _attributeProvider[UniqueAttributeName] = initializationValue;
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddUniqueEvent(UniqueAttributeName);
             _attributeProvider[UniqueAttributeName] = string.Empty;
