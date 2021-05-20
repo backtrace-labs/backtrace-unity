@@ -184,7 +184,7 @@ namespace Backtrace.Unity.Services
         /// <param name="record">Database record</param>
         public void Delete(BacktraceDatabaseRecord record)
         {
-            // rmeove json objects
+            // remove json objects
             Delete(record.DiagnosticDataPath);
             Delete(record.RecordPath);
             //remove database attachments

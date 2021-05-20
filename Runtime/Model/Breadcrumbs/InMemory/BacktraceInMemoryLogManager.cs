@@ -50,7 +50,6 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
                         Breadcrumbs.Dequeue();
                     }
                 }
-                _breadcrumbId++;
             }
 
             Breadcrumbs.Enqueue(new InMemoryBreadcrumb()
@@ -61,6 +60,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
                 Type = type,
                 Attributes = attributes
             });
+            _breadcrumbId++;
 
             return true;
         }

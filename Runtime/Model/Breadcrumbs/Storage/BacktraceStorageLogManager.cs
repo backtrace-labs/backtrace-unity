@@ -49,7 +49,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
 
         /// <summary>
         /// default breadcrumb row ending
-        /// </summary
+        /// </summary>
         internal static byte[] NewRow = System.Text.Encoding.UTF8.GetBytes(",\n");
 
         /// <summary>
@@ -77,7 +77,6 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// Current breadcurmbs fle size
         /// </summary>
         private long currentSize = 0;
-
 
         /// <summary>
         /// Queue that represents number of bytes in each log stored in the breadcrumb file
