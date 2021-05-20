@@ -176,13 +176,13 @@ namespace Backtrace.Unity.Editor
                 }
 
 #if UNITY_ANDROID || UNITY_IOS
-                    EditorGUILayout.PropertyField(
-                         serializedObject.FindProperty("CaptureNativeCrashes"),
-                         new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("CaptureNativeCrashes"),
+                    new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
 #endif
                 EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("AutoSendMode"),
-                new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
+                    serializedObject.FindProperty("AutoSendMode"),
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
 
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("CreateDatabase"),
