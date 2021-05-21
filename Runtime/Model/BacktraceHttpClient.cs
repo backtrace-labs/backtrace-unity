@@ -57,8 +57,9 @@ namespace Backtrace.Unity.Model
             {
                 var statusCode = request.responseCode;
                 var response = request.downloadHandler.text;
+                var networkError = request.ReceivedNetworkError();
                 request.Dispose();
-                onComplete?.Invoke(statusCode, request.ReceivedNetworkError(), response);
+                onComplete?.Invoke(statusCode, networkError, response);
             };
         }
 
