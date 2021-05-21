@@ -8,7 +8,9 @@ namespace Backtrace.Unity.Model.Metrics
 {
     public class SummedEventTests
     {
-        private readonly string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
+        //private readonly string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
+        private readonly string _token = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458";
+        private readonly string _universeName = "testing-universe-name";
         private AttributeProvider _attributeProvider = new AttributeProvider();
         [OneTimeSetUp]
         public void Setup()
@@ -17,10 +19,20 @@ namespace Backtrace.Unity.Model.Metrics
         }
 
         [Test]
+        public void BacktraceMetricsSummedEvents_ShouldBeAbleToOverrideDefaultSubmissionUrl_CorrectSubmissionUrl()
+        {
+            const string submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events";
+
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, submissionUrl, 0, _token, _universeName);
+
+            Assert.AreEqual(submissionUrl, backtraceMetrics.SubmissionUrl);
+        }
+
+        [Test]
         public void BacktraceMetricsSummedEvents_ShouldAddCorrectlySummedEvent_StoreValidSummedEvent()
         {
             const string metricsEventName = "scene-changed";
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddSummedEvent(metricsEventName);
 
@@ -34,7 +46,7 @@ namespace Backtrace.Unity.Model.Metrics
         public void BacktraceMetricsSummedEvents_ShouldAddCorrectlySummedEventWithAttributes_StoreValidSummedEvent()
         {
             const string metricsEventName = "scene-changed";
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
             const string expectedAttributeName = "foo";
             const string expectedAttributeValue = "bar";
             var metricsAttributes = new Dictionary<string, string>() { { expectedAttributeName, expectedAttributeValue } };
@@ -51,7 +63,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldntAddEmptySummedEvent_SummedEventsAreEmpty()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddSummedEvent(string.Empty);
 
@@ -62,7 +74,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldntAddNullableSUmmedEvent_SummedEventsAreEmpty()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, _submissionUrl, 0);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
 
             backtraceMetrics.AddSummedEvent(null);
 

@@ -1,10 +1,11 @@
-﻿namespace Backtrace.Unity.Model.Metrics
+﻿using System.Collections.Generic;
+
+namespace Backtrace.Unity.Model.Metrics
 {
-    internal sealed class MetricsSubmissionJob
+    internal sealed class MetricsSubmissionJob<T>
     {
         public double NextInvokeTime { get; set; }
-        public UniqueEvent[] UniqueEvents { get; set; }
-        public SummedEvent[] SummedEvents { get; set; }
-        public uint NumberOfAttemps { get; set; }
+        public ICollection<T> Events { get; set; }
+        public uint NumberOfAttempts { get; set; }
     }
 }

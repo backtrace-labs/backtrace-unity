@@ -1,5 +1,4 @@
 ﻿using Backtrace.Unity.Json;
-using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Networking;
@@ -16,6 +15,8 @@ namespace Backtrace.Unity.Model.Metrics.Mocks
         public bool IsHttpError { get; set; } = false;
 
         public bool IgnoreSslValidation { get; set; } = false;
+
+        public string BaseUrl { get; set; }
 
         public void Post(string submissionUrl, BacktraceJObject jObject, Action<long, bool, string> onComplete)
         {
