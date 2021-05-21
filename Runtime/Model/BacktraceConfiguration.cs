@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Common;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -78,7 +79,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
-        [Tooltip("Number of logs collected by Backtrace-Unity")]
+        [Obsolete("Please use breadcrumbs integration")]
         public uint NumberOfLogs = 10;
 
         /// <summary>
@@ -113,16 +114,11 @@ namespace Backtrace.Unity.Model
         [Tooltip("Handle ANR events - Application not responding")]
         public bool HandleANR = true;
 
-#if UNITY_ANDROID
-        /// <summary>
-        /// Send Low memory warnings to Backtrace
-        /// </summary>
-        [Tooltip("(Early access) Send Low memory warnings to Backtrace")]
-#elif UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
          /// <summary>
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
-        [Tooltip("(Early access) Send Out of memory exceptions to Backtrace")]
+        [Tooltip("Send Out of Memory exceptions to Backtrace")]
 #endif
         public bool OomReports = false;
 
@@ -147,6 +143,23 @@ namespace Backtrace.Unity.Model
 
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
+        /// <summary>
+        /// Enable breadcrumbs support
+        /// </summary>
+        [Tooltip("Enable breadcurmbs integration that will include game breadcrumbs in each report (native + managed).")]
+        public bool EnableBreadcrumbsSupport = false;
+
+        /// <summary>
+        /// Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumbs file
+        /// </summary>
+        [Tooltip("Breadcrumbs support breadcrumbs level- Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumb file")]
+        public BacktraceBreadcrumbType BacktraceBreadcrumbsLevel;
+
+        /// <summary>
+        /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
+        /// </summary>
+        [Tooltip("Braeadcrumbs log level")]
+        public UnityEngineLogLevel LogLevel;
 
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
@@ -248,9 +261,9 @@ namespace Backtrace.Unity.Model
         /// Get full paths to attachments added by client
         /// </summary>
         /// <returns>List of absolute path to attachments</returns>
-        public List<string> GetAttachmentPaths()
+        public HashSet<string> GetAttachmentPaths()
         {
-            var result = new List<string>();
+            var result = new HashSet<string>();
             if (AttachmentPaths == null || AttachmentPaths.Length == 0)
             {
                 return result;
@@ -371,4 +384,3 @@ namespace Backtrace.Unity.Model
             return new BacktraceCredentials(ServerUrl);
         }
     }
-}

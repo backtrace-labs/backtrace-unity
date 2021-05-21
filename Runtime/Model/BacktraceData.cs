@@ -83,14 +83,9 @@ namespace Backtrace.Unity.Model
         public string[] Classifier;
 
         /// <summary>
-        /// Source code information.
-        /// </summary>
-        public BacktraceSourceCode SourceCode;
-
-        /// <summary>
         /// Get a path to report attachments
         /// </summary>
-        public List<string> Attachments;
+        public ICollection<string> Attachments;
 
         /// <summary>
         /// Current BacktraceReport
@@ -128,7 +123,7 @@ namespace Backtrace.Unity.Model
 
             SetAttributes(clientAttributes, gameObjectDepth);
             SetThreadInformations();
-            Attachments = Report.AttachmentPaths.Distinct().ToList();
+            Attachments = new HashSet<string>(Report.AttachmentPaths);
         }
 
         /// <summary>
@@ -152,10 +147,6 @@ namespace Backtrace.Unity.Model
             jObject.Add("attributes", Attributes.ToJson());
             jObject.Add("annotations", Annotation.ToJson());
             jObject.Add("threads", ThreadData.ToJson());
-            if (SourceCode != null)
-            {
-                jObject.Add("sourceCode", SourceCode.ToJson());
-            }
             return jObject.ToJson();
         }
 
@@ -170,7 +161,6 @@ namespace Backtrace.Unity.Model
             ThreadData = new ThreadData(Report.DiagnosticStack, faultingThread);
             ThreadInformations = ThreadData.ThreadInformations;
             MainThread = ThreadData.MainThread;
-            SourceCode = Report.SourceCode;
         }
 
         /// <summary>

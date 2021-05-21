@@ -1,11 +1,9 @@
-﻿using Backtrace.Unity.Common;
-using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
@@ -19,7 +17,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Database cache
         /// </summary>
-        public Dictionary<int, List<BacktraceDatabaseRecord>> BatchRetry = new Dictionary<int, List<BacktraceDatabaseRecord>>();
+        internal IDictionary<int, List<BacktraceDatabaseRecord>> BatchRetry { get; private set; } = new Dictionary<int, List<BacktraceDatabaseRecord>>();
 
         /// <summary>
         /// Total database size on hard drive
@@ -30,11 +28,6 @@ namespace Backtrace.Unity.Services
         /// Total records in BacktraceDatabase
         /// </summary>
         internal int TotalRecords = 0;
-
-        /// <summary>
-        /// Path to database directory 
-        /// </summary>
-        private readonly string _path;
 
         /// <summary>
         /// Maximum number of retries
@@ -51,23 +44,17 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public DeduplicationStrategy DeduplicationStrategy { get; set; }
 
-        private readonly BacktraceDatabaseAttachmentManager _attachmentManager;
-
-
         /// <summary>
         /// Initialize new instance of Backtrace Database Context
         /// </summary>
         /// <param name="settings">Database settings</param>
         public BacktraceDatabaseContext(BacktraceDatabaseSettings settings)
         {
-            _path = settings.DatabasePath;
             _retryNumber = checked((int)settings.RetryLimit);
-            _attachmentManager = new BacktraceDatabaseAttachmentManager(settings);
             RetryOrder = settings.RetryOrder;
             DeduplicationStrategy = settings.DeduplicationStrategy;
             SetupBatch();
         }
-
 
         /// <summary>
         /// Setup cache 
@@ -89,7 +76,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         /// <param name="backtraceData">Diagnostic data </param>
         /// <returns>hash for current backtrace data</returns>
-        private string GetHash(BacktraceData backtraceData)
+        public string GetHash(BacktraceData backtraceData)
         {
             var fingerprint = backtraceData == null ? string.Empty : backtraceData.Report.Fingerprint ?? string.Empty;
             if (!string.IsNullOrEmpty(fingerprint))
@@ -106,46 +93,11 @@ namespace Backtrace.Unity.Services
         }
 
         /// <summary>
-        /// Add new record to database
+        /// Returns record by record's hash
         /// </summary>
-        /// <param name="backtraceData">Diagnostic data that should be stored in database</param>
-        /// <returns>New instance of DatabaseRecordy</returns>
-        public BacktraceDatabaseRecord Add(BacktraceData backtraceData)
-        {
-            if (backtraceData == null)
-            {
-                throw new NullReferenceException("backtraceData");
-            }
-
-            string hash = GetHash(backtraceData);
-            if (!string.IsNullOrEmpty(hash))
-            {
-                var existingRecord = GetRecordByHash(hash);
-                if (existingRecord != null)
-                {
-                    existingRecord.Locked = true;
-                    existingRecord.Increment();
-                    TotalRecords++;
-                    return existingRecord;
-                }
-            }
-            //add built-in attachments
-            var attachments = _attachmentManager.GetReportAttachments(backtraceData);
-            for (int attachmentIndex = 0; attachmentIndex < attachments.Count(); attachmentIndex++)
-            {
-                if (!string.IsNullOrEmpty(attachments.ElementAt(attachmentIndex)))
-                {
-                    backtraceData.Report.AttachmentPaths.Add(attachments.ElementAt(attachmentIndex));
-                    backtraceData.Attachments.Add(attachments.ElementAt(attachmentIndex));
-                }
-            }
-
-            var record = ConvertToRecord(backtraceData, hash);
-            //add record to database context
-            return Add(record);
-        }
-
-        private BacktraceDatabaseRecord GetRecordByHash(string hash)
+        /// <param name="hash">Hash associated to the record</param>
+        /// <returns>Database record, if record with associated hash exists.</returns>
+        public BacktraceDatabaseRecord GetRecordByHash(string hash)
         {
             for (int batchIndex = 0; batchIndex < BatchRetry.Count; batchIndex++)
             {
@@ -153,28 +105,13 @@ namespace Backtrace.Unity.Services
                 {
                     if (BatchRetry[batchIndex][recordIndex].Hash == hash)
                     {
-                        return BatchRetry[batchIndex][recordIndex];
+                        var result = BatchRetry[batchIndex][recordIndex];
+                        result.Locked = true;
+                        return result;
                     }
                 }
             }
             return null;
-        }
-
-        /// <summary>
-        /// Convert Backtrace data to Backtrace record and save it.
-        /// </summary>
-        /// <param name="backtraceData">Backtrace data</param>
-        /// <param name="hash">deduplicaiton hash</param>
-        /// <returns></returns>
-        protected virtual BacktraceDatabaseRecord ConvertToRecord(BacktraceData backtraceData, string hash)
-        {
-            //create new record and save it on hard drive
-            var record = new BacktraceDatabaseRecord(backtraceData, _path)
-            {
-                Hash = hash
-            };
-            record.Save();
-            return record;
         }
 
         /// <summary>
@@ -234,8 +171,6 @@ namespace Backtrace.Unity.Services
                     var value = BatchRetry[key].ElementAt(batchIndex);
                     if (value.Id == record.Id)
                     {
-                        //delete value from hard drive
-                        value.Delete();
                         //delete value from current batch
                         BatchRetry[key].Remove(value);
                         //decrement all records
@@ -265,21 +200,6 @@ namespace Backtrace.Unity.Services
         }
 
         /// <summary>
-        /// Remove last record in database. 
-        /// </summary>
-        /// <returns>If algorithm can remove last record, method return true. Otherwise false</returns>
-        public bool RemoveLastRecord()
-        {
-            var record = LastOrDefault();
-            if (record != null)
-            {
-                Delete(record);
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Increment each batch
         /// </summary>
         private void IncrementBatches()
@@ -302,19 +222,15 @@ namespace Backtrace.Unity.Services
             for (int i = 0; i < total; i++)
             {
                 var value = currentBatch[i];
-                if (value.Valid())
+                if (value.Count > 0)
                 {
-                    value.Delete();
-                    if (value.Count > 0)
-                    {
-                        TotalRecords = TotalRecords - value.Count;
-                    }
-                    else
-                    {
-                        TotalRecords--;
-                    }
-                    TotalSize -= value.Size;
+                    TotalRecords = TotalRecords - value.Count;
                 }
+                else
+                {
+                    TotalRecords--;
+                }
+                TotalSize -= value.Size;
             }
         }
 
@@ -359,10 +275,6 @@ namespace Backtrace.Unity.Services
         public void Clear()
         {
             var records = BatchRetry.SelectMany(n => n.Value);
-            foreach (var record in records)
-            {
-                record.Delete();
-            }
             TotalRecords = 0;
             TotalSize = 0;
             //clear all existing batches
@@ -468,34 +380,15 @@ namespace Backtrace.Unity.Services
             return Count();
         }
 
-
-        /// <summary>
-        /// Create new minidump file in database directory path. Minidump file name is a random Guid
-        /// </summary>
-        /// <param name="backtraceReport">Current report</param>
-        /// <param name="miniDumpType">Generated minidump type</param>
-        /// <returns>Path to minidump file</returns>
-        internal virtual string GenerateMiniDump(BacktraceReport backtraceReport, MiniDumpType miniDumpType)
+        public IEnumerable<BacktraceDatabaseRecord> GetRecordsToDelete()
         {
-            if (miniDumpType == MiniDumpType.None)
-            {
-                return string.Empty;
-            }
-            //note that every minidump file generated by app ends with .dmp extension
-            //its important information if you want to clear minidump file
-            string minidumpDestinationPath = Path.Combine(_path, string.Format("{0}-dump.dmp", backtraceReport.Uuid.ToString()));
-            MinidumpException minidumpExceptionType = backtraceReport.ExceptionTypeReport
-                ? MinidumpException.Present
-                : MinidumpException.None;
+            return BatchRetry[_retryNumber - 1];
+        }
 
-            bool minidumpSaved = MinidumpHelper.Write(
-                filePath: minidumpDestinationPath,
-                options: miniDumpType,
-                exceptionType: minidumpExceptionType);
-
-            return minidumpSaved
-                ? minidumpDestinationPath
-                : string.Empty;
+        public void AddDuplicate(BacktraceDatabaseRecord record)
+        {
+            record.Increment();
+            TotalRecords++;
         }
     }
 }

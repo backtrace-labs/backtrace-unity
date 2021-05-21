@@ -68,7 +68,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
 #endif
 
-        public NativeClient(BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
+        public NativeClient(BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, ICollection<string> attachments)
         {
             if (INITIALIZED || !_enabled)
             {

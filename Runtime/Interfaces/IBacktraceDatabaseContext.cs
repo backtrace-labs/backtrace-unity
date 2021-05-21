@@ -8,11 +8,6 @@ namespace Backtrace.Unity.Interfaces
 {
     public interface IBacktraceDatabaseContext : IDisposable
     {
-        /// <summary>
-        /// Add new data to database
-        /// </summary>
-        /// <param name="backtraceDatabaseRecord">Database record</param>
-        BacktraceDatabaseRecord Add(BacktraceData backtraceData);
 
         /// <summary>
         /// Add new data to database
@@ -90,14 +85,34 @@ namespace Backtrace.Unity.Interfaces
         int GetTotalNumberOfRecords();
 
         /// <summary>
-        /// Remove last record in database. 
-        /// </summary>
-        /// <returns>If algorithm can remove last record, method return true. Otherwise false</returns>
-        bool RemoveLastRecord();
-
-        /// <summary>
         /// Context deduplication strategy
         /// </summary>
         DeduplicationStrategy DeduplicationStrategy { get; set; }
+
+        /// <summary>
+        /// Returns path to files from last batch
+        /// </summary>
+        /// <returns>Path to files available in the last batch</returns>
+        IEnumerable<BacktraceDatabaseRecord> GetRecordsToDelete();
+
+        /// <summary>
+        /// Get hash from backtrace data based on the database deduplication rules
+        /// </summary>
+        /// <param name="backtraceData">Backtrace diagnostic object</param>
+        /// <returns>hash</returns>
+        string GetHash(BacktraceData backtraceData);
+
+        /// <summary>
+        /// Returns database record based on the backtrace data hash
+        /// </summary>
+        /// <param name="hash">Diagnostic object hash</param>
+        /// <returns>Record if record associated to the hash exists</returns>
+        BacktraceDatabaseRecord GetRecordByHash(string hash);
+
+        /// <summary>
+        /// Add duplicate to database context
+        /// </summary>
+        /// <param name="record">Duplicated record</param>
+        void AddDuplicate(BacktraceDatabaseRecord record);
     }
 }

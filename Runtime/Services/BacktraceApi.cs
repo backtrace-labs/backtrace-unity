@@ -105,7 +105,7 @@ namespace Backtrace.Unity.Services
         {
             if (attachments == null)
             {
-                attachments = new List<string>();
+                attachments = new HashSet<string>();
             }
 
             var stopWatch = EnablePerformanceStatistics
@@ -171,7 +171,7 @@ namespace Backtrace.Unity.Services
         /// <param name="deduplication">Deduplication count</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
             var queryAttributes = new Dictionary<string, string>();
             if (deduplication > 0)
@@ -190,7 +190,7 @@ namespace Backtrace.Unity.Services
         /// <param name="queryAttributes">Query string attributes</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
         {
             var stopWatch = EnablePerformanceStatistics
               ? System.Diagnostics.Stopwatch.StartNew()
@@ -245,7 +245,7 @@ namespace Backtrace.Unity.Services
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Stop();
-                    Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
+                    Debug.Assert(EnablePerformanceStatistics, string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
             }

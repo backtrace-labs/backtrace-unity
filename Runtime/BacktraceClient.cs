@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Runtime.Native;
@@ -10,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -24,6 +26,17 @@ namespace Backtrace.Unity
         public const string VERSION = "3.5.0";
 
         public BacktraceConfiguration Configuration;
+
+        /// <summary>
+        /// Backtrace Breadcrumbs
+        /// </summary>
+        public IBacktraceBreadcrumbs Breadcrumbs
+        {
+            get
+            {
+                return Database?.Breadcrumbs;
+            }
+        }
 
         public bool Enabled { get; private set; }
 
@@ -76,7 +89,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Client report attachments
         /// </summary>
-        private List<string> _clientReportAttachments;
+        private HashSet<string> _clientReportAttachments;
 
         /// <summary>
         /// Attribute object accessor
@@ -112,7 +125,7 @@ namespace Backtrace.Unity
         /// Returns list of defined path to attachments stored by Backtrace client.
         /// </summary>
         /// <returns>List of client attachments</returns>
-        public List<string> GetAttachments()
+        public IEnumerable<string> GetAttachments()
         {
             return _clientReportAttachments;
         }
@@ -330,9 +343,6 @@ namespace Backtrace.Unity
             }
         }
 
-        private BacktraceLogManager _backtraceLogManager;
-
-
         /// <summary>
         /// Initialize new Backtrace integration
         /// </summary>
@@ -473,6 +483,10 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
+            var nativeAttachments = _clientReportAttachments.ToList()
+                .Where(n => !string.IsNullOrEmpty(n))
+                .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase).ToList();
+
             if (Configuration.Enabled)
             {
                 Database = GetComponent<BacktraceDatabase>();
@@ -481,10 +495,15 @@ namespace Backtrace.Unity
                     Database.Reload();
                     Database.SetApi(BacktraceApi);
                     Database.SetReportWatcher(_reportLimitWatcher);
+                    if (Database.Breadcrumbs != null)
+                    {
+                        nativeAttachments.Add(Database.Breadcrumbs.GetBreadcrumbLogPath());
+                    }
+                    _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), nativeAttachments);
+                    Database.EnableBreadcrumbsSupport();
                 }
             }
 
-            _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), _clientReportAttachments);
             AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
@@ -497,6 +516,15 @@ namespace Backtrace.Unity
             {
                 _metrics.SendStartupEvent();
             }
+        }
+
+        public bool EnableBreadcrumbsSupport()
+        {
+            if (Database == null)
+            {
+                return false;
+            }
+            return Database.EnableBreadcrumbsSupport();
         }
 
         public void EnableMetrics()
@@ -534,6 +562,7 @@ namespace Backtrace.Unity
 
         private void Awake()
         {
+            Breadcrumbs?.FromMonoBehavior("Application awake", LogType.Assert, null);
             Refresh();
         }
 
@@ -561,6 +590,8 @@ namespace Backtrace.Unity
         private void OnDestroy()
         {
             Enabled = false;
+            Breadcrumbs?.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
+            Breadcrumbs?.UnregisterEvents();
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
@@ -599,8 +630,8 @@ namespace Backtrace.Unity
               message: message,
               attachmentPaths: attachmentPaths,
               attributes: attributes);
-            _backtraceLogManager.Enqueue(report);
 
+            Breadcrumbs?.FromBacktrace(report);
             SendReport(report);
         }
 
@@ -618,7 +649,7 @@ namespace Backtrace.Unity
             }
 
             var report = new BacktraceReport(exception, attributes, attachmentPaths);
-            _backtraceLogManager.Enqueue(report);
+            Breadcrumbs?.FromBacktrace(report);
             SendReport(report);
         }
 
@@ -633,7 +664,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            _backtraceLogManager.Enqueue(report);
+            Breadcrumbs?.FromBacktrace(report);
             SendReport(report, sendCallback);
         }
 
@@ -783,13 +814,6 @@ namespace Backtrace.Unity
             // normalized exception message instead environment stack trace
             // for exceptions without stack trace.
             report.SetReportFingerprint(Configuration.UseNormalizedExceptionMessage);
-
-            // add environment information to backtrace report
-            var sourceCode = _backtraceLogManager.Disabled
-                ? new BacktraceUnityMessage(report).ToString()
-                : _backtraceLogManager.ToSourceCode();
-
-            report.AssignSourceCodeToReport(sourceCode);
             report.AttachmentPaths.AddRange(_clientReportAttachments);
 
             // pass copy of dictionary to prevent overriding client attributes
@@ -811,9 +835,10 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Please enable BacktraceClient first.");
                 return;
             }
+
             const string anrMessage = "ANRException: Blocked thread detected";
-            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(anrMessage, stackTrace, LogType.Error));
             var hang = new BacktraceUnhandledException(anrMessage, stackTrace);
+            Breadcrumbs?.FromMonoBehavior(anrMessage, LogType.Warning, new Dictionary<string, string> { { "stackTrace", stackTrace } });
             SendUnhandledException(hang);
         }
 #endif
@@ -825,8 +850,7 @@ namespace Backtrace.Unity
         /// </summary>
         private void CaptureUnityMessages()
         {
-            _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
-            if (Configuration.HandleUnhandledExceptions || Configuration.NumberOfLogs != 0)
+            if (Configuration.HandleUnhandledExceptions)
             {
                 Application.logMessageReceived += HandleUnityMessage;
                 Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
@@ -838,6 +862,7 @@ namespace Backtrace.Unity
 
         internal void OnApplicationPause(bool pause)
         {
+            Breadcrumbs?.FromMonoBehavior("Application pause", LogType.Assert, new Dictionary<string, string> { { "paused", pause.ToString(CultureInfo.InvariantCulture).ToLower() } });
             _nativeClient?.PauseAnrThread(pause);
         }
 
@@ -866,8 +891,6 @@ namespace Backtrace.Unity
                 _nativeClient.OnOOM();
 
             }
-            const string lowMemoryMessage = "OOMException: Out of memory detected.";
-            _backtraceLogManager.Enqueue(new BacktraceUnityMessage(lowMemoryMessage, string.Empty, LogType.Error));
         }
 #endif
 
@@ -884,7 +907,6 @@ namespace Backtrace.Unity
                 return;
             }
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
-            _backtraceLogManager.Enqueue(unityMessage);
             if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
             {
                 BacktraceUnhandledException exception = null;

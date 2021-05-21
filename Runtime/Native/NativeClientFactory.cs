@@ -5,7 +5,7 @@ namespace Backtrace.Unity.Runtime.Native
 {
     internal static class NativeClientFactory
     {
-        internal static INativeClient CreateNativeClient(BacktraceConfiguration configuration, string gameObjectName, IDictionary<string, string> attributes, IEnumerable<string> attachments)
+        internal static INativeClient CreateNativeClient(BacktraceConfiguration configuration, string gameObjectName, IDictionary<string, string> attributes, ICollection<string> attachments)
         {
 #if UNITY_EDITOR
             return null;
