@@ -384,3 +384,4 @@ namespace Backtrace.Unity.Model
             return new BacktraceCredentials(ServerUrl);
         }
     }
+}
