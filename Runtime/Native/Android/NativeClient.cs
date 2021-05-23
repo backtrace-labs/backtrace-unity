@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -434,7 +435,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public bool OnOOM()
         {
             SetAttribute("memory.warning", "true");
-            SetAttribute("memory.warning.date", DateTime.Now.ToString(CultureInfo.InvariantCulture));
+            SetAttribute("memory.warning.date", DateTimeHelper.Timestamp().ToString(CultureInfo.InvariantCulture));
             return true;
         }
 
