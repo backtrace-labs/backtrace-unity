@@ -68,14 +68,16 @@ namespace Backtrace.Unity
         {
             get
             {
-                if (_metrics == null && Configuration != null && Configuration.EnableEventAggregationSupport)
+                if (_metrics == null && Configuration != null && Configuration.EnableMetricsSupport)
                 {
+                    var universeName = Configuration.GetUniverseName();
+                    var token = Configuration.GetToken();
+
                     _metrics = new BacktraceMetrics(
                         AttributeProvider,
-                        BacktraceMetrics.DefaultSubmissionUrl,
                         Configuration.GetEventAggregationIntervalTimerInMs(),
-                        Configuration.GetToken(),
-                        Configuration.GetUniverseName())
+                        BacktraceMetrics.GetDefaultUniqueEventsUrl(universeName, token),
+                        BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token))
                     {
                         IgnoreSslValidation = Configuration.IgnoreSslValidation
                     };
@@ -512,7 +514,7 @@ namespace Backtrace.Unity
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
-            if (Configuration.EnableEventAggregationSupport && Metrics != null)
+            if (Configuration.EnableMetricsSupport && Metrics != null)
             {
                 _metrics.SendStartupEvent();
             }
@@ -529,13 +531,18 @@ namespace Backtrace.Unity
 
         public void EnableMetrics()
         {
-            if (!Configuration.EnableEventAggregationSupport)
+            if (!Configuration.EnableMetricsSupport)
             {
                 Debug.LogWarning("Event aggregation configuration was disabled. Enabling it manually via API");
             }
-            EnableMetrics(BacktraceMetrics.DefaultSubmissionUrl, Configuration.GetEventAggregationIntervalTimerInMs());
+            var universeName = Configuration.GetUniverseName();
+            var token = Configuration.GetToken();
+            EnableMetrics(
+                BacktraceMetrics.GetDefaultUniqueEventsUrl(universeName, token),
+                BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
+                Configuration.GetEventAggregationIntervalTimerInMs());
         }
-        public void EnableMetrics(string submissionUrl, long timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
+        public void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, long timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
         {
             if (_metrics != null)
             {
@@ -544,10 +551,10 @@ namespace Backtrace.Unity
             }
             _metrics = new BacktraceMetrics(
                 attributeProvider: AttributeProvider,
-                submissionBaseUrl: submissionUrl,
                 timeIntervalInSec: timeIntervalInSec,
-                token: Configuration.GetToken(),
-                universeName: Configuration.GetUniverseName())
+                uniqueEventsSubmissionUrl: uniqueEventsSubmissionUrl,
+                summedEventsSubmissionUrl: summedEventsSubmissionUrl
+                )
             {
                 StartupUniqueEventName = uniqueEventName,
                 IgnoreSslValidation = Configuration.IgnoreSslValidation

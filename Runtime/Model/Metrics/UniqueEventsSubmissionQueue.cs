@@ -8,15 +8,12 @@ namespace Backtrace.Unity.Model.Metrics
 {
     internal sealed class UniqueEventsSubmissionQueue : MetricsSubmissionQueue<UniqueEvent>
     {
-        private const string UrlPrefix = "unique-events";
         private const string Name = "unique_events";
         private readonly AttributeProvider _attributeProvider;
         public UniqueEventsSubmissionQueue(
-            string universeName,
-            string token,
-            IBacktraceHttpClient httpClient,
+            string submissionUrl,
             AttributeProvider attributeProvider)
-            : base(Name, $"{UrlPrefix}/submit?token={token}&universe={universeName}", httpClient)
+            : base(Name, submissionUrl)
         {
             _attributeProvider = attributeProvider;
         }

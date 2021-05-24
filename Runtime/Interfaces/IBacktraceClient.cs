@@ -14,7 +14,7 @@ namespace Backtrace.Unity.Interfaces
         /// Backtrace Breadcrumbs
         /// </summary>
         IBacktraceBreadcrumbs Breadcrumbs { get; }
-        
+
         /// Backtrace Metrics instance
         /// </summary>
         IBacktraceMetrics Metrics { get; }
@@ -57,7 +57,7 @@ namespace Backtrace.Unity.Interfaces
         /// </summary>
         /// <returns>True, if breadcrumbs file was initialized correctly. Otherwise false.</returns>
         bool EnableBreadcrumbsSupport();
-        
+
         /// Enable event aggregation support.
         /// </summary>
         void EnableMetrics();
@@ -65,6 +65,6 @@ namespace Backtrace.Unity.Interfaces
         /// <summary>
         /// Enable event aggregation support.
         /// </summary>
-        void EnableMetrics(string submissionUrl, long timeIntervalInSec, string uniqueEventName);
+        void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, long timeIntervalInSec, string uniqueEventName);
     }
 }

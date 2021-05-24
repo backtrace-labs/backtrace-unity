@@ -55,18 +55,17 @@ namespace Backtrace.Unity.Model.Metrics
         /// <summary>
         /// Http client
         /// </summary>
-        internal IBacktraceHttpClient RequestHandler;
+        internal IBacktraceHttpClient RequestHandler = new BacktraceHttpClient();
 
         /// <summary>
         /// Submission url
         /// </summary>
-        private readonly string _submissionUrl;
+        internal string SubmissionUrl { get; set; }
 
-        internal MetricsSubmissionQueue(string name, string submissionUrl, IBacktraceHttpClient httpClient)
+        internal MetricsSubmissionQueue(string name, string submissionUrl)
         {
             _name = name;
-            RequestHandler = httpClient;
-            _submissionUrl = submissionUrl;
+            SubmissionUrl = submissionUrl;
         }
 
         public abstract void StartWithEvent(string eventName);
@@ -82,7 +81,7 @@ namespace Backtrace.Unity.Model.Metrics
             }
             var payload = CreateJsonPayload(events);
 
-            RequestHandler.Post(_submissionUrl, payload, (long statusCode, bool httpError, string response) =>
+            RequestHandler.Post(SubmissionUrl, payload, (long statusCode, bool httpError, string response) =>
             {
                 if (statusCode == 200)
                 {

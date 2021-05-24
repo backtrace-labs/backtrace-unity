@@ -7,7 +7,6 @@ namespace Backtrace.Unity.Model
 {
     internal interface IBacktraceHttpClient
     {
-        string BaseUrl { get; set; }
         bool IgnoreSslValidation { get; set; }
         void Post(string submissionUrl, BacktraceJObject jObject, Action<long, bool, string> onComplete);
         UnityWebRequest Post(string submissionUrl, string json, IEnumerable<string> attachments);

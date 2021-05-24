@@ -9,7 +9,7 @@ namespace Backtrace.Unity.Editor
     public class BacktraceConfigurationEditor : UnityEditor.Editor
     {
         protected static bool showBreadcrumbsSettings = false;
-        protected static bool showEventAggregationSettings = false;
+        protected static bool showMetricsSettings = false;
         protected static bool showClientAdvancedSettings = false;
         protected static bool showDatabaseSettings = false;
 
@@ -92,20 +92,20 @@ namespace Backtrace.Unity.Editor
                 }
             }
 
-            GUIStyle eventAggregationFoldout = new GUIStyle(EditorStyles.foldout);
-            showEventAggregationSettings = EditorGUILayout.Foldout(showEventAggregationSettings, BacktraceConfigurationLabels.LABEL_CRASH_FREE_SECTION, eventAggregationFoldout);
-            if (showEventAggregationSettings)
+            GUIStyle metricsFoldout = new GUIStyle(EditorStyles.foldout);
+            showMetricsSettings = EditorGUILayout.Foldout(showMetricsSettings, BacktraceConfigurationLabels.LABEL_CRASH_FREE_SECTION, metricsFoldout);
+            if (showMetricsSettings)
             {
-                var enableEventAggregation = serializedObject.FindProperty("EnableEventAggregationSupport");
+                var enableMetrics = serializedObject.FindProperty("EnableMetricsSupport");
                 EditorGUILayout.PropertyField(
-                    enableEventAggregation,
-                    new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_EVENT_AGGREGATION));
+                    enableMetrics,
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_METRICS));
 
-                if (enableEventAggregation.boolValue)
+                if (enableMetrics.boolValue)
                 {
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("TimeIntervalInMin"),
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_EVENT_AGGREGATION_TIME_INTERVAL));
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_METRICS_TIME_INTERVAL));
                 }
             }
 

@@ -15,7 +15,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Default submission URL
         /// </summary>
-        public const string DefaultSubmissionUrl = "https://events.backtrace.io/api";
+        public const string DefaultSubmissionUrl = "https://events.backtrace.io/api/";
 
         /// <summary>
         /// Default time interval in min
@@ -56,12 +56,12 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Unique events submission queue
         /// </summary>
-        internal readonly UniqueEventsSubmissionQueue _uniqueEventSubmissionQueue;
+        internal readonly UniqueEventsSubmissionQueue _uniqueEventsSubmissionQueue;
 
         /// <summary>
         /// Summed events submission queue
         /// </summary>
-        internal readonly SummedEventSubmissionQueue _summedEventSubmissionQueue;
+        internal readonly SummedEventsSubmissionQueue _summedEventsSubmissionQueue;
 
         /// <summary>
         /// Startup event name that will be send on the application startup
@@ -69,17 +69,32 @@ namespace Backtrace.Unity.Services
         private const string StartupEventName = "Application Launches";
 
         /// <summary>
-        /// Submission url
+        /// Unique events submission URL
         /// </summary>
-        public string SubmissionUrl
+        public string UniqueEventsSubmissionUrl
         {
             get
             {
-                return RequestHandler.BaseUrl;
+                return _uniqueEventsSubmissionQueue.SubmissionUrl;
             }
             set
             {
-                RequestHandler.BaseUrl = value;
+                _uniqueEventsSubmissionQueue.SubmissionUrl = value;
+            }
+        }
+
+        /// <summary>
+        /// Summed events submission URL
+        /// </summary>
+        public string SummedEventsSubmissionUrl
+        {
+            get
+            {
+                return _summedEventsSubmissionQueue.SubmissionUrl;
+            }
+            set
+            {
+                _summedEventsSubmissionQueue.SubmissionUrl = value;
             }
         }
 
@@ -88,13 +103,10 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public bool IgnoreSslValidation
         {
-            get
-            {
-                return RequestHandler.IgnoreSslValidation;
-            }
             set
             {
-                RequestHandler.IgnoreSslValidation = value;
+                _uniqueEventsSubmissionQueue.RequestHandler.IgnoreSslValidation = value;
+                _summedEventsSubmissionQueue.RequestHandler.IgnoreSslValidation = value;
             }
         }
 
@@ -105,7 +117,7 @@ namespace Backtrace.Unity.Services
         {
             get
             {
-                return _uniqueEventSubmissionQueue.Events;
+                return _uniqueEventsSubmissionQueue.Events;
             }
         }
 
@@ -116,7 +128,7 @@ namespace Backtrace.Unity.Services
         {
             get
             {
-                return _summedEventSubmissionQueue.Events;
+                return _summedEventsSubmissionQueue.Events;
             }
         }
 
@@ -129,11 +141,6 @@ namespace Backtrace.Unity.Services
         /// Last update time that will be updated after each update start
         /// </summary>
         private float _lastUpdateTime = 0;
-
-        /// <summary>
-        /// Http client
-        /// </summary>
-        internal IBacktraceHttpClient RequestHandler;
 
         /// <summary>
         /// Backtrace attribute provider - shared reference that will be reused by Backtrace client to generate attributes.
@@ -151,33 +158,29 @@ namespace Backtrace.Unity.Services
         /// Create new Backtrace metrics instance
         /// </summary>
         /// <param name="attributeProvider">Backtrace client attribute provider</param>
-        /// <param name="submissionBaseUrl">Submission base url</param>
         /// <param name="timeIntervalInSec">Update time interval in MS</param>
-        /// <param name="token">Submission token</param>
-        /// <param name="universeName">Universe name</param>
+        /// <param name="uniqueEventsSubmissionUrl">Unique events submission URL</param>
+        /// <param name="summedEventsSubmissionUrl">SummedEventsSubmissionUrl</param>
         public BacktraceMetrics(
             AttributeProvider attributeProvider,
-            string submissionBaseUrl,
             long timeIntervalInSec,
-            string token,
-            string universeName) : this(new BacktraceHttpClient() { BaseUrl = submissionBaseUrl }, attributeProvider, timeIntervalInSec, token, universeName)
-        { }
-
-        /// <summary>
-        /// Create new Backtrace metrics instance
-        /// </summary>
-        internal BacktraceMetrics(
-            IBacktraceHttpClient httpClient,
-            AttributeProvider attributeProvider,
-            long timeIntervalInSec,
-            string token,
-            string universeName)
+            string uniqueEventsSubmissionUrl,
+            string summedEventsSubmissionUrl)
         {
-            RequestHandler = httpClient;
             _attributeProvider = attributeProvider;
             _timeIntervalInSec = timeIntervalInSec;
-            _uniqueEventSubmissionQueue = new UniqueEventsSubmissionQueue(universeName, token, RequestHandler, _attributeProvider);
-            _summedEventSubmissionQueue = new SummedEventSubmissionQueue(universeName, token, RequestHandler, _attributeProvider);
+            _uniqueEventsSubmissionQueue = new UniqueEventsSubmissionQueue(uniqueEventsSubmissionUrl, _attributeProvider);
+            _summedEventsSubmissionQueue = new SummedEventsSubmissionQueue(summedEventsSubmissionUrl, _attributeProvider);
+        }
+
+        /// <summary>
+        /// Allows to override default http client for testing purposes.
+        /// </summary>
+        /// <param name="client">Http client implementation</param>
+        internal void OverrideHttpClient(IBacktraceHttpClient client)
+        {
+            _uniqueEventsSubmissionQueue.RequestHandler = client;
+            _summedEventsSubmissionQueue.RequestHandler = client;
         }
 
         /// <summary>
@@ -185,8 +188,8 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void SendStartupEvent()
         {
-            _uniqueEventSubmissionQueue.StartWithEvent(DefaultUniqueEventName);
-            _summedEventSubmissionQueue.StartWithEvent(StartupEventName);
+            _uniqueEventsSubmissionQueue.StartWithEvent(DefaultUniqueEventName);
+            _summedEventsSubmissionQueue.StartWithEvent(StartupEventName);
         }
 
         /// <summary>
@@ -223,8 +226,8 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void Send()
         {
-            _uniqueEventSubmissionQueue.Send();
-            _summedEventSubmissionQueue.Send();
+            _uniqueEventsSubmissionQueue.Send();
+            _summedEventsSubmissionQueue.Send();
         }
         /// <summary>
         /// Add unique event to next Backtrace Metrics request
@@ -267,7 +270,7 @@ namespace Backtrace.Unity.Services
                 return false;
             }
             var @event = new UniqueEvent(attributeName, DateTimeHelper.Timestamp(), attributes);
-            _uniqueEventSubmissionQueue.Events.AddLast(@event);
+            _uniqueEventsSubmissionQueue.Events.AddLast(@event);
             return true;
         }
 
@@ -277,7 +280,7 @@ namespace Backtrace.Unity.Services
         /// <returns>number of events in store</returns>
         public int Count()
         {
-            return _uniqueEventSubmissionQueue.Count + _summedEventSubmissionQueue.Count;
+            return _uniqueEventsSubmissionQueue.Count + _summedEventsSubmissionQueue.Count;
         }
 
         /// <summary>
@@ -302,7 +305,7 @@ namespace Backtrace.Unity.Services
             }
 
             var @event = new SummedEvent(metricsGroupName, DateTimeHelper.Timestamp(), attributes);
-            _summedEventSubmissionQueue.Events.AddLast(@event);
+            _summedEventsSubmissionQueue.Events.AddLast(@event);
             return true;
         }
 
@@ -313,8 +316,8 @@ namespace Backtrace.Unity.Services
         /// <param name="time">Current time</param>
         private void SendPendingSubmissionJobs(float time)
         {
-            _uniqueEventSubmissionQueue.SendPendingEvents(time);
-            _summedEventSubmissionQueue.SendPendingEvents(time);
+            _uniqueEventsSubmissionQueue.SendPendingEvents(time);
+            _summedEventsSubmissionQueue.SendPendingEvents(time);
         }
 
         /// <summary>
@@ -325,6 +328,35 @@ namespace Backtrace.Unity.Services
         private bool ShouldProcessEvent(string name)
         {
             return !string.IsNullOrEmpty(name) && (MaximumEvents == 0 || (Count() + 1 <= MaximumEvents));
+        }
+
+        /// <summary>
+        /// Generate default unique events submission URL based on the configuration Universe name and token.
+        /// </summary>
+        /// <param name="universeName">Submission Universe name</param>
+        /// <param name="token">Submission token</param>
+        /// <returns>Unique events submission URL</returns>
+        internal static string GetDefaultUniqueEventsUrl(string universeName, string token)
+        {
+            const string apiPrefix = "unique-events";
+            return GetDefaultSubmissionUrl(apiPrefix, universeName, token);
+        }
+
+        /// <summary>
+        /// Generate default summed events submission URL based on the configuration Universe name and token.
+        /// </summary>
+        /// <param name="universeName">Submission Universe name</param>
+        /// <param name="token">Submission token</param>
+        /// <returns>Summed events submission URL</returns>
+        internal static string GetDefaultSummedEventsUrl(string universeName, string token)
+        {
+            const string apiPrefix = "summed-events";
+            return GetDefaultSubmissionUrl(apiPrefix, universeName, token);
+        }
+
+        private static string GetDefaultSubmissionUrl(string serviceName, string universeName, string token)
+        {
+            return $"{DefaultSubmissionUrl}{serviceName}/submit?token={token}&universe={universeName}";
         }
 
     }
