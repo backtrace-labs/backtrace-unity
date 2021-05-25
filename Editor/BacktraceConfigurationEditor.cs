@@ -152,61 +152,62 @@ namespace Backtrace.Unity.Editor
                         new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));
 
 #endif
-                }
 
-                GUIStyle breadcrumbsSupportFoldout = new GUIStyle(EditorStyles.foldout);
-                showBreadcrumbsSettings = EditorGUILayout.Foldout(showBreadcrumbsSettings, BacktraceConfigurationLabels.LABEL_BREADCRUMBS_SECTION, breadcrumbsSupportFoldout);
-                if (showBreadcrumbsSettings)
-                {
-                    var enableBreadcrumbsSupport = serializedObject.FindProperty("EnableBreadcrumbsSupport");
-                    EditorGUILayout.PropertyField(
-                        enableBreadcrumbsSupport,
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_BREADCRUMBS));
 
-                    if (enableBreadcrumbsSupport.boolValue)
+                    GUIStyle breadcrumbsSupportFoldout = new GUIStyle(EditorStyles.foldout);
+                    showBreadcrumbsSettings = EditorGUILayout.Foldout(showBreadcrumbsSettings, BacktraceConfigurationLabels.LABEL_BREADCRUMBS_SECTION, breadcrumbsSupportFoldout);
+                    if (showBreadcrumbsSettings)
                     {
+                        var enableBreadcrumbsSupport = serializedObject.FindProperty("EnableBreadcrumbsSupport");
                         EditorGUILayout.PropertyField(
-                            serializedObject.FindProperty("BacktraceBreadcrumbsLevel"),
-                            new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMBS_EVENTS));
+                            enableBreadcrumbsSupport,
+                            new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_BREADCRUMBS));
 
-                        EditorGUILayout.PropertyField(
-                            serializedObject.FindProperty("LogLevel"),
-                            new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMNS_LOG_LEVEL));
+                        if (enableBreadcrumbsSupport.boolValue)
+                        {
+                            EditorGUILayout.PropertyField(
+                                serializedObject.FindProperty("BacktraceBreadcrumbsLevel"),
+                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMBS_EVENTS));
+
+                            EditorGUILayout.PropertyField(
+                                serializedObject.FindProperty("LogLevel"),
+                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMNS_LOG_LEVEL));
+                        }
                     }
-                }
 
 #if UNITY_ANDROID || UNITY_IOS
-                EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("CaptureNativeCrashes"),
-                    new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("CaptureNativeCrashes"),
+                        new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
 #endif
-                EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("AutoSendMode"),
-                    new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("AutoSendMode"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
 
-                EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("CreateDatabase"),
-                    new GUIContent(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("CreateDatabase"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_CREATE_DATABASE_DIRECTORY));
 
-                EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("GenerateScreenshotOnException"),
-                    new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION));
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("GenerateScreenshotOnException"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION));
 
-                SerializedProperty maxRecordCount = serializedObject.FindProperty("MaxRecordCount");
-                EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT));
+                    SerializedProperty maxRecordCount = serializedObject.FindProperty("MaxRecordCount");
+                    EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT));
 
-                SerializedProperty maxDatabaseSize = serializedObject.FindProperty("MaxDatabaseSize");
-                EditorGUILayout.PropertyField(maxDatabaseSize, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_DATABASE_SIZE));
+                    SerializedProperty maxDatabaseSize = serializedObject.FindProperty("MaxDatabaseSize");
+                    EditorGUILayout.PropertyField(maxDatabaseSize, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_DATABASE_SIZE));
 
-                SerializedProperty retryInterval = serializedObject.FindProperty("RetryInterval");
-                EditorGUILayout.PropertyField(retryInterval, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_INTERVAL));
+                    SerializedProperty retryInterval = serializedObject.FindProperty("RetryInterval");
+                    EditorGUILayout.PropertyField(retryInterval, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_INTERVAL));
 
-                EditorGUILayout.LabelField("Backtrace database require at least one retry.");
-                SerializedProperty retryLimit = serializedObject.FindProperty("RetryLimit");
-                EditorGUILayout.PropertyField(retryLimit, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_LIMIT));
+                    EditorGUILayout.LabelField("Backtrace database require at least one retry.");
+                    SerializedProperty retryLimit = serializedObject.FindProperty("RetryLimit");
+                    EditorGUILayout.PropertyField(retryLimit, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_LIMIT));
 
-                SerializedProperty retryOrder = serializedObject.FindProperty("RetryOrder");
-                EditorGUILayout.PropertyField(retryOrder, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_ORDER));
+                    SerializedProperty retryOrder = serializedObject.FindProperty("RetryOrder");
+                    EditorGUILayout.PropertyField(retryOrder, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_ORDER));
+                }
             }
 
             serializedObject.ApplyModifiedProperties();
