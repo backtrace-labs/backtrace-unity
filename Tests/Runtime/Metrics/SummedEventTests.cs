@@ -1,4 +1,6 @@
-﻿using Backtrace.Unity.Model.JsonData;
+﻿using Backtrace.Unity.Json;
+using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Model.Metrics.Mocks;
 using Backtrace.Unity.Services;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -8,37 +10,68 @@ namespace Backtrace.Unity.Model.Metrics
 {
     public class SummedEventTests
     {
-        //private readonly string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
-        private readonly string _token = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458";
-        private readonly string _universeName = "testing-universe-name";
+        private const string MetricsEventName = "scene-changed";
+        private const string _token = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458";
+        private const string _universeName = "testing-universe-name";
+
+        private const string _defaultSubmissionUrl = BacktraceMetrics.DefaultSubmissionUrl;
+        private readonly string _defaultUniqueEventsSubmissionUrl = $"{_defaultSubmissionUrl}/unique-events/submit?token={_token}&universe={_universeName}";
+        private readonly string _defaultSummedEventsSubmissionUrl = $"{_defaultSubmissionUrl}/summed-events/submit?token={_token}&universe={_universeName}";
+
         private AttributeProvider _attributeProvider = new AttributeProvider();
         [OneTimeSetUp]
         public void Setup()
         {
             Debug.unityLogger.logEnabled = false;
         }
+        [Test]
+        public void BacktraceMetricsSummedEvents_ShoulOverrideDefaultSubmissionUrl_SendEventToValidUrl()
+        {
+            var expectedSubmissionUrl = $"{_defaultSubmissionUrl}/summed-events/unit-test/submit?token={_token}&universe={_universeName}";
+            var jsonString = string.Empty;
+            var submissionUrl = string.Empty;
+            var requestHandler = new BacktraceHttpClientMock()
+            {
+                OnInvoke = (string url, BacktraceJObject json) =>
+                {
+                    jsonString = json.ToJson();
+                    submissionUrl = url;
+                }
+            };
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl)
+            {
+                SummedEventsSubmissionUrl = expectedSubmissionUrl
+            };
+            backtraceMetrics.OverrideHttpClient(requestHandler);
+
+            backtraceMetrics.AddSummedEvent(MetricsEventName);
+            backtraceMetrics.Send();
+
+            Assert.IsNotEmpty(jsonString);
+            Assert.AreEqual(expectedSubmissionUrl, submissionUrl);
+            Assert.IsEmpty(backtraceMetrics.SummedEvents);
+        }
 
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldBeAbleToOverrideDefaultSubmissionUrl_CorrectSubmissionUrl()
         {
-            const string submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events";
+            string expectedSubmissionUrl = $"{_defaultSubmissionUrl}/unit-test/summed-events/submit?token={_token}&universe={_universeName}";
 
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, submissionUrl, 0, _token, _universeName);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, expectedSubmissionUrl);
 
-            Assert.AreEqual(submissionUrl, backtraceMetrics.SubmissionUrl);
+            Assert.AreEqual(expectedSubmissionUrl, backtraceMetrics.SummedEventsSubmissionUrl);
         }
 
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldAddCorrectlySummedEvent_StoreValidSummedEvent()
         {
-            const string metricsEventName = "scene-changed";
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
 
-            backtraceMetrics.AddSummedEvent(metricsEventName);
+            backtraceMetrics.AddSummedEvent(MetricsEventName);
 
             Assert.AreEqual(backtraceMetrics.SummedEvents.Count, 1);
             var summedEvent = backtraceMetrics.SummedEvents.First.Value;
-            Assert.AreEqual(summedEvent.Name, metricsEventName);
+            Assert.AreEqual(summedEvent.Name, MetricsEventName);
             Assert.AreNotEqual(summedEvent.Timestamp, 0);
         }
 
@@ -46,7 +79,7 @@ namespace Backtrace.Unity.Model.Metrics
         public void BacktraceMetricsSummedEvents_ShouldAddCorrectlySummedEventWithAttributes_StoreValidSummedEvent()
         {
             const string metricsEventName = "scene-changed";
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
             const string expectedAttributeName = "foo";
             const string expectedAttributeValue = "bar";
             var metricsAttributes = new Dictionary<string, string>() { { expectedAttributeName, expectedAttributeValue } };
@@ -63,7 +96,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldntAddEmptySummedEvent_SummedEventsAreEmpty()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
 
             backtraceMetrics.AddSummedEvent(string.Empty);
 
@@ -74,7 +107,7 @@ namespace Backtrace.Unity.Model.Metrics
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldntAddNullableSUmmedEvent_SummedEventsAreEmpty()
         {
-            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, BacktraceMetrics.DefaultSubmissionUrl, 0, _token, _universeName);
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
 
             backtraceMetrics.AddSummedEvent(null);
 

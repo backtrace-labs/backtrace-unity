@@ -16,14 +16,10 @@ namespace Backtrace.Unity.Model
     internal sealed class BacktraceHttpClient : IBacktraceHttpClient
     {
         /// <summary>
-        /// Submission base url
-        /// </summary>
-        public string BaseUrl { get; set; } = string.Empty;
-
-        /// <summary>
         /// Ignore ssl validation flag
         /// </summary>
         public bool IgnoreSslValidation { get; set; }
+
         /// <summary>
         /// Name reserved file with diagnostic data - JSON diagnostic data/minidump file
         /// </summary>
@@ -37,11 +33,13 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Post Backtrace JObject to server
         /// </summary>
+        /// <param name="submissionUrl">Submission URL</param>
         /// <param name="jObject">Backtrace JObject</param>
+        /// <param name="onComplete">On complete callback</param>
         /// <returns>Async operation</returns>
-        public void Post(string requestUrl, BacktraceJObject jObject, Action<long, bool, string> onComplete)
+        public void Post(string submissionUrl, BacktraceJObject jObject, Action<long, bool, string> onComplete)
         {
-            UnityWebRequest request = new UnityWebRequest(GetSubmissionUrl(requestUrl), "POST")
+            UnityWebRequest request = new UnityWebRequest(submissionUrl, "POST")
             {
                 timeout = RequestTimeout
             };
@@ -87,11 +85,11 @@ namespace Backtrace.Unity.Model
             return Post(submissionUrl, CreateMinidumpFormData(minidump, attachments));
         }
 
-        private UnityWebRequest Post(string requestUrl, List<IMultipartFormSection> formData)
+        private UnityWebRequest Post(string submissionUrl, List<IMultipartFormSection> formData)
         {
             var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
 
-            var request = UnityWebRequest.Post(GetSubmissionUrl(requestUrl), formData, boundaryIdBytes);
+            var request = UnityWebRequest.Post(submissionUrl, formData, boundaryIdBytes);
             request.timeout = RequestTimeout;
             request.IgnoreSsl(IgnoreSslValidation);
             request.SetMultipartFormData(boundaryIdBytes);
@@ -167,15 +165,6 @@ namespace Backtrace.Unity.Model
                     File.ReadAllBytes(file)));
 
             }
-        }
-
-        private string GetSubmissionUrl(string requestUrl)
-        {
-            if (string.IsNullOrEmpty(BaseUrl))
-            {
-                return requestUrl;
-            }
-            return string.Format("{0}{1}{2}", BaseUrl, BaseUrl.EndsWith("/") ? "" : "/", requestUrl);
         }
     }
 }

@@ -14,8 +14,8 @@
         internal static string LABEL_HANDLE_OOM = "Send Out of Memory exceptions to Backtrace";
 #endif
 
-        internal const string LABEL_ENABLE_EVENT_AGGREGATION = "Enable crash free metrics reporting";
-        internal const string LABEL_EVENT_AGGREGATION_TIME_INTERVAL = "Auto send interval in sec";
+        internal const string LABEL_ENABLE_METRICS = "Enable crash free metrics reporting";
+        internal const string LABEL_METRICS_TIME_INTERVAL = "Auto send interval in min";
         internal const string LABEL_CRASH_FREE_SECTION = "Crash Free Metrics Reporting";
 
         internal const string LABEL_BREADCRUMBS_SECTION = "Breadcrumbs support";

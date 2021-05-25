@@ -16,6 +16,16 @@ namespace Backtrace.Unity.Interfaces
         LinkedList<UniqueEvent> UniqueEvents { get; }
 
         /// <summary>
+        /// Unique events submission URL
+        /// </summary>
+        string UniqueEventsSubmissionUrl { get; set; }
+
+        /// <summary>
+        /// Summed events submission URL
+        /// </summary>
+        string SummedEventsSubmissionUrl { get; set; }
+
+        /// <summary>
         /// Trigger a manual send, will send all outgoing messages currently queued.
         /// </summary>
         void Send();
