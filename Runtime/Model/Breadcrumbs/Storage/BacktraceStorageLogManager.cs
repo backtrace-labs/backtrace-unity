@@ -38,7 +38,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         }
 
         /// <summary>
-        /// Default breacrumbs size. By default breadcrumbs file size is limitted to 64kB.
+        /// Default breadcrumbs size, by default limited to 64kB.
         /// </summary>
         private long _breadcrumbsSize = 64000;
 
