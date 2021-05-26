@@ -3,6 +3,7 @@ using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Model.Metrics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,6 +13,11 @@ namespace Backtrace.Unity.Services
 {
     internal sealed class BacktraceMetrics : IBacktraceMetrics
     {
+        /// <summary>
+        /// Session Id
+        /// </summary>
+        public readonly Guid SessionId = Guid.NewGuid();
+
         /// <summary>
         /// Default submission URL
         /// </summary>
@@ -153,6 +159,11 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private object _object = new object();
 
+        /// <summary>
+        /// Session id attribute
+        /// </summary>
+        private readonly string _sessionId;
+
 
         /// <summary>
         /// Create new Backtrace metrics instance
@@ -171,6 +182,7 @@ namespace Backtrace.Unity.Services
             _timeIntervalInSec = timeIntervalInSec;
             _uniqueEventsSubmissionQueue = new UniqueEventsSubmissionQueue(uniqueEventsSubmissionUrl, _attributeProvider);
             _summedEventsSubmissionQueue = new SummedEventsSubmissionQueue(summedEventsSubmissionUrl, _attributeProvider);
+            _sessionId = SessionId.ToString();
         }
 
         /// <summary>
@@ -359,5 +371,10 @@ namespace Backtrace.Unity.Services
             return $"{DefaultSubmissionUrl}{serviceName}/submit?token={token}&universe={universeName}";
         }
 
+        public void GetAttributes(IDictionary<string, string> attributes)
+        {
+            const string sessionIdKey = "application.session";
+            attributes[sessionIdKey] = _sessionId;
+        }
     }
 }

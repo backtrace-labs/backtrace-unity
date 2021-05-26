@@ -98,19 +98,18 @@ namespace Backtrace.Unity.Model.JsonData
         /// <returns>Client attributes</returns>
         internal void AddAttributes(IDictionary<string, string> source, bool includeDynamic = true)
         {
+            if (includeDynamic)
+            {
+                // add dynamic scoped attributes
+                foreach (var dynamicAttributeProvider in _dynamicAttributeProvider)
+                {
+                    dynamicAttributeProvider.GetAttributes(source);
+                }
+            }
             // apply scoped attribtues
             foreach (var attribute in _attributes)
             {
                 source[attribute.Key] = attribute.Value;
-            }
-            if (includeDynamic == false)
-            {
-                return;
-            }
-            // add dynamic scoped attributes
-            foreach (var dynamicAttributeProvider in _dynamicAttributeProvider)
-            {
-                dynamicAttributeProvider.GetAttributes(source);
             }
         }
 

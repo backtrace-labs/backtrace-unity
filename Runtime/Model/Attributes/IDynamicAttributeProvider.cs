@@ -2,7 +2,7 @@
 
 namespace Backtrace.Unity.Model.Attributes
 {
-    internal interface IDynamicAttributeProvider
+    public interface IDynamicAttributeProvider
     {
         void GetAttributes(IDictionary<string, string> attributes);
     }

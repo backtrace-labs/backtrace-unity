@@ -182,7 +182,7 @@ namespace Backtrace.Unity.Model.Metrics
             _attributeProvider[UniqueAttributeName] = updatedValue;
 
             var uniqueEvent = backtraceMetrics.UniqueEvents.First.Value;
-            Assert.AreEqual(uniqueEvent.Attributes[UniqueAttributeName], initializationValue);
+            Assert.AreEqual(initializationValue, uniqueEvent.Attributes[UniqueAttributeName]);
         }
 
 
@@ -197,7 +197,7 @@ namespace Backtrace.Unity.Model.Metrics
             _attributeProvider[UniqueAttributeName] = string.Empty;
 
             var uniqueEvent = backtraceMetrics.UniqueEvents.First.Value;
-            Assert.AreEqual(uniqueEvent.Attributes[UniqueAttributeName], initializationValue);
+            Assert.AreEqual(initializationValue, uniqueEvent.Attributes[UniqueAttributeName]);
         }
 
         [Test]

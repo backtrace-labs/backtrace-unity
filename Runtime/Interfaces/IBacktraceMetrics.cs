@@ -1,9 +1,10 @@
-﻿using Backtrace.Unity.Model.Metrics;
+﻿using Backtrace.Unity.Model.Attributes;
+using Backtrace.Unity.Model.Metrics;
 using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
 {
-    public interface IBacktraceMetrics
+    public interface IBacktraceMetrics: IDynamicAttributeProvider
     {
         /// <summary>
         /// This list contains the unique events which will be sent whenever Send is triggered (manually or automatically). 

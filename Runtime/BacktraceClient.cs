@@ -516,6 +516,7 @@ namespace Backtrace.Unity
             }
             if (Configuration.EnableMetricsSupport && Metrics != null)
             {
+                AttributeProvider.AddDynamicAttributeProvider(Metrics);
                 _metrics.SendStartupEvent();
             }
         }
