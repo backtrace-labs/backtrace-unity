@@ -98,7 +98,7 @@ namespace Backtrace.Unity.Model.JsonData
         /// <returns>Attributes dictionary</returns>
         internal IDictionary<string, string> Get()
         {
-            return _attributes;
+            return new Dictionary<string, string>(_attributes);
         }
 
 
