@@ -13,19 +13,20 @@ namespace Backtrace.Unity.Model.Metrics
 
         internal SummedEvent(string name, long timestamp, IDictionary<string, string> attributes) : base(name, timestamp)
         {
-            Attributes = attributes;
+            Attributes = attributes ?? new Dictionary<string, string>();
         }
 
-        internal BacktraceJObject ToJson(IDictionary<string, string> attributes)
+        internal BacktraceJObject ToJson(IDictionary<string, string> scopedAttributes)
         {
-            if (Attributes != null)
+            if (scopedAttributes != null)
             {
-                foreach (var attribute in Attributes)
+                foreach (var attribute in scopedAttributes)
                 {
-                    attributes[attribute.Key] = attribute.Value;
+                    Attributes[attribute.Key] = attribute.Value;
                 }
             }
-            var jObject = ToBaseObject(attributes);
+
+            var jObject = ToBaseObject(Attributes);
             jObject.Add(MetricGroupName, Name);
 
             return jObject;

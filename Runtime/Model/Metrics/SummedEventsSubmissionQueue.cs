@@ -25,7 +25,7 @@ namespace Backtrace.Unity.Model.Metrics
         internal override IEnumerable<BacktraceJObject> GetEventsPayload(ICollection<SummedEvent> events)
         {
             var summedEventJson = new List<BacktraceJObject>();
-            var attributes = _attributeProvider.Get();
+            var attributes = _attributeProvider.GenerateAttributes(false);
             foreach (var summedEvent in events)
             {
                 summedEventJson.Add(summedEvent.ToJson(attributes));

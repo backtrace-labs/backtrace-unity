@@ -50,7 +50,7 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         public ICollection<string> Attachments { get; private set; }
 
-        private string _diagnosticDataJson;
+        internal string DiagnosticDataJson { get; set; }
 
         /// <summary>
         /// Determine if current record is duplicated
@@ -81,9 +81,9 @@ namespace Backtrace.Unity.Model.Database
         /// <returns></returns>
         public string BacktraceDataJson()
         {
-            if (!string.IsNullOrEmpty(_diagnosticDataJson))
+            if (!string.IsNullOrEmpty(DiagnosticDataJson))
             {
-                return _diagnosticDataJson;
+                return DiagnosticDataJson;
             }
 
             if (Record != null)
@@ -200,7 +200,6 @@ namespace Backtrace.Unity.Model.Database
         {
             Locked = false;
             Record = null;
-            _diagnosticDataJson = string.Empty;
         }
 
         [Serializable]

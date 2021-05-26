@@ -501,7 +501,7 @@ namespace Backtrace.Unity
                     {
                         nativeAttachments.Add(Database.Breadcrumbs.GetBreadcrumbLogPath());
                     }
-                    _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.Get(), nativeAttachments);
+                    _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, AttributeProvider.GenerateAttributes(false), nativeAttachments);
                     Database.EnableBreadcrumbsSupport();
                 }
             }

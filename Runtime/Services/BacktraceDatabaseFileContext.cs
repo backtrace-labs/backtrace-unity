@@ -256,9 +256,9 @@ namespace Backtrace.Unity.Services
             try
             {
                 var jsonPrefix = record.BacktraceData.UuidString;
-                var diagnosticJson = record.BacktraceData.ToJson();
+                record.DiagnosticDataJson = record.BacktraceData.ToJson();
                 record.DiagnosticDataPath = Path.Combine(_path, string.Format("{0}-attachment.json", jsonPrefix));
-                record.Size += Save(diagnosticJson, record.DiagnosticDataPath);
+                record.Size += Save(record.DiagnosticDataJson, record.DiagnosticDataPath);
 
                 // update record size based on the attachment information
                 if (record.Attachments != null && record.Attachments.Count != 0)

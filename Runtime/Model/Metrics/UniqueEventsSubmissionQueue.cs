@@ -20,7 +20,7 @@ namespace Backtrace.Unity.Model.Metrics
 
         public override void StartWithEvent(string eventName)
         {
-            var uniqueEventAttributes = _attributeProvider.Get();
+            var uniqueEventAttributes = _attributeProvider.GenerateAttributes(false);
             if (uniqueEventAttributes.TryGetValue(eventName, out string value) && !string.IsNullOrEmpty(value))
             {
                 Events.AddLast(new UniqueEvent(eventName, DateTimeHelper.Timestamp(), uniqueEventAttributes));

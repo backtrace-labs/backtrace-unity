@@ -93,30 +93,24 @@ namespace Backtrace.Unity.Model.JsonData
         }
 
         /// <summary>
-        /// Get Dictionary of scoped attributes
-        /// </summary>
-        /// <returns>Attributes dictionary</returns>
-        internal IDictionary<string, string> Get()
-        {
-            return new Dictionary<string, string>(_attributes);
-        }
-
-
-        /// <summary>
         /// Generate report attributes
         /// </summary>
         /// <returns>Client attributes</returns>
-        internal void AddAttributes(IDictionary<string, string> source)
+        internal void AddAttributes(IDictionary<string, string> source, bool includeDynamic = true)
         {
-            // add dynamic scoped attributes
-            foreach (var dynamicAttributeProvider in _dynamicAttributeProvider)
-            {
-                dynamicAttributeProvider.GetAttributes(source);
-            }
             // apply scoped attribtues
             foreach (var attribute in _attributes)
             {
                 source[attribute.Key] = attribute.Value;
+            }
+            if (includeDynamic == false)
+            {
+                return;
+            }
+            // add dynamic scoped attributes
+            foreach (var dynamicAttributeProvider in _dynamicAttributeProvider)
+            {
+                dynamicAttributeProvider.GetAttributes(source);
             }
         }
 
@@ -124,12 +118,11 @@ namespace Backtrace.Unity.Model.JsonData
         /// Generates attributes for current application state
         /// </summary>
         /// <returns>Dictionary with all game attributes</returns>
-        internal IDictionary<string, string> GenerateAttributes()
+        internal IDictionary<string, string> GenerateAttributes(bool includeDynamic = true)
         {
             var attributes = new Dictionary<string, string>();
-            AddAttributes(attributes);
+            AddAttributes(attributes, includeDynamic);
             return attributes;
         }
-
     }
 }
