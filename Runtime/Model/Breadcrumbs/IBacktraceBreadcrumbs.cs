@@ -24,7 +24,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         bool FromBacktrace(BacktraceReport report);
         bool FromMonoBehavior(string message, LogType type, IDictionary<string, string> attributes);
         string GetBreadcrumbLogPath();
-        long BreadcrumbId();
+        double BreadcrumbId();
         void UnregisterEvents();
     }
 }

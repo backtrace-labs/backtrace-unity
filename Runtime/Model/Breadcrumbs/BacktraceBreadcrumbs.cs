@@ -183,7 +183,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             }
         }
 
-        public long BreadcrumbId()
+        public double BreadcrumbId()
         {
             return LogManager.BreadcrumbId();
         }
