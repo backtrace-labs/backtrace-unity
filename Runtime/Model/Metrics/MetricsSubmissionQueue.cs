@@ -25,7 +25,7 @@ namespace Backtrace.Unity.Model.Metrics
         /// Maximum number of events in store. If number of events in store hit the limit
         /// BacktraceMetrics instance will send data to Backtrace.
         /// </summary>
-        public uint MaximumEvents { get; set; } = 350;
+        public uint MaximumEvents { get; set; } = 50;
 
         /// <summary>
         /// Time between 
