@@ -20,13 +20,13 @@ namespace Backtrace.Unity.Interfaces
         /// Maximum number of summed events in store. If number of events in store hit the limit
         /// BacktraceMetrics instance will send data to Backtrace.
         /// </summary>
-        public uint MaximumSummedEvents { get; set; }
+        uint MaximumSummedEvents { get; set; }
 
         /// <summary>
         /// Maximum number of unique events in store. If number of events in store hit the limit
         /// BacktraceMetrics instance will send data to Backtrace.
         /// </summary>
-        public uint MaximumUniqueEvents { get; set; }
+        uint MaximumUniqueEvents { get; set; }
 
         /// <summary>
         /// Unique events submission URL
