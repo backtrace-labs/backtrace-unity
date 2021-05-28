@@ -10,6 +10,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         public bool HasRegisteredEvents { get; set; } = false;
         private readonly BacktraceBreadcrumbs _breadcrumbs;
         private BacktraceBreadcrumbType _registeredLevel;
+        private NetworkReachability _networkStatus = NetworkReachability.NotReachable;
         private Thread _thread;
         public BacktraceBreadcrumbsEventHandler(BacktraceBreadcrumbs breadcrumbs)
         {
@@ -80,19 +81,19 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         private void SceneManager_sceneUnloaded(Scene scene)
         {
             var message = string.Format("SceneManager:scene {0} unloaded", scene.name);
-            Log(message, LogType.Assert, BreadcrumbLevel.Navigation);
+            Log(message, LogType.Log, BreadcrumbLevel.Navigation);
         }
 
         private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
             var message = string.Format("SceneManager:scene {0} loaded", scene.name);
-            Log(message, LogType.Assert, BreadcrumbLevel.Navigation, new Dictionary<string, string>() { { "LoadSceneMode", loadSceneMode.ToString() } });
+            Log(message, LogType.Log, BreadcrumbLevel.Navigation, new Dictionary<string, string>() { { "LoadSceneMode", loadSceneMode.ToString() } });
         }
 
         private void HandleSceneChanged(Scene sceneFrom, Scene sceneTo)
         {
-            var message = string.Format("SceneManager:scene changed from {0} to {1}", sceneFrom.name, sceneTo.name);
-            Log(message, LogType.Assert, BreadcrumbLevel.Navigation, new Dictionary<string, string>() { { "from", sceneFrom.name }, { "to", sceneTo.name } });
+            var message = string.Format("SceneManager:scene changed from {0} to {1}", string.IsNullOrEmpty(sceneFrom.name) ? "(no scene)" : sceneFrom.name, sceneTo.name);
+            Log(message, LogType.Log, BreadcrumbLevel.Navigation, new Dictionary<string, string>() { { "from", sceneFrom.name }, { "to", sceneTo.name } });
         }
 
         private void HandleLowMemory()
@@ -137,6 +138,19 @@ namespace Backtrace.Unity.Model.Breadcrumbs
                 return;
             }
             _breadcrumbs.AddBreadcrumbs(message, breadcrumbLevel, type, attributes);
+        }
+        private void LogNewNetworkStatus(NetworkReachability status)
+        {
+            _networkStatus = status;
+            Log($"Network:{status}", LogType.Log, BreadcrumbLevel.Http);
+        }
+
+        internal void Update()
+        {
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Http) && Application.internetReachability != _networkStatus)
+            {
+                LogNewNetworkStatus(Application.internetReachability);
+            }
         }
     }
 }

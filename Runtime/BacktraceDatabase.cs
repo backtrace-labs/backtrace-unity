@@ -25,7 +25,7 @@ namespace Backtrace.Unity
 
         public BacktraceConfiguration Configuration;
 
-        private IBacktraceBreadcrumbs _breadcrumbs;
+        private BacktraceBreadcrumbs _breadcrumbs;
 
         /// <summary>
         /// Backtrace Breadcrumbs
@@ -42,10 +42,6 @@ namespace Backtrace.Unity
                     }
                 }
                 return _breadcrumbs;
-            }
-            private set
-            {
-                _breadcrumbs = value;
             }
         }
 
@@ -201,6 +197,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
+            _breadcrumbs?.Update();
             LastFrameTime = Time.unscaledTime;
             if (!DatabaseSettings.AutoSendMode)
             {

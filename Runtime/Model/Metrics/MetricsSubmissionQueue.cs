@@ -68,6 +68,31 @@ namespace Backtrace.Unity.Model.Metrics
             SubmissionUrl = submissionUrl;
         }
 
+        public bool ReachedLimit()
+        {
+            return MaximumEvents == Events.Count && MaximumEvents != 0;
+        }
+
+        /// <summary>
+        /// Determine if Backtrace Metrics can add next event to store
+        /// </summary>
+        /// <param name="name">event name</param>
+        /// <returns>True if we're able to add. Otherwise false.</returns>
+        public bool ShouldProcessEvent(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                Debug.LogWarning("Skipping report: attribute name is null or empty");
+                return false;
+            }
+            if (ReachedLimit())
+            {
+                Debug.LogWarning("Skipping report: Reached store limit.");
+                return false;
+            }
+            return true;
+        }
+
         public abstract void StartWithEvent(string eventName);
         internal void Send()
         {

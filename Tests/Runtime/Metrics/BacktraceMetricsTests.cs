@@ -94,7 +94,7 @@ namespace Backtrace.Unity.Model.Metrics
         }
 
         [UnityTest]
-        public IEnumerator BacktraceMetrics_ShouldTry3TimesOn503BeforeDroppingEvents_DataWasntSendToBacktrace()
+        public IEnumerator MetricsSubmission_ShouldTry3TimesOn503BeforeDroppingEvents_DataWasntSendToBacktrace()
         {
             const int expectedNumberOfEventsAfterFailure = 2;
             var requestHandler = new BacktraceHttpClientMock()
@@ -122,19 +122,20 @@ namespace Backtrace.Unity.Model.Metrics
 
 
         [UnityTest]
-        public IEnumerator BacktraceMetrics_ShouldTry3TimesOn503AndDropSummedEventsOnMaximumNumberOfEvents_DataWasDeleted()
+        public IEnumerator MetricsSubmission_ShouldTry3TimesOn503AndDropSummedEventsOnMaximumNumberOfEvents_DataWasDeleted()
         {
-            const int expectedNumberOfEventsAfterFailure = 2; // unique events and we have enough place for session event so also session event
+            const int expectedNumberOfEventsAfterFailure = 1; // unique events and we have enough place for session event so also session event
             var requestHandler = new BacktraceHttpClientMock()
             {
                 StatusCode = 503
             };
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
             backtraceMetrics.OverrideHttpClient(requestHandler);
-
-            backtraceMetrics.AddSummedEvent(MetricsEventName);
+            for (int i = 0; i < backtraceMetrics.MaximumSummedEvents; i++)
+            {
+                backtraceMetrics.AddSummedEvent(MetricsEventName);
+            }
             backtraceMetrics.AddUniqueEvent(UniqueAttributeName);
-            backtraceMetrics.MaximumEvents = expectedNumberOfEventsAfterFailure;
 
             backtraceMetrics.Send();
             for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttempts; i++)
@@ -148,6 +149,71 @@ namespace Backtrace.Unity.Model.Metrics
             yield return new WaitForSeconds(1);
             Assert.AreEqual(expectedNumberOfEventsAfterFailure, backtraceMetrics.Count());
             Assert.AreEqual(BacktraceMetrics.MaxNumberOfAttempts * 2, requestHandler.NumberOfRequests);
+        }
+
+        [UnityTest]
+        public IEnumerator MaximumNumberOfEvents_ShouldDropEventsWhenMaximumNumberOfEventsReached_DataShouldBeDropped()
+        {
+            var requestHandler = new BacktraceHttpClientMock()
+            {
+                IsHttpError = true
+            };
+            const int expectedMaximumNumberOfSummedEvents = 5;
+            const int expectedNumberOfSummedEvents = 1;
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl); backtraceMetrics.OverrideHttpClient(requestHandler);
+            backtraceMetrics.MaximumSummedEvents = expectedMaximumNumberOfSummedEvents;
+            for (int i = 0; i < expectedMaximumNumberOfSummedEvents; i++)
+            {
+                backtraceMetrics.AddSummedEvent(MetricsEventName);
+            }
+            backtraceMetrics.Send();
+            for (int i = 0; i < expectedNumberOfSummedEvents; i++)
+            {
+                backtraceMetrics.AddSummedEvent(MetricsEventName);
+            }
+
+            for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttempts; i++)
+            {
+                yield return new WaitForSeconds(1);
+                // immidiately run next update
+                var time = BacktraceMetrics.MaxTimeBetweenRequests + (BacktraceMetrics.MaxTimeBetweenRequests * i) + i + 1;
+                backtraceMetrics.Tick(time);
+            }
+            yield return new WaitForSeconds(1);
+            // check if submission jobs dropped events
+            Assert.AreEqual(expectedNumberOfSummedEvents, backtraceMetrics.Count());
+        }
+
+        [UnityTest]
+        public IEnumerator MaximumNumberOfEvents_ShouldntDropEventsWhenSpaceIsAvailable_DataShouldBeAvailable()
+        {
+            var requestHandler = new BacktraceHttpClientMock()
+            {
+                IsHttpError = true
+            };
+            const int expectedMaximumNumberOfSummedEvents = 10;
+            const int expectedNumberOfSummedEvents = 3;
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl); backtraceMetrics.OverrideHttpClient(requestHandler);
+            backtraceMetrics.MaximumSummedEvents = expectedMaximumNumberOfSummedEvents;
+            for (int i = 0; i < expectedMaximumNumberOfSummedEvents - expectedNumberOfSummedEvents; i++)
+            {
+                backtraceMetrics.AddSummedEvent(MetricsEventName);
+            }
+            backtraceMetrics.Send();
+            for (int i = 0; i < expectedNumberOfSummedEvents; i++)
+            {
+                backtraceMetrics.AddSummedEvent(MetricsEventName);
+            }
+
+            for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttempts; i++)
+            {
+                yield return new WaitForSeconds(1);
+                // immidiately run next update
+                var time = BacktraceMetrics.MaxTimeBetweenRequests + (BacktraceMetrics.MaxTimeBetweenRequests * i) + i + 1;
+                backtraceMetrics.Tick(time);
+            }
+            yield return new WaitForSeconds(1);
+            Assert.AreEqual(expectedNumberOfSummedEvents, backtraceMetrics.Count());
         }
 
         [Test]
@@ -174,7 +240,7 @@ namespace Backtrace.Unity.Model.Metrics
             const int numberOfTestEvents = 10;
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl)
             {
-                MaximumEvents = maximumNumberOfEvents
+                MaximumUniqueEvents = maximumNumberOfEvents
             };
 
             for (int i = 0; i < numberOfTestEvents; i++)
@@ -192,7 +258,7 @@ namespace Backtrace.Unity.Model.Metrics
             const int numberOfTestEvents = 10;
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl)
             {
-                MaximumEvents = maximumNumberOfEvents
+                MaximumSummedEvents = maximumNumberOfEvents
             };
 
             for (int i = 0; i < numberOfTestEvents; i++)
@@ -211,7 +277,7 @@ namespace Backtrace.Unity.Model.Metrics
             var requestHandler = new BacktraceHttpClientMock();
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, defaultTimeIntervalInSec, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl)
             {
-                MaximumEvents = maximumNumberOfEvents
+                MaximumSummedEvents = maximumNumberOfEvents
             };
             backtraceMetrics.OverrideHttpClient(requestHandler);
 
@@ -233,7 +299,7 @@ namespace Backtrace.Unity.Model.Metrics
             const int expectedNumberOfEvents = 2;
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl)
             {
-                MaximumEvents = maximumNumberOfEvents
+                MaximumSummedEvents = maximumNumberOfEvents
             };
             var requestHandler = new BacktraceHttpClientMock();
             backtraceMetrics.OverrideHttpClient(requestHandler);

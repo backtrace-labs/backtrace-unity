@@ -187,5 +187,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             return LogManager.BreadcrumbId();
         }
+
+        public void Update()
+        {
+            EventHandler.Update();
+        }
     }
 }

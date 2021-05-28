@@ -26,5 +26,6 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         string GetBreadcrumbLogPath();
         double BreadcrumbId();
         void UnregisterEvents();
+        void Update();
     }
 }

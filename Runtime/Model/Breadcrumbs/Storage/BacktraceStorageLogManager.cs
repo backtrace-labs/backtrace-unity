@@ -63,6 +63,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         internal static byte[] StartOfDocument = System.Text.Encoding.UTF8.GetBytes("[\n");
 
         private bool _emptyFile = true;
+
         /// <summary>
         /// Breadcrumb id
         /// </summary>

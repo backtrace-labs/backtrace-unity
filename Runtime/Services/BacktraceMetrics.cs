@@ -245,19 +245,35 @@ namespace Backtrace.Unity.Services
             {
                 return;
             }
+            bool shouldSendSummedEvents = false;
+            bool shouldSendUniqueEvents = false;
+            bool intervalUpdate = false;
             lock (_object)
             {
 
-                var intervalUpdate = (time - _lastUpdateTime) >= _timeIntervalInSec;
-                var reachedEventLimit = MaximumEvents == Count() && MaximumEvents != 0;
-                if (intervalUpdate == false && reachedEventLimit == false)
+                intervalUpdate = (time - _lastUpdateTime) >= _timeIntervalInSec;
+                shouldSendSummedEvents = _summedEventsSubmissionQueue.ReachedLimit();
+                shouldSendUniqueEvents = _summedEventsSubmissionQueue.ReachedLimit();
+                if (intervalUpdate == shouldSendSummedEvents == shouldSendUniqueEvents == false)
                 {
                     // nothing more to update
                     return;
                 }
                 _lastUpdateTime = time;
             }
-            Send();
+            if (intervalUpdate)
+            {
+                Send();
+                return;
+            }
+            if (shouldSendSummedEvents)
+            {
+                _summedEventsSubmissionQueue.Send();
+            }
+            if (shouldSendUniqueEvents)
+            {
+                _summedEventsSubmissionQueue.Send();
+            }
         }
 
         /// <summary>
@@ -284,11 +300,11 @@ namespace Backtrace.Unity.Services
         /// <param name="attributes">Event attributes</param>
         public bool AddUniqueEvent(string attributeName, IDictionary<string, string> attributes = null)
         {
-            if (!ShouldProcessEvent(attributeName))
+            if (!_uniqueEventsSubmissionQueue.ShouldProcessEvent(attributeName))
             {
-                Debug.LogWarning("Skipping report: Reached store limit or event has empty name.");
                 return false;
             }
+
             // add to event attributes, attribute provider attributes
             if (attributes == null)
             {
@@ -337,9 +353,8 @@ namespace Backtrace.Unity.Services
         /// <param name="attributes">Summed event attribute</param>
         public bool AddSummedEvent(string metricsGroupName, IDictionary<string, string> attributes = null)
         {
-            if (!ShouldProcessEvent(metricsGroupName))
+            if (!_summedEventsSubmissionQueue.ShouldProcessEvent(metricsGroupName))
             {
-                Debug.LogWarning("Skipping report: Reached store limit or event has empty name.");
                 return false;
             }
 
@@ -357,16 +372,6 @@ namespace Backtrace.Unity.Services
         {
             _uniqueEventsSubmissionQueue.SendPendingEvents(time);
             _summedEventsSubmissionQueue.SendPendingEvents(time);
-        }
-
-        /// <summary>
-        /// Determine if Backtrace Metrics can add next event to store
-        /// </summary>
-        /// <param name="name">event name</param>
-        /// <returns>True if we're able to add. Otherwise false.</returns>
-        private bool ShouldProcessEvent(string name)
-        {
-            return !string.IsNullOrEmpty(name) && (MaximumEvents == 0 || (Count() + 1 <= MaximumEvents));
         }
 
         /// <summary>
