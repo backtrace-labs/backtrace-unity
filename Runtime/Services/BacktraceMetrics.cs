@@ -44,10 +44,10 @@ namespace Backtrace.Unity.Services
         public string StartupUniqueEventName { get; set; } = DefaultUniqueEventName;
 
         /// <summary>
-        /// Maximum number of events in store. If number of events in store hit the limit
+        /// Maximum number of unique events in store. If number of events in store hit the limit
         /// BacktraceMetrics instance will send data to Backtrace.
         /// </summary>
-        public uint MaximumEvents
+        public uint MaximumUniqueEvents
         {
             get
             {
@@ -56,6 +56,22 @@ namespace Backtrace.Unity.Services
             set
             {
                 _uniqueEventsSubmissionQueue.MaximumEvents = value;
+            }
+        }
+
+
+        /// <summary>
+        /// Maximum number of summed events in store. If number of events in store hit the limit
+        /// BacktraceMetrics instance will send data to Backtrace.
+        /// </summary>
+        public uint MaximumSummedEvents
+        {
+            get
+            {
+                return _summedEventsSubmissionQueue.MaximumEvents;
+            }
+            set
+            {
                 _summedEventsSubmissionQueue.MaximumEvents = value;
             }
         }

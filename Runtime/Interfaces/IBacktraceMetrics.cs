@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
 {
-    public interface IBacktraceMetrics: IDynamicAttributeProvider
+    public interface IBacktraceMetrics : IDynamicAttributeProvider
     {
         /// <summary>
         /// This list contains the unique events which will be sent whenever Send is triggered (manually or automatically). 
@@ -15,6 +15,18 @@ namespace Backtrace.Unity.Interfaces
         /// Please refer to the <see href="https://support.backtrace.io">online documentation</see>.
         /// </summary>
         LinkedList<UniqueEvent> UniqueEvents { get; }
+
+        /// <summary>
+        /// Maximum number of summed events in store. If number of events in store hit the limit
+        /// BacktraceMetrics instance will send data to Backtrace.
+        /// </summary>
+        public uint MaximumSummedEvents { get; set; }
+
+        /// <summary>
+        /// Maximum number of unique events in store. If number of events in store hit the limit
+        /// BacktraceMetrics instance will send data to Backtrace.
+        /// </summary>
+        public uint MaximumUniqueEvents { get; set; }
 
         /// <summary>
         /// Unique events submission URL
