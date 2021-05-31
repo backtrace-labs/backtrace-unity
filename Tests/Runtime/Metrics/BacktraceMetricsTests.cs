@@ -33,6 +33,22 @@ namespace Backtrace.Unity.Model.Metrics
         }
 
         [Test]
+        public void BacktraceMetrics_ShouldTriggerUploadProcessWhenTimeIntervalIsEqualToZero_DataWasntSendToTheService()
+        {
+            var requestHandler = new BacktraceHttpClientMock();
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
+            backtraceMetrics.OverrideHttpClient(requestHandler);
+            backtraceMetrics.AddSummedEvent(MetricsEventName);
+
+            for (int i = 0; i < 1000; i++)
+            {
+                backtraceMetrics.Tick(i);
+            }
+
+            Assert.AreEqual(0, requestHandler.NumberOfRequests);
+        }
+
+        [Test]
         public void BacktraceMetrics_ShouldTriggerUploadProcessOnSendMethodWithOnlySummedEvent_DataWasSendToTheService()
         {
             var jsonString = string.Empty;
@@ -100,6 +116,33 @@ namespace Backtrace.Unity.Model.Metrics
             var requestHandler = new BacktraceHttpClientMock()
             {
                 StatusCode = 503
+            };
+            var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
+            backtraceMetrics.OverrideHttpClient(requestHandler);
+
+            backtraceMetrics.AddSummedEvent(MetricsEventName);
+            backtraceMetrics.AddUniqueEvent(UniqueAttributeName);
+            backtraceMetrics.Send();
+            for (int i = 0; i < BacktraceMetrics.MaxNumberOfAttempts; i++)
+            {
+                yield return new WaitForSeconds(1);
+                // immidiately run next update
+                var time = BacktraceMetrics.MaxTimeBetweenRequests + (BacktraceMetrics.MaxTimeBetweenRequests * i) + i + 1;
+                backtraceMetrics.Tick(time);
+            }
+
+            yield return new WaitForSeconds(1);
+            Assert.AreEqual(BacktraceMetrics.MaxNumberOfAttempts * 2, requestHandler.NumberOfRequests);
+            Assert.AreEqual(backtraceMetrics.Count(), expectedNumberOfEventsAfterFailure);
+        }
+
+        [UnityTest]
+        public IEnumerator MetricsSubmission_ShouldTry3TimesOn502BeforeDroppingEvents_DataWasntSendToBacktrace()
+        {
+            const int expectedNumberOfEventsAfterFailure = 2;
+            var requestHandler = new BacktraceHttpClientMock()
+            {
+                StatusCode = 502
             };
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
             backtraceMetrics.OverrideHttpClient(requestHandler);

@@ -202,7 +202,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Range(0, 60)]
         [Tooltip("How often events should be sent to the Backtrace endpoints, in minutes. Zero (0) disables auto send and will require manual periodic sending using the API. For more information, see the README.")]
-        public long TimeIntervalInMin = BacktraceMetrics.DefaultTimeIntervalInMin;
+        public uint TimeIntervalInMin = BacktraceMetrics.DefaultTimeIntervalInMin;
 
         /// <summary>
         /// Determine if database is enable
@@ -374,7 +374,7 @@ namespace Backtrace.Unity.Model
             return ValidateServerUrl(ServerUrl);
         }
 
-        public long GetEventAggregationIntervalTimerInMs()
+        public uint GetEventAggregationIntervalTimerInMs()
         {
             return TimeIntervalInMin * 60;
         }

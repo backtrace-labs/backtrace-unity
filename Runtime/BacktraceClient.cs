@@ -516,8 +516,7 @@ namespace Backtrace.Unity
             }
             if (Configuration.EnableMetricsSupport && Metrics != null)
             {
-                AttributeProvider.AddDynamicAttributeProvider(Metrics);
-                _metrics.SendStartupEvent();
+                StartupMetrics();
             }
         }
 
@@ -543,7 +542,7 @@ namespace Backtrace.Unity
                 BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
                 Configuration.GetEventAggregationIntervalTimerInMs());
         }
-        public void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, long timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
+        public void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
         {
             if (_metrics != null)
             {
@@ -560,6 +559,12 @@ namespace Backtrace.Unity
                 StartupUniqueEventName = uniqueEventName,
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };
+            StartupMetrics();   
+        }
+
+        private void StartupMetrics()
+        {
+            AttributeProvider.AddDynamicAttributeProvider(Metrics);
             _metrics.SendStartupEvent();
         }
 
