@@ -142,12 +142,12 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         private void LogNewNetworkStatus(NetworkReachability status)
         {
             _networkStatus = status;
-            Log($"Network:{status}", LogType.Log, BreadcrumbLevel.Http);
+            Log($"Network:{status}", LogType.Log, BreadcrumbLevel.System);
         }
 
         internal void Update()
         {
-            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Http) && Application.internetReachability != _networkStatus)
+            if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.System) && Application.internetReachability != _networkStatus)
             {
                 LogNewNetworkStatus(Application.internetReachability);
             }
