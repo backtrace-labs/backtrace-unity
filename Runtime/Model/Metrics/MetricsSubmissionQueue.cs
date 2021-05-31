@@ -62,6 +62,9 @@ namespace Backtrace.Unity.Model.Metrics
         /// </summary>
         internal string SubmissionUrl { get; set; }
 
+        private readonly string _applicationName = Application.productName;
+        private readonly string _applicationVersion = Application.version;
+
         internal MetricsSubmissionQueue(string name, string submissionUrl)
         {
             _name = name;
@@ -155,8 +158,8 @@ namespace Backtrace.Unity.Model.Metrics
         internal virtual BacktraceJObject CreateJsonPayload(ICollection<T> events)
         {
             var jsonData = new BacktraceJObject();
-            jsonData.Add("application", Application.productName);
-            jsonData.Add("appversion", Application.version);
+            jsonData.Add("application", _applicationName);
+            jsonData.Add("appversion", _applicationVersion);
             jsonData.Add("metadata", CreatePayloadMetadata());
             jsonData.Add(_name, GetEventsPayload(events));
             return jsonData;
