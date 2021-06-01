@@ -6,6 +6,9 @@ New functionality
 - Support for capturing metrics to determine crash free users and sessions for your game. Once enabled, unique application launches and unique player identifiers (default: `guid`) will be submitted to Backtrace so you will be able to get an overview in our web console of how many errors, hangs, crashes and memory problems occur compared to all active users for a given platform, version, etcetera. See the README for more info on functionality and configuration options. This functionality is supported on all Unity supported platforms except WebGL.
 - Support for breadcrumbs. Once enabled, various "breadcrumb" events (such as application going to background, logging message, network connectivity lost and many more) will be submitted with all types of Backtrace reports and viewable in the web console. It is possible to configure client-side which events to include and from which log level severity. It is also possible to add custom events, like "player completed a level", via the API. By default the breadcrumbs are limited to 64kB and older events will automatically be cleaned up. See the README for more information on functionality and configuration options. This functionality is supported on all Unity supported platforms.
 
+Removed
+- Support for .NET 2.0 was removed. .NET 2.0 has been end of life for some time.
+
 Bugfixes
 - Fixed Unity 2020 & 2021 warnings
 - Adjusted structure size on the iOS build
