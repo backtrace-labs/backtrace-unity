@@ -1,5 +1,16 @@
 # Backtrace Unity Release Notes
 
+## Version 3.5.0-preview.1
+
+New functionality
+- Support for capturing metrics to determine crash free users and sessions for your game. Once enabled, unique application launches and unique player identifiers (default: `guid`) will be submitted to Backtrace so you will be able to get an overview in our web console of how many errors, hangs, crashes and memory problems occur compared to all active users for a given platform, version, etcetera. See the README for more info on functionality and configuration options. This functionality is supported on all Unity supported platforms except WebGL.
+- Support for breadcrumbs. Once enabled, various "breadcrumb" events (such as application going to background, logging message, network connectivity lost and many more) will be submitted with all types of Backtrace reports and viewable in the web console. It is possible to configure client-side which events to include and from which log level severity. It is also possible to add custom events, like "player completed a level", via the API. By default the breadcrumbs are limited to 64kB and older events will automatically be cleaned up. See the README for more information on functionality and configuration options. This functionality is supported on all Unity supported platforms.
+
+Bugfixes
+- Fixed Unity 2020 & 2021 warnings
+- Adjusted structure size on the iOS build
+- Guess backtrace-android native crash reporter path if appcontext is not available
+
 ## Version 3.4.0
 
 - native/managed attachment support - user can add path to attachments via BacktraceClient Initialize method or via Unity Editor in the BacktraceClient's inspector. Once user add them on the initialization method/game object - it will be available in every report that BacktraceClient will send to Backtrace.
