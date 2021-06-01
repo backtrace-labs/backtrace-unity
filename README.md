@@ -17,6 +17,8 @@ Create your Backtrace instance at https://backtrace.io/create-unity today and th
 - [iOS Specific information](#ios-specific-information)
 - [Data Privacy](#data-privacy)
 - [API Overview](#api-overview)
+- [Breadcrumbs](#breadcrumbs)
+- [Crash Free Metrics](#crash-free-metrics)
 - [Architecture description](#architecture-description)
 - [Investigating an Error in Backtrace](#investigating-an-error-in-backtrace)
 
@@ -444,7 +446,7 @@ backtraceClient.BeforeSend =
 
 `BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions please use Backtrace configuration UI available in the Unity IDE.
 
-## Breadcrumbs
+## Breadcrumbs <a name="breadcrumbs"></a>
 
 Once enabled, various "breadcrumb" events (such as application going to background, logging message, network connectivity lost and many more) will be submitted with all types of Backtrace reports and viewable in the web console. It is possible to configure client-side which events to include and from which log level severity. By default the breadcrumbs are limited to 64kB and older events will automatically be cleaned up. This functionality is supported on all Unity supported platforms.
 
@@ -461,7 +463,7 @@ GetComponent<BacktraceClient>().Breadcrumbs.Info("Player Base Upgraded", new Dic
 });
 ```
 
-## Crash Free Metrics
+## Crash Free Metrics <a name="crash-free-metrics"></a>
 
 Once enabled, unique application launches and unique player identifiers (default: guid) will be submitted to Backtrace so you will be able to get an overview in our web console of how many errors, hangs, crashes and memory problems occur compared to all active users for a given platform, version, etcetera. See the README for more info on functionality and configuration options. 
 
