@@ -92,6 +92,7 @@ namespace Backtrace.Unity.Editor
                 }
             }
 
+#if !UNITY_WEBGL
             GUIStyle metricsFoldout = new GUIStyle(EditorStyles.foldout);
             showMetricsSettings = EditorGUILayout.Foldout(showMetricsSettings, BacktraceConfigurationLabels.LABEL_CRASH_FREE_SECTION, metricsFoldout);
             if (showMetricsSettings)
@@ -108,7 +109,7 @@ namespace Backtrace.Unity.Editor
                         new GUIContent(BacktraceConfigurationLabels.LABEL_METRICS_TIME_INTERVAL));
                 }
             }
-
+#endif
             EditorGUILayout.PropertyField(
             serializedObject.FindProperty("AttachmentPaths"),
             new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_ATTACHMENTS));

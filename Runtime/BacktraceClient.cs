@@ -60,7 +60,9 @@ namespace Backtrace.Unity
             }
         }
 
+#if !UNITY_WEBGL
         private BacktraceMetrics _metrics;
+
         /// <summary>
         /// Backtrace metrics instance
         /// </summary>
@@ -85,6 +87,7 @@ namespace Backtrace.Unity
                 return _metrics;
             }
         }
+#endif
 
         internal Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
 
@@ -514,10 +517,9 @@ namespace Backtrace.Unity
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
-            if (Configuration.EnableMetricsSupport && Metrics != null)
-            {
-                StartupMetrics();
-            }
+#if !UNITY_WEBGL
+            EnableMetrics(false);
+#endif
         }
 
         public bool EnableBreadcrumbsSupport()
@@ -528,11 +530,19 @@ namespace Backtrace.Unity
             }
             return Database.EnableBreadcrumbsSupport();
         }
-
+#if !UNITY_WEBGL
         public void EnableMetrics()
+        {
+            EnableMetrics(true);
+        }
+        private void EnableMetrics(bool enableIfConfigurationIsDisabled = true)
         {
             if (!Configuration.EnableMetricsSupport)
             {
+                if (!enableIfConfigurationIsDisabled)
+                {
+                    return;
+                }
                 Debug.LogWarning("Event aggregation configuration was disabled. Enabling it manually via API");
             }
             var universeName = Configuration.GetUniverseName();
@@ -559,7 +569,7 @@ namespace Backtrace.Unity
                 StartupUniqueEventName = uniqueEventName,
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };
-            StartupMetrics();   
+            StartupMetrics();
         }
 
         private void StartupMetrics()
@@ -567,6 +577,8 @@ namespace Backtrace.Unity
             AttributeProvider.AddDynamicAttributeProvider(Metrics);
             _metrics.SendStartupEvent();
         }
+
+#endif
 
         private void OnApplicationQuit()
         {
@@ -585,7 +597,10 @@ namespace Backtrace.Unity
         private void LateUpdate()
         {
             _nativeClient?.UpdateClientTime(Time.unscaledTime);
+
+#if !UNITY_WEBGL
             _metrics?.Tick(Time.unscaledTime);
+#endif
 
             if (BackgroundExceptions.Count == 0)
             {
@@ -1146,6 +1161,5 @@ namespace Backtrace.Unity
                 || (SkipReport != null && SkipReport.Invoke(type, exception, message));
 
         }
-
     }
 }
