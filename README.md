@@ -453,12 +453,21 @@ The Breadcrumbs will show up under the Breadcrumbs tab in the web console:
 ![image](https://user-images.githubusercontent.com/726645/120375005-7e70a200-c2d7-11eb-9066-6e96f7996af9.png)
 
 It is also possible to add custom events, like "player completed a level" as well as sub attributes, via the API:
+
 ```cs
 GetComponent<BacktraceClient>().Breadcrumbs.Info("Player Base Upgraded", new Dictionary<string, string>() {
   {"base.name", "MtGox"},
   {"base.level", "15"}
 });
 ```
+
+## Crash Free Metrics
+
+Once enabled, unique application launches and unique player identifiers (default: guid) will be submitted to Backtrace so you will be able to get an overview in our web console of how many errors, hangs, crashes and memory problems occur compared to all active users for a given platform, version, etcetera. See the README for more info on functionality and configuration options. 
+
+![image](https://user-images.githubusercontent.com/726645/120375869-7f560380-c2d8-11eb-80bf-b15ea90c0ad3.png)
+
+Note! This functionality is supported on all Unity supported platforms except WebGL.
 
 ## Filtering a report
 
