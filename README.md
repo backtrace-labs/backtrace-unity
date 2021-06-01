@@ -72,7 +72,7 @@ Web - WebGL
 Game Consoles - PlayStation4, Xbox One, Nintendo Switch
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 
-- All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Breadcrumbs, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Crash Free Metrics (except WebGL) Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
+- All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Breadcrumbs, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Crash Free Metrics (except WebGL), Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
 - Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings.
 - iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
 - WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html)
