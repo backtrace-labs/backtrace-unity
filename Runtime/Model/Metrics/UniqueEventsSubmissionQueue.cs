@@ -20,7 +20,7 @@ namespace Backtrace.Unity.Model.Metrics
 
         public override void StartWithEvent(string eventName)
         {
-            var uniqueEventAttributes = _attributeProvider.GenerateAttributes(false);
+            var uniqueEventAttributes = GetUniqueEventAttributes();
             if (uniqueEventAttributes.TryGetValue(eventName, out string value) && !string.IsNullOrEmpty(value))
             {
                 Events.AddLast(new UniqueEvent(eventName, DateTimeHelper.Timestamp(), uniqueEventAttributes));
@@ -34,10 +34,14 @@ namespace Backtrace.Unity.Model.Metrics
             foreach (var uniqueEvent in events)
             {
                 uniqueEventsJson.Add(uniqueEvent.ToJson());
-                uniqueEvent.UpdateTimestamp(DateTimeHelper.Timestamp(), _attributeProvider.GenerateAttributes());
+                uniqueEvent.UpdateTimestamp(DateTimeHelper.Timestamp(), GetUniqueEventAttributes());
             }
 
             return uniqueEventsJson;
+        }
+        private IDictionary<string, string> GetUniqueEventAttributes()
+        {
+            return _attributeProvider.GenerateAttributes(false);
         }
     }
 }

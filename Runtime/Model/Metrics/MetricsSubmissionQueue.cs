@@ -127,7 +127,7 @@ namespace Backtrace.Unity.Model.Metrics
                     _submissionJobs.Add(new MetricsSubmissionJob<T>()
                     {
                         Events = events,
-                        NextInvokeTime = CalculateNextRetryTime(attempts + 1),
+                        NextInvokeTime = CalculateNextRetryTime(attempts + 1) + Time.unscaledTime,
                         NumberOfAttempts = attempts + 1
                     });
 
