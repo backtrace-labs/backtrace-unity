@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Model.Database
     internal class BacktraceDatabaseAttachmentManager
     {
         internal int ScreenshotMaxHeight { get; set; } = Screen.height;
-        internal int ScreenshotQuality { get; set; } = 100;
+        internal int ScreenshotQuality { get; set; } = 50;
 
         private readonly BacktraceDatabaseSettings _settings;
         private float _lastScreenTime;
