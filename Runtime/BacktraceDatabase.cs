@@ -52,6 +52,37 @@ namespace Backtrace.Unity
         /// </summary>
         public string DatabasePath { get; protected set; }
 
+        /// <summary>
+        /// Attachment support: Screenshot quality
+        /// </summary>
+        public int ScreenshotQuality
+        {
+            get
+            {
+                return BacktraceDatabaseFileContext.ScreenshotQuality;
+            }
+            set
+            {
+                BacktraceDatabaseFileContext.ScreenshotQuality = value;
+            }
+        }
+
+        /// <summary>
+        /// Attachment support: Screenshot max height - based on screenshot max height, algorithm calculates
+        /// ration, that allows to calculate screenshot max width
+        /// </summary>
+        public int ScreenshotMaxHeight
+        {
+            get
+            {
+                return BacktraceDatabaseFileContext.ScreenshotMaxHeight;
+            }
+            set
+            {
+                BacktraceDatabaseFileContext.ScreenshotMaxHeight = value;
+            }
+        }
+
 
         /// <summary>
         /// Backtrace database instance.

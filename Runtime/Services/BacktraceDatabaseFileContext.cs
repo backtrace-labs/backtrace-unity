@@ -17,6 +17,7 @@ namespace Backtrace.Unity.Services
     /// </summary>
     internal class BacktraceDatabaseFileContext : IBacktraceDatabaseFileContext
     {
+
         private string[] _possibleDatabaseExtension = new string[] { ".dmp", ".json", ".jpg", ".log" };
 
         /// <summary>
@@ -42,12 +43,57 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Attachment manager
         /// </summary>
-        private readonly BacktraceDatabaseAttachmentManager _attachmentManager;
+        internal readonly BacktraceDatabaseAttachmentManager _attachmentManager;
 
         /// <summary>
         /// Path to database directory
         /// </summary>
         private readonly string _path;
+
+        /// <summary>
+        /// Screenshot quality
+        /// </summary>
+        public int ScreenshotQuality
+        {
+            get
+            {
+                return _attachmentManager.ScreenshotQuality;
+            }
+
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentException($"{nameof(value)} has to be greater than 0");
+                }
+                if (value > 100)
+                {
+                    throw new ArgumentException($"{nameof(value)} cannot be bigger than 100");
+                }
+                _attachmentManager.ScreenshotQuality = value;
+            }
+        }
+
+        /// <summary>
+        /// Screenshot max height - based on screenshot max height, algorithm calculates
+        /// ration, that allows to calculate screenshot max width
+        /// </summary>
+        public int ScreenshotMaxHeight
+        {
+            get
+            {
+                return _attachmentManager.ScreenshotMaxHeight;
+            }
+
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentException($"{nameof(value)} has to be greater than 0");
+                }
+                _attachmentManager.ScreenshotMaxHeight = value;
+            }
+        }
 
         /// <summary>
         /// Initialize new BacktraceDatabaseFileContext instance

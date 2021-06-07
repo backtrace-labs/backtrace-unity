@@ -8,6 +8,17 @@ namespace Backtrace.Unity.Interfaces
     internal interface IBacktraceDatabaseFileContext
     {
         /// <summary>
+        /// Screenshot quality
+        /// </summary>
+        int ScreenshotQuality { get; set; }
+
+        /// <summary>
+        /// Screenshot max height - based on screenshot max height, algorithm calculates
+        /// ration, that allows to calculate screenshot max width
+        /// </summary>
+        int ScreenshotMaxHeight { get; set; }
+
+        /// <summary>
         /// Get all valid physical records stored in database directory
         /// </summary>
         /// <returns>All existing physical records</returns>

@@ -13,6 +13,11 @@ namespace Backtrace.Unity.Tests.Runtime
         public Action<BacktraceDatabaseRecord> OnDelete { get; set; }
         public Func<BacktraceDatabaseRecord, bool> OnValidRecord { get; set; }
         public Func<BacktraceDatabaseRecord, bool> OnSave { get; set; }
+
+        public int ScreenshotQuality { get; set; }
+
+        public int ScreenshotMaxHeight { get; set; }
+
         public void Clear()
         {
             throw new System.NotImplementedException();
