@@ -930,25 +930,32 @@ namespace Backtrace.Unity
         /// <param name="type">log type</param>
         internal void HandleUnityMessage(string message, string stackTrace, LogType type)
         {
-            if (!Enabled)
+            if (!Enabled || !Configuration.HandleUnhandledExceptions)
             {
                 return;
             }
-            var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
-            if (Configuration.HandleUnhandledExceptions && unityMessage.IsUnhandledException())
+            if (string.IsNullOrEmpty(message) || (type != LogType.Error && type != LogType.Exception))
             {
-                BacktraceUnhandledException exception = null;
-                var invokeSkipApi = true;
-
-                // detect sampling flow
-                // we should apply sampling only to unhandled exceptions that are type LogType == Error
-                // log type error won't provide full exception information
-                if (type == LogType.Error && SamplingShouldSkip())
+                return;
+            }
+            BacktraceUnhandledException exception = null;
+            var invokeSkipApi = true;
+            // detect sampling flow for LogType.Error + filter LogType.Error if client prefer to ignore them.
+            if (type == LogType.Error)
+            {
+                if (Configuration.ReportFilterType.HasFlag(ReportFilterType.Error))
                 {
-                    if (SkipReport != null || Configuration.ReportFilterType.HasFlag(ReportFilterType.UnhandledException))
+                    return;
+                }
+                if (SamplingShouldSkip())
+                {
+                    if (SkipReport != null)
                     {
-                        exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
-                        if (ShouldSkipReport(ReportFilterType.UnhandledException, exception, string.Empty))
+                        exception = new BacktraceUnhandledException(message, stackTrace)
+                        {
+                            Type = type
+                        };
+                        if (ShouldSkipReport(ReportFilterType.Error, exception, string.Empty))
                         {
                             return;
                         }
@@ -959,14 +966,17 @@ namespace Backtrace.Unity
                         return;
                     }
                 }
-
-                if (exception == null)
-                {
-                    exception = new BacktraceUnhandledException(unityMessage.Message, unityMessage.StackTrace);
-                }
-
-                SendUnhandledException(exception, invokeSkipApi);
             }
+
+            if (exception == null)
+            {
+                exception = new BacktraceUnhandledException(message, stackTrace)
+                {
+                    Type = type
+                };
+            }
+
+            SendUnhandledException(exception, invokeSkipApi);
         }
 
         /// <summary>
@@ -1010,9 +1020,10 @@ namespace Backtrace.Unity
             var filterType = ReportFilterType.Exception;
             if (exception is BacktraceUnhandledException)
             {
-                filterType = (exception as BacktraceUnhandledException).Classifier == "ANRException"
+                var unhandledException = (exception as BacktraceUnhandledException);
+                filterType = unhandledException.Classifier == "ANRException"
                     ? ReportFilterType.Hang
-                    : ReportFilterType.UnhandledException;
+                    : unhandledException.Type == LogType.Exception ? ReportFilterType.UnhandledException: ReportFilterType.Error;
             }
 
 
