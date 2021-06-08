@@ -15,6 +15,17 @@ namespace Backtrace.Unity.Interfaces
     public interface IBacktraceDatabase
     {
         /// <summary>
+        /// Screenshot quality
+        /// </summary>
+        int ScreenshotQuality { get; set; }
+
+        /// <summary>
+        /// Screenshot max height - based on screenshot max height, algorithm calculates
+        /// ratio, that allows to calculate screenshot max width
+        /// </summary>
+        int ScreenshotMaxHeight { get; set; }
+
+        /// <summary>
         /// Backtrace Breadcrumbs
         /// </summary>
         IBacktraceBreadcrumbs Breadcrumbs { get; }
