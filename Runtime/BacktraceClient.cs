@@ -940,9 +940,7 @@ namespace Backtrace.Unity
             }
             BacktraceUnhandledException exception = null;
             var invokeSkipApi = true;
-            // detect sampling flow
-            // we should apply sampling only to unhandled exceptions that are type LogType == Error
-            // LogType.Error won't provide full exception information
+            // detect sampling flow for LogType.Error + filter LogType.Error if client prefer to ignore them.
             if (type == LogType.Error)
             {
                 if (Configuration.ReportFilterType.HasFlag(ReportFilterType.Error))
