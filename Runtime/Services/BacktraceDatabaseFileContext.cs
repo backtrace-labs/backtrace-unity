@@ -76,7 +76,7 @@ namespace Backtrace.Unity.Services
 
         /// <summary>
         /// Screenshot max height - based on screenshot max height, algorithm calculates
-        /// ration, that allows to calculate screenshot max width
+        /// ratio, that allows to calculate screenshot max width
         /// </summary>
         public int ScreenshotMaxHeight
         {
