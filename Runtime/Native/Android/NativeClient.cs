@@ -254,18 +254,22 @@ namespace Backtrace.Unity.Runtime.Native.Android
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
 
             // reassign to captureNativeCrashes
-            // to avoid doing anything on crashpad binary, when crashpad
-            // isn't available
+            // to avoid doing anything on crashpad binary, when crashpad isn't available
             _captureNativeCrashes = Initialize(
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Keys.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Values.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()));
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
+            }
+
+            foreach (var attribute in backtraceAttributes)
+            {
+                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
 
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
