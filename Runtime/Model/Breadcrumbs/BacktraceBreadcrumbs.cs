@@ -43,17 +43,6 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             return LogManager.Clear();
         }
 
-
-        public bool Log(string message, LogType type)
-        {
-            return Log(message, type, null);
-        }
-
-        public bool Debug(string message)
-        {
-            return Log(message, LogType.Assert);
-        }
-
         public bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
         {
             if (_enabled)
@@ -70,16 +59,6 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             }
             EventHandler.Register(level);
             return true;
-        }
-
-        public bool Exception(Exception exception)
-        {
-            return Log(exception.Message, LogType.Error, null);
-        }
-
-        public bool Exception(string message)
-        {
-            return Log(message, LogType.Error, null);
         }
 
         public bool FromBacktrace(BacktraceReport report)
@@ -110,35 +89,45 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             return Log(message, LogType.Log, null);
         }
-
+        public bool Info(string message, IDictionary<string, string> attributes)
+        {
+            return Log(message, LogType.Log, attributes);
+        }
         public bool Warning(string message)
         {
             return Log(message, LogType.Warning, null);
         }
-
-        public bool Debug(string message, IDictionary<string, string> attributes)
-        {
-            return Log(message, LogType.Assert, attributes);
-        }
-
-        public bool Info(string message, IDictionary<string, string> attributes)
-        {
-            return Log(message, LogType.Assert, attributes);
-        }
-
         public bool Warning(string message, IDictionary<string, string> attributes)
         {
             return Log(message, LogType.Warning, attributes);
         }
-
+        public bool Debug(string message, IDictionary<string, string> attributes)
+        {
+            return Log(message, LogType.Assert, attributes);
+        }
+        public bool Debug(string message)
+        {
+            return Log(message, LogType.Assert);
+        }
+        public bool Exception(string message)
+        {
+            return Log(message, LogType.Exception, null);
+        }
         public bool Exception(Exception exception, IDictionary<string, string> attributes)
         {
             return Log(exception.Message, LogType.Exception, attributes);
         }
-
+        public bool Exception(Exception exception)
+        {
+            return Log(exception.Message, LogType.Exception, null);
+        }
         public bool Exception(string message, IDictionary<string, string> attributes)
         {
             return Log(message, LogType.Exception, attributes);
+        }
+        public bool Log(string message, LogType type)
+        {
+            return Log(message, type, null);
         }
         public bool Log(string message, LogType logType, IDictionary<string, string> attributes)
         {

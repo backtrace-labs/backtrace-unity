@@ -68,7 +68,7 @@ namespace Backtrace.Unity.Services
                 }
                 if (value > 100)
                 {
-                    throw new ArgumentException($"{nameof(value)} cannot be bigger than 100");
+                    throw new ArgumentException($"{nameof(value)} cannot be larger than 100");
                 }
                 _attachmentManager.ScreenshotQuality = value;
             }
