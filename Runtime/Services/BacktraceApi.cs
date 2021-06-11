@@ -1,9 +1,11 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,6 +19,10 @@ namespace Backtrace.Unity.Services
     /// </summary>
     internal class BacktraceApi : IBacktraceApi
     {
+        /// <summary>
+        /// Backtrace Http client instance.
+        /// </summary>
+        private BacktraceHttpClient _httpClient = new BacktraceHttpClient();
         /// <summary>
         /// User custom request method
         /// </summary>
@@ -69,8 +75,6 @@ namespace Backtrace.Unity.Services
         private readonly BacktraceCredentials _credentials;
 
 
-
-        private readonly bool _ignoreSslValidation;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
@@ -85,9 +89,9 @@ namespace Backtrace.Unity.Services
                 throw new ArgumentException(string.Format("{0} cannot be null", "BacktraceCredentials"));
             }
 
-            _ignoreSslValidation = ignoreSslValidation;
             _serverUrl = credentials.GetSubmissionUrl();
             _minidumpUrl = credentials.GetMinidumpSubmissionUrl().ToString();
+            _httpClient.IgnoreSslValidation = ignoreSslValidation;
         }
 
         /// <summary>
@@ -101,7 +105,7 @@ namespace Backtrace.Unity.Services
         {
             if (attachments == null)
             {
-                attachments = new List<string>();
+                attachments = new HashSet<string>();
             }
 
             var stopWatch = EnablePerformanceStatistics
@@ -113,35 +117,11 @@ namespace Backtrace.Unity.Services
             {
                 yield break;
             }
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
+            using (var request = _httpClient.Post(_minidumpUrl, minidumpBytes, attachments))
             {
-                new MultipartFormFileSection("upload_file", minidumpBytes)
-            };
-
-            foreach (var file in attachments)
-            {
-                if (File.Exists(file) && new FileInfo(file).Length < 10000000)
-                {
-                    formData.Add(new MultipartFormFileSection(
-                        string.Format("attachment__{0}", Path.GetFileName(file)),
-                        File.ReadAllBytes(file)));
-                }
-            }
-
-            yield return new WaitForEndOfFrame();
-            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
-            using (var request = UnityWebRequest.Post(_minidumpUrl, formData, boundaryIdBytes))
-            {
-#if UNITY_2018_4_OR_NEWER
-                if (_ignoreSslValidation)
-                {
-                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
-                }
-#endif
-                request.SetRequestHeader("Content-Type", string.Format("multipart/form-data; boundary={0}", Encoding.UTF8.GetString(boundaryIdBytes)));
-                request.timeout = 15000;
                 yield return request.SendWebRequest();
-                var result = request.isNetworkError || request.isHttpError
+
+                var result = request.ReceivedNetworkError()
                     ? new BacktraceResult()
                     {
                         Message = request.error,
@@ -191,12 +171,12 @@ namespace Backtrace.Unity.Services
         /// <param name="deduplication">Deduplication count</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
             var queryAttributes = new Dictionary<string, string>();
             if (deduplication > 0)
             {
-                queryAttributes["_mod_duplicate"] = deduplication.ToString();
+                queryAttributes["_mod_duplicate"] = deduplication.ToString(CultureInfo.InvariantCulture);
             }
             yield return Send(json, attachments, queryAttributes, callback);
 
@@ -210,7 +190,7 @@ namespace Backtrace.Unity.Services
         /// <param name="queryAttributes">Query string attributes</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
         {
             var stopWatch = EnablePerformanceStatistics
               ? System.Diagnostics.Stopwatch.StartNew()
@@ -220,36 +200,9 @@ namespace Backtrace.Unity.Services
                 ? GetParametrizedQuery(_serverUrl.ToString(), queryAttributes)
                 : ServerUrl;
 
-
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
+            using (var request = _httpClient.Post(requestUrl, json, attachments))
             {
-                new MultipartFormFileSection("upload_file",  Encoding.UTF8.GetBytes(json), "upload_file.json", "application/json")
-            };
-
-            foreach (var file in attachments)
-            {
-                if (File.Exists(file) && new FileInfo(file).Length < 10000000)
-                {
-                    formData.Add(new MultipartFormFileSection(
-                        string.Format("attachment__{0}", Path.GetFileName(file)),
-                        File.ReadAllBytes(file)));
-                }
-            }
-
-
-            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
-            using (var request = UnityWebRequest.Post(requestUrl, formData, boundaryIdBytes))
-            {
-#if UNITY_2018_4_OR_NEWER
-                if (_ignoreSslValidation)
-                {
-                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
-                }
-#endif
-                request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + Encoding.UTF8.GetString(boundaryIdBytes));
-                request.timeout = 15000;
                 yield return request.SendWebRequest();
-
                 BacktraceResult result;
                 if (request.responseCode == 429)
                 {
@@ -263,7 +216,7 @@ namespace Backtrace.Unity.Services
                         OnServerResponse.Invoke(result);
                     }
                 }
-                else if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
+                else if (request.responseCode == 200 && request.ReceivedNetworkError() != true)
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
                     _shouldDisplayFailureMessage = true;
@@ -292,7 +245,7 @@ namespace Backtrace.Unity.Services
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Stop();
-                    Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
+                    Debug.Assert(EnablePerformanceStatistics, string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
             }

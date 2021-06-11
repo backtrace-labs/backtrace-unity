@@ -1,6 +1,9 @@
-﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Common;
+using Backtrace.Unity.Model.Breadcrumbs;
+using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -76,7 +79,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
-        [Tooltip("Number of logs collected by Backtrace-Unity")]
+        [Obsolete("Please use breadcrumbs integration")]
         public uint NumberOfLogs = 10;
 
         /// <summary>
@@ -84,6 +87,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Enable performance statistics")]
         public bool PerformanceStatistics = false;
+
         /// <summary>
         /// Try to find game native crashes and send them on Game startup
         /// </summary>
@@ -110,16 +114,11 @@ namespace Backtrace.Unity.Model
         [Tooltip("Handle ANR events - Application not responding")]
         public bool HandleANR = true;
 
-#if UNITY_ANDROID
-        /// <summary>
-        /// Send Low memory warnings to Backtrace
-        /// </summary>
-        [Tooltip("(Early access) Send Low memory warnings to Backtrace")]
-#elif UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
          /// <summary>
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
-        [Tooltip("(Early access) Send Out of memory exceptions to Backtrace")]
+        [Tooltip("Send Out of Memory exceptions to Backtrace")]
 #endif
         public bool OomReports = false;
 
@@ -144,6 +143,23 @@ namespace Backtrace.Unity.Model
 
         public DeduplicationStrategy DeduplicationStrategy = DeduplicationStrategy.None;
 
+        /// <summary>
+        /// Enable breadcrumbs support
+        /// </summary>
+        [Tooltip("Enable breadcurmbs integration that will include game breadcrumbs in each report (native + managed).")]
+        public bool EnableBreadcrumbsSupport = false;
+
+        /// <summary>
+        /// Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumbs file
+        /// </summary>
+        [Tooltip("Breadcrumbs support breadcrumbs level- Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumb file")]
+        public BacktraceBreadcrumbType BacktraceBreadcrumbsLevel;
+
+        /// <summary>
+        /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
+        /// </summary>
+        [Tooltip("Braeadcrumbs log level")]
+        public UnityEngineLogLevel LogLevel;
 
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
@@ -174,12 +190,31 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Screenshot JPG quality 0-100, default 50")]
         public int ScreenshotQuality = 50;
+        
+        /// <summary>
+        /// List of path to attachments that Backtrace client will include in the native and managed reports.
+        /// </summary>
+        [Tooltip("List of path to attachments that Backtrace client will include in the native and managed reports.")]
+        public string[] AttachmentPaths;
 
         /// <summary>
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]
         public string DatabasePath;
+
+        /// <summary>
+        /// Enable event aggregation support
+        /// </summary>
+        [Tooltip("This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.")]
+        public bool EnableMetricsSupport = false;
+
+        /// <summary>
+        /// Time interval in ms
+        /// </summary>
+        [Range(0, 60)]
+        [Tooltip("How often events should be sent to the Backtrace endpoints, in minutes. Zero (0) disables auto send and will require manual periodic sending using the API. For more information, see the README.")]
+        public uint TimeIntervalInMin = BacktraceMetrics.DefaultTimeIntervalInMin;
 
         /// <summary>
         /// Determine if database is enable
@@ -225,7 +260,7 @@ namespace Backtrace.Unity.Model
 
         /// <summary>
         /// Maximum number of retries
-        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up")]
+        [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.")]
         public int RetryLimit = 3;
 
         /// <summary>
@@ -234,9 +269,70 @@ namespace Backtrace.Unity.Model
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
 
+        /// <summary>
+        /// Get full paths to attachments added by client
+        /// </summary>
+        /// <returns>List of absolute path to attachments</returns>
+        public HashSet<string> GetAttachmentPaths()
+        {
+            var result = new HashSet<string>();
+            if (AttachmentPaths == null || AttachmentPaths.Length == 0)
+            {
+                return result;
+            }
+
+            foreach (var path in AttachmentPaths)
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    result.Add(ClientPathHelper.GetFullPath(path));
+                }
+            }
+            return result;
+        }
+
+        public string GetUniverseName()
+        {
+            var submissionUrl = GetValidServerUrl();
+            var submitUrl = submissionUrl.Contains("submit.backtrace.io");
+            if (submitUrl)
+            {
+                const int tokenLength = 64;
+                // we want to skip the last `/`. Since we're counting from 0 we need to decrease 
+                // position by 2
+                var endPosition = submissionUrl.LastIndexOf("/") - tokenLength - 2;
+                var startPosition = submissionUrl.LastIndexOf('/', endPosition) + 1;
+                return submissionUrl.Substring(startPosition, endPosition - startPosition + 1);
+            }
+            else
+            {
+                const string backtraceDomain = "backtrace.io";
+                var domainIndex = submissionUrl.IndexOf(backtraceDomain);
+                if (domainIndex == -1)
+                {
+                    throw new ArgumentException("Invalid Backtrace url");
+                }
+
+                var uri = new UriBuilder(submissionUrl);
+                return uri.Host.Substring(0, uri.Host.IndexOf("."));
+            }
+
+        }
+
+        public string GetToken()
+        {
+            const int tokenLength = 64;
+            const string tokenQueryParam = "token=";
+            var submissionUrl = GetValidServerUrl();
+            var token = submissionUrl.Contains("submit.backtrace.io")
+                ? submissionUrl.Substring(submissionUrl.LastIndexOf("/") - tokenLength, tokenLength)
+                : submissionUrl.Substring(submissionUrl.IndexOf(tokenQueryParam) + tokenQueryParam.Length, tokenLength);
+            return token;
+        }
+
         public string GetFullDatabasePath()
         {
-            return DatabasePathHelper.GetFullDatabasePath(DatabasePath);
+            return ClientPathHelper.GetFullPath(DatabasePath);
         }
         public string CrashpadDatabasePath
         {
@@ -290,6 +386,10 @@ namespace Backtrace.Unity.Model
             return ValidateServerUrl(ServerUrl);
         }
 
+        public uint GetEventAggregationIntervalTimerInMs()
+        {
+            return TimeIntervalInMin * 60;
+        }
 
         public BacktraceCredentials ToCredentials()
         {

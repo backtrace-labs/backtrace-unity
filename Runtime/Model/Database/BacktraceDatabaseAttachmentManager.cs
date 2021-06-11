@@ -12,6 +12,9 @@ namespace Backtrace.Unity.Model.Database
     /// </summary>
     internal class BacktraceDatabaseAttachmentManager
     {
+        internal int ScreenshotMaxHeight { get; set; } = Screen.height;
+        internal int ScreenshotQuality { get; set; } = 90;
+
         private readonly BacktraceDatabaseSettings _settings;
         private float _lastScreenTime;
         private string _lastScreenPath;
@@ -93,13 +96,13 @@ namespace Backtrace.Unity.Model.Database
                 }
                 else
                 {
-
-                    if (_settings.ScreenshotMaxHeight < Screen.height)
+                    Texture2D result;
+                    if (ScreenshotMaxHeight < Screen.height)
                     {
 
-                        float ratio = (float)Screen.width / (float)Screen.height;
-                        int targetHeight = Mathf.Min(Screen.height, _settings.ScreenshotMaxHeight);
-                        int targetWidth = Mathf.RoundToInt((float)targetHeight * ratio);
+                        float ratio = Screen.width / Screen.height;
+                        int targetHeight = Mathf.Min(Screen.height, ScreenshotMaxHeight);
+                        int targetWidth = Mathf.RoundToInt(targetHeight * ratio);
 
 #if UNITY_2019_1_OR_NEWER
                         RenderTexture screenTexture = RenderTexture.GetTemporary(Screen.width, Screen.height);
@@ -112,15 +115,19 @@ namespace Backtrace.Unity.Model.Database
                         RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
 
                         if (SystemInfo.graphicsUVStartsAtTop)
+                        {
                             Graphics.Blit(screenTexture, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
+                        }
                         else
+                        {
                             Graphics.Blit(screenTexture, rt);
+                        }
 
                         RenderTexture previousActiveRT = RenderTexture.active;
                         RenderTexture.active = rt;
 
                         // Create a texture & read data from the active RenderTexture
-                        Texture2D result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
+                        result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
                         result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
                         result.Apply();
 
@@ -134,24 +141,15 @@ namespace Backtrace.Unity.Model.Database
 #else
                         GameObject.Destroy(screenTexture);
 #endif
-
-                        File.WriteAllBytes(screenshotPath, result.EncodeToJPG(_settings.ScreenshotQuality));
-
-                        GameObject.Destroy(result);
-
                     }
                     else
                     {
-
-                        var result = ScreenCapture.CaptureScreenshotAsTexture();
-
-                        File.WriteAllBytes(screenshotPath, result.EncodeToJPG(_settings.ScreenshotQuality));
-
-                        GameObject.Destroy(result);
-
+                        result = ScreenCapture.CaptureScreenshotAsTexture();
                     }
-                    // For testing purposes, also write to a file in the project folder
-                    
+
+                    File.WriteAllBytes(screenshotPath, result.EncodeToJPG(ScreenshotQuality));
+                    GameObject.Destroy(result);
+
                     _lastScreenTime = BacktraceDatabase.LastFrameTime;
                     _lastScreenPath = screenshotPath;
 

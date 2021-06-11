@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -19,7 +18,7 @@ namespace Backtrace.Unity.Json
         /// <summary>
         /// JSON object source - primitive values
         /// </summary>
-        internal readonly Dictionary<string, string> UserPrimitives;
+        internal readonly IDictionary<string, string> UserPrimitives;
 
         /// <summary>
         /// Inner objects
@@ -34,7 +33,7 @@ namespace Backtrace.Unity.Json
 
         public BacktraceJObject() : this(null) { }
 
-        public BacktraceJObject(Dictionary<string, string> source)
+        public BacktraceJObject(IDictionary<string, string> source)
         {
             UserPrimitives = source == null ? new Dictionary<string, string>() : source;
         }
@@ -47,7 +46,7 @@ namespace Backtrace.Unity.Json
         /// <param name="value">value</param>
         public void Add(string key, bool value)
         {
-            PrimitiveValues.Add(key, value.ToString().ToLower());
+            PrimitiveValues.Add(key, value.ToString(CultureInfo.InvariantCulture).ToLower());
         }
 
 
@@ -57,9 +56,9 @@ namespace Backtrace.Unity.Json
         /// </summary>
         /// <param name="key">JSON key</param>
         /// <param name="value">value</param>
-        public void Add(string key, float value)
+        public void Add(string key, float value, string format = "G")
         {
-            PrimitiveValues.Add(key, value.ToString("G", CultureInfo.InvariantCulture));
+            PrimitiveValues.Add(key, value.ToString(format, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -67,9 +66,9 @@ namespace Backtrace.Unity.Json
         /// </summary>
         /// <param name="key">JSON key</param>
         /// <param name="value">value</param>
-        public void Add(string key, double value)
+        public void Add(string key, double value, string format = "G")
         {
-            PrimitiveValues.Add(key, value.ToString("G", CultureInfo.InvariantCulture));
+            PrimitiveValues.Add(key, value.ToString(format, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -100,7 +99,7 @@ namespace Backtrace.Unity.Json
         /// <param name="value">value</param>
         public void Add(string key, long value)
         {
-            PrimitiveValues.Add(key, value.ToString());
+            PrimitiveValues.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -171,7 +170,7 @@ namespace Backtrace.Unity.Json
                     AppendKey(entry.Key, stringBuilder);
                     if (string.IsNullOrEmpty(entry.Value))
                     {
-                        stringBuilder.Append("null");
+                        stringBuilder.Append("\"\"");
                     }
                     else
                     {
@@ -198,7 +197,7 @@ namespace Backtrace.Unity.Json
                     propertyIndex++;
                     var entry = enumerator.Current;
                     AppendKey(entry.Key, stringBuilder);
-                    stringBuilder.Append(string.IsNullOrEmpty(entry.Value) ? "null" : entry.Value);
+                    stringBuilder.Append(string.IsNullOrEmpty(entry.Value) ? "\"\"" : entry.Value);
 
                     if (propertyIndex != PrimitiveValues.Count)
                     {
@@ -255,7 +254,7 @@ namespace Backtrace.Unity.Json
                     AppendKey(entry.Key, stringBuilder);
                     if (entry.Value == null)
                     {
-                        stringBuilder.Append("null");
+                        stringBuilder.Append("\"\"");
                     }
                     else if (entry.Value is IEnumerable && !(entry.Value is IDictionary))
                     {
@@ -269,7 +268,7 @@ namespace Backtrace.Unity.Json
                             }
                             if (item == null)
                             {
-                                stringBuilder.Append("null");
+                                stringBuilder.Append("\"\"");
                             }
                             else if (item is BacktraceJObject)
                             {
@@ -305,7 +304,7 @@ namespace Backtrace.Unity.Json
             builder.Append("\"");
             if (string.IsNullOrEmpty(value))
             {
-                builder.Append("null");
+                builder.Append("\"\"");
             }
             else
             {

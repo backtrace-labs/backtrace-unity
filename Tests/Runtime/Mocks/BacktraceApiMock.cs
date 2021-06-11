@@ -33,7 +33,7 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
-        public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
             if (callback != null)
             {
@@ -42,7 +42,7 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
-        public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
         {
             if (callback != null)
             {

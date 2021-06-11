@@ -139,7 +139,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private void Clear()
         {
-            long currentTime = new DateTime().Timestamp();
+            long currentTime = DateTimeHelper.Timestamp();
             bool clear = false;
             while (!clear && _reportQueue.Count != 0)
             {
