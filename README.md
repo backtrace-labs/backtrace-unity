@@ -17,6 +17,8 @@ Create your Backtrace instance at https://backtrace.io/create-unity today and th
 - [iOS Specific information](#ios-specific-information)
 - [Data Privacy](#data-privacy)
 - [API Overview](#api-overview)
+- [Breadcrumbs](#breadcrumbs)
+- [Crash Free Metrics](#crash-free-metrics)
 - [Architecture description](#architecture-description)
 - [Investigating an Error in Backtrace](#investigating-an-error-in-backtrace)
 
@@ -46,7 +48,7 @@ catch(Exception exception)
   - Callstacks, including function names and line numbers where possible
   - System metadata including device GUID, OS version, memory usage, process age
   - Custom metadata including app version, scene info, device drivers
-  - Last # log lines, screenshots, log or config files, other attachments
+  - Breadcrumbs, screenshots, log or config files, other attachments
   - Android NDK Crashes; iOS Native Crashes, Windows Native Crashes
 - Client-side features
   - Deduplication options and custom client side fingerprinting
@@ -59,7 +61,7 @@ catch(Exception exception)
 # Prerequisites
 
 - Unity environment 2017.4.x
-- .NET 2.0/3.5/4.5/Standard 2.0 scripting runtime version
+- .NET 3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
 - Backtrace instance - Create your own at https://backtrace.io/create-unity
 
@@ -72,7 +74,7 @@ Web - WebGL
 Game Consoles - PlayStation4, Xbox One, Nintendo Switch
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 
-- All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Last N Log Lines, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
+- All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Breadcrumbs, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Crash Free Metrics (except WebGL), Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
 - Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings.
 - iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
 - WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html)
@@ -165,34 +167,45 @@ The following is a reference guide to the Backtrace Client fields:
 
 - Server Address: This field is required to submit exceptions from your Unity project to your Backtrace instance. More information about how to retrieve this value for your instance is our docs at What is a submission URL and What is a submission token? NOTE: the backtrace-unity plugin will expect full URL with token to your Backtrace instance,
 - Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Further, the BacktraceClient.Send/BacktraceClient.SendAsync method will return false.
-- Destroy client on new scene load - Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true.
-- Use normalized exception message: If exception does not have a stack trace, use a normalized exception message to generate fingerprint.
-- Filter reports: Configure Backtrace plugin to filter reports based on report type - Message, Exception, Unhandled Exception, Hang. By default this option is disabled (None).
-- Send unhandled native game crashes on startup: Try to find game native crashes and send them on Game startup.
-- Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
-- Symbols upload token - If you want to upload Unity debug symbols for Android NDK Native Crash debugging, enter your Backtrace Symbol upload token here. This option is available only in Android build.
-- Log random sampling rate - Enables a random sampling mechanism for DebugLog.error messages - **by default** sampling is equal to **0.01** - which means only **1%** of randomply sampling **reports will be send** to Backtrace. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1.
-- Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
-- Collect last n game logs: Collect last n number of logs generated by game.
-- Enabled performance statistics: Allows `BacktraceClient` to measure execution time and include performance information as report attributes.
-- Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
-- Handle ANR (Application not responding) - this option is available in Android and iOS build only. It allows to catch and report on ANR (application not responding) events happening in your game on mobile platform. See [here](#anr-reporting) for details.
-- (Early Access) Send out of memory exceptions to Backtrace - this option is available in Android and iOS build only. See [here](#oom-reporting) for details.
-- Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
-- Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS
-  `${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.
-- Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
-- Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
-- Capture native crashes: This option will appear for games being deployed to Android or iOS and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Plugin.
-- Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
-- Attach Unity Player.log: Add Unity player log file to Backtrace report. NOTE: This feature is available only on desktop - Windows/MacOS/Linux.
-- Attach screenshot: Generate and attach screenshot of frame as exception occurs.
-- Auto Send Mode: When toggled on, the database will send automatically reports to Backtrace server based on the Retry Settings below. When toggled off, the developer will need to use the Flush method to attempt to send and clear. Recommend that this is toggled on.
-- Maximum number of records: This is one of two limits you can impose for controlling the growth of the offline store. This setting is the maximum number of stored reports in database. If value is equal to zero, then limit not exists, When the limit is reached, the database will remove the oldest entries.
-- Maximum database size: This is the second limit you can impose for controlling the growth of the offline store. This setting is the maximum database size in MB. If value is equal to zero, then size is unlimited, When the limit is reached, the database will remove the oldest entries.
-- Retry interval: If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries.
-- Maximum retries: If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.
-- Retry order: This specifies in which order records are sent to the Backtrace server.
+- Client Advanced Settings
+  - Destroy client on new scene load - Backtrace-client by default will be available on each scene. Once you initialize Backtrace integration, you can fetch Backtrace game object from every scene. In case if you don't want to have Backtrace-unity integration available by default in each scene, please set this value to true.
+  - Use normalized exception message: If exception does not have a stack trace, use a normalized exception message to generate fingerprint.
+  - Filter reports: Configure Backtrace plugin to filter reports based on report type - Message, Exception, Unhandled Exception, Hang. By default this option is disabled (None).
+  - Send unhandled native game crashes on startup: Try to find game native crashes and send them on Game startup.
+  - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
+  - Symbols upload token - If you want to upload Unity debug symbols for Android NDK Native Crash debugging, enter your Backtrace Symbol upload token here. This option is available only in Android build.
+  - Log random sampling rate - Enables a random sampling mechanism for DebugLog.error messages - **by default** sampling is equal to **0.01** - which means only **1%** of randomply sampling **reports will be send** to Backtrace. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1.
+ - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
+ - REMOVED: Collect last n game logs: Collect last n number of logs generated by game. This is not part of Breadcrumbs
+ - Enabled performance statistics: Allows `BacktraceClient` to measure execution time and include performance information as report attributes.
+ - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
+ - Handle ANR (Application not responding) - this option is available in Android and iOS build only. It allows to catch and report on ANR (application not responding) events happening in your game on mobile platform. See [here](#anr-reporting) for details.
+ - Send out of memory exceptions to Backtrace - this option is available in Android and iOS build only. See [here](#oom-reporting) for details.
+
+- Crash Free Metrics Reporting
+  - Enable crash free metrics reporting. This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.
+- Attachments Paths
+  - Paths to attachments to be included for all report types.
+- Backtrace Database Configuration
+  - Enable Database: When this setting is toggled, the backtrace-unity plugin will configure an offline database that will store reports if they can't be submitted do to being offline or not finding a network. When toggled on, there are a number of Database settings to configure.
+  - Backtrace Database path: This is the path to directory where the Backtrace database will store reports on your game. You can use interpolated strings SUCH AS
+    `${Application.persistentDataPath}/backtrace/database` to dynamically look up a known directory structure to use. NOTE: Backtrace database will remove all existing files in the database directory upion first initialization.
+  - Create database directory toggle: If toggled, the library will create the offline database directory if the provided path doesn't exists,
+  - Client-side deduplication: Backtrace-unity plugin allows you to combine the same reports. By using deduplication rules, you can tell backtrace-unity plugin how we should merge reports.
+  - Breadcrumbs
+    - Enable breadcrumbs support - Toggles whether or not Breadcrumbs will be collected and submitted
+    - Breadcrumbs events type - Specifies which events to collect and send
+    - Breadcrumbs log level - Specifies which logs levels to include. For example, including DEBUG log level will provide more details, but a shorter time window due to network bandwidth constraints
+  - Capture native crashes: This option will appear for games being deployed to Android or iOS and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Plugin.
+  - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
+  - Attach Unity Player.log: Add Unity player log file to Backtrace report. NOTE: This feature is available only on desktop - Windows/MacOS/Linux.
+  - Attach screenshot: Generate and attach screenshot of frame as exception occurs.
+  - Auto Send Mode: When toggled on, the database will send automatically reports to Backtrace server based on the Retry Settings below. When toggled off, the developer will need to use the Flush method to attempt to send and clear. Recommend that this is toggled on.
+  - Maximum number of records: This is one of two limits you can impose for controlling the growth of the offline store. This setting is the maximum number of stored reports in database. If value is equal to zero, then limit not exists, When the limit is reached, the database will remove the oldest entries.
+  - Maximum database size: This is the second limit you can impose for controlling the growth of the offline store. This setting is the maximum database size in MB. If value is equal to zero, then size is unlimited, When the limit is reached, the database will remove the oldest entries.
+  - Retry interval: If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries.
+  - Maximum retries: If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.
+  - Retry order: This specifies in which order records are sent to the Backtrace server.
 
 # Android Specific information
 
@@ -208,7 +221,7 @@ When configuring the backtrace-unity client for an Android deployment, programme
 
 The `error.type` for these reports will be `Hang`.
 
-## (Early Access) Out of Memory Reports <a name="oom-reporting"></a>
+## Out of Memory Reports <a name="oom-reporting"></a>
 
 Backtrace can detect and flag low memory conditions for Unity games running on Android devices. When low memory conditions are detected, two attributes will be set:
 
@@ -218,8 +231,6 @@ Backtrace can detect and flag low memory conditions for Unity games running on A
 If the games does not recover from low memory conditions and the operating system does decide to kill the game, a crash report will be submitted to Backtrace with `memory.warning` and `memory.warning.date` set.
 
 This functionality can be toggled on or off in the Backtrace configuration.
-
-Note that this functionality is released as 'early access' and will be functionally improved in the near future to aid root cause resolution.
 
 ## Symbols upload
 
@@ -249,7 +260,7 @@ system and vm usage related information including system.memory.free, system.mem
 
 When configuring the backtrace-unity client for an iOS deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
 
-## Out of Memory Reports (Early access)
+## Out of Memory Reports
 
 On iOS devices, when the operation system indicates there's memory pressure, Backtrace take a snapshot of the application state and persists it on the mobile device. When the operating system ends up killing the game, upon restart Backtrace will inspect the state file and deduce if the game was terminated because of memory pressure (for more information on the algorithm, see the [backtrace-cocoa repository](https://github.com/backtrace-labs/backtrace-cocoa#how-does-your-out-of-memory-detection-algorithm-work-)). If so, an error will be sent based on the data that was previously collected and persisted. Note that a snapshot will be taken every 2 minutes at most if low memory conditions persist.
 
@@ -434,6 +445,32 @@ backtraceClient.BeforeSend =
 ## Reporting unhandled application exceptions
 
 `BacktraceClient` supports reporting of unhandled application exceptions not captured by your try-catch blocks. To enable reporting of unhandled exceptions please use Backtrace configuration UI available in the Unity IDE.
+
+## Breadcrumbs <a name="breadcrumbs"></a>
+
+Once enabled, various "breadcrumb" events (such as application going to background, logging message, network connectivity lost and many more) will be submitted with all types of Backtrace reports and viewable in the web console. It is possible to configure client-side which events to include and from which log level severity. By default the breadcrumbs are limited to 64kB and older events will automatically be cleaned up. This functionality is supported on all Unity supported platforms.
+
+The Breadcrumbs will show up under the Breadcrumbs tab in the web console:
+
+![image](https://user-images.githubusercontent.com/726645/120375005-7e70a200-c2d7-11eb-9066-6e96f7996af9.png)
+
+It is also possible to add custom events, like "player completed a level" as well as sub attributes, via the API:
+
+```cs
+GetComponent<BacktraceClient>().Breadcrumbs.Info("Player Base Upgraded", new Dictionary<string, string>() {
+  {"base.name", "MtGox"},
+  {"base.level", "15"}
+});
+```
+
+## Crash Free Metrics <a name="crash-free-metrics"></a>
+
+Once enabled, unique application launches and unique player identifiers (default: guid) will be submitted to Backtrace so you will be able to get an overview in our web console of how many errors, hangs, crashes and memory problems occur compared to all active users for a given platform, version, etcetera. See the README for more info on functionality and configuration options. 
+
+![image](https://user-images.githubusercontent.com/726645/120375869-7f560380-c2d8-11eb-80bf-b15ea90c0ad3.png)
+![image](https://user-images.githubusercontent.com/726645/120376224-d8be3280-c2d8-11eb-88a9-5c16d49e263b.png)
+
+Note! This functionality is supported on all Unity supported platforms except WebGL.
 
 ## Filtering a report
 

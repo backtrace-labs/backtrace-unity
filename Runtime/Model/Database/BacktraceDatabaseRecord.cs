@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model.Database
@@ -47,16 +46,11 @@ namespace Backtrace.Unity.Model.Database
         internal BacktraceData Record { get; set; }
 
         /// <summary>
-        /// Path to database directory
-        /// </summary>
-        private string _path = string.Empty;
-
-        /// <summary>
         /// Attachments path
         /// </summary>
-        public List<string> Attachments { get; private set; }
+        public ICollection<string> Attachments { get; private set; }
 
-        private string _diagnosticDataJson;
+        internal string DiagnosticDataJson { get; set; }
 
         /// <summary>
         /// Determine if current record is duplicated
@@ -87,9 +81,9 @@ namespace Backtrace.Unity.Model.Database
         /// <returns></returns>
         public string BacktraceDataJson()
         {
-            if (!string.IsNullOrEmpty(_diagnosticDataJson))
+            if (!string.IsNullOrEmpty(DiagnosticDataJson))
             {
-                return _diagnosticDataJson;
+                return DiagnosticDataJson;
             }
 
             if (Record != null)
@@ -133,7 +127,7 @@ namespace Backtrace.Unity.Model.Database
                 dataPath = DiagnosticDataPath,
                 size = Size,
                 hash = Hash,
-                attachments = Attachments
+                attachments = new List<string>(Attachments)
             };
             return JsonUtility.ToJson(rawRecord, false);
         }
@@ -165,84 +159,11 @@ namespace Backtrace.Unity.Model.Database
         /// Create new instance of database record
         /// </summary>
         /// <param name="data">Diagnostic data</param>
-        /// <param name="path">database path</param>
-        public BacktraceDatabaseRecord(BacktraceData data, string path)
+        public BacktraceDatabaseRecord(BacktraceData data)
         {
             Id = data.Uuid;
             Record = data;
-            _path = path;
             Attachments = data.Attachments;
-        }
-
-        /// <summary>
-        /// Save data to hard drive
-        /// </summary>
-        /// <returns>True if record was successfully saved on hard drive</returns>
-        public bool Save()
-        {
-            try
-            {
-                var jsonPrefix = Record.UuidString;
-                _diagnosticDataJson = Record.ToJson();
-                DiagnosticDataPath = Path.Combine(_path, string.Format("{0}-attachment.json", jsonPrefix));
-                Save(_diagnosticDataJson, DiagnosticDataPath);
-
-                if (Attachments != null && Attachments.Count != 0)
-                {
-                    foreach (var attachment in Attachments)
-                    {
-                        if (IsInsideDatabaseDirectory(attachment))
-                        {
-                            Size += new FileInfo(attachment).Length;
-                        }
-                    }
-                }
-                //save record
-                RecordPath = Path.Combine(_path, string.Format("{0}-record.json", jsonPrefix));
-                Save(ToJson(), RecordPath);
-                return true;
-            }
-            catch (IOException io)
-            {
-                Debug.Log("Received IOException while saving data to database.");
-                Debug.Log(io.Message);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Debug.Log(string.Format("Received {0} while saving data to database.", ex.GetType().Name));
-                Debug.Log(string.Format("Message {0}", ex.Message));
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Setup RecordWriter and database path after deserialization event
-        /// </summary>
-        /// <param name="path">Path to database</param>
-        internal void DatabasePath(string path)
-        {
-            _path = path;
-        }
-
-        /// <summary>
-        /// Save single file from database record
-        /// </summary>
-        /// <param name="json">single file (json/dmp)</param>
-        /// <param name="destPath">file path</param>
-        private void Save(string json, string destPath)
-        {
-            if (string.IsNullOrEmpty(json))
-            {
-                return;
-            }
-            byte[] file = Encoding.UTF8.GetBytes(json);
-            Size += file.Length;
-
-            using (var fs = new FileStream(destPath, FileMode.Create, FileAccess.Write))
-            {
-                fs.Write(file, 0, file.Length);
-            }
         }
 
         /// <summary>
@@ -251,59 +172,6 @@ namespace Backtrace.Unity.Model.Database
         public virtual void Increment()
         {
             _count++;
-        }
-
-        /// <summary>
-        /// Check if all necessary files declared on record exists
-        /// </summary>
-        /// <returns>True if record is valid</returns>
-        internal bool Valid()
-        {
-            return File.Exists(DiagnosticDataPath);
-        }
-
-        /// <summary>
-        /// Delete all records from hard drive.
-        /// </summary>
-        internal void Delete()
-        {
-            Delete(DiagnosticDataPath);
-            Delete(RecordPath);
-
-            //remove database attachments
-            if (Attachments != null && Attachments.Count != 0)
-            {
-                foreach (var attachment in Attachments)
-                {
-                    if (IsInsideDatabaseDirectory(attachment))
-                    {
-                        Delete(attachment);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Delete single file on database record
-        /// </summary>
-        /// <param name="path">path to file</param>
-        private void Delete(string path)
-        {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-            }
-            catch (IOException e)
-            {
-                Debug.Log(string.Format("File {0} is in use. Message: {1}", path, e.Message));
-            }
-            catch (Exception e)
-            {
-                Debug.Log(string.Format("Cannot delete file: {0}. Message: {1}", path, e.Message));
-            }
         }
 
         /// <summary>
@@ -328,24 +196,10 @@ namespace Backtrace.Unity.Model.Database
             }
         }
 
-        /// <summary>
-        /// Validate if attachment is placed in Backtrace database.
-        /// </summary>
-        /// <param name="path">Path to attachment</param>
-        /// <returns>True if attachment is in backtrace-database directory. Otherwise false.</returns>
-        private bool IsInsideDatabaseDirectory(string path)
-        {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            {
-                return false;
-            }
-            return Path.GetDirectoryName(path) == _path;
-        }
         public virtual void Unlock()
         {
             Locked = false;
             Record = null;
-            _diagnosticDataJson = string.Empty;
         }
 
         [Serializable]

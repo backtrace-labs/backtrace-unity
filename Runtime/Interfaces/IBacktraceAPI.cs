@@ -28,7 +28,7 @@ namespace Backtrace.Unity.Interfaces
         /// <param name="deduplication">Deduplication count</param>
         /// <param name="callback">Coroutine callback</param>
         /// <returns></returns>
-        IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback);
+        IEnumerator Send(string json, IEnumerable<string> attachments, int deduplication, Action<BacktraceResult> callback);
 
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Backtrace.Unity.Interfaces
         /// <param name="queryStringAttributes">Query string</param>
         /// <param name="callback">Coroutine callback</param>
         /// <returns></returns>
-        IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback);
+        IEnumerator Send(string json, IEnumerable<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback);
 
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server

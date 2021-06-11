@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
 using System;
 using System.Collections.Generic;
 
@@ -9,6 +10,11 @@ namespace Backtrace.Unity.Interfaces
     /// </summary>
     public interface IBacktraceClient
     {
+        /// <summary>
+        /// Backtrace Breadcrumbs
+        /// </summary>
+        IBacktraceBreadcrumbs Breadcrumbs { get; }
+
         /// <summary>
         /// Send a new report to a Backtrace API
         /// </summary>
@@ -42,5 +48,28 @@ namespace Backtrace.Unity.Interfaces
         /// Refresh client configuration
         /// </summary>
         void Refresh();
+
+        /// <summary>
+        /// Enabled Backtrace database breadcrumbs integration
+        /// </summary>
+        /// <returns>True, if breadcrumbs file was initialized correctly. Otherwise false.</returns>
+        bool EnableBreadcrumbsSupport();
+
+#if !UNITY_WEBGL
+        /// <summary>
+        /// Backtrace Metrics instance
+        /// </summary>
+        IBacktraceMetrics Metrics { get; }
+
+        /// <summary>
+        /// Enable event aggregation support.
+        /// </summary>
+        void EnableMetrics();
+
+        /// <summary>
+        /// Enable event aggregation support.
+        /// </summary>
+        void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec, string uniqueEventName);
+#endif
     }
 }

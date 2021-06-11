@@ -1,5 +1,6 @@
 #if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,8 +26,14 @@ namespace Backtrace.Unity.Editor.Build
 
         public void OnPostprocessBuild(BuildReport report)
         {
+            var disabledSymbols =
+#if UNITY_2021_1_OR_NEWER
+                EditorUserBuildSettings.androidCreateSymbols == AndroidCreateSymbols.Disabled;
+#else
+                EditorUserBuildSettings.androidCreateSymbolsZip == false;
+#endif
             // symbols upload is availble only on the il2cpp Android builds 
-            if (report.summary.platform != BuildTarget.Android || !EditorUserBuildSettings.androidCreateSymbolsZip)
+            if (report.summary.platform != BuildTarget.Android || disabledSymbols)
             {
                 return;
             }
@@ -184,8 +191,7 @@ namespace Backtrace.Unity.Editor.Build
                     {
                         EditorUtility.DisplayProgressBar("Backtrace symbols upload", "Symbols upload progress:", request.uploadProgress);
                     }
-                    var failure = request.isNetworkError || request.isHttpError;
-                    if (failure)
+                    if (request.ReceivedNetworkError())
                     {
                         Debug.LogWarning(string.Format("Cannot upload symbols to Backtrace. Reason: {0}", request.downloadHandler.text));
                         return;

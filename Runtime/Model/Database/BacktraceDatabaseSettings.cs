@@ -104,7 +104,27 @@ namespace Backtrace.Unity.Model.Database
                 return _configuration.GenerateScreenshotOnException;
             }
         }
+        /// <summary>
+        /// Screenshot max height
+        /// </summary>
+        public int ScreenshotMaxHeight
+        {
+            get
+            {
+                return _configuration.ScreenshotMaxHeight;
+            }
+        }
 
+        /// <summary>
+        /// Screenshot quality
+        /// </summary>
+        public int ScreenshotQuality
+        {
+            get
+            {
+                return _configuration.ScreenshotQuality;
+            }
+        }
         /// <summary>
         /// Add Unity log file to Backtrace report
         /// </summary>

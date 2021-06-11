@@ -2,7 +2,6 @@
 using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Backtrace.Unity.Model
 {
@@ -11,6 +10,11 @@ namespace Backtrace.Unity.Model
     /// </summary>
     public class BacktraceReport
     {
+        /// <summary>
+        /// Error type attribute name
+        /// </summary>
+        private const string ErrorTypeAttributeName = "error.type";
+
         /// <summary>
         /// Fingerprint
         /// </summary>
@@ -68,11 +72,6 @@ namespace Backtrace.Unity.Model
         public List<BacktraceStackFrame> DiagnosticStack { get; set; }
 
         /// <summary>
-        /// Source code
-        /// </summary>
-        public BacktraceSourceCode SourceCode = null;
-
-        /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>
         /// <param name="message">Custom client message</param>
@@ -88,6 +87,7 @@ namespace Backtrace.Unity.Model
             // analyse stack trace information in both constructor 
             // to include error message in both source code properties.
             SetStacktraceInformation();
+            SetDefaultAttributes();
         }
 
         /// <summary>
@@ -108,56 +108,91 @@ namespace Backtrace.Unity.Model
             if (ExceptionTypeReport)
             {
                 Message = exception.Message;
-                SetClassifier();
+                SetClassifierInfo();
                 SetStacktraceInformation();
             }
+            SetDefaultAttributes();
         }
 
-        /// <summary>
-        /// Assign source code to Backtrace report - text available in the right panel in web debugger.
-        /// </summary>
-        /// <param name="text"></param>
-        internal void AssignSourceCodeToReport(string text)
+        private void SetDefaultAttributes()
         {
-            if (DiagnosticStack == null || DiagnosticStack.Count == 0)
+            Attributes["error.message"] = Message;
+            // when classifier info doesn't contain information about error type
+            // we should apply default type - which is message
+            if (!Attributes.ContainsKey(ErrorTypeAttributeName))
             {
-                return;
+                Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.MessageType;
             }
-
-            SourceCode = new BacktraceSourceCode()
-            {
-                Text = text
-            };
-            // assign log information to first stack frame
-            DiagnosticStack[0].SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
         }
 
         /// <summary>
         /// Set report classifier
         /// </summary>
-        private void SetClassifier()
+        private void SetClassifierInfo()
         {
             // ignore classifier for message reports
             if (!ExceptionTypeReport)
             {
                 Classifier = string.Empty;
+                Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.MessageType;
             }
 
-            Classifier = Exception is BacktraceUnhandledException
-                ? (Exception as BacktraceUnhandledException).Classifier
-                : Exception.GetType().Name;
+
+            if (Exception is BacktraceUnhandledException)
+            {
+                Classifier = (Exception as BacktraceUnhandledException).Classifier;
+                switch (Classifier)
+                {
+                    case "ANRException":
+                        {
+                            Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.AnrExceptionType;
+                            break;
+                        }
+                    case "OOMException":
+                        {
+                            Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.OOMExceptionType;
+                            break;
+                        }
+                    default:
+                        {
+                            Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.UnhandledExceptionType;
+                            break;
+
+                        }
+                }
+            }
+            else
+            {
+                Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.ExceptionType;
+                Classifier = Exception.GetType().Name;
+            }
         }
 
         /// <summary>
         /// Override default fingerprint for reports without faulting stack trace.
         /// </summary>
-        internal void SetReportFingerPrintForEmptyStackTrace()
+        internal void SetReportFingerprint(bool generateFingerprint)
         {
-            if ((Exception != null && string.IsNullOrEmpty(Exception.StackTrace)) || DiagnosticStack == null || DiagnosticStack.Count == 0)
+            const string modFingerprintAttributeName = "_mod_fingerprint";
+            if (generateFingerprint)
             {
-                // set attributes instead of fingerprint to still allow our user to define customer
-                // fingerprints for reports without stack trace and apply deduplication rules in report flow.
-                Attributes["_mod_fingerprint"] = Message.OnlyLetters().GetSha();
+                if ((Exception != null && string.IsNullOrEmpty(Exception.StackTrace)) || DiagnosticStack == null || DiagnosticStack.Count == 0)
+                {
+                    // set attributes instead of fingerprint to still allow our user to define customer
+                    // fingerprints for reports without stack trace and apply deduplication rules in report flow.
+                    Attributes[modFingerprintAttributeName] = Message.OnlyLetters().GetSha();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(Factor))
+            {
+                Attributes["_mod_factor"] = Factor;
+            }
+
+            // override default fingerprint if user decided to pass own fingerprint
+            if (!string.IsNullOrEmpty(Fingerprint))
+            {
+                Attributes[modFingerprintAttributeName] = Fingerprint;
             }
         }
 
