@@ -1,22 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using Backtrace.Unity.Model.Attributes;
 
 namespace Backtrace.Unity.Runtime.Native
 {
     /// <summary>
     /// Backtrace native client definition
     /// </summary>
-    internal interface INativeClient
+    internal interface INativeClient : IDynamicAttributeProvider
     {
         /// <summary>
         /// Handle ANR - Application not responding events
         /// </summary>
         void HandleAnr(string gameObjectName, string callbackName);
-
-        /// <summary>
-        /// Set native attributes in attributes dictionary
-        /// </summary>
-        /// <param name="data">Attributes dictionary</param>
-        void GetAttributes(Dictionary<string, string> data);
 
         /// <summary>
         /// Set native attribute
@@ -40,5 +34,12 @@ namespace Backtrace.Unity.Runtime.Native
         /// Disable native integration
         /// </summary>
         void Disable();
+
+        /// <summary>
+        /// Pause ANR thread
+        /// </summary>
+        /// <param name="state">True if should pause, otherwise false.</param>
+        void PauseAnrThread(bool state);
+
     }
 }

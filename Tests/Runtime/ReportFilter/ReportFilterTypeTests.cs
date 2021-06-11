@@ -20,6 +20,59 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
         }
 
         [UnityTest]
+        public IEnumerator TestErrorTypeFilter_ShouldFilterErrorLog_ShouldPreventFromSendingDataToBacktrace()
+        {
+            const string errorMessage = "errorMessage";
+            var eventCalled = false;
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+            {
+                eventCalled = true;
+                return false;
+            };
+            BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Error;
+
+            BacktraceClient.HandleUnityMessage(errorMessage, string.Empty, LogType.Error);
+            yield return new WaitForEndOfFrame();
+
+            Assert.IsFalse(eventCalled);
+        }
+
+        [Test]
+        public void TestErrorTypeFilter_ShouldntFilterErrorLogWhenFilterDoesntIncludeIt_ShouldInvokeSkipCallback()
+        {
+            const string errorMessage = "errorMessage";
+            var eventCalled = false;
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+            {
+                eventCalled = true;
+                return false;
+            };
+            BacktraceClient.Configuration.ReportFilterType = ReportFilterType.UnhandledException;
+
+            BacktraceClient.HandleUnityMessage(errorMessage, string.Empty, LogType.Error);
+
+            Assert.IsTrue(eventCalled);
+        }
+
+
+        [Test]
+        public void TestErrorTypeFilterShouldSetCorrectReportFilterType_ReportFilterTypeHasCorrectValue()
+        {
+            const string errorMessage = "errorMessage";
+            var reportFilterType = ReportFilterType.None;
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+            {
+                reportFilterType = type;
+                return false;
+            };
+            BacktraceClient.Configuration.ReportFilterType = ReportFilterType.UnhandledException;
+
+            BacktraceClient.HandleUnityMessage(errorMessage, string.Empty, LogType.Error);
+            
+            Assert.AreEqual(ReportFilterType.Error, reportFilterType);
+        }
+
+        [UnityTest]
         public IEnumerator TestReportFilter_ShouldPreventFromSendingMessage_ClientNotSendingData()
         {
             var eventCalled = false;

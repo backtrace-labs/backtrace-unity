@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Globalization;
+using System.Threading;
 
 namespace Backtrace.Unity.Extensions
 {
@@ -18,7 +19,7 @@ namespace Backtrace.Unity.Extensions
             //in worst scenario thread name should be managedThreadId 
             var threadName = thread.Name;
             threadName = string.IsNullOrEmpty(threadName)
-                        ? thread.ManagedThreadId.ToString()
+                        ? thread.ManagedThreadId.ToString(CultureInfo.InvariantCulture)
                         : threadName;
 
             return threadName;
