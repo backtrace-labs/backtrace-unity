@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
 {
-    public interface IBacktraceMetrics : IDynamicAttributeProvider
+    public interface IBacktraceMetrics : IScopeAttributeProvider
     {
         /// <summary>
         /// This list contains the unique events which will be sent whenever Send is triggered (manually or automatically). 
@@ -14,7 +14,7 @@ namespace Backtrace.Unity.Interfaces
         /// For non-standard unique events, server side configuration needs to be done. 
         /// Please refer to the <see href="https://support.backtrace.io">online documentation</see>.
         /// </summary>
-        LinkedList<UniqueEvent> UniqueEvents { get; }
+        //LinkedList<UniqueEvent> UniqueEvents { get; }
 
         /// <summary>
         /// Maximum number of summed events in store. If number of events in store hit the limit
@@ -42,8 +42,8 @@ namespace Backtrace.Unity.Interfaces
         /// Trigger a manual send, will send all outgoing messages currently queued.
         /// </summary>
         void Send();
-        bool AddUniqueEvent(string attributeName);
-        bool AddUniqueEvent(string attributeName, IDictionary<string, string> attributes);
+        //bool AddUniqueEvent(string attributeName);
+        //bool AddUniqueEvent(string attributeName, IDictionary<string, string> attributes);
 
         /// <summary>
         /// Adds a summed event to the outgoing queue.

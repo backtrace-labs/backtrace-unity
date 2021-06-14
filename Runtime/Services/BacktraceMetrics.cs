@@ -36,12 +36,12 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Default unique event name that will be generated on the application startup
         /// </summary>
-        public const string DefaultUniqueEventName = "guid";
+        public const string DefaultUniqueAttributeName = "guid";
 
         /// <summary>
         /// Startup unique event name that will be generated on the application startup
         /// </summary>
-        public string StartupUniqueEventName { get; set; } = DefaultUniqueEventName;
+        public string StartupUniqueAttributeName { get; set; } = DefaultUniqueAttributeName;
 
         /// <summary>
         /// Maximum number of unique events in store. If number of events in store hit the limit
@@ -227,7 +227,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void SendStartupEvent()
         {
-            _uniqueEventsSubmissionQueue.StartWithEvent(DefaultUniqueEventName);
+            _uniqueEventsSubmissionQueue.StartWithEvent(DefaultUniqueAttributeName);
             _summedEventsSubmissionQueue.StartWithEvent(StartupEventName);
         }
 

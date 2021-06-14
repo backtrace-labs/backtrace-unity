@@ -488,6 +488,10 @@ namespace Backtrace.Unity
                 DontDestroyOnLoad(gameObject);
                 _instance = this;
             }
+
+#if !UNITY_WEBGL
+            EnableMetrics(false);
+#endif
             var nativeAttachments = _clientReportAttachments.ToList()
                 .Where(n => !string.IsNullOrEmpty(n))
                 .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase).ToList();
@@ -517,9 +521,6 @@ namespace Backtrace.Unity
                 nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
-#if !UNITY_WEBGL
-            EnableMetrics(false);
-#endif
         }
 
         public bool EnableBreadcrumbsSupport()
@@ -552,7 +553,19 @@ namespace Backtrace.Unity
                 BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
                 Configuration.GetEventAggregationIntervalTimerInMs());
         }
-        public void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueEventName = BacktraceMetrics.DefaultUniqueEventName)
+
+        public void EnableMetrics(string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
+        {
+            var universeName = Configuration.GetUniverseName();
+            var token = Configuration.GetToken();
+            EnableMetrics(
+                BacktraceMetrics.GetDefaultUniqueEventsUrl(universeName, token),
+                BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
+                Configuration.GetEventAggregationIntervalTimerInMs(),
+                uniqueAttributeName);
+        }
+
+        public void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
         {
             if (_metrics != null)
             {
@@ -566,7 +579,7 @@ namespace Backtrace.Unity
                 summedEventsSubmissionUrl: summedEventsSubmissionUrl
                 )
             {
-                StartupUniqueEventName = uniqueEventName,
+                StartupUniqueAttributeName = uniqueAttributeName,
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };
             StartupMetrics();
@@ -574,7 +587,7 @@ namespace Backtrace.Unity
 
         private void StartupMetrics()
         {
-            AttributeProvider.AddDynamicAttributeProvider(Metrics);
+            AttributeProvider.AddScopedAttributeProvider(Metrics);
             _metrics.SendStartupEvent();
         }
 
@@ -1023,7 +1036,7 @@ namespace Backtrace.Unity
                 var unhandledException = (exception as BacktraceUnhandledException);
                 filterType = unhandledException.Classifier == "ANRException"
                     ? ReportFilterType.Hang
-                    : unhandledException.Type == LogType.Exception ? ReportFilterType.UnhandledException: ReportFilterType.Error;
+                    : unhandledException.Type == LogType.Exception ? ReportFilterType.UnhandledException : ReportFilterType.Error;
             }
 
 

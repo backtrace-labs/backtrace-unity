@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Backtrace.Unity.Model.JsonData
 {
-    internal sealed class AttributeProvider
+    public sealed class AttributeProvider
     {
         private readonly IDictionary<string, string> _attributes = new Dictionary<string, string>();
         private readonly IList<IDynamicAttributeProvider> _dynamicAttributeProvider;
@@ -83,13 +83,26 @@ namespace Backtrace.Unity.Model.JsonData
         /// Add dynamic attribute provider to Backtrace client
         /// </summary>
         /// <param name="attributeProvider">dynamic attribute provider</param>
-        internal void AddDynamicAttributeProvider(IDynamicAttributeProvider attributeProvider)
+        public void AddDynamicAttributeProvider(IDynamicAttributeProvider attributeProvider)
         {
             if (attributeProvider == null)
             {
                 return;
             }
             _dynamicAttributeProvider.Add(attributeProvider);
+        }
+
+        /// <summary>
+        /// Add scoped attribute provider to Backtrace client
+        /// </summary>
+        /// <param name="attributeProvider">Scoped attribute provider</param>
+        internal void AddScopedAttributeProvider(IScopeAttributeProvider attributeProvider)
+        {
+            if (attributeProvider == null)
+            {
+                return;
+            }
+            attributeProvider.GetAttributes(_attributes);
         }
 
         /// <summary>
