@@ -101,7 +101,7 @@ namespace Backtrace.Unity.Services
         /// <param name="attachments">List of attachments</param>
         /// <param name="callback">Callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null)
+        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, IDictionary<string, string> queryAttributes, Action<BacktraceResult> callback = null)
         {
             if (attachments == null)
             {
@@ -117,7 +117,12 @@ namespace Backtrace.Unity.Services
             {
                 yield break;
             }
-            using (var request = _httpClient.Post(_minidumpUrl, minidumpBytes, attachments))
+
+            var requestUrl = queryAttributes != null
+                ? GetParametrizedQuery(_minidumpUrl, queryAttributes)
+                : _minidumpUrl;
+
+            using (var request = _httpClient.Post(requestUrl, minidumpBytes, attachments))
             {
                 yield return request.SendWebRequest();
 
@@ -264,7 +269,7 @@ namespace Backtrace.Unity.Services
                 "\n Please check provided url to Backtrace service or learn more from our integration guide: https://support.backtrace.io/hc/en-us/articles/360040515991-Unity-Integration-Guide"));
         }
 
-        private string GetParametrizedQuery(string serverUrl, Dictionary<string, string> queryAttributes)
+        private string GetParametrizedQuery(string serverUrl, IDictionary<string, string> queryAttributes)
         {
             var uriBuilder = new UriBuilder(serverUrl);
             if (queryAttributes == null || !queryAttributes.Any())
@@ -288,7 +293,7 @@ namespace Backtrace.Unity.Services
                     builder.Append("&");
                 }
                 var queryAttribute = queryAttributes.ElementAt(queryIndex);
-                builder.AppendFormat("{0}={1}", queryAttribute.Key, queryAttribute.Value);
+                builder.AppendFormat("{0}={1}", queryAttribute.Key, string.IsNullOrEmpty(queryAttribute.Value) ? "null" : queryAttribute.Value);
             }
             uriBuilder.Query += builder.ToString();
             return Uri.EscapeUriString(uriBuilder.Uri.ToString());

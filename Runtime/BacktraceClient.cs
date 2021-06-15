@@ -517,8 +517,7 @@ namespace Backtrace.Unity
 
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
-                var nativeCrashUplaoder = new NativeCrashUploader();
-                nativeCrashUplaoder.SetBacktraceApi(BacktraceApi);
+                var nativeCrashUplaoder = new NativeCrashUploader(AttributeProvider, BacktraceApi);
                 StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup());
             }
         }

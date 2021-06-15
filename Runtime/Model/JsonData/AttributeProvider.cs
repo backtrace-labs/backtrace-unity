@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model.Attributes;
+using Backtrace.Unity.Services;
 using System;
 using System.Collections.Generic;
 
@@ -6,6 +7,43 @@ namespace Backtrace.Unity.Model.JsonData
 {
     public sealed class AttributeProvider
     {
+        /// <summary>
+        /// Application version attribute
+        /// </summary>
+        public string ApplicationVersion
+        {
+            get
+            {
+                return this["application.version"];
+            }
+        }
+
+        /// <summary>
+        /// Application session key
+        /// </summary>
+        public string ApplicationSessionKey
+        {
+            get
+            {
+                if (_attributes.TryGetValue(BacktraceMetrics.ApplicationSessionKey, out string result))
+                {
+                    return result;
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Application machine identifier
+        /// </summary>
+        public string ApplicationGuid
+        {
+            get
+            {
+                return this["guid"];
+            }
+        }
+
         private readonly IDictionary<string, string> _attributes = new Dictionary<string, string>();
         private readonly IList<IDynamicAttributeProvider> _dynamicAttributeProvider;
 

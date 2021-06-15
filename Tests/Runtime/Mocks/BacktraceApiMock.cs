@@ -50,7 +50,7 @@ namespace Backtrace.Unity.Tests.Runtime
             }
             yield return null;
         }
-        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null)
+        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, IDictionary<string, string> queryAttributes, Action<BacktraceResult> callback = null)
         {
             yield return null;
         }

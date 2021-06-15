@@ -87,6 +87,11 @@ namespace Backtrace.Unity.Services
         public const int MaxNumberOfAttempts = 3;
 
         /// <summary>
+        /// Application session key
+        /// </summary>
+        internal const string ApplicationSessionKey = "application.session";
+
+        /// <summary>
         /// Unique events submission queue
         /// </summary>
         internal readonly UniqueEventsSubmissionQueue _uniqueEventsSubmissionQueue;
@@ -405,8 +410,7 @@ namespace Backtrace.Unity.Services
 
         public void GetAttributes(IDictionary<string, string> attributes)
         {
-            const string sessionIdKey = "application.session";
-            attributes[sessionIdKey] = _sessionId;
+            attributes[ApplicationSessionKey] = _sessionId;
         }
     }
 }
