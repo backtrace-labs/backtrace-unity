@@ -80,8 +80,9 @@ namespace Backtrace.Unity.Json
         {
             if (string.IsNullOrEmpty(value))
             {
-                ComplexObjects.Add(key, null);
-                return;
+                // be sure that we avoid using null here
+                // to avoid null conficts.
+                value = string.Empty;
             }
 
             StringBuilder builder = new StringBuilder();
@@ -254,7 +255,7 @@ namespace Backtrace.Unity.Json
                     AppendKey(entry.Key, stringBuilder);
                     if (entry.Value == null)
                     {
-                        stringBuilder.Append("\"\"");
+                        stringBuilder.Append("null");
                     }
                     else if (entry.Value is IEnumerable && !(entry.Value is IDictionary))
                     {

@@ -1,5 +1,4 @@
 ﻿using Backtrace.Unity.Json;
-using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
