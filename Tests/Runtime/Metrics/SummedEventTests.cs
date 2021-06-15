@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Backtrace.Unity.Model.Metrics
+namespace Backtrace.Unity.Tests.Runtime.Metrics
 {
     public class SummedEventTests
     {

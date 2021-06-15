@@ -1,12 +1,13 @@
 ﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Json;
 using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Model.Metrics;
 using Backtrace.Unity.Model.Metrics.Mocks;
 using Backtrace.Unity.Services;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace Backtrace.Unity.Model.Metrics
+namespace Backtrace.Unity.Tests.Runtime.Metrics
 {
     public class UniqueEventsTests
     {

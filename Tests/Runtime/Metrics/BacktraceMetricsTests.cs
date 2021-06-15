@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Backtrace.Unity.Model.Metrics
+namespace Backtrace.Unity.Tests.Runtime.Metrics
 {
     public class BacktraceMetricsTests
     {
