@@ -55,13 +55,13 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 new MachineAttributeProvider(),
                 new RuntimeAttributeProvider(),
+                new PiiAttributeProvider()
             },
             dynamicAttributeProvider: new List<IDynamicAttributeProvider>()
             {
                 new MachineStateAttributeProvider(),
                 new ProcessAttributeProvider(),
                 new SceneAttributeProvider(),
-                new PiiAttributeProvider()
             })
         { }
 

@@ -7,7 +7,7 @@ namespace Backtrace.Unity.Model.Attributes
     /// Generate device information that has user information dynamically
     /// to let user override them
     /// </summary>
-    internal sealed class PiiAttributeProvider : IDynamicAttributeProvider
+    internal sealed class PiiAttributeProvider : IScopeAttributeProvider
     {
         public void GetAttributes(IDictionary<string, string> attributes)
         {

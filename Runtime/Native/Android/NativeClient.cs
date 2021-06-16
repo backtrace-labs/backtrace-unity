@@ -124,14 +124,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
 #if UNITY_ANDROID
             _handlerANR = _configuration.HandleANR;
-            HandleNativeCrashes(clientAttributes, attachments);
-            HandleAnr(gameObjectName, "OnAnrDetected");
-
             // read device manufacturer
             using (var build = new AndroidJavaClass("android.os.Build"))
             {
-                _builtInAttributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
+                const string deviceManufacturerKey = "device.manufacturer";
+                _builtInAttributes[deviceManufacturerKey] = build.GetStatic<string>("MANUFACTURER").ToString();
             }
+            HandleNativeCrashes(clientAttributes, attachments);
+            HandleAnr(gameObjectName, "OnAnrDetected");
 #endif
         }
 
@@ -268,6 +268,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
             foreach (var attribute in backtraceAttributes)
+            {
+                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
+            }
+
+            // add native client built-in attributes
+            foreach (var attribute in _builtInAttributes)
             {
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
