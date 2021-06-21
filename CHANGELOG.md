@@ -1,6 +1,6 @@
 # Backtrace Unity Release Notes
 
-## Version 3.5.0-preview.2
+## Version 3.5.0
 
 New functionality
 
