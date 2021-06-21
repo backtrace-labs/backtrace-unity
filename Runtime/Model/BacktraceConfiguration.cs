@@ -67,7 +67,8 @@ namespace Backtrace.Unity.Model
             "* Message - Prevent message reports.\n" +
             "* Exception - Prevent exception reports.\n" +
             "* Unhandled exception- Prevent unhandled exception reports.\n" +
-            "* Hang - Prevent sending reports when game hang.")]
+            "* Hang - Prevent sending reports when game hang.\n" +
+            "* Error log - Prevent sending error logs.")]
 
         public ReportFilterType ReportFilterType = ReportFilterType.None;
         /// <summary>
@@ -115,7 +116,7 @@ namespace Backtrace.Unity.Model
         public bool HandleANR = true;
 
 #if UNITY_ANDROID || UNITY_IOS
-         /// <summary>
+        /// <summary>
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
