@@ -16,10 +16,24 @@ namespace Backtrace.Unity.Model
     /// </summary>
     internal class NativeCrashUploader
     {
+        /// <summary>
+        /// Application version storage key
+        /// </summary>
         internal const string VersionKey = "backtrace-app-version";
+
+        /// <summary>
+        /// Application UUID storage key
+        /// </summary>
         internal const string MachineUuidKey = "backtrace-uuid";
+
+        /// <summary>
+        /// Application session id storage key
+        /// </summary>
         internal const string SessionKey = "backtrace-session-id";
 
+        /// <summary>
+        /// Path to the native crash directory
+        /// </summary>
         internal readonly string NativeCrashesDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "Temp",
@@ -27,18 +41,36 @@ namespace Backtrace.Unity.Model
                     Application.productName,
                     "crashes");
 
+        /// <summary>
+        /// Backtrace API
+        /// </summary>
         private readonly IBacktraceApi _backtraceApi;
-        private readonly string _applicationVersion;
-        private readonly string _machineUuid;
-        private readonly string _sessionId;
+
+        /// <summary>
+        /// Application version
+        /// </summary>
+        internal readonly string ApplicationVersion;
+
+        /// <summary>
+        /// Machine UUID
+        /// </summary>
+        internal readonly string MachineUuid;
+
+        /// <summary>
+        /// Session ID
+        /// </summary>
+        internal readonly string SessionId;
 
         public NativeCrashUploader(AttributeProvider attributeProvider, IBacktraceApi backtraceApi)
         {
-            _applicationVersion = PlayerPrefs.GetString(VersionKey, attributeProvider.ApplicationVersion);
-            _machineUuid = PlayerPrefs.GetString(MachineUuidKey, attributeProvider.ApplicationGuid);
-            _sessionId = PlayerPrefs.GetString(SessionKey, attributeProvider.ApplicationSessionKey);
-            UpdatePrefs(attributeProvider.ApplicationGuid, attributeProvider.ApplicationSessionKey, attributeProvider.ApplicationVersion);
             _backtraceApi = backtraceApi;
+            // retrieve values from previous session (if defined)
+            // otherwise get values from current session
+            ApplicationVersion = PlayerPrefs.GetString(VersionKey, attributeProvider.ApplicationVersion);
+            MachineUuid = PlayerPrefs.GetString(MachineUuidKey, attributeProvider.ApplicationGuid);
+            SessionId = PlayerPrefs.GetString(SessionKey, null);
+            // update temporary attributes
+            UpdatePrefs(attributeProvider.ApplicationGuid, attributeProvider.ApplicationSessionKey, attributeProvider.ApplicationVersion);
         }
 
         private void UpdatePrefs(string machineId, string sessionId, string applicationVersion)
@@ -48,6 +80,9 @@ namespace Backtrace.Unity.Model
             PlayerPrefs.SetString(SessionKey, sessionId);
         }
 
+        /// <summary>
+        /// Read directory structure in the native crash directory and send new crashes to Backtrace
+        /// </summary>
         public IEnumerator SendUnhandledGameCrashesOnGameStartup()
         {
             if (string.IsNullOrEmpty(NativeCrashesDir) || !Directory.Exists(NativeCrashesDir))
@@ -76,10 +111,10 @@ namespace Backtrace.Unity.Model
                     var attachments = crashFiles.Where(n => n != minidumpPath);
                     var attributes = new Dictionary<string, string>()
                     {
-                        {"guid", _machineUuid },
-                        {"application.version", _applicationVersion },
+                        {"guid", MachineUuid },
+                        {"application.version", ApplicationVersion },
                         {"error.type", "Crash" },
-                        { BacktraceMetrics.ApplicationSessionKey, string.IsNullOrEmpty(_sessionId) ? "null" : _sessionId}
+                        { BacktraceMetrics.ApplicationSessionKey, string.IsNullOrEmpty(SessionId) ? "null" : SessionId}
                     };
                     yield return _backtraceApi.SendMinidump(minidumpPath, attachments, attributes, (BacktraceResult result) =>
                      {
