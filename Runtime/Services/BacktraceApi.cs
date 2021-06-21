@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using System;
@@ -19,9 +20,9 @@ namespace Backtrace.Unity.Services
     internal class BacktraceApi : IBacktraceApi
     {
         /// <summary>
-        /// Name reserved file with diagnostic data - JSON diagnostic data/minidump file
+        /// Backtrace Http client instance.
         /// </summary>
-        private const string DiagnosticFileName = "upload_file";
+        private BacktraceHttpClient _httpClient = new BacktraceHttpClient();
         /// <summary>
         /// User custom request method
         /// </summary>
@@ -74,8 +75,6 @@ namespace Backtrace.Unity.Services
         private readonly BacktraceCredentials _credentials;
 
 
-
-        private readonly bool _ignoreSslValidation;
         /// <summary>
         /// Create a new instance of Backtrace API
         /// </summary>
@@ -90,9 +89,9 @@ namespace Backtrace.Unity.Services
                 throw new ArgumentException(string.Format("{0} cannot be null", "BacktraceCredentials"));
             }
 
-            _ignoreSslValidation = ignoreSslValidation;
             _serverUrl = credentials.GetSubmissionUrl();
             _minidumpUrl = credentials.GetMinidumpSubmissionUrl().ToString();
+            _httpClient.IgnoreSslValidation = ignoreSslValidation;
         }
 
         /// <summary>
@@ -102,11 +101,11 @@ namespace Backtrace.Unity.Services
         /// <param name="attachments">List of attachments</param>
         /// <param name="callback">Callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, Action<BacktraceResult> callback = null)
+        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, IDictionary<string, string> queryAttributes, Action<BacktraceResult> callback = null)
         {
             if (attachments == null)
             {
-                attachments = new List<string>();
+                attachments = new HashSet<string>();
             }
 
             var stopWatch = EnablePerformanceStatistics
@@ -118,22 +117,16 @@ namespace Backtrace.Unity.Services
             {
                 yield break;
             }
-            var formData = CreateMinidumpFormData(minidumpBytes, attachments);
 
-            yield return new WaitForEndOfFrame();
-            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
-            using (var request = UnityWebRequest.Post(_minidumpUrl, formData, boundaryIdBytes))
+            var requestUrl = queryAttributes != null
+                ? GetParametrizedQuery(_minidumpUrl, queryAttributes)
+                : _minidumpUrl;
+
+            using (var request = _httpClient.Post(requestUrl, minidumpBytes, attachments))
             {
-#if UNITY_2018_4_OR_NEWER
-                if (_ignoreSslValidation)
-                {
-                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
-                }
-#endif
-                request.SetRequestHeader("Content-Type", string.Format("multipart/form-data; boundary={0}", Encoding.UTF8.GetString(boundaryIdBytes)));
-                request.timeout = 15000;
                 yield return request.SendWebRequest();
-                var result = request.isNetworkError || request.isHttpError
+
+                var result = request.ReceivedNetworkError()
                     ? new BacktraceResult()
                     {
                         Message = request.error,
@@ -183,7 +176,7 @@ namespace Backtrace.Unity.Services
         /// <param name="deduplication">Deduplication count</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, List<string> attachments, int deduplication, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
             var queryAttributes = new Dictionary<string, string>();
             if (deduplication > 0)
@@ -202,7 +195,7 @@ namespace Backtrace.Unity.Services
         /// <param name="queryAttributes">Query string attributes</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, List<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
         {
             var stopWatch = EnablePerformanceStatistics
               ? System.Diagnostics.Stopwatch.StartNew()
@@ -212,21 +205,9 @@ namespace Backtrace.Unity.Services
                 ? GetParametrizedQuery(_serverUrl.ToString(), queryAttributes)
                 : ServerUrl;
 
-            var formData = CreateJsonFormData(Encoding.UTF8.GetBytes(json), attachments);
-
-            var boundaryIdBytes = UnityWebRequest.GenerateBoundary();
-            using (var request = UnityWebRequest.Post(requestUrl, formData, boundaryIdBytes))
+            using (var request = _httpClient.Post(requestUrl, json, attachments))
             {
-#if UNITY_2018_4_OR_NEWER
-                if (_ignoreSslValidation)
-                {
-                    request.certificateHandler = new BacktraceSelfSSLCertificateHandler();
-                }
-#endif
-                request.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" + Encoding.UTF8.GetString(boundaryIdBytes));
-                request.timeout = 15000;
                 yield return request.SendWebRequest();
-
                 BacktraceResult result;
                 if (request.responseCode == 429)
                 {
@@ -240,7 +221,7 @@ namespace Backtrace.Unity.Services
                         OnServerResponse.Invoke(result);
                     }
                 }
-                else if (request.responseCode == 200 && (!request.isNetworkError || !request.isHttpError))
+                else if (request.responseCode == 200 && request.ReceivedNetworkError() != true)
                 {
                     result = BacktraceResult.FromJson(request.downloadHandler.text);
                     _shouldDisplayFailureMessage = true;
@@ -269,58 +250,9 @@ namespace Backtrace.Unity.Services
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Stop();
-                    Debug.Log(string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
+                    Debug.Assert(EnablePerformanceStatistics, string.Format("Backtrace - JSON send time: {0}μs", stopWatch.GetMicroseconds()));
                 }
                 yield return result;
-            }
-        }
-
-        /// <summary>
-        /// Generate JSON form data
-        /// </summary>
-        /// <param name="json">Diagnostic JSON bytes</param>
-        /// <param name="attachments">List of attachments</param>
-        /// <returns>Diagnostic JSON form data</returns>
-        private List<IMultipartFormSection> CreateJsonFormData(byte[] json, IEnumerable<string> attachments)
-        {
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
-            {
-                new MultipartFormFileSection(DiagnosticFileName,  json, string.Format("{0}.json",DiagnosticFileName), "application/json")
-            };
-            AddAttachmentToFormData(formData, attachments);
-            return formData;
-        }
-
-        /// <summary>
-        /// Create minidump form data
-        /// </summary>
-        /// <param name="minidump">Minidump bytes</param>
-        /// <param name="attachments">list of attachments</param>
-        /// <returns>Minidump form data</returns>
-        private List<IMultipartFormSection> CreateMinidumpFormData(byte[] minidump, IEnumerable<string> attachments)
-        {
-
-            List<IMultipartFormSection> formData = new List<IMultipartFormSection>
-            {
-                new MultipartFormFileSection(DiagnosticFileName, minidump)
-            };
-            AddAttachmentToFormData(formData, attachments);
-            return formData;
-        }
-
-        private void AddAttachmentToFormData(List<IMultipartFormSection> formData, IEnumerable<string> attachments)
-        {
-            // make sure attachments are not bigger than 10 Mb.
-            const int maximumAttachmentSize = 10000000;
-            const string attachmentPrefix = "attachment_";
-            foreach (var file in attachments)
-            {
-                if (File.Exists(file) && new FileInfo(file).Length < maximumAttachmentSize)
-                {
-                    formData.Add(new MultipartFormFileSection(
-                        string.Format("{0}{1}", attachmentPrefix, Path.GetFileName(file)),
-                        File.ReadAllBytes(file)));
-                }
             }
         }
 
@@ -337,7 +269,7 @@ namespace Backtrace.Unity.Services
                 "\n Please check provided url to Backtrace service or learn more from our integration guide: https://support.backtrace.io/hc/en-us/articles/360040515991-Unity-Integration-Guide"));
         }
 
-        private string GetParametrizedQuery(string serverUrl, Dictionary<string, string> queryAttributes)
+        private string GetParametrizedQuery(string serverUrl, IDictionary<string, string> queryAttributes)
         {
             var uriBuilder = new UriBuilder(serverUrl);
             if (queryAttributes == null || !queryAttributes.Any())
@@ -361,7 +293,7 @@ namespace Backtrace.Unity.Services
                     builder.Append("&");
                 }
                 var queryAttribute = queryAttributes.ElementAt(queryIndex);
-                builder.AppendFormat("{0}={1}", queryAttribute.Key, queryAttribute.Value);
+                builder.AppendFormat("{0}={1}", queryAttribute.Key, string.IsNullOrEmpty(queryAttribute.Value) ? "null" : queryAttribute.Value);
             }
             uriBuilder.Query += builder.ToString();
             return Uri.EscapeUriString(uriBuilder.Uri.ToString());

@@ -1,5 +1,5 @@
-﻿using Backtrace.Unity.Model;
-using Backtrace.Unity.Model.JsonData;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -113,7 +113,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
         private bool _captureNativeCrashes = false;
         private readonly bool _handlerANR = false;
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration)
+        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
             _configuration = configuration;
             SetDefaultAttributeMaps();
@@ -124,14 +124,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
 #if UNITY_ANDROID
             _handlerANR = _configuration.HandleANR;
-            HandleNativeCrashes();
-            HandleAnr(gameObjectName, "OnAnrDetected");
-
             // read device manufacturer
             using (var build = new AndroidJavaClass("android.os.Build"))
             {
-                _builtInAttributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
+                const string deviceManufacturerKey = "device.manufacturer";
+                _builtInAttributes[deviceManufacturerKey] = build.GetStatic<string>("MANUFACTURER").ToString();
             }
+            HandleNativeCrashes(clientAttributes, attachments);
+            HandleAnr(gameObjectName, "OnAnrDetected");
 #endif
         }
 
@@ -142,11 +142,51 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private string GetNativeDirectoryPath()
         {
             using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-            using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
-            using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
-            using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
             {
-                return applicationInfo.Get<string>("nativeLibraryDir");
+                // handle specific case when unity player is not available or available under different name
+                // this case might happen for example in flutter.
+                if (unityPlayer == null)
+                {
+                    return string.Empty;
+                }
+                using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                {
+                    // handle specific case when current activity is not available
+                    // this case might happen for example in flutter.
+                    if (activity == null)
+                    {
+                        return string.Empty;
+                    }
+                    using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
+                    using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
+                    {
+                        return applicationInfo.Get<string>("nativeLibraryDir");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Guess native directory path based on the data path directory. 
+        /// GetNativeDirectoryPath method might return empty value when activity is not available
+        /// this might happen in flutter apps.
+        /// </summary>
+        /// <returns>Guessed path to lib directory</returns>
+        private string GuessNativeDirectoryPath()
+        {
+            var sourceDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
+            if (!Directory.Exists(sourceDirectory))
+            {
+                return string.Empty;
+            }
+            var libDirectory = Directory.GetDirectories(sourceDirectory);
+            if (libDirectory.Length == 0)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return libDirectory[0];
             }
         }
 
@@ -154,7 +194,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes()
+        private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes, IEnumerable<string> attachments)
         {
             // make sure database is enabled 
             var integrationDisabled =
@@ -194,6 +234,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
             var libDirectory = GetNativeDirectoryPath();
+            if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
+            {
+                libDirectory = GuessNativeDirectoryPath();
+            }
             if (!Directory.Exists(libDirectory))
             {
                 return;
@@ -206,25 +250,32 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
                 return;
             }
-            // get default built-in Backtrace-Unity attributes
-            var backtraceAttributes = new BacktraceAttributes(null, null, true).Attributes;
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-            var attachments = _configuration.GetAttachmentPaths().ToArray();
 
             // reassign to captureNativeCrashes
-            // to avoid doing anything on crashpad binary, when crashpad
-            // isn't available
+            // to avoid doing anything on crashpad binary, when crashpad isn't available
             _captureNativeCrashes = Initialize(
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Keys.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Values.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(attachments));
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()));
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
+            }
+
+            foreach (var attribute in backtraceAttributes)
+            {
+                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
+            }
+
+            // add native client built-in attributes
+            foreach (var attribute in _builtInAttributes)
+            {
+                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
 
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
@@ -244,7 +295,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
         /// <returns>Backtrace Attributes from the Android build</returns>
-        public void GetAttributes(Dictionary<string, string> result)
+        public void GetAttributes(IDictionary<string, string> result)
         {
             if (!_enabled)
             {
@@ -253,7 +304,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // rewrite built in attributes to report attributes
             foreach (var builtInAttribute in _builtInAttributes)
             {
-                result.Add(builtInAttribute.Key, builtInAttribute.Value);
+                result[builtInAttribute.Key] = builtInAttribute.Value;
             }
 
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
@@ -282,7 +333,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     {
                         value = value.Substring(0, value.LastIndexOf("k")).Trim();
                     }
-                    result.Add(key, value);
+                    result[key] = value;
                 }
             }
         }
@@ -394,7 +445,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public bool OnOOM()
         {
             SetAttribute("memory.warning", "true");
-            SetAttribute("memory.warning.date", DateTime.Now.ToString(CultureInfo.InvariantCulture));
+            SetAttribute("memory.warning.date", DateTimeHelper.Timestamp().ToString(CultureInfo.InvariantCulture));
             return true;
         }
 

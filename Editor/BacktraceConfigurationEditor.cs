@@ -1,4 +1,5 @@
 using Backtrace.Unity.Model;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ namespace Backtrace.Unity.Editor
     [CustomEditor(typeof(BacktraceConfiguration))]
     public class BacktraceConfigurationEditor : UnityEditor.Editor
     {
+        protected static bool showBreadcrumbsSettings = false;
+        protected static bool showMetricsSettings = false;
         protected static bool showClientAdvancedSettings = false;
         protected static bool showDatabaseSettings = false;
 
@@ -69,10 +72,6 @@ namespace Backtrace.Unity.Editor
                        new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_FILTER));
 
                 EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("NumberOfLogs"),
-                    new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
-
-                EditorGUILayout.PropertyField(
                  serializedObject.FindProperty("PerformanceStatistics"),
                  new GUIContent(BacktraceConfigurationLabels.LABEL_PERFORMANCE_STATISTICS));
 
@@ -93,11 +92,28 @@ namespace Backtrace.Unity.Editor
                 }
             }
 
-#if UNITY_ANDROID || UNITY_IOS
-            EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("AttachmentPaths"),
-                new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_ATTACHMENTS));
+#if !UNITY_WEBGL
+            GUIStyle metricsFoldout = new GUIStyle(EditorStyles.foldout);
+            showMetricsSettings = EditorGUILayout.Foldout(showMetricsSettings, BacktraceConfigurationLabels.LABEL_CRASH_FREE_SECTION, metricsFoldout);
+            if (showMetricsSettings)
+            {
+                var enableMetrics = serializedObject.FindProperty("EnableMetricsSupport");
+                EditorGUILayout.PropertyField(
+                    enableMetrics,
+                    new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_METRICS));
+
+                if (enableMetrics.boolValue)
+                {
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("TimeIntervalInMin"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_METRICS_TIME_INTERVAL));
+                }
+            }
 #endif
+            EditorGUILayout.PropertyField(
+            serializedObject.FindProperty("AttachmentPaths"),
+            new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_ATTACHMENTS));
+
 
 #if !UNITY_SWITCH
             SerializedProperty enabled = serializedObject.FindProperty("Enabled");
@@ -138,10 +154,32 @@ namespace Backtrace.Unity.Editor
 
 #endif
 
+
+                    GUIStyle breadcrumbsSupportFoldout = new GUIStyle(EditorStyles.foldout);
+                    showBreadcrumbsSettings = EditorGUILayout.Foldout(showBreadcrumbsSettings, BacktraceConfigurationLabels.LABEL_BREADCRUMBS_SECTION, breadcrumbsSupportFoldout);
+                    if (showBreadcrumbsSettings)
+                    {
+                        var enableBreadcrumbsSupport = serializedObject.FindProperty("EnableBreadcrumbsSupport");
+                        EditorGUILayout.PropertyField(
+                            enableBreadcrumbsSupport,
+                            new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_BREADCRUMBS));
+
+                        if (enableBreadcrumbsSupport.boolValue)
+                        {
+                            EditorGUILayout.PropertyField(
+                                serializedObject.FindProperty("BacktraceBreadcrumbsLevel"),
+                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMBS_EVENTS));
+
+                            EditorGUILayout.PropertyField(
+                                serializedObject.FindProperty("LogLevel"),
+                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMNS_LOG_LEVEL));
+                        }
+                    }
+
 #if UNITY_ANDROID || UNITY_IOS
                     EditorGUILayout.PropertyField(
-                         serializedObject.FindProperty("CaptureNativeCrashes"),
-                         new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+                        serializedObject.FindProperty("CaptureNativeCrashes"),
+                        new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
 #endif
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("AutoSendMode"),
@@ -172,8 +210,8 @@ namespace Backtrace.Unity.Editor
                     EditorGUILayout.PropertyField(retryOrder, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_ORDER));
                 }
             }
+
             serializedObject.ApplyModifiedProperties();
         }
     }
-
 }

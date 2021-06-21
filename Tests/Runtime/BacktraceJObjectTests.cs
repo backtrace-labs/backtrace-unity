@@ -1,5 +1,4 @@
 ﻿using Backtrace.Unity.Json;
-using Backtrace.Unity.Model;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
@@ -289,8 +288,8 @@ namespace Backtrace.Unity.Tests.Runtime
             var json = jObject.ToJson();
 
             var expectedResult = "{" +
-                   "\"bar\":null," +
-                   "\"foo\":null" +
+                   "\"bar\":\"\"," +
+                   "\"foo\":\"\"" +
                    "}";
             Assert.AreEqual(expectedResult, json);
             yield return null;
@@ -307,9 +306,9 @@ namespace Backtrace.Unity.Tests.Runtime
             var json = jObject.ToJson();
 
             var expectedResult = "{" +
-                    "\"foo\\\"\":null," +
-                    "\"\\\\bar\":null," +
-                    "\"b\\naz\":null" +
+                    "\"foo\\\"\":\"\"," +
+                    "\"\\\\bar\":\"\"," +
+                    "\"b\\naz\":\"\"" +
                     "}";
             Assert.AreEqual(expectedResult, json);
             yield return null;
