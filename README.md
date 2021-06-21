@@ -68,22 +68,23 @@ catch(Exception exception)
 # Platforms Supported
 
 Backtrace-unity has been tested and certified for games deployed on the following platforms:
-Mobile - Android, iOS
-PC - Windows, Mac
-Web - WebGL
-Game Consoles - PlayStation4, Xbox One, Nintendo Switch
+- Mobile - Android, iOS
+- PC - Windows, Mac
+- Web - WebGL
+- Game Consoles - PlayStation4, Xbox One, Nintendo Switch
+
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 
 - All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Breadcrumbs, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Crash Free Metrics (except WebGL), Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
 - Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings.
 - iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
-- WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute device.model is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html)
+- WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute `device.model` is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html).
 - Switch - Identified by attribute `uname.sysname` = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
-- PlayStation4 - Identified by attribute `uname.sysname` = PS4
+- PlayStation4 - Identified by attribute `uname.sysname` = PS4.
 - Windows - Identified by attribute `uname.sysname` = Windows. Provides an option to capture Minidumps for Engine Crashes.
 - MacOS - Identified by attribute `uname.sysname` = MacOS.
 
-Note: Unity allows you to disable stack trace information in player properties. If this is set, the call stack and the log lines section in Backtrace will be empty.
+Note: Unity allows you to disable stack trace information in player properties. If this is set, the call stack will be empty and no log lines section will be included in Breadcrumbs.
 
 # Setup <a name="installation"></a>
 
@@ -152,13 +153,15 @@ The plugin will report on 6 'classes' or errors:
 2. Unhandled Exceptions - Unhandled Exceptions are exceptions in a game that occur outside of an explicit try / catch statement.
 3. Handled Exceptions - Exceptions that are explicitly caught and handled.
 4. Crashes - An end to the game play experience. The game crashes or restarts.
-5. Hangs - A game is non responsive. Some platforms will tell the user “This app has stopped responding
+5. Hangs (mobile only) - A game is non responsive. Some platforms will tell the user “This app has stopped responding
 6. Out of memory crashes (mobile only) - A game crashed under memory pressure.
+7. Message reports, explictly sent by the BacktraceClient.
 
 The plugin provides 3 controls for managing what the client will report.
 
+- The Filter Reports option in the UI, where you can select Everything, Message, Handled Exception, Unhandled Exception, Hang and Game Error.
 - [SkipReports](#filtering-a-report) allows you to tell the client to only report on specific classes of these errors.
-- [Log Error Sampling](#sampling-log-errors) allows you to tell the client to sample the Debug Log errors. Programmers may not be aware of the frequency that Debug Log errors are being generated when released in retail, and we recommend you are intentional about capturing these types of errors.
+- [Log Error Sampling](#sampling-log-errors) allows you to tell the client to sample the DebugLog errors. Programmers may not be aware of the frequency that DebugLog errors are being generated when released in retail, and we recommend you are intentional about capturing these types of errors.
 - [Client Side Deduplication](#client-side-deduplication) allows you to aggregate the reports based on callstack, error message, or classifier, and send only a single message to Backtrace each time the offline database is flushed.
 
 ## Backtrace Client and Offline Database Settings
@@ -226,7 +229,7 @@ The `error.type` for these reports will be `Hang`.
 Backtrace can detect and flag low memory conditions for Unity games running on Android devices. When low memory conditions are detected, two attributes will be set:
 
 - `memory.warning` will be set to `true`
-- `memory.warning.date` will be set to the local time of the device at the moment the low memory condition was detected.
+- `memory.warning.date` will be set to the epoch timestamp of when the low memory condition was detected.
 
 If the games does not recover from low memory conditions and the operating system does decide to kill the game, a crash report will be submitted to Backtrace with `memory.warning` and `memory.warning.date` set.
 
@@ -470,7 +473,7 @@ Once enabled, unique application launches and unique player identifiers (default
 ![image](https://user-images.githubusercontent.com/726645/120375869-7f560380-c2d8-11eb-80bf-b15ea90c0ad3.png)
 ![image](https://user-images.githubusercontent.com/726645/120376224-d8be3280-c2d8-11eb-88a9-5c16d49e263b.png)
 
-Note! This functionality is supported on all Unity supported platforms except WebGL.
+Note! This functionality is supported on all Unity supported platforms **except WebGL**.
 
 ## Filtering a report
 
