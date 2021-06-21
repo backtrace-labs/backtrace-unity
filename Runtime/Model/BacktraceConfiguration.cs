@@ -158,7 +158,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
         /// </summary>
-        [Tooltip("Braeadcrumbs log level")]
+        [Tooltip("Breadcrumbs log level")]
         public UnityEngineLogLevel LogLevel;
 
         /// <summary>
