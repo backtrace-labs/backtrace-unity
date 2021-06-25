@@ -35,7 +35,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private Thread _anrThread;
 
         [DllImport("backtrace-native")]
-        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments);
+        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding);
+
+        [DllImport("backtrace-native")]
+        private static extern bool EnableClientSideUnwinding();
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
@@ -253,6 +256,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
 
+           
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad isn't available
             _captureNativeCrashes = Initialize(
@@ -261,10 +265,16 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()));
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
+                _configuration.ClientSideUnwinding);
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
+                return;
+            }
+            if (_configuration.ClientSideUnwinding)
+            {
+                EnableClientSideUnwinding();
             }
 
             foreach (var attribute in backtraceAttributes)
@@ -289,6 +299,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
             AddAttribute(
                         AndroidJNI.NewStringUTF("error.type"),
                         AndroidJNI.NewStringUTF("Crash"));
+        }
+
+        private bool Initialize(IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4, IntPtr intPtr5, IntPtr intPtr6, object clientSideUnwinding)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

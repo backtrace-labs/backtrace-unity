@@ -258,6 +258,8 @@ namespace Backtrace.Unity.Model
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
 
+        public bool ClientSideUnwinding = false;
+
         /// <summary>
         /// Get full paths to attachments added by client
         /// </summary>
@@ -334,6 +336,8 @@ namespace Backtrace.Unity.Model
                 return Path.Combine(GetFullDatabasePath(), "crashpad");
             }
         }
+
+
 
         public string GetValidServerUrl()
         {
