@@ -13,14 +13,21 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
     {
         // existing attribute name in Backtrace
         const string UniqueAttributeName = "scene.name";
-        //private readonly string _submissionUrl = "https://event-edge.backtrace.io/api/user-aggregation/events?token=TOKEN";
-        private AttributeProvider _attributeProvider = new AttributeProvider();
+        private AttributeProvider _attributeProvider;
         private const string _token = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458";
         private const string _universeName = "testing-universe-name";
 
         private const string _defaultSubmissionUrl = BacktraceMetrics.DefaultSubmissionUrl;
-        private readonly string _defaultUniqueEventsSubmissionUrl = $"{_defaultSubmissionUrl}/unique-events/submit?token={_token}&universe={_universeName}";
-        private readonly string _defaultSummedEventsSubmissionUrl = $"{_defaultSubmissionUrl}/summed-events/submit?token={_token}&universe={_universeName}";
+        private string _defaultUniqueEventsSubmissionUrl;
+        private string _defaultSummedEventsSubmissionUrl;
+
+        [SetUp]
+        public void Setup()
+        {
+            _attributeProvider = new AttributeProvider();
+            _defaultUniqueEventsSubmissionUrl = string.Format("{0}/unique-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
+            _defaultSummedEventsSubmissionUrl = string.Format("{0}/summed-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
+        }
         [TearDown]
         public void Cleanup()
         {
@@ -29,7 +36,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShoulOverrideDefaultSubmissionUrl_SendEventToValidUrl()
         {
-            var expectedSubmissionUrl = $"{_defaultSubmissionUrl}/unique-events/unit-test/submit?token={_token}&universe={_universeName}";
+            var expectedSubmissionUrl = string.Format("{0}/unique-events/unit-test/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
             var jsonString = string.Empty;
             var submissionUrl = string.Empty;
             var requestHandler = new BacktraceHttpClientMock()
@@ -57,7 +64,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
         [Test]
         public void BacktraceMetricsUniqueEvents_ShouldBeAbleToOverrideDefaultSubmissionUrl_CorrectSubmissionUrl()
         {
-            string expectedSubmissionUrl = $"{_defaultSubmissionUrl}/unit-test/unique-events/submit?token={_token}&universe={_universeName}";
+            string expectedSubmissionUrl = string.Format("{0}/unit-test/unique-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
 
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, expectedSubmissionUrl, _defaultSummedEventsSubmissionUrl);
 
@@ -131,7 +138,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
         {
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, _defaultSummedEventsSubmissionUrl);
 
-            var added = backtraceMetrics.AddUniqueEvent($"{UniqueAttributeName}-not-existing");
+            var added = backtraceMetrics.AddUniqueEvent(string.Format("{0}-not-existing", UniqueAttributeName));
 
             Assert.IsFalse(added);
             Assert.AreEqual(backtraceMetrics.UniqueEvents.Count, 0);

@@ -45,7 +45,7 @@ namespace Backtrace.Unity.Model
                 {
                     return "";
                 }
-                var classifier = _backtraceData.Classifier ?? System.Array.Empty<string>();
+                var classifier = _backtraceData.Classifier != null ? _backtraceData.Classifier : new string[0];
                 return string.Join(",", classifier);
             }
         }

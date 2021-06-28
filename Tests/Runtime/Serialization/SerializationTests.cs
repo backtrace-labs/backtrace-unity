@@ -34,8 +34,8 @@ namespace Backtrace.Unity.Tests.Runtime
         {
             var attributes = new Dictionary<string, string>()
             {
-                ["foo"] = "foo",
-                ["bar"] = "",
+                {"foo", "foo" },
+                { "bar", "" },
             };
 
             var report = new BacktraceReport(new Exception("test"));

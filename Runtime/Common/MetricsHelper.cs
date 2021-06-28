@@ -15,5 +15,14 @@ namespace Backtrace.Unity.Common
         {
             return Math.Max(1, ((stopwatch.ElapsedTicks * 1000000) / Stopwatch.Frequency)).ToString(CultureInfo.InvariantCulture);
         }
+
+#if !(NET_STANDARD_2_0 && NET_4_6)
+        public static void Restart(this Stopwatch stopwatch)
+        {
+            stopwatch.Stop();
+            stopwatch.Reset();
+            stopwatch.Start();
+        }
+#endif
     }
 }

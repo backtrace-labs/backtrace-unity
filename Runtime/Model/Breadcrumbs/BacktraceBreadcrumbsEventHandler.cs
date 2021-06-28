@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Backtrace.Unity.Extensions;
+using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,7 +8,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 {
     internal sealed class BacktraceBreadcrumbsEventHandler
     {
-        public bool HasRegisteredEvents { get; set; } = false;
+        public bool HasRegisteredEvents { get; set; }
         private readonly BacktraceBreadcrumbs _breadcrumbs;
         private BacktraceBreadcrumbType _registeredLevel;
         private NetworkReachability _networkStatus = NetworkReachability.NotReachable;
@@ -16,6 +17,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             _thread = Thread.CurrentThread;
             _breadcrumbs = breadcrumbs;
+            HasRegisteredEvents = false;
         }
         /// <summary>
         /// Register unity events that will generate logs in the breadcrumbs file
@@ -36,8 +38,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             {
                 HasRegisteredEvents = true;
                 Application.lowMemory += HandleLowMemory;
+#if UNITY_2018_4_OR_NEWER
                 Application.quitting += HandleApplicationQuitting;
                 Application.focusChanged += Application_focusChanged;
+#endif
             }
 
             if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Log))
@@ -67,8 +71,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.System))
             {
                 Application.lowMemory -= HandleLowMemory;
+#if UNITY_2018_4_OR_NEWER
                 Application.quitting -= HandleApplicationQuitting;
                 Application.focusChanged -= Application_focusChanged;
+#endif
             }
 
             if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.Log))
@@ -142,7 +148,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         private void LogNewNetworkStatus(NetworkReachability status)
         {
             _networkStatus = status;
-            Log($"Network:{status}", LogType.Log, BreadcrumbLevel.System);
+            Log(string.Format("Network:{0}", status), LogType.Log, BreadcrumbLevel.System);
         }
 
         internal void Update()

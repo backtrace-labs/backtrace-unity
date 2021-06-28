@@ -12,8 +12,45 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
-        public static Dictionary<string, string> EnvironmentVariablesCache { get; set; } = SetEnvironmentVariables();
-        public Dictionary<string, string> EnvironmentVariables { get; set; } = EnvironmentVariablesCache;
+        /// <summary>
+        /// Backward compatibility helper
+        /// </summary>
+        private static Dictionary<string, string> _environmentVariablesCache;
+        public static Dictionary<string, string> EnvironmentVariablesCache
+        {
+            get
+            {
+                if (_environmentVariablesCache == null)
+                {
+                    _environmentVariablesCache = SetEnvironmentVariables();
+                }
+                return _environmentVariablesCache;
+            }
+            set
+            {
+                _environmentVariablesCache = value;
+            }
+        }
+        /// <summary>
+        /// Backward compatibility helper
+        /// </summary>
+        private Dictionary<string, string> _environmentVariables;
+
+        public Dictionary<string, string> EnvironmentVariables
+        {
+            get
+            {
+                if (_environmentVariables == null)
+                {
+                    _environmentVariables = EnvironmentVariablesCache;
+                }
+                return _environmentVariables;
+            }
+            set
+            {
+                _environmentVariables = value;
+            }
+        }
         /// <summary>
         /// Set maximum number of game objects in Backtrace report
         /// </summary>
@@ -33,7 +70,7 @@ namespace Backtrace.Unity.Model.JsonData
             _gameObjectDepth = gameObjectDepth;
             Exception = exception;
         }
-        
+
         private static Dictionary<string, string> SetEnvironmentVariables()
         {
             var result = new Dictionary<string, string>();

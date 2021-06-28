@@ -557,11 +557,15 @@ namespace Backtrace.Unity.Tests.Runtime
         public StackTraceType Type = StackTraceType.Default;
         public string Custom { get; set; }
         public string StackFrame { get; set; }
-        public string FileName { get; set; } = string.Empty;
+        public string FileName { get; set; }
         public string FunctionName { get; set; }
         public string Library { get; set; }
         public int Line { get; set; }
         public string Address { get; set; }
+        public SampleStackFrame()
+        {
+            FileName = string.Empty;
+        }
 
         public string ToStackFrameString()
         {

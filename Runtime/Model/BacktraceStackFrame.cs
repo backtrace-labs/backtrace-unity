@@ -86,10 +86,10 @@ namespace Backtrace.Unity.Model
         {
             var stackFrame = new BacktraceJObject(new Dictionary<string, string>()
             {
-                ["funcName"] = FunctionName,
-                ["path"] = FileName,
-                ["metadata_token"] = MemberInfo,
-                ["assembly"] = Assembly
+                {"funcName", FunctionName},
+                {"path", FileName },
+                {"metadata_token", MemberInfo },
+                { "assembly", Assembly}
             });
 
             stackFrame.Add("address", ILOffset);

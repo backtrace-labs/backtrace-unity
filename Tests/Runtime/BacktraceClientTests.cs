@@ -245,7 +245,6 @@ namespace Backtrace.Unity.Tests.Runtime
             BacktraceClient.Configuration.UseNormalizedExceptionMessage = true;
             BacktraceClient.Refresh();
 
-
             var normalizedMessage = "Unhandledexception";
             var exception = new BacktraceUnhandledException(normalizedMessage, string.Empty);
             var report = new BacktraceReport(exception);
@@ -253,8 +252,10 @@ namespace Backtrace.Unity.Tests.Runtime
             bool eventFired = false;
             BacktraceClient.BeforeSend = (BacktraceData data) =>
             {
-                Assert.IsNotNull(data.Attributes.Attributes["_mod_fingerprint"]);
-                Assert.AreEqual(normalizedMessage.GetSha(), data.Attributes.Attributes["_mod_fingerprint"]);
+                const string modFingerprintKey = "_mod_fingerprint";
+                Assert.IsTrue(data.Attributes.Attributes.ContainsKey(modFingerprintKey));
+                Assert.IsNotNull(data.Attributes.Attributes[modFingerprintKey]);
+                Assert.AreEqual(normalizedMessage.GetSha(), data.Attributes.Attributes[modFingerprintKey]);
                 // prevent backtrace data from sending to Backtrace.
                 eventFired = true;
                 // prevent backtrace data from sending to Backtrace.
