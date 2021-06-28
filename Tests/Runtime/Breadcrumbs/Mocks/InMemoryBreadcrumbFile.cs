@@ -14,7 +14,8 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs.Mocks
                 return MemoryStream.ToArray().Length;
             }
         }
-        public bool FileExists { get; set; } = true;
+        public bool FileExists { get; set; }
+
         public void Delete()
         {
             return;

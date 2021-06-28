@@ -18,7 +18,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void TestDbPath_ShouldReplaceInterpolationWithDataPath_PathShouldntBeEmpty()
         {
 
-            var expectedDatabasePath = Path.Combine(Application.dataPath, "foo", "bar");
+            var expectedDatabasePath = Path.Combine(Application.dataPath, "foo/bar");
             var testedDatabasePath = "${Application.dataPath}/foo/bar";
 
             var actualDatabasePath = ClientPathHelper.GetFullPath(testedDatabasePath);
@@ -30,7 +30,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void TestDbPath_ShouldReplaceInterpolationWithPersistentDataPathDataPath_PathShouldntBeEmpty()
         {
 
-            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo", "bar");
+            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo/bar");
             var testedDatabasePath = "${Application.persistentDataPath}/foo/bar";
 
             var actualDatabasePath = ClientPathHelper.GetFullPath(testedDatabasePath);
@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void TestDbPath_ShouldtTryToParseInterpolatedString_PathShouldntBeEmpty()
         {
 
-            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo", "bar");
+            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo/bar");
             var actualDatabasePath = ClientPathHelper.GetFullPath(expectedDatabasePath);
             Assert.AreEqual(new DirectoryInfo(expectedDatabasePath).FullName, actualDatabasePath);
         }
@@ -72,7 +72,7 @@ namespace Backtrace.Unity.Tests.Runtime
         [Test]
         public void TestDbPath_ShouldParseCorrectlyInterpolatedStringWithUpperCaseChar_PathShouldntBeEmpty()
         {
-            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo", "bar");
+            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo/bar");
             var testedDatabasePath = "${Application.PersistentDataPath}/foo/bar";
 
             var actualDatabasePath = ClientPathHelper.GetFullPath(testedDatabasePath);
@@ -82,7 +82,7 @@ namespace Backtrace.Unity.Tests.Runtime
         [Test]
         public void TestDbPath_ShouldParseCorrectlyInterpolatedStringWithLowerCaseChar_PathShouldntBeEmpty()
         {
-            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo", "bar");
+            var expectedDatabasePath = Path.Combine(Application.persistentDataPath, "foo/bar");
             var testedDatabasePath = "${application.persistentDataPath}/foo/bar";
 
             var actualDatabasePath = ClientPathHelper.GetFullPath(testedDatabasePath);

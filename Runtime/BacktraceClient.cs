@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
@@ -34,7 +35,11 @@ namespace Backtrace.Unity
         {
             get
             {
-                return Database?.Breadcrumbs;
+                if (Database == null)
+                {
+                    return null;
+                }
+                return Database.Breadcrumbs;
             }
         }
 
@@ -594,12 +599,18 @@ namespace Backtrace.Unity
 
         private void OnApplicationQuit()
         {
-            _nativeClient?.Disable();
+            if (_nativeClient != null)
+            {
+                _nativeClient.Disable();
+            }
         }
 
         private void Awake()
         {
-            Breadcrumbs?.FromMonoBehavior("Application awake", LogType.Assert, null);
+            if (Breadcrumbs != null)
+            {
+                Breadcrumbs.FromMonoBehavior("Application awake", LogType.Assert, null);
+            }
             Refresh();
         }
 
@@ -608,10 +619,16 @@ namespace Backtrace.Unity
         /// </summary>
         private void LateUpdate()
         {
-            _nativeClient?.UpdateClientTime(Time.unscaledTime);
+            if (_nativeClient != null)
+            {
+                _nativeClient.UpdateClientTime(Time.unscaledTime);
+            }
 
 #if !UNITY_WEBGL
-            _metrics?.Tick(Time.unscaledTime);
+            if (_metrics != null)
+            {
+                _metrics.Tick(Time.unscaledTime);
+            }
 #endif
 
             if (BackgroundExceptions.Count == 0)
@@ -630,8 +647,11 @@ namespace Backtrace.Unity
         private void OnDestroy()
         {
             Enabled = false;
-            Breadcrumbs?.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
-            Breadcrumbs?.UnregisterEvents();
+            if (Breadcrumbs != null)
+            {
+                Breadcrumbs.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
+                Breadcrumbs.UnregisterEvents();
+            }
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
@@ -670,8 +690,10 @@ namespace Backtrace.Unity
               message: message,
               attachmentPaths: attachmentPaths,
               attributes: attributes);
-
-            Breadcrumbs?.FromBacktrace(report);
+            if (Breadcrumbs != null)
+            {
+                Breadcrumbs.FromBacktrace(report);
+            }
             SendReport(report);
         }
 
@@ -689,7 +711,10 @@ namespace Backtrace.Unity
             }
 
             var report = new BacktraceReport(exception, attributes, attachmentPaths);
-            Breadcrumbs?.FromBacktrace(report);
+            if (Breadcrumbs != null)
+            {
+                Breadcrumbs.FromBacktrace(report);
+            }
             SendReport(report);
         }
 
@@ -704,7 +729,10 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            Breadcrumbs?.FromBacktrace(report);
+            if (Breadcrumbs != null)
+            {
+                Breadcrumbs.FromBacktrace(report);
+            }
             SendReport(report, sendCallback);
         }
 
@@ -902,8 +930,14 @@ namespace Backtrace.Unity
 
         internal void OnApplicationPause(bool pause)
         {
-            Breadcrumbs?.FromMonoBehavior("Application pause", LogType.Assert, new Dictionary<string, string> { { "paused", pause.ToString(CultureInfo.InvariantCulture).ToLower() } });
-            _nativeClient?.PauseAnrThread(pause);
+            if (Breadcrumbs != null)
+            {
+                Breadcrumbs.FromMonoBehavior("Application pause", LogType.Assert, new Dictionary<string, string> { { "paused", pause.ToString(CultureInfo.InvariantCulture).ToLower() } });
+            }
+            if (_nativeClient != null)
+            {
+                _nativeClient.PauseAnrThread(pause);
+            }
         }
 
         internal void HandleUnityBackgroundException(string message, string stackTrace, LogType type)

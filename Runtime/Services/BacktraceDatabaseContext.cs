@@ -17,7 +17,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Database cache
         /// </summary>
-        internal IDictionary<int, List<BacktraceDatabaseRecord>> BatchRetry { get; private set; } = new Dictionary<int, List<BacktraceDatabaseRecord>>();
+        internal IDictionary<int, List<BacktraceDatabaseRecord>> BatchRetry { get; private set; }
 
         /// <summary>
         /// Total database size on hard drive
@@ -61,6 +61,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         private void SetupBatch()
         {
+            BatchRetry = new Dictionary<int, List<BacktraceDatabaseRecord>>();
             if (_retryNumber == 0)
             {
                 throw new ArgumentException(string.Format("{0} have to be greater than 0!", "_retryNumber"));

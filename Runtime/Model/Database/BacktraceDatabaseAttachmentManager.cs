@@ -12,8 +12,8 @@ namespace Backtrace.Unity.Model.Database
     /// </summary>
     internal class BacktraceDatabaseAttachmentManager
     {
-        internal int ScreenshotMaxHeight { get; set; } = Screen.height;
-        internal int ScreenshotQuality { get; set; } = 90;
+        internal int ScreenshotMaxHeight { get; set; }
+        internal int ScreenshotQuality { get; set; }
 
         private readonly BacktraceDatabaseSettings _settings;
         private float _lastScreenTime;
@@ -22,6 +22,8 @@ namespace Backtrace.Unity.Model.Database
         public BacktraceDatabaseAttachmentManager(BacktraceDatabaseSettings settings)
         {
             _settings = settings;
+            ScreenshotMaxHeight = Screen.height;
+            ScreenshotQuality = 90;
         }
 
         public IEnumerable<string> GetReportAttachments(BacktraceData data)
@@ -177,10 +179,7 @@ namespace Backtrace.Unity.Model.Database
 #elif UNITY_STANDALONE_WIN
                     Path.Combine(
                         Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)).FullName,
-                        "LocalLow",
-                        Application.companyName,
-                        Application.productName,
-                        "Player.log");
+                        string.Format("LocalLow/{0}/{1}/Player.log", Application.companyName, Application.productName));
 #else
             string.Empty;
 #endif

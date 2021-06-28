@@ -36,10 +36,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal readonly string NativeCrashesDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Temp",
-                    Application.companyName,
-                    Application.productName,
-                    "crashes");
+                    string.Format("Temp/{0}/{1}/crashes", Application.companyName, Application.productName));
 
         /// <summary>
         /// Backtrace API

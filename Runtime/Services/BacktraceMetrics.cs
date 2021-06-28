@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Startup unique event name that will be generated on the application startup
         /// </summary>
-        public string StartupUniqueAttributeName { get; set; } = DefaultUniqueAttributeName;
+        public string StartupUniqueAttributeName { get; set; }
 
         /// <summary>
         /// Maximum number of unique events in store. If number of events in store hit the limit
@@ -215,6 +215,7 @@ namespace Backtrace.Unity.Services
             _uniqueEventsSubmissionQueue = new UniqueEventsSubmissionQueue(uniqueEventsSubmissionUrl, _attributeProvider);
             _summedEventsSubmissionQueue = new SummedEventsSubmissionQueue(summedEventsSubmissionUrl, _attributeProvider);
             _sessionId = SessionId.ToString();
+            StartupUniqueAttributeName = DefaultUniqueAttributeName;
         }
 
         /// <summary>
@@ -319,7 +320,8 @@ namespace Backtrace.Unity.Services
 
             // validate if unique event attribute is available and
             // prevent undefined attributes
-            if (attributes.TryGetValue(attributeName, out string attributeValue) == false || string.IsNullOrEmpty(attributeValue))
+            string attributeValue;
+            if (attributes.TryGetValue(attributeName, out attributeValue) == false || string.IsNullOrEmpty(attributeValue))
             {
                 Debug.LogWarning("Attribute name is not available in attribute scope. Please define attribute to set unique event.");
                 return false;
@@ -405,7 +407,7 @@ namespace Backtrace.Unity.Services
 
         private static string GetDefaultSubmissionUrl(string serviceName, string universeName, string token)
         {
-            return $"{DefaultSubmissionUrl}{serviceName}/submit?token={token}&universe={universeName}";
+            return string.Format("{0}{1}/submit?token={2}&universe={3}", DefaultSubmissionUrl, serviceName, token, universeName);
         }
 
         public void GetAttributes(IDictionary<string, string> attributes)

@@ -16,20 +16,23 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
         // existing attribute name in Backtrace
         const string UniqueAttributeName = "scene.name";
 
-        private AttributeProvider _attributeProvider = new AttributeProvider();
+        private AttributeProvider _attributeProvider;
 
         private const string _defaultSubmissionUrl = BacktraceMetrics.DefaultSubmissionUrl;
         private const string _token = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458";
         private const string _universeName = "testing-universe-name";
-        private readonly string _expectedUniqueEventsSubmissionUrl = $"{_defaultSubmissionUrl}unique-events/submit?token={_token}&universe={_universeName}";
-        private readonly string _expectedSummedEventsSubmissionUrl = $"{_defaultSubmissionUrl}summed-events/submit?token={_token}&universe={_universeName}";
+        private string _expectedUniqueEventsSubmissionUrl;
+        private string _expectedSummedEventsSubmissionUrl;
 
         private readonly string _defaultUniqueEventsSubmissionUrl = BacktraceMetrics.GetDefaultUniqueEventsUrl(_universeName, _token);
         private readonly string _defaultSummedEventsSubmissionUrl = BacktraceMetrics.GetDefaultSummedEventsUrl(_universeName, _token);
         [OneTimeSetUp]
         public void Setup()
         {
+            _attributeProvider = new AttributeProvider();
             Debug.unityLogger.logEnabled = false;
+            _expectedUniqueEventsSubmissionUrl = string.Format("{0}unique-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
+            _expectedSummedEventsSubmissionUrl = string.Format("{0}summed-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
         }
 
         [Test]
@@ -288,7 +291,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
 
             for (int i = 0; i < numberOfTestEvents; i++)
             {
-                backtraceMetrics.AddUniqueEvent($"{UniqueAttributeName} {i}", new Dictionary<string, string>() { { $"{UniqueAttributeName} {i}", "value" } });
+                backtraceMetrics.AddUniqueEvent(string.Format("{0} {1}", UniqueAttributeName, i), new Dictionary<string, string>() { { string.Format("{0} {1}", UniqueAttributeName, i), "value" } });
             }
 
             Assert.AreEqual(maximumNumberOfEvents, backtraceMetrics.Count());
@@ -306,7 +309,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
 
             for (int i = 0; i < numberOfTestEvents; i++)
             {
-                backtraceMetrics.AddSummedEvent($"{MetricsEventName} {i}");
+                backtraceMetrics.AddSummedEvent(string.Format("{0} {1}", MetricsEventName, i));
             }
 
             Assert.AreEqual(maximumNumberOfEvents, backtraceMetrics.Count());
@@ -326,7 +329,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
 
             for (int i = 0; i < maximumNumberOfEvents; i++)
             {
-                backtraceMetrics.AddSummedEvent($"{MetricsEventName} {i}");
+                backtraceMetrics.AddSummedEvent(string.Format("{0} {1}", MetricsEventName, i));
             }
 
             backtraceMetrics.Tick(defaultTimeIntervalInSec + 1);
@@ -349,7 +352,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
 
             for (int i = 0; i < expectedNumberOfEvents; i++)
             {
-                backtraceMetrics.AddSummedEvent($"{MetricsEventName} {i}");
+                backtraceMetrics.AddSummedEvent(string.Format("{0} {1}", MetricsEventName, i));
             }
 
             backtraceMetrics.Tick(0);
