@@ -275,7 +275,6 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void Clear()
         {
-            var records = BatchRetry.SelectMany(n => n.Value);
             TotalRecords = 0;
             TotalSize = 0;
             //clear all existing batches
