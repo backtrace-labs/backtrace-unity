@@ -656,7 +656,10 @@ namespace Backtrace.Unity
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
             Application.lowMemory -= HandleLowMemory;
-            _nativeClient?.Disable();
+            if (_nativeClient != null)
+            {
+                _nativeClient.Disable();
+            }
 #endif
         }
 
