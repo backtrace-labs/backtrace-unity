@@ -132,10 +132,11 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             // calculate struct size for current OS.
             // We multiply by 2 because Entry struct has two pointers
             var structSize = IntPtr.Size * 2;
+            const int x86StructSize = 4;
             for (int i = 0; i < keysCount; i++)
             {
                 IntPtr address;
-                if (structSize == 4)
+                if (structSize == x86StructSize)
                 {
                     address = new IntPtr(pUnmanagedArray.ToInt32() + i * structSize);
                 }
