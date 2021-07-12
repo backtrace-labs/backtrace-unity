@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.5.1-preview.0";
+        public const string VERSION = "3.5.1-preview.1";
 
         public BacktraceConfiguration Configuration;
 
