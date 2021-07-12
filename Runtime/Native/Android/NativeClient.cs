@@ -38,7 +38,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding);
 
         [DllImport("backtrace-native")]
-        private static extern bool EnableClientSideUnwinding();
+        private static extern bool EnableClientSideUnwinding(string path);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
@@ -256,7 +256,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
 
-           
+            if (_configuration.ClientSideUnwinding)
+            {
+                EnableClientSideUnwinding(databasePath);
+            }
+
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad isn't available
             _captureNativeCrashes = Initialize(
@@ -272,11 +276,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
                 return;
             }
-            if (_configuration.ClientSideUnwinding)
-            {
-                EnableClientSideUnwinding();
-            }
-
             foreach (var attribute in backtraceAttributes)
             {
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
