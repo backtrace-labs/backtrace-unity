@@ -38,7 +38,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding);
 
         [DllImport("backtrace-native")]
-        private static extern bool EnableClientSideUnwinding(string path);
+        private static extern bool EnableClientSideUnwinding(IntPtr path, int unwindingMode);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
@@ -258,7 +258,13 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             if (_configuration.ClientSideUnwinding)
             {
-                EnableClientSideUnwinding(databasePath);
+                var clientSideUnwindingDir = "/data/local/tmp";
+                if (!Directory.Exists(clientSideUnwindingDir))
+                {
+                    Directory.CreateDirectory(clientSideUnwindingDir);
+                }
+
+                EnableClientSideUnwinding(AndroidJNI.NewStringUTF(clientSideUnwindingDir), 2);
             }
 
             // reassign to captureNativeCrashes
