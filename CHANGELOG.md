@@ -12,6 +12,7 @@ New functionality
 Removed
 
 - Support for .NET 2.0 was removed. .NET 2.0 has been end of life for some time. If support is required for .NET 2.0, please use backtrace-unity 3.4.x
+- The configuration to collect Last N Log lines has been removed. Log lines are now automatically collected as a part of Breadcrumbs when they are enabled.
 
 Bugfixes
 
