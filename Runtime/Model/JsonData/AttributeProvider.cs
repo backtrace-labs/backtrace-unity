@@ -25,7 +25,8 @@ namespace Backtrace.Unity.Model.JsonData
         {
             get
             {
-                if (_attributes.TryGetValue(BacktraceMetrics.ApplicationSessionKey, out string result))
+                string result;
+                if (_attributes.TryGetValue(BacktraceMetrics.ApplicationSessionKey, out result))
                 {
                     return result;
                 }

@@ -64,11 +64,11 @@ namespace Backtrace.Unity.Services
             {
                 if (value <= 0)
                 {
-                    throw new ArgumentException($"{nameof(value)} has to be greater than 0");
+                    throw new ArgumentException("ScreenshotQuality has to be greater than 0");
                 }
                 if (value > 100)
                 {
-                    throw new ArgumentException($"{nameof(value)} cannot be larger than 100");
+                    throw new ArgumentException("ScreenshotQuality cannot be larger than 100");
                 }
                 _attachmentManager.ScreenshotQuality = value;
             }
@@ -89,7 +89,7 @@ namespace Backtrace.Unity.Services
             {
                 if (value <= 0)
                 {
-                    throw new ArgumentException($"{nameof(value)} has to be greater than 0");
+                    throw new ArgumentException("ScreenshotMaxHeight has to be greater than 0");
                 }
                 _attachmentManager.ScreenshotMaxHeight = value;
             }
@@ -167,15 +167,10 @@ namespace Backtrace.Unity.Services
                         file.Delete();
                     }
                 }
-#pragma warning disable CS0168
                 catch (Exception e)
                 {
-#if DEBUG
-                    Debug.Log(e.ToString());
-#endif
-                    Debug.LogWarning(string.Format("Cannot remove file in path: {0}", file.FullName));
+                    Debug.LogWarning(string.Format("Cannot remove file in path: {0}. Reason: {1}", file.FullName, e.Message));
                 }
-#pragma warning restore CS0168
             }
         }
 
@@ -325,7 +320,7 @@ namespace Backtrace.Unity.Services
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"Backtrace: Cannot save record on the hard drive. Reason: {e.Message}");
+                Debug.LogWarning(string.Format("Backtrace: Cannot save record on the hard drive. Reason: {0}", e.Message));
                 Delete(record);
 
                 return false;

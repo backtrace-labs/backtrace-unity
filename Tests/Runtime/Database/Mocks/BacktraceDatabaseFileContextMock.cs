@@ -25,7 +25,10 @@ namespace Backtrace.Unity.Tests.Runtime
 
         public void Delete(BacktraceDatabaseRecord record)
         {
-            OnDelete?.Invoke(record);
+            if (OnDelete != null)
+            {
+                OnDelete.Invoke(record);
+            }
             return;
         }
 
@@ -48,7 +51,11 @@ namespace Backtrace.Unity.Tests.Runtime
 
         public bool IsValidRecord(BacktraceDatabaseRecord record)
         {
-            return OnValidRecord?.Invoke(record) ?? true;
+            if (OnValidRecord != null)
+            {
+                return OnValidRecord.Invoke(record);
+            }
+            return false;
         }
 
         public void RemoveOrphaned(IEnumerable<BacktraceDatabaseRecord> existingRecords)
@@ -58,7 +65,11 @@ namespace Backtrace.Unity.Tests.Runtime
 
         public bool Save(BacktraceDatabaseRecord record)
         {
-            return OnSave?.Invoke(record) ?? true;
+            if (OnSave != null)
+            {
+                return OnSave.Invoke(record);
+            }
+            return true;
         }
 
         public bool ValidFileConsistency()

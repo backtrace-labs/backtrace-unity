@@ -228,7 +228,10 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            _breadcrumbs?.Update();
+            if (_breadcrumbs != null)
+            {
+                _breadcrumbs.Update();
+            }
             LastFrameTime = Time.unscaledTime;
             if (!DatabaseSettings.AutoSendMode)
             {
@@ -722,7 +725,11 @@ namespace Backtrace.Unity
 
         public bool EnableBreadcrumbsSupport()
         {
-            return Breadcrumbs?.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel) ?? false;
+            if (Breadcrumbs == null)
+            {
+                return false;
+            }
+            return _breadcrumbs.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel);
         }
     }
 }

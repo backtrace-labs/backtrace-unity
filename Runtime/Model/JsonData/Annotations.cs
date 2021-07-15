@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Model.JsonData
 {
     /// <summary>
@@ -12,8 +14,50 @@ namespace Backtrace.Unity.Model.JsonData
     /// </summary>
     public class Annotations
     {
-        public static Dictionary<string, string> EnvironmentVariablesCache { get; set; } = SetEnvironmentVariables();
-        public Dictionary<string, string> EnvironmentVariables { get; set; } = EnvironmentVariablesCache;
+        /// <summary>
+        /// Backward compatibility helper
+        /// </summary>
+        internal static Dictionary<string, string> _environmentVariablesCache;
+
+        /// <summary>
+        /// Determinate if static helper should load environment variables or not.
+        /// </summary>
+        internal static bool VariablesLoaded;
+
+        /// <summary>
+        /// Loaded environment variables
+        /// </summary>
+        public static Dictionary<string, string> EnvironmentVariablesCache
+        {
+            get
+            {
+                if (VariablesLoaded == false)
+                {
+                    _environmentVariablesCache = SetEnvironmentVariables();
+                    VariablesLoaded = true;
+                }
+                return _environmentVariablesCache;
+            }
+            set
+            {
+                _environmentVariablesCache = value;
+            }
+        }
+
+        /// <summary>
+        /// Backward compatibility - local reference to environment variables
+        /// </summary>
+        public Dictionary<string, string> EnvironmentVariables
+        {
+            get
+            {
+                return EnvironmentVariablesCache;
+            }
+            set
+            {
+                EnvironmentVariablesCache = value;
+            }
+        }
         /// <summary>
         /// Set maximum number of game objects in Backtrace report
         /// </summary>
@@ -33,7 +77,7 @@ namespace Backtrace.Unity.Model.JsonData
             _gameObjectDepth = gameObjectDepth;
             Exception = exception;
         }
-        
+
         private static Dictionary<string, string> SetEnvironmentVariables()
         {
             var result = new Dictionary<string, string>();

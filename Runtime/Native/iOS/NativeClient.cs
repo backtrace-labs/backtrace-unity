@@ -125,15 +125,26 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return;
             }
-            GetNativeAttributes(out IntPtr pUnmanagedArray, out int keysCount);
+            IntPtr pUnmanagedArray;
+            int keysCount;
+            GetNativeAttributes(out pUnmanagedArray, out keysCount);
 
             // calculate struct size for current OS.
             // We multiply by 2 because Entry struct has two pointers
             var structSize = IntPtr.Size * 2;
+            const int x86StructSize = 4;
             for (int i = 0; i < keysCount; i++)
             {
-                var address = pUnmanagedArray + i * structSize;
-                Entry entry = Marshal.PtrToStructure<Entry>(address);
+                IntPtr address;
+                if (structSize == x86StructSize)
+                {
+                    address = new IntPtr(pUnmanagedArray.ToInt32() + i * structSize);
+                }
+                else
+                {
+                    address = new IntPtr(pUnmanagedArray.ToInt64() + i + structSize);
+                }
+                Entry entry = (Entry)Marshal.PtrToStructure(address, typeof(Entry));
                 result[entry.Key] = entry.Value;
             }
 

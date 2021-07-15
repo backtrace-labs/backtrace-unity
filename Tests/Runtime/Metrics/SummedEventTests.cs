@@ -15,19 +15,22 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
         private const string _universeName = "testing-universe-name";
 
         private const string _defaultSubmissionUrl = BacktraceMetrics.DefaultSubmissionUrl;
-        private readonly string _defaultUniqueEventsSubmissionUrl = $"{_defaultSubmissionUrl}/unique-events/submit?token={_token}&universe={_universeName}";
-        private readonly string _defaultSummedEventsSubmissionUrl = $"{_defaultSubmissionUrl}/summed-events/submit?token={_token}&universe={_universeName}";
+        private string _defaultUniqueEventsSubmissionUrl;
+        private string _defaultSummedEventsSubmissionUrl;
 
-        private AttributeProvider _attributeProvider = new AttributeProvider();
+        private AttributeProvider _attributeProvider;
         [OneTimeSetUp]
         public void Setup()
         {
+            _attributeProvider = new AttributeProvider();
+            _defaultUniqueEventsSubmissionUrl = string.Format("{0}/unique-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
+            _defaultSummedEventsSubmissionUrl = string.Format("{0}/summed-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
             Debug.unityLogger.logEnabled = false;
         }
         [Test]
         public void BacktraceMetricsSummedEvents_ShoulOverrideDefaultSubmissionUrl_SendEventToValidUrl()
         {
-            var expectedSubmissionUrl = $"{_defaultSubmissionUrl}/summed-events/unit-test/submit?token={_token}&universe={_universeName}";
+            var expectedSubmissionUrl = string.Format("{0}/summed-events/unit-test/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
             var jsonString = string.Empty;
             var submissionUrl = string.Empty;
             var requestHandler = new BacktraceHttpClientMock()
@@ -55,7 +58,7 @@ namespace Backtrace.Unity.Tests.Runtime.Metrics
         [Test]
         public void BacktraceMetricsSummedEvents_ShouldBeAbleToOverrideDefaultSubmissionUrl_CorrectSubmissionUrl()
         {
-            string expectedSubmissionUrl = $"{_defaultSubmissionUrl}/unit-test/summed-events/submit?token={_token}&universe={_universeName}";
+            string expectedSubmissionUrl = string.Format("{0}/unit-test/summed-events/submit?token={1}&universe={2}", _defaultSubmissionUrl, _token, _universeName);
 
             var backtraceMetrics = new BacktraceMetrics(_attributeProvider, 0, _defaultUniqueEventsSubmissionUrl, expectedSubmissionUrl);
 

@@ -53,7 +53,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Enable performance statistics
         /// </summary>
-        public bool EnablePerformanceStatistics { get; set; } = false;
+        public bool EnablePerformanceStatistics { get; set; }
 
         /// <summary>
         /// Url to server
@@ -92,6 +92,7 @@ namespace Backtrace.Unity.Services
             _serverUrl = credentials.GetSubmissionUrl();
             _minidumpUrl = credentials.GetMinidumpSubmissionUrl().ToString();
             _httpClient.IgnoreSslValidation = ignoreSslValidation;
+            EnablePerformanceStatistics = false;
         }
 
         /// <summary>

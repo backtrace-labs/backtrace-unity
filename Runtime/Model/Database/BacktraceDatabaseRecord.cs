@@ -147,7 +147,7 @@ namespace Backtrace.Unity.Model.Database
         /// </summary>
         private BacktraceDatabaseRecord(BacktraceDatabaseRawRecord rawRecord)
         {
-            Id = Guid.Parse(rawRecord.Id);
+            Id = new Guid(rawRecord.Id);
             RecordPath = rawRecord.recordName;
             DiagnosticDataPath = rawRecord.dataPath;
             Size = rawRecord.size;

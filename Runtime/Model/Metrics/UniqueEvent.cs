@@ -19,7 +19,8 @@ namespace Backtrace.Unity.Model.Metrics
         internal void UpdateTimestamp(long timestamp, IDictionary<string, string> attributes)
         {
             Timestamp = timestamp;
-            if (attributes != null && attributes.TryGetValue(Name, out string value) && !string.IsNullOrEmpty(value))
+            string value;
+            if (attributes != null && attributes.TryGetValue(Name, out value) && !string.IsNullOrEmpty(value))
             {
                 Attributes = attributes;
             }

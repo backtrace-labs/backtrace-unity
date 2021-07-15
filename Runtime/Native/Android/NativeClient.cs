@@ -115,7 +115,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Anr watcher object
         /// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
         private AndroidJavaObject _anrWatcher;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private bool _captureNativeCrashes = false;
         private readonly bool _handlerANR = false;
@@ -316,14 +318,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
-            var filesToRead = new string[2] { $"/proc/{processId}/status", "/proc/meminfo" };
+            var filesToRead = new string[2] { string.Format("/proc/{0}/status", processId), "/proc/meminfo" };
             foreach (var diagnosticFilePath in filesToRead)
             {
                 if (!File.Exists(diagnosticFilePath))
                 {
                     continue;
                 }
-                foreach (var line in File.ReadLines(diagnosticFilePath))
+                foreach (var line in File.ReadAllLines(diagnosticFilePath))
                 {
                     string[] entries = line.Split(':');
                     if (entries.Length != 2)
