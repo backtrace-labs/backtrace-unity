@@ -35,10 +35,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private Thread _anrThread;
 
         [DllImport("backtrace-native")]
-        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding);
-
-        [DllImport("backtrace-native")]
-        private static extern bool EnableClientSideUnwinding(IntPtr path, int unwindingMode);
+        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding, int unwindingMode);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
@@ -97,6 +94,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
         private const string _namespace = "backtrace.io.backtrace_unity_android_plugin";
+
+        /// <summary>
+        /// unwinding mode
+        /// </summary>
+        private UnwindingMode UnwindingMode = UnwindingMode.LOCAL_DUMPWITHOUTCRASH;
+
         private readonly string _anrPath = string.Format("{0}.{1}", _namespace, "BacktraceANRWatchdog");
 
         /// <summary>
@@ -256,17 +259,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
 
-            if (_configuration.ClientSideUnwinding)
-            {
-                var clientSideUnwindingDir = "/data/local/tmp";
-                if (!Directory.Exists(clientSideUnwindingDir))
-                {
-                    Directory.CreateDirectory(clientSideUnwindingDir);
-                }
-
-                EnableClientSideUnwinding(AndroidJNI.NewStringUTF(clientSideUnwindingDir), 2);
-            }
-
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad isn't available
             _captureNativeCrashes = Initialize(
@@ -276,7 +268,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
-                _configuration.ClientSideUnwinding);
+                _configuration.ClientSideUnwinding,
+                (int)UnwindingMode);
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
