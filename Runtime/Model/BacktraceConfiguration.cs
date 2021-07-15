@@ -337,8 +337,6 @@ namespace Backtrace.Unity.Model
             }
         }
 
-
-
         public string GetValidServerUrl()
         {
             return UpdateServerUrl(ServerUrl);
