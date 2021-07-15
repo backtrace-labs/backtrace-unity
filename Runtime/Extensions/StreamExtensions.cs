@@ -10,6 +10,7 @@ namespace Backtrace.Unity.Extensions
         // The CopyTo/CopyToAsync buffer is short-lived and is likely to be collected at Gen0, and it offers a significant
         // improvement in Copy performance.
         private const int _DefaultCopyBufferSize = 81920;
+
         public static void CopyTo(this Stream original, Stream destination)
         {
             if (destination == null)
