@@ -299,11 +299,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
                         AndroidJNI.NewStringUTF("Crash"));
         }
 
-        private bool Initialize(IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4, IntPtr intPtr5, IntPtr intPtr6, object clientSideUnwinding)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Retrieve Backtrace Attributes from the Android native code.
         /// </summary>
