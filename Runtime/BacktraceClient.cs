@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.5.0";
+        public const string VERSION = "3.5.1-preview.1";
 
         public BacktraceConfiguration Configuration;
 
@@ -656,7 +656,10 @@ namespace Backtrace.Unity
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
             Application.lowMemory -= HandleLowMemory;
-            _nativeClient?.Disable();
+            if (_nativeClient != null)
+            {
+                _nativeClient.Disable();
+            }
 #endif
         }
 

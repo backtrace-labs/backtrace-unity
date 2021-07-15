@@ -109,7 +109,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Anr watcher object
         /// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
         private AndroidJavaObject _anrWatcher;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private bool _captureNativeCrashes = false;
         private readonly bool _handlerANR = false;

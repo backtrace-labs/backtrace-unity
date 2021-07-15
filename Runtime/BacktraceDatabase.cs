@@ -729,7 +729,7 @@ namespace Backtrace.Unity
             {
                 return false;
             }
-            return Breadcrumbs.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel);
+            return _breadcrumbs.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel);
         }
     }
 }

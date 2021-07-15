@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Model.JsonData
 {
     /// <summary>
@@ -15,14 +17,24 @@ namespace Backtrace.Unity.Model.JsonData
         /// <summary>
         /// Backward compatibility helper
         /// </summary>
-        private static Dictionary<string, string> _environmentVariablesCache;
+        internal static Dictionary<string, string> _environmentVariablesCache;
+
+        /// <summary>
+        /// Determinate if static helper should load environment variables or not.
+        /// </summary>
+        internal static bool VariablesLoaded;
+
+        /// <summary>
+        /// Loaded environment variables
+        /// </summary>
         public static Dictionary<string, string> EnvironmentVariablesCache
         {
             get
             {
-                if (_environmentVariablesCache == null)
+                if (VariablesLoaded == false)
                 {
                     _environmentVariablesCache = SetEnvironmentVariables();
+                    VariablesLoaded = true;
                 }
                 return _environmentVariablesCache;
             }
@@ -31,24 +43,19 @@ namespace Backtrace.Unity.Model.JsonData
                 _environmentVariablesCache = value;
             }
         }
-        /// <summary>
-        /// Backward compatibility helper
-        /// </summary>
-        private Dictionary<string, string> _environmentVariables;
 
+        /// <summary>
+        /// Backward compatibility - local reference to environment variables
+        /// </summary>
         public Dictionary<string, string> EnvironmentVariables
         {
             get
             {
-                if (_environmentVariables == null)
-                {
-                    _environmentVariables = EnvironmentVariablesCache;
-                }
-                return _environmentVariables;
+                return EnvironmentVariablesCache;
             }
             set
             {
-                _environmentVariables = value;
+                EnvironmentVariablesCache = value;
             }
         }
         /// <summary>

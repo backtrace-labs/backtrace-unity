@@ -29,6 +29,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void Cleanup()
         {
             client.RequestHandler = null;
+            Annotations.VariablesLoaded = false;
         }
 
         [UnityTest]
@@ -68,31 +69,6 @@ namespace Backtrace.Unity.Tests.Runtime
             {
                 trigger = true;
             });
-            yield return new WaitForEndOfFrame();
-            Assert.IsTrue(trigger);
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator PiiTests_ShouldRemoveEnvironmentVariables_AnnotationsShouldntBeAvailable()
-        {
-            var trigger = false;
-            var exception = new Exception("custom exception message");
-            client.BeforeSend = (BacktraceData data) =>
-             {
-                 Assert.IsNotNull(data.Annotation.EnvironmentVariables);
-                 data.Annotation.EnvironmentVariables = null;
-                 return data;
-             };
-
-            client.RequestHandler = (string url, BacktraceData data) =>
-            {
-                trigger = true;
-                Assert.IsNull(data.Annotation.EnvironmentVariables);
-                return new BacktraceResult();
-            };
-            client.Send(exception);
-
             yield return new WaitForEndOfFrame();
             Assert.IsTrue(trigger);
             yield return null;
@@ -171,6 +147,31 @@ namespace Backtrace.Unity.Tests.Runtime
                 Assert.AreNotEqual(defaultUserName, actualValue);
                 trigger = true;
                 return data;
+            };
+            client.Send(exception);
+
+            yield return new WaitForEndOfFrame();
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PiiTests_ShouldRemoveEnvironmentVariables_AnnotationsShouldntBeAvailable()
+        {
+            var trigger = false;
+            var exception = new Exception("custom exception message");
+            client.BeforeSend = (BacktraceData data) =>
+            {
+                Assert.IsNotNull(data.Annotation.EnvironmentVariables);
+                data.Annotation.EnvironmentVariables = null;
+                return data;
+            };
+
+            client.RequestHandler = (string url, BacktraceData data) =>
+            {
+                trigger = true;
+                Assert.IsNull(data.Annotation.EnvironmentVariables);
+                return new BacktraceResult();
             };
             client.Send(exception);
 

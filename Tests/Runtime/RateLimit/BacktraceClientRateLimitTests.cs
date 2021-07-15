@@ -20,7 +20,9 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
             AfterSetup();
         }
 
-        private static int[] _rateLimitTest = new int[] { 5, 10, 20 };
+#pragma warning disable IDE0052 // This parameter is used by TestReportLimit_ShouldntHitRateLimit_AllReportsShouldBeInBacktrace test (as a parameter)
+        private static readonly int[] _rateLimitTest = new int[] { 5, 10, 20 };
+#pragma warning restore IDE0052 
 
         [UnityTest]
         public IEnumerator TestReportLimit_ShouldntHitRateLimit_AllReportsShouldBeInBacktrace([ValueSource("_rateLimitTest")] int reportPerMin)
