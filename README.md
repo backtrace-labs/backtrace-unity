@@ -71,7 +71,7 @@ Backtrace-unity has been tested and certified for games deployed on the followin
 - Mobile - Android, iOS
 - PC - Windows, Mac
 - Web - WebGL
-- Game Consoles - PlayStation4, Xbox One, Nintendo Switch
+- Game Consoles - PlayStation4, PlayStation5, Xbox One, Xbox Series X, Nintendo Switch, Google Stadia
 
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 
@@ -80,7 +80,7 @@ There are some differences in capabilities that backtrace-unity provides based o
 - iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
 - WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute `device.model` is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html).
 - Switch - Identified by attribute `uname.sysname` = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
-- PlayStation4 - Identified by attribute `uname.sysname` = PS4.
+- PlayStation4 / PlayStation5- Identified by attribute `uname.sysname` = PS4 / PS5
 - Windows - Identified by attribute `uname.sysname` = Windows. Provides an option to capture Minidumps for Engine Crashes.
 - MacOS - Identified by attribute `uname.sysname` = MacOS.
 
@@ -130,7 +130,9 @@ One of the integration paths require to create game object in your game scene. I
       attributes: attributes);
 ```
 
-If you need to use more advanced configuration, `Initialize` method accepts a `BacktraceConfiguration` scriptable object.
+If you need to use more advanced configuration, `Initialize` method accepts a `BacktraceConfiguration` scriptable object. See below: 
+
+NOTE: If you are deploying for Android you may want to take advantage of Backtrace's client side unwinding feature. In cases where an NDK application has system and other opaque libraries involved in a crash, it is better to unwind the callstack on the crashing application (i.e: the client). This may not provide the same callstack quality as with debugging symbols, but will give you debugging information you would otherwise not have if you don't have debugging symbols available. This function is enabled in backtrace-unity via the BacktraceConfiguration object and the `.ClientSideUnwinding = true;`.
 
 ```csharp
   var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
@@ -139,6 +141,7 @@ If you need to use more advanced configuration, `Initialize` method accepts a `B
   configuration.DatabasePath = "${Application.persistentDataPath}/sample/backtrace/path";
   configuration.CreateDatabase = true;
   configuration.Sampling = 0.002;
+  configuration.ClientSideUnwinding= true;
   _backtraceClient = BacktraceClient.Initialize(
       configuration,
       gameObjectName: "game-object-name",
@@ -217,6 +220,10 @@ The backtrace-unity library includes support for capturing Android NDK crashes a
 ## Native process and memory related information
 
 `system.memory` usage related information including memfree, swapfree, and vmalloc.used is now available. Additional VM details and voluntary / nonvountary ctxt switches are included.
+
+## Client side unwinding
+
+If you are deploying for Android you may want to take advantage of Backtrace's client side unwinding feature. In cases where an NDK application has system and other opaque libraries involved in a crash, it is better to unwind the callstack on the crashing application (i.e: the client). This may not provide the same callstack quality as with debugging symbols, but will give you debugging information you would otherwise not have if you don't have debugging symbols available. This function is enabled in backtrace-unity via the BacktraceConfiguration object and the `.ClientSideUnwinding = true;`. See an example in the [Integrating into your project via code](#integrating-into-your-project-via-code)
 
 ## ANRs and Hangs <a name="anr-reporting"></a>
 
