@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.6.0-Preview
+
+New functionality
+
+- Added support for client side unwinding of native crashes on Android
+
+Bugfixes
+
+- Fixed error in .NET 3.5 support
+
 ## Version 3.5.0
 
 New functionality
