@@ -44,7 +44,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize);
 
         [DllImport("__Internal", EntryPoint = "NativeReport")]
-        private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread);
+        private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread, bool ignoreIfDebugger);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         private static extern string Crash();
@@ -142,7 +142,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                 }
                 else
                 {
-                    address = new IntPtr(pUnmanagedArray.ToInt64() + i + structSize);
+                    address = new IntPtr(pUnmanagedArray.ToInt64() + i * structSize);
                 }
                 Entry entry = (Entry)Marshal.PtrToStructure(address, typeof(Entry));
                 result[entry.Key] = entry.Value;
@@ -182,7 +182,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                             {
                                 // set temporary attribute to "Hang"
                                 SetAttribute("error.type", "Hang");
-                                NativeReport("ANRException: Blocked thread detected.", true);
+                                NativeReport("ANRException: Blocked thread detected.", true, true);
                                 // update error.type attribute in case when crash happen 
                                 SetAttribute("error.type", "Crash");
                                 reported = true;
