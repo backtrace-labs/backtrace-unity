@@ -1,7 +1,7 @@
 {
   "name": "io.backtrace.unity",
   "displayName": "Backtrace",
-  "version": "3.6.0-preview.0",
+  "version": "3.6.0-preview.1",
   "unity": "2017.1",
   "description": "Backtrace's integration with Unity games allows customers to capture and report handled and unhandled Unity exceptions to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.",
   "keywords": [
