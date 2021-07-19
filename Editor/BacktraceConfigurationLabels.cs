@@ -9,14 +9,18 @@
 
         internal static string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
         internal static string LABEL_SAMPLING = "Log random sampling rate";
-        internal static string LABEL_HANDLE_ANR = "Handle ANR (Application not responding)";
-#if UNITY_ANDROID || UNITY_IOS
-        internal static string LABEL_HANDLE_OOM = "Send Out of Memory exceptions to Backtrace";
-#endif
 
         internal const string LABEL_ENABLE_METRICS = "Enable crash free metrics reporting";
         internal const string LABEL_METRICS_TIME_INTERVAL = "Auto send interval in min";
         internal const string LABEL_CRASH_FREE_SECTION = "Crash Free Metrics Reporting";
+
+        internal const string LABEL_NATIVE_CRASHES = "Native crashes";
+        internal static string LABEL_MINIDUMP_SUPPORT = "Minidump type";
+        internal const string LABEL_ENABLE_CLIENT_SIDE_UNWINDING = "Enable client-side unwinding";
+        internal static string LABEL_HANDLE_ANR = "Capture ANR (Application not responding)";
+        internal static string LABEL_HANDLE_OOM = "Send Out of Memory exceptions to Backtrace";
+        internal static string LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP = "Send unhandled native game crashes on startup";
+        internal static string LABEL_SYMBOLS_UPLOAD_TOKEN = "Symbols upload token";
 
         internal const string LABEL_BREADCRUMBS_SECTION = "Breadcrumbs support";
         internal const string LABEL_ENABLE_BREADCRUMBS = "Enable breadcrumbs support";
@@ -28,15 +32,12 @@
         internal static string LABEL_REPORT_FILTER = "Filter reports";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
         internal static string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
-        internal static string LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP = "Send unhandled native game crashes on startup";
         internal static string LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE = "Use normalized exception message";
         internal static string LABEL_PERFORMANCE_STATISTICS = "Enable performance statistics";
-        internal static string LABEL_SYMBOLS_UPLOAD_TOKEN = "Symbols upload token";
-
+        
         // database labels
         internal static string LABEL_ENABLE_DATABASE = "Enable Database";
         internal static string LABEL_PATH = "Backtrace database path";
-        internal static string LABEL_MINIDUMP_SUPPORT = "Minidump type";
         internal static string LABEL_ADD_UNITY_LOG = "Attach Unity Player.log";
         internal static string LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION = "Attach screenshot";
         internal static string LABEL_DEDUPLICATION_RULES = "Client-Side deduplication";

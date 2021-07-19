@@ -112,7 +112,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
-        [Tooltip("Handle ANR events - Application not responding")]
+        [Tooltip("Capture ANR events - Application not responding")]
         public bool HandleANR = true;
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -258,6 +258,7 @@ namespace Backtrace.Unity.Model
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
 
+        [Tooltip("Enable client-side unwinding.")]
         public bool ClientSideUnwinding = false;
 
         /// <summary>

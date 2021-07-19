@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Editor
         protected static bool showMetricsSettings = false;
         protected static bool showClientAdvancedSettings = false;
         protected static bool showDatabaseSettings = false;
-
+        protected static bool showNativeCrashesSettings = false;
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -43,21 +43,6 @@ namespace Backtrace.Unity.Editor
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty("IgnoreSslValidation"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_IGNORE_SSL_VALIDATION));
-#endif
-#if UNITY_ANDROID || UNITY_IOS
-                EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("HandleANR"),
-                     new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
-
-                EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty("OomReports"),
-                     new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_OOM));
-
-#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
-                EditorGUILayout.PropertyField(
-                   serializedObject.FindProperty("SymbolsUploadToken"),
-                   new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
-#endif
 #endif
                 EditorGUILayout.PropertyField(
                    serializedObject.FindProperty("UseNormalizedExceptionMessage"),
@@ -141,20 +126,41 @@ namespace Backtrace.Unity.Editor
                        serializedObject.FindProperty("DeduplicationStrategy"),
                        new GUIContent(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES));
 
+                    GUIStyle showNativeCrashesSupportFoldout = new GUIStyle(EditorStyles.foldout);
+                    showNativeCrashesSettings = EditorGUILayout.Foldout(showNativeCrashesSettings, BacktraceConfigurationLabels.LABEL_NATIVE_CRASHES, showNativeCrashesSupportFoldout);
+                    if (showNativeCrashesSettings)
+                    {
 #if UNITY_STANDALONE_WIN
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("MinidumpType"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
 #endif
 
-#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
-                    EditorGUILayout.PropertyField(
-                        serializedObject.FindProperty("AddUnityLogToReport"),
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));
 
+#if UNITY_ANDROID || UNITY_IOS
+                        EditorGUILayout.PropertyField(
+                            serializedObject.FindProperty("CaptureNativeCrashes"),
+                            new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+
+                        EditorGUILayout.PropertyField(
+                            serializedObject.FindProperty("HandleANR"),
+                             new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
+
+                        EditorGUILayout.PropertyField(
+                            serializedObject.FindProperty("OomReports"),
+                             new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_OOM));
+
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+                        EditorGUILayout.PropertyField(
+                            serializedObject.FindProperty("ClientSideUnwinding"),
+                            new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_CLIENT_SIDE_UNWINDING));
+
+                        EditorGUILayout.PropertyField(
+                           serializedObject.FindProperty("SymbolsUploadToken"),
+                           new GUIContent(BacktraceConfigurationLabels.LABEL_SYMBOLS_UPLOAD_TOKEN));
 #endif
-
-
+#endif
+                    }
                     GUIStyle breadcrumbsSupportFoldout = new GUIStyle(EditorStyles.foldout);
                     showBreadcrumbsSettings = EditorGUILayout.Foldout(showBreadcrumbsSettings, BacktraceConfigurationLabels.LABEL_BREADCRUMBS_SECTION, breadcrumbsSupportFoldout);
                     if (showBreadcrumbsSettings)
@@ -176,11 +182,12 @@ namespace Backtrace.Unity.Editor
                         }
                     }
 
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
                     EditorGUILayout.PropertyField(
-                        serializedObject.FindProperty("CaptureNativeCrashes"),
-                        new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+                        serializedObject.FindProperty("AddUnityLogToReport"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));
 #endif
+
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("AutoSendMode"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_AUTO_SEND_MODE));
