@@ -8,7 +8,7 @@ New functionality
 
 Bugfixes
 
-- Fixed error in .NET 3.5 support
+- Backward compatibility support for .NET 3.5
 
 ## Version 3.5.0
 
