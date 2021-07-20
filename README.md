@@ -227,7 +227,9 @@ The backtrace-unity library includes support for capturing Android NDK crashes a
 
 Client side unwinding may be useful if you are unable to upload all the symbols for your application. For example, if you are having stability issues in system or other opaque libraries on the devices where your game is deployed, it is better to unwind the callstack on the crashing application (i.e: the client). This may not provide the same callstack quality as with debugging symbols, but will give you debugging information you would otherwise not have if you don't have debugging symbols available. 
 
-This function is enabled in backtrace-unity via the a toggle under `Native Crashes` in  BacktraceConfiguration object and the `.ClientSideUnwinding = true;`. See an example in the [Integrating into your project via code](#integrating-into-your-project-via-code)
+This function is enabled in backtrace-unity via the a toggle under `Native Crashes` in Backtrace UI Panel in Unity (see below) or via the BacktraceConfiguration object and the `.ClientSideUnwinding = true;`. See an example in the [Integrating into your project via code](#integrating-into-your-project-via-code)
+
+![Native crash options](./Documentation~/images/Backtrace-Panel-Native-Crashes.png)
 
 ## ANRs and Hangs <a name="anr-reporting"></a>
 
