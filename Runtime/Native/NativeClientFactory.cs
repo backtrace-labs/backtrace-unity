@@ -10,7 +10,9 @@ namespace Backtrace.Unity.Runtime.Native
 #if UNITY_EDITOR
             return null;
 #else
-#if UNITY_ANDROID
+#if UNITY_STANDALONE_WIN
+            return new Windows.NativeClient(gameObjectName, configuration, attributes, attachments);
+#elif UNITY_ANDROID
             return new Android.NativeClient(gameObjectName, configuration, attributes, attachments);
 #elif UNITY_IOS
             return new iOS.NativeClient(configuration, attributes, attachments);

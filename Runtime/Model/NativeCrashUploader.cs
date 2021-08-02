@@ -80,7 +80,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Read directory structure in the native crash directory and send new crashes to Backtrace
         /// </summary>
-        public IEnumerator SendUnhandledGameCrashesOnGameStartup()
+        public IEnumerator SendUnhandledGameCrashesOnGameStartup(IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
             if (string.IsNullOrEmpty(NativeCrashesDir) || !Directory.Exists(NativeCrashesDir))
             {
@@ -105,21 +105,23 @@ namespace Backtrace.Unity.Model
                     {
                         continue;
                     }
-                    var attachments = crashFiles.Where(n => n != minidumpPath);
-                    var attributes = new Dictionary<string, string>()
+                    if (attachments == null)
                     {
-                        {"guid", MachineUuid },
-                        {"application.version", ApplicationVersion },
-                        {"error.type", "Crash" },
-                        { BacktraceMetrics.ApplicationSessionKey, string.IsNullOrEmpty(SessionId) ? "null" : SessionId}
-                    };
+                        attachments = new List<string>();
+                    }
+                    attachments.Concat(crashFiles.Where(n => n != minidumpPath));
+
+                    attributes["guid"] = MachineUuid;
+                    attributes["application.version"] = ApplicationVersion;
+                    attributes["error.type"] = "Crash";
+                    attributes[BacktraceMetrics.ApplicationSessionKey] = string.IsNullOrEmpty(SessionId) ? "null" : SessionId;
                     yield return _backtraceApi.SendMinidump(minidumpPath, attachments, attributes, (BacktraceResult result) =>
-                     {
-                         if (result != null && result.Status == BacktraceResultStatus.Ok)
-                         {
-                             File.Create(Path.Combine(crashDirFullPath, "backtrace.json"));
-                         }
-                     });
+                                 {
+                                     if (result != null && result.Status == BacktraceResultStatus.Ok)
+                                     {
+                                         File.Create(Path.Combine(crashDirFullPath, "backtrace.json"));
+                                     }
+                                 });
 
                 }
             }
