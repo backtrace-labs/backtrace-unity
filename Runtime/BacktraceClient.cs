@@ -500,7 +500,6 @@ namespace Backtrace.Unity
             var nativeAttachments = _clientReportAttachments.ToList()
                 .Where(n => !string.IsNullOrEmpty(n))
                 .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase)
-                .Select(n => System.IO.Path.GetFullPath(n))
                 .ToList();
 
             if (Configuration.Enabled)
@@ -524,8 +523,7 @@ namespace Backtrace.Unity
             var scopedAttributes = AttributeProvider.GenerateAttributes(false);
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
-                var nativeCrashUplaoder = new NativeCrashUploader(AttributeProvider, BacktraceApi);
-                StartCoroutine(nativeCrashUplaoder.SendUnhandledGameCrashesOnGameStartup(nativeAttachments, scopedAttributes));
+                StartCoroutine(Runtime.Native.Windows.NativeClient.SendUnhandledGameCrashesOnGameStartup(nativeAttachments, BacktraceApi));
             }
 
             if (Database != null)

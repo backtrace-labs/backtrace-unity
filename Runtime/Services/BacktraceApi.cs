@@ -102,7 +102,7 @@ namespace Backtrace.Unity.Services
         /// <param name="attachments">List of attachments</param>
         /// <param name="callback">Callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, IDictionary<string, string> queryAttributes, Action<BacktraceResult> callback = null)
+        public IEnumerator SendMinidump(string minidumpPath, IEnumerable<string> attachments, IDictionary<string, string> attributes, Action<BacktraceResult> callback = null)
         {
             if (attachments == null)
             {
@@ -119,11 +119,7 @@ namespace Backtrace.Unity.Services
                 yield break;
             }
 
-            var requestUrl = queryAttributes != null
-                ? GetParametrizedQuery(_minidumpUrl, queryAttributes)
-                : _minidumpUrl;
-
-            using (var request = _httpClient.Post(requestUrl, minidumpBytes, attachments))
+            using (var request = _httpClient.Post(_minidumpUrl, minidumpBytes, attachments, attributes))
             {
                 yield return request.SendWebRequest();
 
@@ -202,11 +198,7 @@ namespace Backtrace.Unity.Services
               ? System.Diagnostics.Stopwatch.StartNew()
               : new System.Diagnostics.Stopwatch();
 
-            var requestUrl = queryAttributes != null
-                ? GetParametrizedQuery(_serverUrl.ToString(), queryAttributes)
-                : ServerUrl;
-
-            using (var request = _httpClient.Post(requestUrl, json, attachments))
+            using (var request = _httpClient.Post(ServerUrl, json, attachments, queryAttributes))
             {
                 yield return request.SendWebRequest();
                 BacktraceResult result;
