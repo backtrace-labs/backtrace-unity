@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Unity message queue 
         /// </summary>
-        internal readonly ConcurrentQueue<string> LogQueue;
+        internal readonly Queue<string> LogQueue;
 
         /// <summary>
         /// Lock object
@@ -23,11 +23,10 @@ namespace Backtrace.Unity.Model
         /// Maximum number of logs that log manager can store.
         /// </summary>
         private readonly uint _limit;
-
         public BacktraceLogManager(uint numberOfLogs)
         {
             _limit = numberOfLogs;
-            LogQueue = new ConcurrentQueue<string>();
+            LogQueue = new Queue<string>();
         }
 
         /// <summary>
@@ -84,11 +83,14 @@ namespace Backtrace.Unity.Model
             {
                 return false;
             }
-
-            LogQueue.Enqueue(unityMessage.ToString());
             lock (lockObject)
             {
-                while (LogQueue.Count > _limit && LogQueue.TryDequeue(out string _)) ;
+                LogQueue.Enqueue(unityMessage.ToString());
+
+                while (LogQueue.Count > _limit)
+                {
+                    LogQueue.Dequeue();
+                }
             }
             return true;
         }
