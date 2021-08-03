@@ -30,11 +30,12 @@
         internal static string LABEL_REPORT_ATTACHMENTS = "Report attachment paths";
         internal static string CAPTURE_NATIVE_CRASHES = "Capture native crashes";
         internal static string LABEL_REPORT_FILTER = "Filter reports";
+        internal static string LABEL_NUMBER_OF_LOGS = "Collect last n game logs";
         internal static string LABEL_GAME_OBJECT_DEPTH = "Game object depth limit";
         internal static string LABEL_IGNORE_SSL_VALIDATION = "Ignore SSL validation";
         internal static string LABEL_USE_NORMALIZED_EXCEPTION_MESSAGE = "Use normalized exception message";
         internal static string LABEL_PERFORMANCE_STATISTICS = "Enable performance statistics";
-        
+
         // database labels
         internal static string LABEL_ENABLE_DATABASE = "Enable Database";
         internal static string LABEL_PATH = "Backtrace database path";

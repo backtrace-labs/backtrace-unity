@@ -72,6 +72,11 @@ namespace Backtrace.Unity.Model
         public List<BacktraceStackFrame> DiagnosticStack { get; set; }
 
         /// <summary>
+        /// Source code
+        /// </summary>
+        public BacktraceSourceCode SourceCode = null;
+
+        /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>
         /// <param name="message">Custom client message</param>
@@ -125,6 +130,24 @@ namespace Backtrace.Unity.Model
             }
         }
 
+        /// <summary>
+        /// Assign source code to Backtrace report - text available in the right panel in web debugger.
+        /// </summary>
+        /// <param name="text"></param>
+        internal void AssignSourceCodeToReport(string text)
+        {
+            if (DiagnosticStack == null || DiagnosticStack.Count == 0)
+            {
+                return;
+            }
+
+            SourceCode = new BacktraceSourceCode()
+            {
+                Text = text
+            };
+            // assign log information to first stack frame
+            DiagnosticStack[0].SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
+        }
         /// <summary>
         /// Set report classifier
         /// </summary>

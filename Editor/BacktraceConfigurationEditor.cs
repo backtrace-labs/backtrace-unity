@@ -57,6 +57,10 @@ namespace Backtrace.Unity.Editor
                        new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_FILTER));
 
                 EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty("NumberOfLogs"),
+                        new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
+
+                EditorGUILayout.PropertyField(
                  serializedObject.FindProperty("PerformanceStatistics"),
                  new GUIContent(BacktraceConfigurationLabels.LABEL_PERFORMANCE_STATISTICS));
 
@@ -131,9 +135,9 @@ namespace Backtrace.Unity.Editor
                     if (showNativeCrashesSettings)
                     {
 #if UNITY_STANDALONE_WIN
-                    EditorGUILayout.PropertyField(
-                        serializedObject.FindProperty("MinidumpType"),
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
+                        EditorGUILayout.PropertyField(
+                            serializedObject.FindProperty("MinidumpType"),
+                            new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
 #endif
 
 

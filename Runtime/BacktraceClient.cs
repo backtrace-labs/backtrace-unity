@@ -190,6 +190,12 @@ namespace Backtrace.Unity
         private IBacktraceApi _backtraceApi;
 
         private ReportLimitWatcher _reportLimitWatcher;
+
+        /// <summary>
+        /// Backtrace log manager
+        /// </summary>
+        private BacktraceLogManager _backtraceLogManager;
+
         /// <summary>
         /// Set an event executed when received bad request, unauthorize request or other information from server
         /// </summary>
@@ -697,6 +703,7 @@ namespace Backtrace.Unity
             {
                 Breadcrumbs.FromBacktrace(report);
             }
+            _backtraceLogManager.Enqueue(report);
             SendReport(report);
         }
 
@@ -718,6 +725,7 @@ namespace Backtrace.Unity
             {
                 Breadcrumbs.FromBacktrace(report);
             }
+            _backtraceLogManager.Enqueue(report);
             SendReport(report);
         }
 
@@ -736,6 +744,7 @@ namespace Backtrace.Unity
             {
                 Breadcrumbs.FromBacktrace(report);
             }
+            _backtraceLogManager.Enqueue(report);
             SendReport(report, sendCallback);
         }
 
@@ -881,6 +890,12 @@ namespace Backtrace.Unity
         private BacktraceData SetupBacktraceData(BacktraceReport report)
         {
 
+            // add environment information to backtrace report
+            var sourceCode = _backtraceLogManager.Disabled
+                ? new BacktraceUnityMessage(report).ToString()
+                : _backtraceLogManager.ToSourceCode();
+
+            report.AssignSourceCodeToReport(sourceCode);
             // apply _mod fingerprint attribute when client should use
             // normalized exception message instead environment stack trace
             // for exceptions without stack trace.
@@ -921,6 +936,7 @@ namespace Backtrace.Unity
         /// </summary>
         private void CaptureUnityMessages()
         {
+            _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
             if (Configuration.HandleUnhandledExceptions)
             {
                 Application.logMessageReceived += HandleUnityMessage;
@@ -979,7 +995,14 @@ namespace Backtrace.Unity
         /// <param name="type">log type</param>
         internal void HandleUnityMessage(string message, string stackTrace, LogType type)
         {
-            if (!Enabled || !Configuration.HandleUnhandledExceptions)
+            if (!Enabled)
+            {
+                return;
+            }
+            var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
+            _backtraceLogManager.Enqueue(unityMessage);
+
+            if (!Configuration.HandleUnhandledExceptions)
             {
                 return;
             }
