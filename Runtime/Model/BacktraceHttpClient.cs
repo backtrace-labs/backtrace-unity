@@ -67,9 +67,10 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Post multipart form data with JSON object to server.
         /// </summary>
+        /// <param name="submissionUrl">Submission URL</param>
         /// <param name="json">JSON string</param>
         /// <param name="attachments">List of attachemnt paths</param>
-        /// <param name="queryAttributes">query attributes</param>
+        /// <param name="attributes">Request Attributes</param>
         /// <returns>async operation</returns>
         public UnityWebRequest Post(string submissionUrl, string json, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
@@ -79,9 +80,10 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Post multipart form data with minidump file to server.
         /// </summary>
-        /// <param name="minidump">minidump bytes</param>
+        /// <param name="submissionUrl">Submission URL</param>
+        /// <param name="minidump">Minidump bytes</param>
         /// <param name="attachments">List of attachemnt paths</param>
-        /// <param name="queryAttributes">query attributes</param>
+        /// <param name="attributes">Request attributes</param>
         /// <returns>async operation</returns>
         public UnityWebRequest Post(string submissionUrl, byte[] minidump, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
@@ -136,17 +138,17 @@ namespace Backtrace.Unity.Model
 
         private void AddAttributesToFormData(List<IMultipartFormSection> formData, IDictionary<string, string> attributes)
         {
-            if (attributes != null)
+            if (attributes == null)
             {
-                foreach (var attribute in attributes)
+                return;
+            }
+            foreach (var attribute in attributes)
+            {
+                if (string.IsNullOrEmpty(attribute.Value))
                 {
-
-                    if (string.IsNullOrEmpty(attribute.Value))
-                    {
-                        continue;
-                    }
-                    formData.Add(new MultipartFormDataSection(attribute.Key, attribute.Value));
+                    continue;
                 }
+                formData.Add(new MultipartFormDataSection(attribute.Key, attribute.Value));
             }
         }
 

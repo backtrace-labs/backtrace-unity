@@ -502,6 +502,7 @@ namespace Backtrace.Unity
                 .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase)
                 .ToList();
 
+            string breadcrumbsPath = string.Empty;
             if (Configuration.Enabled)
             {
                 Database = GetComponent<BacktraceDatabase>();
@@ -512,7 +513,8 @@ namespace Backtrace.Unity
                     Database.SetReportWatcher(_reportLimitWatcher);
                     if (Database.Breadcrumbs != null)
                     {
-                        nativeAttachments.Add(Database.Breadcrumbs.GetBreadcrumbLogPath());
+                        breadcrumbsPath = Database.Breadcrumbs.GetBreadcrumbLogPath();
+
                     }
                 }
             }
@@ -523,11 +525,18 @@ namespace Backtrace.Unity
             var scopedAttributes = AttributeProvider.GenerateAttributes(false);
             if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
             {
-                StartCoroutine(Runtime.Native.Windows.NativeClient.SendUnhandledGameCrashesOnGameStartup(nativeAttachments, BacktraceApi));
+                StartCoroutine(Runtime.Native.Windows.NativeClient.SendUnhandledGameCrashesOnGameStartup(nativeAttachments, breadcrumbsPath, Configuration.GetFullDatabasePath(), BacktraceApi));
             }
 
             if (Database != null)
             {
+                // avoid adding breadcurmbs file earlier - to avoid managing breadcrumb file in two places
+                // in windows managed integration with unity crash handler
+                // breadcrumb path is required by native integration and will be added just before native integration initialization
+                if (!string.IsNullOrEmpty(breadcrumbsPath))
+                {
+                    nativeAttachments.Add(breadcrumbsPath);
+                }
                 _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, scopedAttributes, nativeAttachments);
                 AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
                 Database.EnableBreadcrumbsSupport();

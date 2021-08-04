@@ -1,5 +1,6 @@
 ﻿using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -255,7 +256,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         /// <summary>
         /// Read directory structure in the native crash directory and send new crashes to Backtrace
         /// </summary>
-        public static IEnumerator SendUnhandledGameCrashesOnGameStartup(IEnumerable<string> attachments, IBacktraceApi backtraceApi)
+        public static IEnumerator SendUnhandledGameCrashesOnGameStartup(ICollection<string> clientAttachments, string breadcrumbPath, string databasePath, IBacktraceApi backtraceApi)
         {
             // Path to the native crash directory
             string nativeCrashesDir = Path.Combine(
@@ -266,10 +267,33 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             {
                 yield break;
             }
+
+            var attachments = clientAttachments == null
+                ? new List<string>()
+                : new List<string>(clientAttachments);
+
+            // make sure - when user close game in the middle of sending data, the library won't have a chance to clean up temporary breadcurmb
+            // file. Becuase of that we prefer to always check if we need to clean something that left in the previous application session
+
+            string breadcrumbsCopyName = string.Format("{0}-1", BacktraceStorageLogManager.BreadcrumbLogFilePrefix);
+            string breadcrumbCopyPath = Path.Combine(databasePath, breadcrumbsCopyName);
+            if (File.Exists(breadcrumbCopyPath))
+            {
+                File.Delete(breadcrumbCopyPath);
+            }
+
+
+            // determine if handler should create a copy of a breadcrumb file 
+            // on the application startup. This check also prevents a situation when
+            // algorithm will try to copy a breacrumb file when a breadcrumbs file doesn't exist
+            // Client prefers to make a copy of a breadcrumb file in the database directory. Otherwise, if database
+            // for any reason in new session is not available, algorithm shouldn't make a copy. 
+            bool requireBreadcrumbsCopy = string.IsNullOrEmpty(breadcrumbPath) || string.IsNullOrEmpty(databasePath) ? false : true;
+            bool copiedFile = false;
+
             var crashDirs = Directory.GetDirectories(nativeCrashesDir);
             foreach (var crashDir in crashDirs)
             {
-
                 var crashDirFullPath = Path.Combine(nativeCrashesDir, crashDir);
                 var crashFiles = Directory.GetFiles(crashDirFullPath);
 
@@ -283,23 +307,49 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 {
                     continue;
                 }
-                if (attachments == null)
+                if (requireBreadcrumbsCopy)
                 {
-                    attachments = new List<string>();
+                    try
+                    {
+                        File.Copy(breadcrumbPath, breadcrumbCopyPath);
+                        attachments.Add(breadcrumbCopyPath);
+                        copiedFile = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning(string.Format("Cannot make a copy of the breadcrumb file in the database directory. Reason: {0}", e.Message));
+                    }
+                    finally
+                    {
+                        requireBreadcrumbsCopy = false;
+                    }
                 }
-                attachments.Concat(crashFiles.Where(n => n != minidumpPath));
+                var dumpAttachment = crashFiles.Concat(attachments).Where(n => n != minidumpPath).ToList();
                 IDictionary<string, string> attributes = GetScopedAttributes();
                 // be sure that error.type attribute provided by default by our library
                 // is always present in native attributes.
                 attributes["error.type"] = "Crash";
 
-                yield return backtraceApi.SendMinidump(minidumpPath, attachments, attributes, (BacktraceResult result) =>
+                yield return backtraceApi.SendMinidump(minidumpPath, dumpAttachment, attributes, (BacktraceResult result) =>
                 {
                     if (result != null && result.Status == BacktraceResultStatus.Ok)
                     {
                         File.Create(Path.Combine(crashDirFullPath, "backtrace.json"));
                     }
                 });
+            }
+            if (copiedFile)
+            {
+                try
+                {
+                    File.Delete(breadcrumbCopyPath);
+                }
+                catch (Exception e)
+                {
+                    // The file will be cleaned on the library startup via database integration
+                    // if native client for any reason won't be able to remove it.
+                    Debug.LogWarning(string.Format("Cannot remove temporary breadcrumb file. Reason: {0}", e.Message));
+                }
             }
         }
         /// <summary>
@@ -327,7 +377,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             // cleaning scoped attributes should be skipped when 
             // Configuration.SendUnhandledGameCrashesOnGameStartup  is set to false
             // the reason behind this decision is to make sure user change in the configuration
-            // won't left and useless data
+            // won't leave any useless data
             var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
             if (!HasScopedAttributesEmpty(attributesJson))
             {

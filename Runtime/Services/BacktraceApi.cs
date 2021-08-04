@@ -175,12 +175,12 @@ namespace Backtrace.Unity.Services
         /// <returns>Server response</returns>
         public IEnumerator Send(string json, IEnumerable<string> attachments, int deduplication, Action<BacktraceResult> callback)
         {
-            var queryAttributes = new Dictionary<string, string>();
+            var attributes = new Dictionary<string, string>();
             if (deduplication > 0)
             {
-                queryAttributes["_mod_duplicate"] = deduplication.ToString(CultureInfo.InvariantCulture);
+                attributes["_mod_duplicate"] = deduplication.ToString(CultureInfo.InvariantCulture);
             }
-            yield return Send(json, attachments, queryAttributes, callback);
+            yield return Send(json, attachments, attributes, callback);
 
         }
 
@@ -189,16 +189,16 @@ namespace Backtrace.Unity.Services
         /// </summary>
         /// <param name="json">diagnostic data JSON</param>
         /// <param name="attachments">List of report attachments</param>
-        /// <param name="queryAttributes">Query string attributes</param>
+        /// <param name="attributes">Query string attributes</param>
         /// <param name="callback">coroutine callback</param>
         /// <returns>Server response</returns>
-        public IEnumerator Send(string json, IEnumerable<string> attachments, Dictionary<string, string> queryAttributes, Action<BacktraceResult> callback)
+        public IEnumerator Send(string json, IEnumerable<string> attachments, Dictionary<string, string> attributes, Action<BacktraceResult> callback)
         {
             var stopWatch = EnablePerformanceStatistics
               ? System.Diagnostics.Stopwatch.StartNew()
               : new System.Diagnostics.Stopwatch();
 
-            using (var request = _httpClient.Post(ServerUrl, json, attachments, queryAttributes))
+            using (var request = _httpClient.Post(ServerUrl, json, attachments, attributes))
             {
                 yield return request.SendWebRequest();
                 BacktraceResult result;
@@ -262,34 +262,34 @@ namespace Backtrace.Unity.Services
                 "\n Please check provided url to Backtrace service or learn more from our integration guide: https://support.backtrace.io/hc/en-us/articles/360040515991-Unity-Integration-Guide"));
         }
 
-        private string GetParametrizedQuery(string serverUrl, IDictionary<string, string> queryAttributes)
-        {
-            var uriBuilder = new UriBuilder(serverUrl);
-            if (queryAttributes == null || !queryAttributes.Any())
-            {
-                return uriBuilder.Uri.ToString();
-            }
+        //private string GetParametrizedQuery(string serverUrl, IDictionary<string, string> queryAttributes)
+        //{
+        //    var uriBuilder = new UriBuilder(serverUrl);
+        //    if (queryAttributes == null || !queryAttributes.Any())
+        //    {
+        //        return uriBuilder.Uri.ToString();
+        //    }
 
 
-            StringBuilder builder = new StringBuilder();
-            var shouldStartWithAnd = true;
-            if (string.IsNullOrEmpty(uriBuilder.Query))
-            {
-                shouldStartWithAnd = false;
-                builder.Append("?");
-            }
+        //    StringBuilder builder = new StringBuilder();
+        //    var shouldStartWithAnd = true;
+        //    if (string.IsNullOrEmpty(uriBuilder.Query))
+        //    {
+        //        shouldStartWithAnd = false;
+        //        builder.Append("?");
+        //    }
 
-            for (int queryIndex = 0; queryIndex < queryAttributes.Count; queryIndex++)
-            {
-                if (queryIndex != 0 || shouldStartWithAnd)
-                {
-                    builder.Append("&");
-                }
-                var queryAttribute = queryAttributes.ElementAt(queryIndex);
-                builder.AppendFormat("{0}={1}", queryAttribute.Key, string.IsNullOrEmpty(queryAttribute.Value) ? "null" : queryAttribute.Value);
-            }
-            uriBuilder.Query += builder.ToString();
-            return Uri.EscapeUriString(uriBuilder.Uri.ToString());
-        }
+        //    for (int queryIndex = 0; queryIndex < queryAttributes.Count; queryIndex++)
+        //    {
+        //        if (queryIndex != 0 || shouldStartWithAnd)
+        //        {
+        //            builder.Append("&");
+        //        }
+        //        var queryAttribute = queryAttributes.ElementAt(queryIndex);
+        //        builder.AppendFormat("{0}={1}", queryAttribute.Key, string.IsNullOrEmpty(queryAttribute.Value) ? "null" : queryAttribute.Value);
+        //    }
+        //    uriBuilder.Query += builder.ToString();
+        //    return Uri.EscapeUriString(uriBuilder.Uri.ToString());
+        //}
     }
 }
