@@ -290,6 +290,12 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             bool copiedFile = false;
 
             var crashDirs = Directory.GetDirectories(nativeCrashesDir);
+
+            IDictionary<string, string> attributes = GetScopedAttributes();
+            // be sure that error.type attribute provided by default by our library
+            // is always present in native attributes.
+            attributes["error.type"] = "Crash";
+
             foreach (var crashDir in crashDirs)
             {
                 var crashDirFullPath = Path.Combine(nativeCrashesDir, crashDir);
@@ -323,11 +329,6 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                     }
                 }
                 var dumpAttachment = crashFiles.Concat(attachments).Where(n => n != minidumpPath).ToList();
-                IDictionary<string, string> attributes = GetScopedAttributes();
-                // be sure that error.type attribute provided by default by our library
-                // is always present in native attributes.
-                attributes["error.type"] = "Crash";
-
                 yield return backtraceApi.SendMinidump(minidumpPath, dumpAttachment, attributes, (BacktraceResult result) =>
                 {
                     if (result != null && result.Status == BacktraceResultStatus.Ok)
