@@ -142,7 +142,7 @@ namespace Backtrace.Unity.Services
                 try
                 {
                     // prevent from removing breadcrumbs file
-                    if (file.Name.StartsWith(BacktraceStorageLogManager.BreadcrumbLogFileName))
+                    if (file.Name.StartsWith(BacktraceStorageLogManager.BreadcrumbLogFilePrefix))
                     {
                         continue;
                     }

@@ -67,25 +67,27 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Post multipart form data with JSON object to server.
         /// </summary>
+        /// <param name="submissionUrl">Submission URL</param>
         /// <param name="json">JSON string</param>
         /// <param name="attachments">List of attachemnt paths</param>
-        /// <param name="queryAttributes">query attributes</param>
+        /// <param name="attributes">Request Attributes</param>
         /// <returns>async operation</returns>
-        public UnityWebRequest Post(string submissionUrl, string json, IEnumerable<string> attachments)
+        public UnityWebRequest Post(string submissionUrl, string json, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
-            return Post(submissionUrl, CreateJsonFormData(Encoding.UTF8.GetBytes(json), attachments));
+            return Post(submissionUrl, CreateJsonFormData(Encoding.UTF8.GetBytes(json), attachments, attributes));
         }
 
         /// <summary>
         /// Post multipart form data with minidump file to server.
         /// </summary>
-        /// <param name="minidump">minidump bytes</param>
+        /// <param name="submissionUrl">Submission URL</param>
+        /// <param name="minidump">Minidump bytes</param>
         /// <param name="attachments">List of attachemnt paths</param>
-        /// <param name="queryAttributes">query attributes</param>
+        /// <param name="attributes">Request attributes</param>
         /// <returns>async operation</returns>
-        public UnityWebRequest Post(string submissionUrl, byte[] minidump, IEnumerable<string> attachments)
+        public UnityWebRequest Post(string submissionUrl, byte[] minidump, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
-            return Post(submissionUrl, CreateMinidumpFormData(minidump, attachments));
+            return Post(submissionUrl, CreateMinidumpFormData(minidump, attachments, attributes));
         }
 
         private UnityWebRequest Post(string submissionUrl, List<IMultipartFormSection> formData)
@@ -105,12 +107,13 @@ namespace Backtrace.Unity.Model
         /// <param name="json">Diagnostic JSON bytes</param>
         /// <param name="attachments">List of attachments</param>
         /// <returns>Diagnostic JSON form data</returns>
-        private List<IMultipartFormSection> CreateJsonFormData(byte[] json, IEnumerable<string> attachments)
+        private List<IMultipartFormSection> CreateJsonFormData(byte[] json, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
             List<IMultipartFormSection> formData = new List<IMultipartFormSection>
             {
                 new MultipartFormFileSection(DiagnosticFileName,  json, string.Format("{0}.json",DiagnosticFileName), "application/json")
             };
+            AddAttributesToFormData(formData, attributes);
             AddAttachmentToFormData(formData, attachments);
             return formData;
         }
@@ -121,15 +124,32 @@ namespace Backtrace.Unity.Model
         /// <param name="minidump">Minidump bytes</param>
         /// <param name="attachments">list of attachments</param>
         /// <returns>Minidump form data</returns>
-        private List<IMultipartFormSection> CreateMinidumpFormData(byte[] minidump, IEnumerable<string> attachments)
+        private List<IMultipartFormSection> CreateMinidumpFormData(byte[] minidump, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
 
             List<IMultipartFormSection> formData = new List<IMultipartFormSection>
             {
-                new MultipartFormFileSection(DiagnosticFileName, minidump)
+                new MultipartFormFileSection(DiagnosticFileName, minidump),
             };
+            AddAttributesToFormData(formData, attributes);
             AddAttachmentToFormData(formData, attachments);
             return formData;
+        }
+
+        private void AddAttributesToFormData(List<IMultipartFormSection> formData, IDictionary<string, string> attributes)
+        {
+            if (attributes == null)
+            {
+                return;
+            }
+            foreach (var attribute in attributes)
+            {
+                if (string.IsNullOrEmpty(attribute.Value))
+                {
+                    continue;
+                }
+                formData.Add(new MultipartFormDataSection(attribute.Key, attribute.Value));
+            }
         }
 
         private void AddAttachmentToFormData(List<IMultipartFormSection> formData, IEnumerable<string> attachments)

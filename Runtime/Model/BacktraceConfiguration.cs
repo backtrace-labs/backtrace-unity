@@ -95,15 +95,15 @@ namespace Backtrace.Unity.Model
         [Tooltip("Try to find game native crashes and send them on Game startup")]
         public bool SendUnhandledGameCrashesOnGameStartup = true;
 
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
 #if UNITY_ANDROID
         /// <summary>
         /// Capture native NDK Crashes.
         /// </summary>
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
-#elif UNITY_IOS
+#elif UNITY_IOS || UNITY_STANDALONE_WIN
         /// <summary>
-        /// Capture native iOS Crashes.
+        /// Capture native crashes.
         /// </summary>
         [Tooltip("Capture native Crashes")]
 #endif
@@ -120,10 +120,10 @@ namespace Backtrace.Unity.Model
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
-#endif
         public bool OomReports = false;
+#endif
 
-#if UNITY_2019_2_OR_NEWER
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         /// <summary>
         /// Symbols upload token
         /// </summary>

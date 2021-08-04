@@ -137,7 +137,7 @@ namespace Backtrace.Unity.Editor
 #endif
 
 
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("CaptureNativeCrashes"),
                             new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
@@ -145,10 +145,11 @@ namespace Backtrace.Unity.Editor
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("HandleANR"),
                              new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
-
+#if UNITY_ANDROID || UNITY_IOS
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("OomReports"),
                              new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_OOM));
+#endif
 
 #if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
                         EditorGUILayout.PropertyField(

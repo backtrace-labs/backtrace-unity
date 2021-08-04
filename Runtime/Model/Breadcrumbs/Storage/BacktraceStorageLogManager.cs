@@ -43,6 +43,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// </summary>
         private long _breadcrumbsSize = 64000;
 
+        internal const string BreadcrumbLogFilePrefix = "bt-breadcrumbs";
         /// <summary>
         /// Default log file name
         /// </summary>
