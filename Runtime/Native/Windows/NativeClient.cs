@@ -121,8 +121,6 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 Directory.CreateDirectory(databasePath);
             }
 
-            // reassign to captureNativeCrashes
-            // to avoid doing anything on crashpad binary, when crashpad isn't available
             _captureNativeCrashes = Initialize(
                 minidumpUrl,
                 databasePath,
