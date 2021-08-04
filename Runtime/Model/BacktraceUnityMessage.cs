@@ -82,7 +82,7 @@ namespace Backtrace.Unity.Model
         }
 
         /// <summary>
-        /// Convert Backtrace Untiy Message to string that will be acceptable by source code format
+        /// Convert Backtrace Unity Message to string that will be acceptable by source code format
         /// </summary>
         /// <returns>Source code string</returns>
         public override string ToString()
