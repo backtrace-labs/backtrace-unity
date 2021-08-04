@@ -146,7 +146,10 @@ namespace Backtrace.Unity.Model
                 Text = text
             };
             // assign log information to first stack frame
-            DiagnosticStack[0].SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
+            foreach (var diagnosticStack in DiagnosticStack)
+            {
+                diagnosticStack.SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
+            }
         }
         /// <summary>
         /// Set report classifier
@@ -180,7 +183,6 @@ namespace Backtrace.Unity.Model
                         {
                             Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.UnhandledExceptionType;
                             break;
-
                         }
                 }
             }
