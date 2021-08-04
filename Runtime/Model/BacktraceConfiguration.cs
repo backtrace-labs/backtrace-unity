@@ -80,7 +80,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
-        [Obsolete("Please use breadcrumbs integration")]
+        [Tooltip("Number of logs collected by Backtrace-Unity")]
         public uint NumberOfLogs = 10;
 
         /// <summary>

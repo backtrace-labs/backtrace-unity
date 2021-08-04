@@ -319,7 +319,7 @@ _backtraceClient.BeforeSend = (BacktraceData data) =>
 ```
 
 - Environment Variable Management
-  The `Annotations` class exposes the EnvironmentVariableCache dictionary - a dictionary that stores environment variables collected by the library. You can manipulate the data in this cache before the report is sent. For example - to replace the`USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+  The `Annotations` class exposes the EnvironmentVariableCache dictionary - a dictionary that stores environment variables collected by the library. You can manipulate the data in this cache before the report is sent. For example - to replace the`USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Unity will reuse them on report creation.
 
 ```csharp
 Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";

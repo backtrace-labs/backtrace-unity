@@ -114,7 +114,7 @@ By default Backtrace library will send only 1% of your Debug.LogError reports - 
 
 - `BacktraceData` allows to edit list of environment variables collected by `BacktraceAnnotations`
 - `SourceCode` object description for PII purpose
-- `Annotations` class exposes EnvironmentVariableCache dictionary - dictionary that stores environment variables collected by library. For example - to replace `USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Untiy will reuse them on report creation.
+- `Annotations` class exposes EnvironmentVariableCache dictionary - dictionary that stores environment variables collected by library. For example - to replace `USERNAME` environment variable collected by Backtrace library with random string you can easily edit annotations environment varaible and Backtrace-Unity will reuse them on report creation.
 
 ```csharp
 Annotations.EnvironmentVariablesCache["USERNAME"] = "%USERNAME%";
@@ -280,7 +280,7 @@ _Bug Fixes_
 ## Version 2.0.5
 
 - Unity compatibility patch - .NET2.0, .NET 3.5 support (https://github.com/backtrace-labs/backtrace-unity/pull/10).
-- Untiy .NET Standard 2.0 support.
+- Unity .NET Standard 2.0 support.
 - Expose minidump type option to Backtrace Client configuration in the UI.
 - Changed values of LangVersion to Mono or IL2CPP, depending on which is deployed.
 - Changed `Game object depth` property - default to `-1`, which means not to include Game Objects Hierarchy as an Annotation in the error report. Set the value to `1` to collect one level deep of Gane Object hierarchy, `2` to collect two levels deep, and so on. Setting the value to `0` will collect the full depth, which may be rather large if you have a lot of children.
