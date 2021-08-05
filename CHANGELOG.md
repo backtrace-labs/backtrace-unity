@@ -5,6 +5,7 @@
 New functionality
 
 - Added support for client side unwinding of native crashes on Android
+- Added support for windows native crashes
 
 Bugfixes
 
