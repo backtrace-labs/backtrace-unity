@@ -166,7 +166,13 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
         public void HandleAnr(string gameObjectName = "", string callbackName = "")
         {
-            if (!_captureNativeCrashes || !_configuration.HandleANR)
+            var anrDisabled =
+#if UNITY_STANDALONE_WIN
+                !_captureNativeCrashes || !_configuration.HandleANR;
+#else
+                true;
+#endif
+            if (anrDisabled)
             {
                 return;
             }

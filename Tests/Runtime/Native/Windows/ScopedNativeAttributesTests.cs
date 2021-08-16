@@ -1,10 +1,10 @@
 ﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Services;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using NativeClient = Backtrace.Unity.Runtime.Native.Windows.NativeClient;
+
 namespace Backtrace.Unity.Tests.Runtime.Native.Windows
 {
     public sealed class ScopedNativeAttributesTests
@@ -43,7 +43,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
         [Test]
         public void NativeCrashUploadAttributes_ShouldSetValuesInPlayerPrefs_ValuesAreAvailableInPlayerPrefs()
         {
-            var configuration = new BacktraceConfiguration();
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.SendUnhandledGameCrashesOnGameStartup = true;
             const string testAttributeString = "foo-key";
             const string testAttributeValue = "foo-bar-value";
@@ -64,7 +64,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             string sessionKey = "session-foo-bar-baz";
             PlayerPrefs.SetString(NativeClient.SessionKey, sessionKey);
 
-            var configuration = new BacktraceConfiguration();
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.SendUnhandledGameCrashesOnGameStartup = true;
             const string testAttributeString = "foo-key";
             const string testAttributeValue = "foo-bar-value";
@@ -82,7 +82,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
         public void NativeCrashUploadAttributes_ShouldSetScopedAttributeViaNativeClientApi_AttributePresentsInScopedAttributes()
         {
 
-            var configuration = new BacktraceConfiguration();
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.SendUnhandledGameCrashesOnGameStartup = true;
             const string testAttributeKey = "foo-key-bar-baz";
             const string testAttributeValue = "123123";
@@ -104,7 +104,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             PlayerPrefs.SetString(NativeClient.MachineUuidKey, machineUuid);
             string sessionKey = "session-foo-bar-baz";
             PlayerPrefs.SetString(NativeClient.SessionKey, sessionKey);
-            var configuration = new BacktraceConfiguration();
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.SendUnhandledGameCrashesOnGameStartup = true;
             const string testAttributeString = "foo-key";
             const string testAttributeValue = "foo-bar-value";
