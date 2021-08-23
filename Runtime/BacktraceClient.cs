@@ -674,15 +674,16 @@ namespace Backtrace.Unity
                 Breadcrumbs.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
                 Breadcrumbs.UnregisterEvents();
             }
+            _instance = null;
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS
             Application.lowMemory -= HandleLowMemory;
+#endif
             if (_nativeClient != null)
             {
                 _nativeClient.Disable();
             }
-#endif
         }
 
         /// <summary>
