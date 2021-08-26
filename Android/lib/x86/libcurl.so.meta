@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: affab99c603deab49bdc930055abe518
+guid: a65006aac8a09af44af8596d8b71fc28
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -10,7 +10,6 @@ PluginImporter:
   isOverridable: 0
   isExplicitlyReferenced: 0
   validateReferences: 1
-  platformData:
   platformData:
   - first:
       : Any
@@ -23,7 +22,7 @@ PluginImporter:
     second:
       enabled: 1
       settings:
-        CPU: ARM64
+        CPU: x86
   - first:
       Editor: Editor
     second:

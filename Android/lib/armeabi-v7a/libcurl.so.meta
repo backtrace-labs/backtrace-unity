@@ -22,7 +22,7 @@ PluginImporter:
     second:
       enabled: 1
       settings:
-        CPU: ARM64
+        CPU: ARMv7
   - first:
       Editor: Editor
     second:
