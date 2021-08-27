@@ -196,7 +196,7 @@ namespace Backtrace.Unity.Model
         /// Enable event aggregation support
         /// </summary>
         [Tooltip("This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.")]
-        public bool EnableMetricsSupport = false;
+        public bool EnableMetricsSupport = true;
 
         /// <summary>
         /// Time interval in ms
