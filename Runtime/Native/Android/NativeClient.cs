@@ -120,6 +120,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 #pragma warning restore IDE0052 // Remove unread private members
 
         private bool _captureNativeCrashes = false;
+        private readonly bool _enableClientSideUnwinding = false;
         private readonly bool _handlerANR = false;
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
@@ -131,6 +132,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
 #if UNITY_ANDROID
+            _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
             _handlerANR = _configuration.HandleANR;
             // read device manufacturer
             using (var build = new AndroidJavaClass("android.os.Build"))
@@ -270,7 +272,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
-                _configuration.ClientSideUnwinding,
+                _enableClientSideUnwinding,
                 (int)UnwindingMode);
             if (!_captureNativeCrashes)
             {
