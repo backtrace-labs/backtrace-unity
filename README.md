@@ -186,7 +186,7 @@ The following is a reference guide to the Backtrace Client fields:
  - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
 
 - Crash Free Metrics Reporting
-  - Enable crash free metrics reporting. This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.
+  - Enable crash free metrics reporting. This toggles the periodic transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions. Metric events by default are sent when the game starts, when the game is closed / ends, and every 30 minutes while the game is running. So even if a user starts up the game and quits after only a couple of minutes, session and user metrics will still be sent.  See the "Crash Free Metrics" section below for more information on this feature.
 - Attachments Paths
   - Paths to attachments to be included for all report types.
 
@@ -491,6 +491,10 @@ Once enabled, unique application launches and unique player identifiers (default
 ![image](https://user-images.githubusercontent.com/726645/120376224-d8be3280-c2d8-11eb-88a9-5c16d49e263b.png)
 
 Note! This functionality is supported on all Unity supported platforms **except WebGL**.
+
+As mentioned above, these session events are sent on application startup, when the game is closed/ends, and every 30 minutes while the game is running.  
+
+You can also enable this feature at runtime via BacktraceClient.EnableMetrics().
 
 ## Filtering a report
 
