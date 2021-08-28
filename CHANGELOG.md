@@ -4,9 +4,9 @@
 
 New functionality
 
-- Added support for client side unwinding of native crashes on Android
-- Added support for windows native crashes
-- Added Unity engine log buffer to reports objects.
+- Added option for client side unwinding of native crashes on Android for NDK 19+ (Unity 2019+)
+- Added support for passing all attributes defined in the managed c# layer to Windows native crashes
+- Added Unity engine log buffer to reports objects and updated Debugger view to display the last Log lines again.
 - Improved OOM support - memory warnings won't generate and store crash reports.
 
 Bugfixes
