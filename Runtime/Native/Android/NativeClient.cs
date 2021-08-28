@@ -132,7 +132,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
 #if UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER
             _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
+#endif
             _handlerANR = _configuration.HandleANR;
             // read device manufacturer
             using (var build = new AndroidJavaClass("android.os.Build"))

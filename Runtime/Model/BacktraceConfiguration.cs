@@ -123,15 +123,13 @@ namespace Backtrace.Unity.Model
         public bool OomReports = false;
 #endif
 
-#if UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         /// <summary>
         /// Enable client side unwinding.
         /// </summary>
         [Tooltip("Enable client-side unwinding.")]
         public bool ClientSideUnwinding = false;
-#endif
 
-#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         /// <summary>
         /// Symbols upload token
         /// </summary>
