@@ -60,7 +60,7 @@ catch(Exception exception)
 
 # Prerequisites
 
-- Unity environment 2017.4.x
+- Unity environment 2018.4.x
 - .NET 3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
 - Backtrace instance - Create your own at https://backtrace.io/create-unity
@@ -76,7 +76,7 @@ Backtrace-unity has been tested and certified for games deployed on the followin
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 
 - All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Breadcrumbs, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Crash Free Metrics (except WebGL), Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
-- Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings.
+- Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings. Client-side unwinding option for NDK 19+ (Unity 2019+). 
 - iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
 - WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute `device.model` is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html).
 - Switch - Identified by attribute `uname.sysname` = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
@@ -204,7 +204,7 @@ The following is a reference guide to the Backtrace Client fields:
     - Capture native crashes: This option will appear for games being deployed to Android or iOS and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Plugin.
     - Capture ANR (Application not responding): This option will appear for Android or iOS and allow Backtrace to capture Hang reports. If enabled, a report will be generated if an application is not respinsive for more than 5 seconds.
     - Send Out of memory exceptions to Backtrace: This option will appear for Android or iOS and allow Backtrace to follow the behavior defined in the [Android](#android-specific-information) or [iOS](#ios-specific-information) sections. 
-    - Enable client-side unwinding: This option will appear for Android and allow Backtrace to perform client side unwinding of native crashes. Please see [Android Client-side unwinding](#client-side-unwinding) for details. 
+    - Enable client-side unwinding: This option will appear for supported versions of Android (NDK 19; Unity 2019+), and allow Backtrace to perform client side unwinding of native crashes. Please see [Android Client-side unwinding](#client-side-unwinding) for details. 
   - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
   - Attach Unity Player.log: Add Unity player log file to Backtrace report. NOTE: This feature is available only on desktop - Windows/MacOS/Linux.
   - Attach screenshot: Generate and attach screenshot of frame as exception occurs.
