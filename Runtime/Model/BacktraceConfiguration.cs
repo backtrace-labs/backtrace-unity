@@ -125,6 +125,12 @@ namespace Backtrace.Unity.Model
 
 #if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         /// <summary>
+        /// Enable client side unwinding.
+        /// </summary>
+        [Tooltip("Enable client-side unwinding.")]
+        public bool ClientSideUnwinding = false;
+
+        /// <summary>
         /// Symbols upload token
         /// </summary>
         [Tooltip("Symbols upload token required to upload symbols to Backtrace")]
@@ -196,7 +202,7 @@ namespace Backtrace.Unity.Model
         /// Enable event aggregation support
         /// </summary>
         [Tooltip("This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.")]
-        public bool EnableMetricsSupport = false;
+        public bool EnableMetricsSupport = true;
 
         /// <summary>
         /// Time interval in ms
@@ -258,8 +264,6 @@ namespace Backtrace.Unity.Model
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
 
-        [Tooltip("Enable client-side unwinding.")]
-        public bool ClientSideUnwinding = false;
 
         /// <summary>
         /// Get full paths to attachments added by client
@@ -286,15 +290,17 @@ namespace Backtrace.Unity.Model
         public string GetUniverseName()
         {
             var submissionUrl = GetValidServerUrl();
-            var submitUrl = submissionUrl.Contains("submit.backtrace.io");
+            const string backtraceSubmitUrl = "https://submit.backtrace.io/";
+            var submitUrl = submissionUrl.StartsWith(backtraceSubmitUrl);
             if (submitUrl)
             {
-                const int tokenLength = 64;
-                // we want to skip the last `/`. Since we're counting from 0 we need to decrease 
-                // position by 2
-                var endPosition = submissionUrl.LastIndexOf("/") - tokenLength - 2;
-                var startPosition = submissionUrl.LastIndexOf('/', endPosition) + 1;
-                return submissionUrl.Substring(startPosition, endPosition - startPosition + 1);
+                int universeIndexStart = backtraceSubmitUrl.Length;
+                int universeIndexEnd = submissionUrl.IndexOf('/', universeIndexStart);
+                if(universeIndexEnd == -1)
+                {
+                    throw new ArgumentException("Invalid Backtrace URL");
+                }
+                return submissionUrl.Substring(universeIndexStart, universeIndexEnd - universeIndexStart);
             }
             else
             {

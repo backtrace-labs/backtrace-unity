@@ -120,6 +120,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 #pragma warning restore IDE0052 // Remove unread private members
 
         private bool _captureNativeCrashes = false;
+        private readonly bool _enableClientSideUnwinding = false;
         private readonly bool _handlerANR = false;
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
@@ -131,6 +132,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
 #if UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER
+            _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
+#endif
             _handlerANR = _configuration.HandleANR;
             // read device manufacturer
             using (var build = new AndroidJavaClass("android.os.Build"))
@@ -227,14 +231,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Directory.CreateDirectory(databasePath);
             }
 
-            // crashpad is available only for API level 21+ 
+            // crashpad/breakpad is available only for API level 19+ 
             // make sure we don't want ot start crashpad handler 
             // on the unsupported API
             using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
             {
                 int apiLevel = version.GetStatic<int>("SDK_INT");
                 _builtInAttributes["device.sdk"] = apiLevel.ToString();
-                if (apiLevel < 21)
+                if (apiLevel < 19)
                 {
                     Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
                     return;
@@ -253,11 +257,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
             const string crashpadHandlerName = "libcrashpad_handler.so";
             var crashpadHandlerPath = Path.Combine(libDirectory, crashpadHandlerName);
 
-            if (string.IsNullOrEmpty(crashpadHandlerPath))
-            {
-                Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
-                return;
-            }
+            // if (string.IsNullOrEmpty(crashpadHandlerPath))
+            // {
+            //     Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
+            //     return;
+            // }
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
 
@@ -270,7 +274,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
-                _configuration.ClientSideUnwinding,
+                _enableClientSideUnwinding,
                 (int)UnwindingMode);
             if (!_captureNativeCrashes)
             {

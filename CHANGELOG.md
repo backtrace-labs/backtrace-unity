@@ -1,11 +1,13 @@
 # Backtrace Unity Release Notes
 
-## Version 3.6.0-Preview
+## Version 3.6.0
 
 New functionality
 
 - Added support for client side unwinding of native crashes on Android
 - Added support for windows native crashes
+- Added Unity engine log buffer to reports objects.
+- Improved OOM support - memory warnings won't generate and store crash reports.
 
 Bugfixes
 
