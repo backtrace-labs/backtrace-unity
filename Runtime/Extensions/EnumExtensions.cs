@@ -12,12 +12,21 @@ namespace Backtrace.Unity.Extensions
             {
                 throw new ArgumentException("The checked flag is not from the same type as the checked variable.");
             }
+            // Get the type code of the enumeration
+            var typeCode = variable.GetTypeCode();
 
-            Convert.ToUInt64(value);
-            ulong num = Convert.ToUInt64(value);
-            ulong num2 = Convert.ToUInt64(variable);
+            // If the underlying type of the flag is signed
+            if (typeCode == TypeCode.SByte || typeCode == TypeCode.Int16 || typeCode == TypeCode.Int32 || typeCode == TypeCode.Int64)
+            {
+                return (Convert.ToInt64(variable) & Convert.ToInt64(value)) != 0;
+            }
 
-            return (num2 & num) == num;
+            // If the underlying type of the flag is unsigned
+            if (typeCode == TypeCode.Byte || typeCode == TypeCode.UInt16 || typeCode == TypeCode.UInt32 || typeCode == TypeCode.UInt64)
+            {
+                return (Convert.ToUInt64(variable) & Convert.ToUInt64(value)) != 0;
+            }
+            return false;
         }
 #endif
     }

@@ -28,8 +28,9 @@ namespace Backtrace.Unity.Tests.Runtime
         protected BacktraceConfiguration GetBasicConfiguration()
         {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
-            configuration.ServerUrl = "https://submit.backtrace.io/test/token/json";
+            configuration.ServerUrl = "https://submit.backtrace.io/foo-bar-baz/1234123412341234123412341234123412341234123412341234123412341234/json";
             configuration.DestroyOnLoad = true;
+            configuration.EnableMetricsSupport = false;
             return configuration;
         }
 

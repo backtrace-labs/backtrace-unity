@@ -80,7 +80,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
-        [Obsolete("Please use breadcrumbs integration")]
+        [Tooltip("Number of logs collected by Backtrace-Unity")]
         public uint NumberOfLogs = 10;
 
         /// <summary>
@@ -95,15 +95,15 @@ namespace Backtrace.Unity.Model
         [Tooltip("Try to find game native crashes and send them on Game startup")]
         public bool SendUnhandledGameCrashesOnGameStartup = true;
 
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
 #if UNITY_ANDROID
         /// <summary>
         /// Capture native NDK Crashes.
         /// </summary>
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
-#elif UNITY_IOS
+#elif UNITY_IOS || UNITY_STANDALONE_WIN
         /// <summary>
-        /// Capture native iOS Crashes.
+        /// Capture native crashes.
         /// </summary>
         [Tooltip("Capture native Crashes")]
 #endif
@@ -112,7 +112,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
-        [Tooltip("Handle ANR events - Application not responding")]
+        [Tooltip("Capture ANR events - Application not responding")]
         public bool HandleANR = true;
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -120,10 +120,16 @@ namespace Backtrace.Unity.Model
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
-#endif
         public bool OomReports = false;
+#endif
 
-#if UNITY_2019_2_OR_NEWER
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+        /// <summary>
+        /// Enable client side unwinding.
+        /// </summary>
+        [Tooltip("Enable client-side unwinding.")]
+        public bool ClientSideUnwinding = false;
+
         /// <summary>
         /// Symbols upload token
         /// </summary>
@@ -196,7 +202,7 @@ namespace Backtrace.Unity.Model
         /// Enable event aggregation support
         /// </summary>
         [Tooltip("This toggles the periodic (default: every 30 minutes) transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions.")]
-        public bool EnableMetricsSupport = false;
+        public bool EnableMetricsSupport = true;
 
         /// <summary>
         /// Time interval in ms
@@ -258,6 +264,7 @@ namespace Backtrace.Unity.Model
         [Tooltip("This specifies in which order records are sent to the Backtrace server.")]
         public RetryOrder RetryOrder;
 
+
         /// <summary>
         /// Get full paths to attachments added by client
         /// </summary>
@@ -283,15 +290,17 @@ namespace Backtrace.Unity.Model
         public string GetUniverseName()
         {
             var submissionUrl = GetValidServerUrl();
-            var submitUrl = submissionUrl.Contains("submit.backtrace.io");
+            const string backtraceSubmitUrl = "https://submit.backtrace.io/";
+            var submitUrl = submissionUrl.StartsWith(backtraceSubmitUrl);
             if (submitUrl)
             {
-                const int tokenLength = 64;
-                // we want to skip the last `/`. Since we're counting from 0 we need to decrease 
-                // position by 2
-                var endPosition = submissionUrl.LastIndexOf("/") - tokenLength - 2;
-                var startPosition = submissionUrl.LastIndexOf('/', endPosition) + 1;
-                return submissionUrl.Substring(startPosition, endPosition - startPosition + 1);
+                int universeIndexStart = backtraceSubmitUrl.Length;
+                int universeIndexEnd = submissionUrl.IndexOf('/', universeIndexStart);
+                if(universeIndexEnd == -1)
+                {
+                    throw new ArgumentException("Invalid Backtrace URL");
+                }
+                return submissionUrl.Substring(universeIndexStart, universeIndexEnd - universeIndexStart);
             }
             else
             {

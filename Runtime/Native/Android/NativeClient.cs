@@ -35,7 +35,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private Thread _anrThread;
 
         [DllImport("backtrace-native")]
-        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments);
+        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding, int unwindingMode);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
@@ -94,6 +94,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
         private const string _namespace = "backtrace.io.backtrace_unity_android_plugin";
+
+        /// <summary>
+        /// unwinding mode
+        /// </summary>
+        private UnwindingMode UnwindingMode = UnwindingMode.LOCAL_DUMPWITHOUTCRASH;
+
         private readonly string _anrPath = string.Format("{0}.{1}", _namespace, "BacktraceANRWatchdog");
 
         /// <summary>
@@ -109,9 +115,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Anr watcher object
         /// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
         private AndroidJavaObject _anrWatcher;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private bool _captureNativeCrashes = false;
+        private readonly bool _enableClientSideUnwinding = false;
         private readonly bool _handlerANR = false;
         public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
@@ -123,6 +132,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
 #if UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER
+            _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
+#endif
             _handlerANR = _configuration.HandleANR;
             // read device manufacturer
             using (var build = new AndroidJavaClass("android.os.Build"))
@@ -261,12 +273,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
                 AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()));
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
+                _enableClientSideUnwinding,
+                (int)UnwindingMode);
             if (!_captureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
+                return;
             }
-
             foreach (var attribute in backtraceAttributes)
             {
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));

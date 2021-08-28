@@ -38,12 +38,12 @@ namespace Backtrace.Unity.Model.Metrics.Mocks
             }
         }
 
-        public UnityWebRequest Post(string submissionUrl, string json, IEnumerable<string> attachments)
+        public UnityWebRequest Post(string submissionUrl, string json, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
             return new UnityWebRequest();
         }
 
-        public UnityWebRequest Post(string submissionUrl, byte[] minidump, IEnumerable<string> attachments)
+        public UnityWebRequest Post(string submissionUrl, byte[] minidump, IEnumerable<string> attachments, IDictionary<string, string> attributes)
         {
             return new UnityWebRequest();
         }

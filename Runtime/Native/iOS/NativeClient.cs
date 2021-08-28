@@ -44,7 +44,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize);
 
         [DllImport("__Internal", EntryPoint = "NativeReport")]
-        private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread);
+        private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread, bool ignoreIfDebugger);
 
         [DllImport("__Internal", EntryPoint = "Crash")]
         private static extern string Crash();
@@ -125,15 +125,26 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return;
             }
-            GetNativeAttributes(out IntPtr pUnmanagedArray, out int keysCount);
+            IntPtr pUnmanagedArray;
+            int keysCount;
+            GetNativeAttributes(out pUnmanagedArray, out keysCount);
 
             // calculate struct size for current OS.
             // We multiply by 2 because Entry struct has two pointers
             var structSize = IntPtr.Size * 2;
+            const int x86StructSize = 4;
             for (int i = 0; i < keysCount; i++)
             {
-                var address = pUnmanagedArray + i * structSize;
-                Entry entry = Marshal.PtrToStructure<Entry>(address);
+                IntPtr address;
+                if (structSize == x86StructSize)
+                {
+                    address = new IntPtr(pUnmanagedArray.ToInt32() + i * structSize);
+                }
+                else
+                {
+                    address = new IntPtr(pUnmanagedArray.ToInt64() + i * structSize);
+                }
+                Entry entry = (Entry)Marshal.PtrToStructure(address, typeof(Entry));
                 result[entry.Key] = entry.Value;
             }
 
@@ -171,7 +182,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                             {
                                 // set temporary attribute to "Hang"
                                 SetAttribute("error.type", "Hang");
-                                NativeReport("ANRException: Blocked thread detected.", true);
+                                NativeReport("ANRException: Blocked thread detected.", true, true);
                                 // update error.type attribute in case when crash happen 
                                 SetAttribute("error.type", "Crash");
                                 reported = true;

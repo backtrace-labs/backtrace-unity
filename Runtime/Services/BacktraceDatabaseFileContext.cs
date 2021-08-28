@@ -142,7 +142,7 @@ namespace Backtrace.Unity.Services
                 try
                 {
                     // prevent from removing breadcrumbs file
-                    if (file.Name.StartsWith(BacktraceStorageLogManager.BreadcrumbLogFileName))
+                    if (file.Name.StartsWith(BacktraceStorageLogManager.BreadcrumbLogFilePrefix))
                     {
                         continue;
                     }
@@ -167,15 +167,10 @@ namespace Backtrace.Unity.Services
                         file.Delete();
                     }
                 }
-#pragma warning disable CS0168
                 catch (Exception e)
                 {
-#if DEBUG
-                    Debug.Log(e.ToString());
-#endif
-                    Debug.LogWarning(string.Format("Cannot remove file in path: {0}", file.FullName));
+                    Debug.LogWarning(string.Format("Cannot remove file in path: {0}. Reason: {1}", file.FullName, e.Message));
                 }
-#pragma warning restore CS0168
             }
         }
 
