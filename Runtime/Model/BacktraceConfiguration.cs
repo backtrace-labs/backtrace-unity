@@ -296,7 +296,7 @@ namespace Backtrace.Unity.Model
             {
                 int universeIndexStart = backtraceSubmitUrl.Length;
                 int universeIndexEnd = submissionUrl.IndexOf('/', universeIndexStart);
-                if(universeIndexEnd == -1)
+                if (universeIndexEnd == -1)
                 {
                     throw new ArgumentException("Invalid Backtrace URL");
                 }
@@ -341,6 +341,18 @@ namespace Backtrace.Unity.Model
                     return string.Empty;
                 }
                 return Path.Combine(GetFullDatabasePath(), "crashpad");
+            }
+        }
+
+        public string BreakpadDatabasePath
+        {
+            get
+            {
+                if (!Enabled)
+                {
+                    return string.Empty;
+                }
+                return Path.Combine(GetFullDatabasePath(), "brekpad");
             }
         }
 

@@ -220,7 +220,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: Disabled NDK integration");
                 return;
             }
-            var databasePath = _configuration.CrashpadDatabasePath;
+            var databasePath = _configuration.BreakpadDatabasePath;
             if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(_configuration.GetFullDatabasePath()))
             {
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
