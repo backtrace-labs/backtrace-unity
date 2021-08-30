@@ -60,7 +60,7 @@ catch(Exception exception)
 
 # Prerequisites
 
-- Unity environment 2018.4.x
+- Unity environment 2018.4.x+
 - .NET 3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
 - Backtrace instance - Create your own at https://backtrace.io/create-unity
