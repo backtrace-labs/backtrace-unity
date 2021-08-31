@@ -2,6 +2,8 @@
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
+Note: For developers creating Android games on Unity 2018, Backtrace suggests you use the features/android-breakpad branch of backtrace-unity (https://github.com/backtrace-labs/backtrace-unity/tree/feature/android-breakpad) if you want to collect and debug native android crashes.
+
 Create your Backtrace instance at https://backtrace.io/create-unity today and then integrate this library into your game.
 
 [![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
@@ -42,7 +44,7 @@ catch(Exception exception)
 # Feature Summary <a name="features-summary"></a>
 
 - Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace
-  - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
+  - Supports wide range of Unity versions (2018.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
   - Install via [OpenUPM](https://openupm.com/packages/io.backtrace.unity/) and the Unity Package Manager
 - Collect detailed context
   - Callstacks, including function names and line numbers where possible
