@@ -271,8 +271,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Keys.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(backtraceAttributes.Values.ToArray()),
                 AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
                 _enableClientSideUnwinding,
                 (int)UnwindingMode);
@@ -280,10 +280,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
                 return;
-            }
-            foreach (var attribute in backtraceAttributes)
-            {
-                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
 
             // add native client built-in attributes
