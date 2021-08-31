@@ -941,7 +941,10 @@ namespace Backtrace.Unity
 
             const string anrMessage = "ANRException: Blocked thread detected";
             var hang = new BacktraceUnhandledException(anrMessage, stackTrace);
-            Breadcrumbs?.FromMonoBehavior(anrMessage, LogType.Warning, new Dictionary<string, string> { { "stackTrace", stackTrace } });
+            if (Breadcrumbs != null)
+            {
+                Breadcrumbs.FromMonoBehavior(anrMessage, LogType.Warning, new Dictionary<string, string> { { "stackTrace", stackTrace } });
+            }
             SendUnhandledException(hang);
         }
 #endif

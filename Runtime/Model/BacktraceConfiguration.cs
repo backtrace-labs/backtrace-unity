@@ -296,7 +296,7 @@ namespace Backtrace.Unity.Model
             {
                 int universeIndexStart = backtraceSubmitUrl.Length;
                 int universeIndexEnd = submissionUrl.IndexOf('/', universeIndexStart);
-                if (universeIndexEnd == -1)
+                if(universeIndexEnd == -1)
                 {
                     throw new ArgumentException("Invalid Backtrace URL");
                 }

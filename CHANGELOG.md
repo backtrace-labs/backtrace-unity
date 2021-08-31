@@ -1,17 +1,12 @@
 # Backtrace Unity Release Notes
 
-## Version 3.6.0-ndk16b.1 
-
-New functionality
-- This branch of backtrace-unity is meant to be used by mobile game developers using Unity 2018. As you may know, for mobile Android games, Unity 2018 uses Android NDK 16b. As a result, Backtrace customers who require native crash reporting for their games released on Android should use this version of the backtrace-unity library. If your are building non mobile games on Unity 2018, or any mobile or non-mobile game on Unity 2019+, please use the standard backtrace-unity library.
-
 ## Version 3.6.0
 
 New functionality
 
-- Added support for client side unwinding of native crashes on Android
-- Added support for windows native crashes
-- Added Unity engine log buffer to reports objects.
+- Added option for client side unwinding of native crashes on Android for NDK 19+ (Unity 2019+)
+- Added support for passing all attributes defined in the managed c# layer to Windows native crashes
+- Added Unity engine log buffer to reports objects and updated Debugger view to display the last Log lines again.
 - Improved OOM support - memory warnings won't generate and store crash reports.
 
 Bugfixes
