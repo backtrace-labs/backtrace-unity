@@ -1,6 +1,10 @@
-# Backtrace Unity support
+# Backtrace Unity 2018 support for Android Crashes (NDK 16b)
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
+
+This branch of backtrace-unity is meant to be used by mobile game developers using Unity 2018. As you may know, for mobile Android games, Unity 2018 uses Android NDK 16b. As a result, Backtrace customers who require native crash reporting for their games released on Android should use this version of the backtrace-unity library.
+
+If your are building non mobile games on Unity 2018, or any mobile or non-mobile game on Unity 2019+, please use the standard backtrace-unity library.
 
 Create your Backtrace instance at https://backtrace.io/create-unity today and then integrate this library into your game.
 
@@ -42,8 +46,8 @@ catch(Exception exception)
 # Feature Summary <a name="features-summary"></a>
 
 - Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace
-  - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
-  - Install via [OpenUPM](https://openupm.com/packages/io.backtrace.unity/) and the Unity Package Manager
+  - Supports Unity 2018 including native crash reporting for Android. The library also support other deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
+  - Install via Github zip file.
 - Collect detailed context
   - Callstacks, including function names and line numbers where possible
   - System metadata including device GUID, OS version, memory usage, process age
@@ -60,7 +64,7 @@ catch(Exception exception)
 
 # Prerequisites
 
-- Unity environment 2017.4.x
+- Unity environment 2018
 - .NET 3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
 - Backtrace instance - Create your own at https://backtrace.io/create-unity
@@ -92,19 +96,13 @@ List of steps necessary to setup full Backtrace Unity integration.
 
 ## Installation guide
 
-You have three options, we recommend using OpenUPM for most users.
-
-### OpenUPM
-
-- See [our package](https://openupm.com/packages/io.backtrace.unity/) and installation instructions on OpenUPM.
-
 ### Git Url
 
 Since Unity 2018.3 the Unity Package Manager allows you to install a package directly via [Git](https://docs.unity3d.com/Manual/upm-ui-giturl.html). You can use the clone URL on the main page of our repository.
 
 ### Manual download
 
-- Download the backtrace-unity zip file. Unzip it and keep the folder in a known location. It can be downloaded [here](https://github.com/backtrace-labs/backtrace-unity/releases)
+- Download the backtrace-unity zip file. Unzip it and keep the folder in a known location.
 - Open your Unity project
 - Use the Unity Package Manager to install the backtrace-unity library (Window -> Package Manager -> Add Package From Disk -> `KnownFolder/package.json`)
 
