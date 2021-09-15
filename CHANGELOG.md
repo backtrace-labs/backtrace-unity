@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.6.1
+
+Bugfixes
+
+- Fixed unhandled exception caused by truncated stack trace
+
+Improvements
+
+- improved client side unwinding support on Android
+
 ## Version 3.6.0
 
 New functionality
