@@ -4,7 +4,7 @@
 
 Bugfixes
 
-- Fixed unhnandled exception caused by truncated stack trace,
+- Fixed unhandled exception caused by truncated stack trace
 
 Improvements
 
