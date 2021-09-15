@@ -348,7 +348,12 @@ namespace Backtrace.Unity.Model
                 int endLine = lineNumberSeparator == 0
                     ? sourceString.LastIndexOf(')') - atSeparator
                     : lineNumberSeparator - 1 - atSeparator;
+                if (endLine < 0)
+                {
+                    return result;
+                }
                 var substring = sourceString.Substring(atSeparator, endLine);
+                
                 result.Library = (substring == null ? string.Empty : substring.Trim());
 
                 if (!string.IsNullOrEmpty(result.Library))

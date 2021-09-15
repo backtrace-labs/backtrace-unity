@@ -2,6 +2,8 @@
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
+Note: For developers creating Android games on Unity 2018, Backtrace suggests you use the features/android-breakpad branch of backtrace-unity (https://github.com/backtrace-labs/backtrace-unity/tree/feature/android-breakpad) if you want to collect and debug native android crashes.
+
 Create your Backtrace instance at https://backtrace.io/create-unity today and then integrate this library into your game.
 
 [![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
@@ -42,7 +44,7 @@ catch(Exception exception)
 # Feature Summary <a name="features-summary"></a>
 
 - Lightweight library that quickly submits log errors, handled and unhandled exceptions, and native crashes to Backtrace
-  - Supports wide range of Unity versions (2017.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
+  - Supports wide range of Unity versions (2018.4+) and deployments (iOS, Android, Windows, Mac, WebGL, PS4/5 Xbox One/S/X, Nintendo Switch, Stadia)
   - Install via [OpenUPM](https://openupm.com/packages/io.backtrace.unity/) and the Unity Package Manager
 - Collect detailed context
   - Callstacks, including function names and line numbers where possible
@@ -60,7 +62,7 @@ catch(Exception exception)
 
 # Prerequisites
 
-- Unity environment 2017.4.x
+- Unity environment 2018.4.x+
 - .NET 3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
 - Backtrace instance - Create your own at https://backtrace.io/create-unity
@@ -68,6 +70,7 @@ catch(Exception exception)
 # Platforms Supported
 
 Backtrace-unity has been tested and certified for games deployed on the following platforms:
+
 - Mobile - Android, iOS
 - PC - Windows, Mac
 - Web - WebGL
@@ -76,7 +79,7 @@ Backtrace-unity has been tested and certified for games deployed on the followin
 There are some differences in capabilities that backtrace-unity provides based on the platform. Major capabilities are summarized as follows:
 
 - All Platforms - Errors, Unhandled Exceptions, Handled Exceptions, Custom Indexable Metadata, File Attachments*, Breadcrumbs, Automatic attachment of Screenshots, Client Side Deduplication Rules*, Client Side Submission Filtering, Client Side Submission Limits, Crash Free Metrics (except WebGL), Performance Diagnostics, Offline Database\*(Except Nintendo Switch)
-- Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings.
+- Android -Identified by attribute `uname.sysname` = Android; ANRs (Hangs), Native Process and Memory Information, Java Exception Handler (Plugins, Exported Game in Android Studio), NDK crashes, low memory warnings. Client-side unwinding option for NDK 19+ (Unity 2019+).
 - iOS - Identified by attribute `uname.sysname` = IOS; ANRs (Hangs), Native Engine, Memory and Plugin Crashes.
 - WebGL - Identified by attribute `uname.sysname` = WebGL. The attribute `device.model` is currently used to share the browser information. Note that stacktraces for WebGL errors are only available if you choose to enable them in the Publishing Settings / Enable Exceptions drop down. More details [here](https://docs.unity3d.com/Manual/webgl-building.html).
 - Switch - Identified by attribute `uname.sysname` = Switch. Note that the attribute GUID is regenerated with each Switch restart (It is not an accurate count of number of Users or Devices. It is a count of Switch Sessions). Note that the current release does no support Offline Database or related features.
@@ -130,8 +133,7 @@ One of the integration paths require to create game object in your game scene. I
       attributes: attributes);
 ```
 
-If you need to use more advanced configuration, `Initialize` method accepts a `BacktraceConfiguration` scriptable object. See below: 
-
+If you need to use more advanced configuration, `Initialize` method accepts a `BacktraceConfiguration` scriptable object. See below:
 
 ```csharp
   var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
@@ -180,14 +182,15 @@ The following is a reference guide to the Backtrace Client fields:
   - Handle unhandled exceptions: Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.
   - Symbols upload token - If you want to upload Unity debug symbols for Android NDK Native Crash debugging, enter your Backtrace Symbol upload token here. This option is available only in Android build.
   - Log random sampling rate - Enables a random sampling mechanism for DebugLog.error messages - **by default** sampling is equal to **0.01** - which means only **1%** of randomply sampling **reports will be send** to Backtrace. If you would like to send all DebugLog.error messages to Backtrace - please replace 0.01 value with 1.
- - Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
- - REMOVED: Collect last n game logs: Collect last n number of logs generated by game. This is not part of Breadcrumbs
- - Enabled performance statistics: Allows `BacktraceClient` to measure execution time and include performance information as report attributes.
- - Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
+- Game Object Depth Limit: Allows developer to filter number of game object childrens in Backtrace report.
+- REMOVED: Collect last n game logs: Collect last n number of logs generated by game. This is not part of Breadcrumbs
+- Enabled performance statistics: Allows `BacktraceClient` to measure execution time and include performance information as report attributes.
+- Ignore SSL validation: Unity by default will validate ssl certificates. By using this option you can avoid ssl certificates validation. However, if you don't need to ignore ssl validation, please set this option to false.
 
 - Crash Free Metrics Reporting
-  - Enable crash free metrics reporting. This toggles the periodic transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions. Metric events by default are sent when the game starts, when the game is closed / ends, and every 30 minutes while the game is running. So even if a user starts up the game and quits after only a couple of minutes, session and user metrics will still be sent.  See the "Crash Free Metrics" section below for more information on this feature.
+  - Enable crash free metrics reporting. This toggles the periodic transmission of session information to the Backtrace endpoints. This will enable metrics such as crash free users and crash free sessions. Metric events by default are sent when the game starts, when the game is closed / ends, and every 30 minutes while the game is running. So even if a user starts up the game and quits after only a couple of minutes, session and user metrics will still be sent. See the "Crash Free Metrics" section below for more information on this feature.
 - Attachments Paths
+
   - Paths to attachments to be included for all report types.
 
 - Backtrace Database Configuration
@@ -203,8 +206,8 @@ The following is a reference guide to the Backtrace Client fields:
   - Native crashes
     - Capture native crashes: This option will appear for games being deployed to Android or iOS and will allow Backtrace to capture and symbolicate native stack traces from crashes impacting the Unity Engine or any Unity Plugin.
     - Capture ANR (Application not responding): This option will appear for Android or iOS and allow Backtrace to capture Hang reports. If enabled, a report will be generated if an application is not respinsive for more than 5 seconds.
-    - Send Out of memory exceptions to Backtrace: This option will appear for Android or iOS and allow Backtrace to follow the behavior defined in the [Android](#android-specific-information) or [iOS](#ios-specific-information) sections. 
-    - Enable client-side unwinding: This option will appear for Android and allow Backtrace to perform client side unwinding of native crashes. Please see [Android Client-side unwinding](#client-side-unwinding) for details. 
+    - Send Out of memory exceptions to Backtrace: This option will appear for Android or iOS and allow Backtrace to follow the behavior defined in the [Android](#android-specific-information) or [iOS](#ios-specific-information) sections.
+    - Enable client-side unwinding: This option will appear for supported versions of Android (NDK 19; Unity 2019+), and allow Backtrace to perform client side unwinding of native crashes. Please see [Android Client-side unwinding](#client-side-unwinding) for details.
   - Minidump type: Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.
   - Attach Unity Player.log: Add Unity player log file to Backtrace report. NOTE: This feature is available only on desktop - Windows/MacOS/Linux.
   - Attach screenshot: Generate and attach screenshot of frame as exception occurs.
@@ -225,7 +228,7 @@ The backtrace-unity library includes support for capturing Android NDK crashes a
 
 ## Client side unwinding
 
-Client side unwinding may be useful if you are unable to upload all the symbols for your application. For example, if you are having stability issues in system or other opaque libraries on the devices where your game is deployed, it is better to unwind the callstack on the crashing application (i.e: the client). This may not provide the same callstack quality as with debugging symbols, but will give you debugging information you would otherwise not have if you don't have debugging symbols available. 
+Client side unwinding may be useful if you are unable to upload all the symbols for your application. For example, if you are having stability issues in system or other opaque libraries on the devices where your game is deployed, it is better to unwind the callstack on the crashing application (i.e: the client). This may not provide the same callstack quality as with debugging symbols, but will give you debugging information you would otherwise not have if you don't have debugging symbols available.
 
 This function is enabled in backtrace-unity via the a toggle under `Native Crashes` in Backtrace UI Panel in Unity (see below) or via the BacktraceConfiguration object and the `.ClientSideUnwinding = true;`. See an example in the [Integrating into your project via code](#integrating-into-your-project-via-code)
 
@@ -481,18 +484,18 @@ GetComponent<BacktraceClient>().Breadcrumbs.Info("Player Base Upgraded", new Dic
 
 ## Crash Free Metrics <a name="crash-free-metrics"></a>
 
-Crash free metrics can be enabled with the toggle on the Backtrace Client Configuration. 
+Crash free metrics can be enabled with the toggle on the Backtrace Client Configuration.
 
 ![CrashFreeToggle](./Documentation~/images/CrashFreeMetricToggleBTUnity.png)
 
-Once enabled, unique application launches and unique player identifiers (default: guid) will be submitted to Backtrace so you will be able to get an overview in our web console of how many errors, hangs, crashes and memory problems occur compared to all active users for a given platform, version, and more. 
+Once enabled, unique application launches and unique player identifiers (default: guid) will be submitted to Backtrace so you will be able to get an overview in our web console of how many errors, hangs, crashes and memory problems occur compared to all active users for a given platform, version, and more.
 
 ![image](https://user-images.githubusercontent.com/726645/120375869-7f560380-c2d8-11eb-80bf-b15ea90c0ad3.png)
 ![image](https://user-images.githubusercontent.com/726645/120376224-d8be3280-c2d8-11eb-88a9-5c16d49e263b.png)
 
 Note! This functionality is supported on all Unity supported platforms **except WebGL**.
 
-As mentioned above, these session events are sent on application startup, when the game is closed/ends, and every 30 minutes while the game is running.  
+As mentioned above, these session events are sent on application startup, when the game is closed/ends, and every 30 minutes while the game is running.
 
 You can also enable this feature at runtime via BacktraceClient.EnableMetrics().
 
