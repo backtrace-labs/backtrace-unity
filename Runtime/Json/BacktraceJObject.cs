@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -327,10 +328,10 @@ namespace Backtrace.Unity.Json
                 switch (c)
                 {
                     case '\\':
-                        output.AppendFormat("\\\\");
+                        output.Append("\\\\");
                         break;
                     case '"':
-                        output.AppendFormat("\\\"");
+                        output.Append("\\\"");
                         break;
                     case '\b':
                         output.Append("\\b");
@@ -348,10 +349,36 @@ namespace Backtrace.Unity.Json
                         output.Append("\\r");
                         break;
                     default:
-                        output.Append(c);
+                        if (char.GetUnicodeCategory(c) == UnicodeCategory.Control)
+                        {
+                            ToCharAsUnicodeToStringBuilder(c, output);
+                        }
+                        else
+                        {
+                            output.Append(c);
+                        }
                         break;
                 }
             }
+        }
+
+        private char IntToHex(int n)
+        {
+            if (n <= 9)
+            {
+                return (char)(n + 48);
+            }
+
+            return (char)((n - 10) + 97);
+        }
+
+        public void ToCharAsUnicodeToStringBuilder(char c, StringBuilder output)
+        {
+            output.AppendFormat("\\u{0}{1}{2}{3}",
+                IntToHex((c >> 12) & 15),
+                IntToHex((c >> 8) & 15),
+                IntToHex((c >> 4) & 15),
+                IntToHex(c & 15));
         }
     }
 }
