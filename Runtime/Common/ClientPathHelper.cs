@@ -59,7 +59,14 @@ namespace Backtrace.Unity.Common
             {
                 path = Path.Combine(Application.persistentDataPath, path);
             }
-            return Path.GetFullPath(path);
+            try
+            {
+                return Path.GetFullPath(path);
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
 
         }
     }
