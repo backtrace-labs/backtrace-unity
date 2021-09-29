@@ -372,7 +372,7 @@ namespace Backtrace.Unity.Json
             return (char)((n - 10) + 97);
         }
 
-        public void ToCharAsUnicodeToStringBuilder(char c, StringBuilder output)
+        private void ToCharAsUnicodeToStringBuilder(char c, StringBuilder output)
         {
             output.AppendFormat("\\u{0}{1}{2}{3}",
                 IntToHex((c >> 12) & 15),
