@@ -217,7 +217,7 @@ namespace Backtrace.Unity.Editor
         }
 
         /// <summary>
-        /// Draw multiselect dropdown. By default PropertyField won't work correctly in Untiy 2017/2018
+        /// Draw multiselect dropdown. By default PropertyField won't work correctly in Unity 2017/2018
         /// if editor has to display multiselect dropdown by using enum flags. This code allows to generate
         /// multiselect dropdown based on the available enum.
         /// </summary>
