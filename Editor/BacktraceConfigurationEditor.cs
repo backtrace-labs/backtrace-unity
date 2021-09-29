@@ -221,7 +221,7 @@ namespace Backtrace.Unity.Editor
         /// if editor has to display multiselect dropdown by using enum flags. This code allows to generate
         /// multiselect dropdown based on the available enum.
         /// </summary>
-        /// <param name="propertyName">Enum proberty name</param>
+        /// <param name="propertyName">Enum property name</param>
         /// <param name="label">Label</param>
         /// <param name="serializedObject">Serialized object</param>
         private static void DrawMultiselectDropdown(string propertyName, string label, SerializedObject serializedObject)
