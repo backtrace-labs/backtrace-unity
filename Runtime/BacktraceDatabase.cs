@@ -581,7 +581,7 @@ namespace Backtrace.Unity
             DatabasePath = Configuration.GetFullDatabasePath();
             if (string.IsNullOrEmpty(DatabasePath))
             {
-                Debug.LogWarning("Backtrace database path is empty or unvailable.");
+                Debug.LogWarning("Backtrace database path is empty or unavailable.");
                 return false;
             }
 
