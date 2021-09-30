@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.6.2
+
+Bugfixes
+
+- Fixed invalid behavior of multi select dropdown in Unity 2017/2018. Now users can select multiple values (instead of one) on multi select dropdowns.
+- Fixed invalid escaping of control characters,
+- Fixed a bug caused by Unity API when Backtrace tries to parse Unity message from a background thread.
+- General API improvements
+
 ## Version 3.6.1
 
 Bugfixes
