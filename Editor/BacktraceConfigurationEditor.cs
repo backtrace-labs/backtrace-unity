@@ -236,7 +236,7 @@ namespace Backtrace.Unity.Editor
             var value = EditorGUILayout.EnumFlagsField(label, enumValue);
             if (EditorGUI.EndChangeCheck())
             {
-                property.intValue = Convert.ToInt32(value);
+                property.longValue = Convert.ToInt64(value);
             }
         }
     }
