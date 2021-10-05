@@ -137,9 +137,16 @@ namespace Backtrace.Unity.Editor
 
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+                        SerializedProperty captureNativeCrashes = serializedObject.FindProperty("CaptureNativeCrashes");
                         EditorGUILayout.PropertyField(
-                            serializedObject.FindProperty("CaptureNativeCrashes"),
+                            captureNativeCrashes,
                             new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+//#if !UNITY_2018_4_OR_NEWER
+                        if (captureNativeCrashes.boolValue)
+                        {
+                            EditorGUILayout.HelpBox("Native crsah reporter will be disabled for Untiy 2018 (and older) version that use NDK16b. Please contact Backtrace support to learn more about crash reporting tool.", MessageType.Warning);
+                        }
+//#endif
 
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("HandleANR"),
