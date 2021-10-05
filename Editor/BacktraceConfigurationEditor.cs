@@ -144,7 +144,7 @@ namespace Backtrace.Unity.Editor
 #if !UNITY_2018_4_OR_NEWER
                         if (captureNativeCrashes.boolValue)
                         {
-                            EditorGUILayout.HelpBox("Native crash reporter will be disabled for Unity 2018 and older version that use NDK16b. Please contact Backtrace support for additional details.", MessageType.Warning);
+                            EditorGUILayout.HelpBox("Native crash reporter will be disabled for Unity 2018 and older versions that use NDK16b. Please contact Backtrace support for additional details.", MessageType.Warning);
                         }
 #endif
 
