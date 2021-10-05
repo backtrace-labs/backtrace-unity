@@ -1,8 +1,10 @@
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
+using Backtrace.Unity.Types;
 using System;
 using UnityEditor;
 using UnityEngine;
+using Backtrace.Unity.Extensions;
 
 namespace Backtrace.Unity.Editor
 {
@@ -53,7 +55,13 @@ namespace Backtrace.Unity.Editor
                  serializedObject.FindProperty("SendUnhandledGameCrashesOnGameStartup"),
                  new GUIContent(BacktraceConfigurationLabels.LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP));
 #endif
-                DrawMultiselectDropdown("ReportFilterType", BacktraceConfigurationLabels.LABEL_REPORT_FILTER, serializedObject);
+                var reportFilterType = (ReportFilterType)ConvertPropertyToEnum("ReportFilterType", serializedObject);
+                if (reportFilterType.HasAllFlags())
+                {
+                    EditorGUILayout.HelpBox("You've selected to filter out Everything, which means no reports will be submitted to Backtrace.", MessageType.Error);
+                }
+
+                DrawMultiselectDropdown("ReportFilterType", reportFilterType, BacktraceConfigurationLabels.LABEL_REPORT_FILTER, serializedObject);
 
                 EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("NumberOfLogs"),
@@ -226,18 +234,35 @@ namespace Backtrace.Unity.Editor
         /// <param name="serializedObject">Serialized object</param>
         private static void DrawMultiselectDropdown(string propertyName, string label, SerializedObject serializedObject)
         {
-            const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+            var @enum = ConvertPropertyToEnum(propertyName, serializedObject);
+            DrawMultiselectDropdown(propertyName, @enum, label, serializedObject);
+        }
 
+        private static void DrawMultiselectDropdown(string propertyName, Enum enumValue, string label, SerializedObject serializedObject)
+        {
             EditorGUI.BeginChangeCheck();
+
+            var value = EditorGUILayout.EnumFlagsField(label, enumValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.FindProperty(propertyName).longValue = Convert.ToInt64(value);
+            }
+        }
+
+        /// <summary>
+        /// Convert UI serialized property to enum
+        /// </summary>
+        /// <param name="propertyName">Enum property name</param>
+        /// <param name="serializedObject">UI serialized object</param>
+        /// <returns>Enum </returns>
+        private static Enum ConvertPropertyToEnum(string propertyName, SerializedObject serializedObject)
+        {
+            const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
 
             var property = serializedObject.FindProperty(propertyName);
             var targetObject = property.serializedObject.targetObject;
             var enumValue = (Enum)targetObject.GetType().GetField(propertyName, flags).GetValue(targetObject);
-            var value = EditorGUILayout.EnumFlagsField(label, enumValue);
-            if (EditorGUI.EndChangeCheck())
-            {
-                property.longValue = Convert.ToInt64(value);
-            }
+            return enumValue;
         }
     }
 }
