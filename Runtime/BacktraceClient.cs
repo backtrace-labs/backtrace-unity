@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.6.1";
+        public const string VERSION = "3.6.2";
 
         public BacktraceConfiguration Configuration;
 
@@ -93,6 +93,22 @@ namespace Backtrace.Unity
             }
         }
 #endif
+        /// <summary>
+        /// Random object instance
+        /// </summary>
+        internal System.Random Random
+        {
+            get
+            {
+                if (_random == null)
+                {
+                    _random = new System.Random();
+                }
+                return _random;
+            }
+        }
+
+        private System.Random _random;
 
         internal Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
 
@@ -1086,7 +1102,8 @@ namespace Backtrace.Unity
             {
                 return false;
             }
-            return UnityEngine.Random.Range(0f, 1f) > Configuration.Sampling;
+            var value = Random.NextDouble();
+            return value > Configuration.Sampling;
 #endif
         }
 

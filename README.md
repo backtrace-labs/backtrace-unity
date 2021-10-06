@@ -2,7 +2,7 @@
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
-Note: For developers creating Android games on Unity 2018, Backtrace suggests you use the features/android-breakpad branch of backtrace-unity (https://github.com/backtrace-labs/backtrace-unity/tree/feature/android-breakpad) if you want to collect and debug native android crashes.
+**Note**: For developers creating Android games on **Unity 2018.4 (NDK16b)** and requiring support for **native events on Android (crashes, ANR, low memory)** Backtrace **requires** you use the [3.6.0-ndk16b](https://github.com/backtrace-labs/backtrace-unity/tree/3.6.0-ndk16b) version.
 
 Create your Backtrace instance at https://backtrace.io/create-unity today and then integrate this library into your game.
 
@@ -17,6 +17,7 @@ Create your Backtrace instance at https://backtrace.io/create-unity today and th
 - [Plugin Best Practices](#plugin-best-practices)
 - [Android Specific information](#android-specific-information)
 - [iOS Specific information](#ios-specific-information)
+- [Windows Specific information](#windows-specific-information)
 - [Data Privacy](#data-privacy)
 - [API Overview](#api-overview)
 - [Breadcrumbs](#breadcrumbs)
@@ -89,7 +90,7 @@ There are some differences in capabilities that backtrace-unity provides based o
 
 Note: Unity allows you to disable stack trace information in player properties. If this is set, the call stack will be empty and no log lines section will be included in Breadcrumbs.
 
-# Setup <a name="installation"></a>
+# Setup
 
 List of steps necessary to setup full Backtrace Unity integration.
 
@@ -300,6 +301,18 @@ This change will generate dSYM files every time you build your game in Xcode. Yo
 ![pack symbols](./Documentation~/images/dsym-files.png)
 
 To learn more about how to submit those symbol files to Backtrace, please see the Project Settings / Symbols. You can manage submission tokens, upload via the UI, or configure external Symbol Servers to connect and discover required symbols. Please review additional Symbol documentaion at https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview
+
+# Windows Specific information
+
+The backtrace-unity library includes support for capturing native Windows crashes.
+
+## Hangs
+
+When configuring the backtrace-unity client for a Windows deployment, programmers will have a toggle available in the backtrace-unity GUI in the Unity Editor to enable or disable ANR or Hang reports. This will use the default of 5 seconds. The `error.type` for these reports will be `Hang`.
+
+## Native Crashes
+
+When configuring the backtrace-unity client for a Windows deployment in the Unity Editor, programmers will have a toggle to enable or disable `Capture native crashes`. If this is enabled, the backtrace-unity client will ensure the crash report is generated, stored locally, and uploaded upon next game start. Backtrace-Unity supports crashes captured by Unity Crash handler and crashes not captured by Unity tool.
 
 # Data Privacy
 

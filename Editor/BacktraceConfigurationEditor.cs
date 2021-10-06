@@ -1,7 +1,10 @@
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
+using Backtrace.Unity.Types;
 using System;
 using UnityEditor;
 using UnityEngine;
+using Backtrace.Unity.Extensions;
 
 namespace Backtrace.Unity.Editor
 {
@@ -52,9 +55,13 @@ namespace Backtrace.Unity.Editor
                  serializedObject.FindProperty("SendUnhandledGameCrashesOnGameStartup"),
                  new GUIContent(BacktraceConfigurationLabels.LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP));
 #endif
-                EditorGUILayout.PropertyField(
-                       serializedObject.FindProperty("ReportFilterType"),
-                       new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_FILTER));
+                var reportFilterType = (ReportFilterType)ConvertPropertyToEnum("ReportFilterType", serializedObject);
+                if (reportFilterType.HasAllFlags())
+                {
+                    EditorGUILayout.HelpBox("You've selected to filter out Everything, which means no reports will be submitted to Backtrace.", MessageType.Error);
+                }
+
+                DrawMultiselectDropdown("ReportFilterType", reportFilterType, BacktraceConfigurationLabels.LABEL_REPORT_FILTER, serializedObject);
 
                 EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("NumberOfLogs"),
@@ -126,25 +133,28 @@ namespace Backtrace.Unity.Editor
                 showDatabaseSettings = EditorGUILayout.Foldout(showDatabaseSettings, "Advanced database settings", databaseFoldout);
                 if (showDatabaseSettings)
                 {
-                    EditorGUILayout.PropertyField(
-                       serializedObject.FindProperty("DeduplicationStrategy"),
-                       new GUIContent(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES));
+                    DrawMultiselectDropdown("DeduplicationStrategy", BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES, serializedObject);
 
                     GUIStyle showNativeCrashesSupportFoldout = new GUIStyle(EditorStyles.foldout);
                     showNativeCrashesSettings = EditorGUILayout.Foldout(showNativeCrashesSettings, BacktraceConfigurationLabels.LABEL_NATIVE_CRASHES, showNativeCrashesSupportFoldout);
                     if (showNativeCrashesSettings)
                     {
 #if UNITY_STANDALONE_WIN
-                        EditorGUILayout.PropertyField(
-                            serializedObject.FindProperty("MinidumpType"),
-                            new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
+                        DrawMultiselectDropdown("MinidumpType", BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT, serializedObject);
 #endif
 
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+                        SerializedProperty captureNativeCrashes = serializedObject.FindProperty("CaptureNativeCrashes");
                         EditorGUILayout.PropertyField(
-                            serializedObject.FindProperty("CaptureNativeCrashes"),
+                            captureNativeCrashes,
                             new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+#if !UNITY_2019_1_OR_NEWER
+                        if (captureNativeCrashes.boolValue)
+                        {
+                            EditorGUILayout.HelpBox("Native crash reporter will be disabled for Unity 2018 and older versions that use NDK16b. Please contact Backtrace support for additional details.", MessageType.Warning);
+                        }
+#endif
 
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("HandleANR"),
@@ -177,13 +187,8 @@ namespace Backtrace.Unity.Editor
 
                         if (enableBreadcrumbsSupport.boolValue)
                         {
-                            EditorGUILayout.PropertyField(
-                                serializedObject.FindProperty("BacktraceBreadcrumbsLevel"),
-                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMBS_EVENTS));
-
-                            EditorGUILayout.PropertyField(
-                                serializedObject.FindProperty("LogLevel"),
-                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMNS_LOG_LEVEL));
+                            DrawMultiselectDropdown("BacktraceBreadcrumbsLevel", BacktraceConfigurationLabels.LABEL_BREADCRUMBS_EVENTS, serializedObject);
+                            DrawMultiselectDropdown("LogLevel", BacktraceConfigurationLabels.LABEL_BREADCRUMNS_LOG_LEVEL, serializedObject);
                         }
                     }
 
@@ -224,6 +229,47 @@ namespace Backtrace.Unity.Editor
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        /// <summary>
+        /// Draw multiselect dropdown. By default PropertyField won't work correctly in Unity 2017/2018
+        /// if editor has to display multiselect dropdown by using enum flags. This code allows to generate
+        /// multiselect dropdown based on the available enum.
+        /// </summary>
+        /// <param name="propertyName">Enum property name</param>
+        /// <param name="label">Label</param>
+        /// <param name="serializedObject">Serialized object</param>
+        private static void DrawMultiselectDropdown(string propertyName, string label, SerializedObject serializedObject)
+        {
+            var @enum = ConvertPropertyToEnum(propertyName, serializedObject);
+            DrawMultiselectDropdown(propertyName, @enum, label, serializedObject);
+        }
+
+        private static void DrawMultiselectDropdown(string propertyName, Enum enumValue, string label, SerializedObject serializedObject)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            var value = EditorGUILayout.EnumFlagsField(label, enumValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.FindProperty(propertyName).longValue = Convert.ToInt64(value);
+            }
+        }
+
+        /// <summary>
+        /// Convert UI serialized property to enum
+        /// </summary>
+        /// <param name="propertyName">Enum property name</param>
+        /// <param name="serializedObject">UI serialized object</param>
+        /// <returns>Enum </returns>
+        private static Enum ConvertPropertyToEnum(string propertyName, SerializedObject serializedObject)
+        {
+            const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+
+            var property = serializedObject.FindProperty(propertyName);
+            var targetObject = property.serializedObject.targetObject;
+            var enumValue = (Enum)targetObject.GetType().GetField(propertyName, flags).GetValue(targetObject);
+            return enumValue;
         }
     }
 }

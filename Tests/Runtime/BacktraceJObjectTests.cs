@@ -196,6 +196,22 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
+        [Test]
+        public void TestDataSerialization_ShouldEscapeControlCharacters_JObjetGeneratedCorrectJson()
+        {
+            var testString = "✅🔮⛱😂^㊛ﺅɏ耀借俠⃐㫪";
+            var sampleObject = new SampleObject()
+            {
+                AgentName = testString
+            };
+
+            var jObject = new BacktraceJObject();
+            jObject.Add("AgentName", testString);
+            var json = jObject.ToJson();
+            var deserializedObject = JsonUtility.FromJson<SampleObject>(json);
+            Assert.AreEqual(sampleObject.AgentName, deserializedObject.AgentName);
+        }
+
         [UnityTest]
         public IEnumerator TestDataSerialization_ShouldEscapeInvalidStringValues_DataSerializeCorrectly()
         {
