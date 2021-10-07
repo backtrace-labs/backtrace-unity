@@ -126,8 +126,8 @@ public class BacktraceANRWatchdog extends Thread {
         }
     }
 
-    public void stopMonitoringAnr() {
-        Log.d(LOG_TAG, "Stop monitoring ANR");
+    public void stopMonitoring() {
+        Log.d(LOG_TAG, "Uncaught exception handler has been disabled.");
         shouldStop = true;
     }
 }

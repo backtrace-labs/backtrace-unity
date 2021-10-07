@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.6.2";
+        public const string VERSION = "3.6.3";
 
         public BacktraceConfiguration Configuration;
 
@@ -962,6 +962,22 @@ namespace Backtrace.Unity
                 Breadcrumbs.FromMonoBehavior(anrMessage, LogType.Warning, new Dictionary<string, string> { { "stackTrace", stackTrace } });
             }
             SendUnhandledException(hang);
+        }
+            
+        /// <summary>
+        /// Handle background exceptions with single excetpion message (that contains information about exception message and stack trace) 
+        /// </summary>
+        /// <param name="backgroundExceptionMessage">exception message</param>
+        internal void HandleUnityBackgroundException(string backgroundExceptionMessage)
+        {
+            var splitIndex = backgroundExceptionMessage.IndexOf('\n');
+            if (splitIndex == -1)
+            {
+                return;
+            }
+            var message = backgroundExceptionMessage.Substring(0, splitIndex);
+            var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
+            HandleUnityMessage(message, stackTrace, LogType.Exception);
         }
 #endif
 
