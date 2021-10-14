@@ -32,6 +32,12 @@ namespace Backtrace.Unity.Model
         public int ReportPerMin = 50;
 
         /// <summary>
+        /// "Disable error reporting integration in editor mode.
+        /// </summary>
+        [Tooltip("Disable error reporting integration in editor mode.")]
+        public bool DisableInEditor = false;
+
+        /// <summary>
         /// Determine if client should catch unhandled exceptions
         /// </summary>
         [Tooltip("Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.")]

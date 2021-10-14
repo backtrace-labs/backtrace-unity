@@ -493,7 +493,12 @@ namespace Backtrace.Unity
                 return;
             }
 
-            Enabled = true;
+            Enabled =
+#if UNITY_EDITOR
+                !Configuration.DisableInEditor;
+#else
+                true;
+#endif
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
@@ -791,6 +796,10 @@ namespace Backtrace.Unity
             if (BacktraceApi == null)
             {
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
+                return;
+            }
+            if (!Enabled)
+            {
                 return;
             }
             StartCoroutine(CollectDataAndSend(report, sendCallback));
