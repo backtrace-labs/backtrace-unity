@@ -550,7 +550,7 @@ namespace Backtrace.Unity
             // this integration should start before native integration and before breadcrumbs integration
             // to allow algorithm to send breadcrumbs file - if the breadcrumb file is available
             var scopedAttributes = AttributeProvider.GenerateAttributes(false);
-            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
+            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled && Enabled)
             {
                 StartCoroutine(Runtime.Native.Windows.NativeClient.SendUnhandledGameCrashesOnGameStartup(nativeAttachments, breadcrumbsPath, Configuration.GetFullDatabasePath(), BacktraceApi));
             }
