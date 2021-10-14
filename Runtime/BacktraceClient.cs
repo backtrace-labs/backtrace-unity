@@ -1130,10 +1130,6 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes, bool invokeSkipApi = true)
         {
-            if (!Enabled)
-            {
-                return false;
-            }
             // guess report type
             var filterType = ReportFilterType.Exception;
             if (exception is BacktraceUnhandledException)
@@ -1143,7 +1139,6 @@ namespace Backtrace.Unity
                     ? ReportFilterType.Hang
                     : unhandledException.Type == LogType.Exception ? ReportFilterType.UnhandledException : ReportFilterType.Error;
             }
-
 
             if (invokeSkipApi && ShouldSkipReport(filterType, exception, string.Empty))
             {
@@ -1286,6 +1281,11 @@ namespace Backtrace.Unity
         /// <returns>true if client should skip report. Otherwise false.</returns>
         private bool ShouldSkipReport(ReportFilterType type, Exception exception, string message)
         {
+            if (!Enabled)
+            {
+                return false;
+            }
+
             return Configuration.ReportFilterType.HasFlag(type)
                 || (SkipReport != null && SkipReport.Invoke(type, exception, message));
 
