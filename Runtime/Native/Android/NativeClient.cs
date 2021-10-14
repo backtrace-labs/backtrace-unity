@@ -43,6 +43,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
         [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
         private static extern bool NativeReport(IntPtr message, bool setMainThreadAsFaultingThread);
 
+        [DllImport("backtrace-native", EntryPoint = "Disable")]
+        private static extern bool DisableNativeIntegration();
+
         /// <summary>
         /// Native client built-in specific attributes
         /// </summary>
@@ -480,6 +483,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (_anrThread != null)
             {
                 _stopAnr = true;
+            }
+            if (_captureNativeCrashes)
+            {
+                _captureNativeCrashes = false;
+                DisableNativeIntegration();
             }
         }
 
