@@ -18,7 +18,6 @@ namespace Backtrace.Unity.Tests.Runtime
             AfterSetup(false);
         }
 
-
         [UnityTest]
         public IEnumerator TestClientCreation_ValidBacktraceConfiguration_ValidClientCreation()
         {
@@ -28,99 +27,6 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(BacktraceClient.Enabled);
             yield return null;
         }
-
-        [Test]
-        public void TestEditorDisabling_ShouldntSendData_ShouldntSendExceptionViaSendAPI()
-        {
-            var clientConfiguration = GetValidClientConfiguration();
-            BacktraceClient.Configuration = clientConfiguration;
-            BacktraceClient.Configuration.DisableInEditor = true;
-            BacktraceClient.Refresh();
-            bool invoked = false;
-            BacktraceClient.SkipReport = (ReportFilterType filterType, Exception exception, string message) =>
-            {
-                invoked = true;
-                // return false to make sure we won't filter a report.
-                return false;
-            };
-
-            BacktraceClient.Send(new Exception("Test"));
-
-            Assert.IsFalse(invoked);
-            Assert.IsFalse(BacktraceClient.Enabled);
-        }
-
-        [Test]
-        public void TestEditorDisabling_ShouldntSendData_ShouldntSendReportViaSendAPI()
-        {
-            var clientConfiguration = GetValidClientConfiguration();
-            BacktraceClient.Configuration = clientConfiguration;
-            BacktraceClient.Configuration.DisableInEditor = true;
-            BacktraceClient.Refresh();
-            bool invoked = false;
-            BacktraceClient.SkipReport = (ReportFilterType filterType, Exception exception, string message) =>
-            {
-                invoked = true;
-                // return false to make sure we won't filter a report.
-                return false;
-            };
-
-            BacktraceClient.Send(new BacktraceReport(new Exception("Test")));
-
-            Assert.IsFalse(invoked);
-            Assert.IsFalse(BacktraceClient.Enabled);
-        }
-
-        [Test]
-        public void TestEditorDisabling_ShouldntSendData_ShouldntSendMessageViaSendAPI()
-        {
-            var clientConfiguration = GetValidClientConfiguration();
-            BacktraceClient.Configuration = clientConfiguration;
-            BacktraceClient.Configuration.DisableInEditor = true;
-            BacktraceClient.Refresh();
-            bool invoked = false;
-            BacktraceClient.SkipReport = (ReportFilterType filterType, Exception exception, string message) =>
-            {
-                invoked = true;
-                // return false to make sure we won't filter a report.
-                return false;
-            };
-
-            BacktraceClient.Send("test");
-
-            Assert.IsFalse(invoked);
-            Assert.IsFalse(BacktraceClient.Enabled);
-        }
-
-        [UnityTest]
-        public IEnumerator TestEditorDisabling_ShouldSendData_ShouldSendMessageViaSendAPI()
-        {
-            var clientConfiguration = GetValidClientConfiguration();
-            BacktraceClient.Configuration = clientConfiguration;
-            BacktraceClient.Configuration.DisableInEditor = false;
-            BacktraceClient.Refresh();
-            bool invoked = false;
-            BacktraceClient.SkipReport = (ReportFilterType filterType, Exception exception, string message) =>
-            {
-                invoked = true;
-                return false;
-            };
-            bool beforeSendInvoked = false;
-            BacktraceClient.BeforeSend = (BacktraceData data) =>
-            {
-                beforeSendInvoked = true;
-                // skip sending report
-                return null;
-            };
-
-            BacktraceClient.Send("test");
-
-            Assert.IsTrue(invoked);
-            Assert.IsTrue(beforeSendInvoked);
-            Assert.IsTrue(BacktraceClient.Enabled);
-            yield return null;
-        }
-
 
         [UnityTest]
         public IEnumerator TestClientCreation_EmptyConfiguration_DisabledClientCreation()
