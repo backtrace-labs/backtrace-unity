@@ -12,8 +12,8 @@ import java.io.StringWriter;
 /**
  * Handle unhandled Android exceptions from background threads.
  */
-public class BacktraceAndroidUnhandledExceptionHandler implements Thread.UncaughtExceptionHandler{
-    private final static transient String LOG_TAG = BacktraceAndroidUnhandledExceptionHandler.class.getSimpleName();
+public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thread.UncaughtExceptionHandler{
+    private final static transient String LOG_TAG = BacktraceAndroidBackgroundUnhandledExceptionHandler.class.getSimpleName();
     private final Thread.UncaughtExceptionHandler mRootHandler;
 
     /**
@@ -24,7 +24,7 @@ public class BacktraceAndroidUnhandledExceptionHandler implements Thread.Uncaugh
     private final String _gameObject;
     private final String _methodName;
 
-    public BacktraceAndroidUnhandledExceptionHandler(String gameObject, String methodName) {
+    public BacktraceAndroidBackgroundUnhandledExceptionHandler(String gameObject, String methodName) {
         Log.d(LOG_TAG, "Initializing Android unhandled exception handler");
         this._gameObject = gameObject;
         this._methodName = methodName;
@@ -42,12 +42,11 @@ public class BacktraceAndroidUnhandledExceptionHandler implements Thread.Uncaugh
             }
             String exceptionType = exception.getClass().getName();
             Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + exceptionType + ". Reporting to Backtrace");
-            ReportThreadExcepiton(exceptionType + " : " + exception.getMessage(), stackTraceToString(exception.getStackTrace()));
+            ReportThreadException(exceptionType + " : " + exception.getMessage(), stackTraceToString(exception.getStackTrace()));
         }
     }
 
-
-    public void ReportThreadExcepiton(String message, String stackTrace) {        
+    public void ReportThreadException(String message, String stackTrace) {        
         UnityPlayer.UnitySendMessage(this._gameObject, this._methodName, message + '\n' + stackTrace);
     }
 

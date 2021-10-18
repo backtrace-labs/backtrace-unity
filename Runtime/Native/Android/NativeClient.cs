@@ -109,8 +109,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Path to class responsible for capturing unhandled java exceptions.
         /// </summary>
-        private readonly string _unhandledExceptionPath = string.Format("{0}.{1}", _namespace, "BacktraceAndroidUnhandledExceptionHandler");
-
+        private readonly string _unhandledExceptionPath = string.Format("{0}.{1}", _namespace, "BacktraceAndroidBackgroundUnhandledExceptionHandler");
 
         /// <summary>
         /// Determine if android integration should be enabled
@@ -121,7 +120,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
 #else
             false;
 #endif
-
 
 #pragma warning disable IDE0052 // Remove unread private members
         /// <summary>
@@ -165,11 +163,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             if (configuration.HandleUnhandledExceptions && !configuration.ReportFilterType.HasFlag(Types.ReportFilterType.UnhandledException))
             {
-                HandleUnhandledExceptions(gameObjectName, "HandleUnityBackgroundException");
+                HandleUnhandledExceptions(gameObjectName, "HandleUnhandledExceptionsFromAndroidBackgroundThread");
             }
 #endif
         }
-
 
         /// <summary>
         /// Setup communication between Untiy and Android to receive information about unhandled thread exceptions

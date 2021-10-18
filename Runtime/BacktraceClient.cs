@@ -963,16 +963,17 @@ namespace Backtrace.Unity
             }
             SendUnhandledException(hang);
         }
-            
+
         /// <summary>
-        /// Handle background exceptions with single excetpion message (that contains information about exception message and stack trace) 
+        /// Handle background exceptions with single exception message (that contains information about exception message and stack trace) 
         /// </summary>
         /// <param name="backgroundExceptionMessage">exception message</param>
-        internal void HandleUnityBackgroundException(string backgroundExceptionMessage)
+        internal void HandleUnhandledExceptionsFromAndroidBackgroundThread(string backgroundExceptionMessage)
         {
             var splitIndex = backgroundExceptionMessage.IndexOf('\n');
             if (splitIndex == -1)
             {
+                Debug.LogWarning(string.Format("Received incorrect background exception message. Message: {0}", backgroundExceptionMessage));
                 return;
             }
             var message = backgroundExceptionMessage.Substring(0, splitIndex);
