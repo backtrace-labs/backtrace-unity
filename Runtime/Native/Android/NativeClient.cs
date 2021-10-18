@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
@@ -100,7 +101,15 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// </summary>
         private UnwindingMode UnwindingMode = UnwindingMode.LOCAL_DUMPWITHOUTCRASH;
 
+        /// <summary>
+        /// Path to class responsible for detecting ANRs occurred by Java code.
+        /// </summary>
         private readonly string _anrPath = string.Format("{0}.{1}", _namespace, "BacktraceANRWatchdog");
+
+        /// <summary>
+        /// Path to class responsible for capturing unhandled java exceptions.
+        /// </summary>
+        private readonly string _unhandledExceptionPath = string.Format("{0}.{1}", _namespace, "BacktraceAndroidBackgroundUnhandledExceptionHandler");
 
         /// <summary>
         /// Determine if android integration should be enabled
@@ -112,11 +121,16 @@ namespace Backtrace.Unity.Runtime.Native.Android
             false;
 #endif
 
+#pragma warning disable IDE0052 // Remove unread private members
         /// <summary>
         /// Anr watcher object
         /// </summary>
-#pragma warning disable IDE0052 // Remove unread private members
         private AndroidJavaObject _anrWatcher;
+
+        /// <summary>
+        /// Unhandled exception watcher object reference
+        /// </summary>
+        private AndroidJavaObject _unhandledExceptionWatcher;
 #pragma warning restore IDE0052 // Remove unread private members
 
         private bool _captureNativeCrashes = false;
@@ -143,8 +157,33 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 _builtInAttributes[deviceManufacturerKey] = build.GetStatic<string>("MANUFACTURER").ToString();
             }
             HandleNativeCrashes(clientAttributes, attachments);
-            HandleAnr(gameObjectName, "OnAnrDetected");
+            if (!configuration.ReportFilterType.HasFlag(Types.ReportFilterType.Hang))
+            {
+                HandleAnr(gameObjectName, "OnAnrDetected");
+            }
+            if (configuration.HandleUnhandledExceptions && !configuration.ReportFilterType.HasFlag(Types.ReportFilterType.UnhandledException))
+            {
+                HandleUnhandledExceptions(gameObjectName, "HandleUnhandledExceptionsFromAndroidBackgroundThread");
+            }
 #endif
+        }
+
+        /// <summary>
+        /// Setup communication between Untiy and Android to receive information about unhandled thread exceptions
+        /// </summary>
+        /// <param name="gameObjectName">Game object name</param>
+        /// <param name="callbackName">Game object callback method name</param>
+        private void HandleUnhandledExceptions(string gameObjectName, string callbackName)
+        {
+            try
+            {
+                _unhandledExceptionWatcher = new AndroidJavaObject(_unhandledExceptionPath, gameObjectName, callbackName);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Cannot initialize unhandled exception watcher - reason: {0}", e.Message));
+                _enabled = false;
+            }
         }
 
         /// <summary>
@@ -480,6 +519,16 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (_anrThread != null)
             {
                 _stopAnr = true;
+            }
+            if (_anrWatcher != null)
+            {
+                _anrWatcher.Call("stopMonitoring");
+                _anrWatcher.Dispose();
+            }
+            if (_unhandledExceptionWatcher != null)
+            {
+                _unhandledExceptionWatcher.Call("stopMonitoring");
+                _unhandledExceptionWatcher.Dispose();
             }
         }
 
