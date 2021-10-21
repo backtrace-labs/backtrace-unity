@@ -194,17 +194,13 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                         {
                             if (!reported)
                             {
-
                                 reported = true;
-                                if (AndroidJNI.AttachCurrentThread() == 0)
-                                {
-                                    // set temporary attribute to "Hang"
-                                    AddNativeAttribute("error.type", "Hang");
+                                // set temporary attribute to "Hang"
+                                AddNativeAttribute("error.type", "Hang");
 
-                                    NativeReport("ANRException: Blocked thread detected.", true);
-                                    // update error.type attribute in case when crash happen 
-                                    AddNativeAttribute("error.type", "Crash");
-                                }
+                                NativeReport("ANRException: Blocked thread detected.", true);
+                                // update error.type attribute in case when crash happen 
+                                AddNativeAttribute("error.type", "Crash");
                             }
                         }
                         else

@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Common;
+﻿#if UNITY_ANDROID
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Model;
 using System;
 using System.Collections.Generic;
@@ -115,9 +116,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Anr watcher object
         /// </summary>
-#pragma warning disable IDE0052 // Remove unread private members
         private AndroidJavaObject _anrWatcher;
-#pragma warning restore IDE0052 // Remove unread private members
+
+        /// <summary>
+        /// Unhandled exception watcher object reference
+        /// </summary>
+        private AndroidJavaObject _unhandledExceptionWatcher;
 
         private bool _captureNativeCrashes = false;
         private readonly bool _enableClientSideUnwinding = false;
@@ -130,8 +134,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 return;
             }
-
-#if UNITY_ANDROID
 #if UNITY_2019_2_OR_NEWER
             _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
 #endif
@@ -144,7 +146,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             HandleNativeCrashes(clientAttributes, attachments);
             HandleAnr(gameObjectName, "OnAnrDetected");
-#endif
         }
 
         /// <summary>
@@ -493,3 +494,4 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
     }
 }
+#endif
