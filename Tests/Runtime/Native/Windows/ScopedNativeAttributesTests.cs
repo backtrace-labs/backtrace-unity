@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿#if UNITY_STANDALONE_WIN
+using Backtrace.Unity.Model;
 using Backtrace.Unity.Services;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -126,3 +127,5 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
         }
     }
 }
+
+#endif
