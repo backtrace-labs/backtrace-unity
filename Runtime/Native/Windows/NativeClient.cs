@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿#if UNITY_STANDALONE_WIN
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Services;
@@ -85,17 +86,16 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             CleanScopedAttributes();
             HandleNativeCrashes(clientAttributes, attachments);
             AddScopedAttributes(clientAttributes);
-            HandleAnr();
+            if (!configuration.ReportFilterType.HasFlag(ReportFilterType.Hang))
+            {
+                HandleAnr();
+            }
         }
 
         private void HandleNativeCrashes(IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
             var integrationDisabled =
-#if UNITY_STANDALONE_WIN
                 !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
-#else
-                true;
-#endif
             if (integrationDisabled)
             {
                 return;
@@ -194,17 +194,13 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                         {
                             if (!reported)
                             {
-
                                 reported = true;
-                                if (AndroidJNI.AttachCurrentThread() == 0)
-                                {
-                                    // set temporary attribute to "Hang"
-                                    AddNativeAttribute("error.type", "Hang");
+                                // set temporary attribute to "Hang"
+                                AddNativeAttribute("error.type", "Hang");
 
-                                    NativeReport("ANRException: Blocked thread detected.", true);
-                                    // update error.type attribute in case when crash happen 
-                                    AddNativeAttribute("error.type", "Crash");
-                                }
+                                NativeReport("ANRException: Blocked thread detected.", true);
+                                // update error.type attribute in case when crash happen 
+                                AddNativeAttribute("error.type", "Crash");
                             }
                         }
                         else
@@ -491,3 +487,5 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         }
     }
 }
+
+#endif

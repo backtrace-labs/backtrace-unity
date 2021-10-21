@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Common;
+#if UNITY_ANDROID
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
 using System;
@@ -124,7 +125,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             false;
 #endif
 
-#pragma warning disable IDE0052 // Remove unread private members
         /// <summary>
         /// Anr watcher object
         /// </summary>
@@ -134,7 +134,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Unhandled exception watcher object reference
         /// </summary>
         private AndroidJavaObject _unhandledExceptionWatcher;
-#pragma warning restore IDE0052 // Remove unread private members
 
         private bool _captureNativeCrashes = false;
         private readonly bool _enableClientSideUnwinding = false;
@@ -147,8 +146,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 return;
             }
-
-#if UNITY_ANDROID
 #if UNITY_2019_2_OR_NEWER
             _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
 #endif
@@ -168,7 +165,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 HandleUnhandledExceptions(gameObjectName, "HandleUnhandledExceptionsFromAndroidBackgroundThread");
             }
-#endif
         }
 
         /// <summary>
@@ -551,3 +547,4 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
     }
 }
+#endif
