@@ -6,6 +6,7 @@
         internal static string LABEL_SERVER_URL = "Server Address";
         internal static string LABEL_REPORT_PER_MIN = "Reports per minute";
         internal static string LABEL_HANDLE_UNHANDLED_EXCEPTION = "Handle unhandled exceptions";
+        internal static string DISABLE_IN_EDITOR = "Disable error reporting integration in editor";
 
         internal static string LABEL_DESTROY_CLIENT_ON_SCENE_LOAD = "Destroy client on new scene load (false - Backtrace managed)";
         internal static string LABEL_SAMPLING = "Log random sampling rate";

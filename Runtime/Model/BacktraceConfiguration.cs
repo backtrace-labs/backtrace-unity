@@ -32,6 +32,12 @@ namespace Backtrace.Unity.Model
         public int ReportPerMin = 50;
 
         /// <summary>
+        /// "Disable error reporting integration in editor mode.
+        /// </summary>
+        [Tooltip("Disable error reporting integration in editor mode.")]
+        public bool DisableInEditor = false;
+
+        /// <summary>
         /// Determine if client should catch unhandled exceptions
         /// </summary>
         [Tooltip("Toggle this on or off to set the library to handle unhandled exceptions that are not captured by try-catch blocks.")]
@@ -50,12 +56,12 @@ namespace Backtrace.Unity.Model
         public bool DestroyOnLoad = false;
 
         /// <summary>
-        /// Sampling configuration - fractional sampling allows to drop some % of unhandled exception.
+        /// Sampling configuration - fractional sampling allows to drop some % of Unity errors.
         /// </summary>
-        [Tooltip("Log random sampling rate - Enables a random sampling mechanism for unhandled exceptions - by default sampling is equal to 0.01 - which means only 1% of randomply sampling reports will be send to Backtrace. \n" +
-            "* 1 - means 100% of unhandled exception reports will be reported by library,\n" +
-            "* 0.1 - means 10% of unhandled exception reports will be reported by library,\n" +
-            "* 0 - means library is going to drop all unhandled exception.")]
+        [Tooltip("Log random sampling rate - Enables a random sampling mechanism for Unity.Error logs - by default sampling is equal to 0.01 - which means only 1% of randomply sampling reports will be send to Backtrace. \n" +
+            "* 1 - means 100% of error reports will be reported by library,\n" +
+            "* 0.1 - means 10% of error reports will be reported by library,\n" +
+            "* 0 - means library is going to drop all errors.")]
         [Range(0, 1)]
         public double Sampling = 0.01d;
 
@@ -196,7 +202,7 @@ namespace Backtrace.Unity.Model
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]
-        public string DatabasePath;
+        public string DatabasePath = "${Application.persistentDataPath}/backtrace";
 
         /// <summary>
         /// Enable event aggregation support
@@ -234,7 +240,7 @@ namespace Backtrace.Unity.Model
         /// Determine if BacktraceDatabase should try to create database directory on application start
         /// </summary>
         [Tooltip("If toggled, the library will create the offline database directory if the provided path doesn't exists.")]
-        public bool CreateDatabase = false;
+        public bool CreateDatabase = true;
 
         /// <summary>
         /// Maximum number of stored reports in Database. If value is equal to zero, then limit not exists
@@ -296,7 +302,7 @@ namespace Backtrace.Unity.Model
             {
                 int universeIndexStart = backtraceSubmitUrl.Length;
                 int universeIndexEnd = submissionUrl.IndexOf('/', universeIndexStart);
-                if(universeIndexEnd == -1)
+                if (universeIndexEnd == -1)
                 {
                     throw new ArgumentException("Invalid Backtrace URL");
                 }

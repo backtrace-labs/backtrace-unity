@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.6.2";
+        public const string VERSION = "3.7.0-preview.1";
 
         public BacktraceConfiguration Configuration;
 
@@ -493,7 +493,12 @@ namespace Backtrace.Unity
                 return;
             }
 
-            Enabled = true;
+            Enabled =
+#if UNITY_EDITOR
+                !Configuration.DisableInEditor;
+#else
+                true;
+#endif
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
@@ -545,7 +550,7 @@ namespace Backtrace.Unity
             // this integration should start before native integration and before breadcrumbs integration
             // to allow algorithm to send breadcrumbs file - if the breadcrumb file is available
             var scopedAttributes = AttributeProvider.GenerateAttributes(false);
-            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
+            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled && Enabled)
             {
                 StartCoroutine(Runtime.Native.Windows.NativeClient.SendUnhandledGameCrashesOnGameStartup(nativeAttachments, breadcrumbsPath, Configuration.GetFullDatabasePath(), BacktraceApi));
             }
@@ -793,6 +798,10 @@ namespace Backtrace.Unity
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
                 return;
             }
+            if (!Enabled)
+            {
+                return;
+            }
             StartCoroutine(CollectDataAndSend(report, sendCallback));
         }
 
@@ -963,6 +972,23 @@ namespace Backtrace.Unity
             }
             SendUnhandledException(hang);
         }
+
+        /// <summary>
+        /// Handle background exceptions with single exception message (that contains information about exception message and stack trace) 
+        /// </summary>
+        /// <param name="backgroundExceptionMessage">exception message</param>
+        internal void HandleUnhandledExceptionsFromAndroidBackgroundThread(string backgroundExceptionMessage)
+        {
+            var splitIndex = backgroundExceptionMessage.IndexOf('\n');
+            if (splitIndex == -1)
+            {
+                Debug.LogWarning(string.Format("Received incorrect background exception message. Message: {0}", backgroundExceptionMessage));
+                return;
+            }
+            var message = backgroundExceptionMessage.Substring(0, splitIndex);
+            var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
+            HandleUnityMessage(message, stackTrace, LogType.Exception);
+        }
 #endif
 
         private Thread _current;
@@ -1093,18 +1119,12 @@ namespace Backtrace.Unity
         /// <returns>True, when client should skip report, otherwise false.</returns>
         private bool SamplingShouldSkip()
         {
-            // Sampling won't work in Editor mode - from editor we're allowing to send all type
-            // of possible errors.
-#if UNITY_EDITOR
-            return false;
-#else
             if (!Configuration || Configuration.Sampling == 1)
             {
                 return false;
             }
             var value = Random.NextDouble();
             return value > Configuration.Sampling;
-#endif
         }
 
         private void SendUnhandledException(BacktraceUnhandledException exception, bool invokeSkipApi = true)
@@ -1121,10 +1141,6 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes, bool invokeSkipApi = true)
         {
-            if (!Enabled)
-            {
-                return false;
-            }
             // guess report type
             var filterType = ReportFilterType.Exception;
             if (exception is BacktraceUnhandledException)
@@ -1134,7 +1150,6 @@ namespace Backtrace.Unity
                     ? ReportFilterType.Hang
                     : unhandledException.Type == LogType.Exception ? ReportFilterType.UnhandledException : ReportFilterType.Error;
             }
-
 
             if (invokeSkipApi && ShouldSkipReport(filterType, exception, string.Empty))
             {
@@ -1277,6 +1292,11 @@ namespace Backtrace.Unity
         /// <returns>true if client should skip report. Otherwise false.</returns>
         private bool ShouldSkipReport(ReportFilterType type, Exception exception, string message)
         {
+            if (!Enabled)
+            {
+                return false;
+            }
+
             return Configuration.ReportFilterType.HasFlag(type)
                 || (SkipReport != null && SkipReport.Invoke(type, exception, message));
 

@@ -86,6 +86,9 @@ namespace Backtrace.Unity.Editor
                 {
                     EditorGUILayout.HelpBox("Please insert value greater or equal -1", MessageType.Error);
                 }
+                EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("DisableInEditor"),
+                new GUIContent(BacktraceConfigurationLabels.DISABLE_IN_EDITOR));
             }
 
 #if !UNITY_WEBGL
