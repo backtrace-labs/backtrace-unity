@@ -1,6 +1,5 @@
-﻿#if UNITY_ANDROID
+#if UNITY_ANDROID
 using Backtrace.Unity.Common;
-﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
 using System;
