@@ -36,7 +36,7 @@ namespace Backtrace.Unity
             {
                 if (_breadcrumbs == null)
                 {
-                    if (Enable && BacktraceBreadcrumbs.CanStoreBreadcrumbs(Configuration.LogLevel, Configuration.BacktraceBreadcrumbsLevel))
+                    if (Enable && Configuration.EnableBreadcrumbsSupport && BacktraceBreadcrumbs.CanStoreBreadcrumbs(Configuration.LogLevel, Configuration.BacktraceBreadcrumbsLevel))
                     {
                         _breadcrumbs = new BacktraceBreadcrumbs(new BacktraceStorageLogManager(Configuration.GetFullDatabasePath()));
                     }
