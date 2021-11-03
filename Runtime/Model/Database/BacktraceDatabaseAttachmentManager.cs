@@ -23,7 +23,7 @@ namespace Backtrace.Unity.Model.Database
         {
             _settings = settings;
             ScreenshotMaxHeight = Screen.height;
-            ScreenshotQuality = 90;
+            ScreenshotQuality = 25;
         }
 
         public IEnumerable<string> GetReportAttachments(BacktraceData data)
