@@ -25,7 +25,7 @@ namespace Backtrace.Unity
 
         public BacktraceConfiguration Configuration;
 
-        internal BacktraceBreadcrumbs _breadcrumbs;
+        private BacktraceBreadcrumbs _breadcrumbs;
 
         /// <summary>
         /// Backtrace Breadcrumbs
