@@ -158,8 +158,8 @@ namespace Backtrace.Unity.Model
             {
                 return;
             }
-            // make sure attachments are not bigger than 10 Mb.
-            const int maximumAttachmentSize = 10000000;
+            // make sure attachments are not bigger than 10 MiB.
+            const int maximumAttachmentSize = 10 * 1024 * 1024;
             const string attachmentPrefix = "attachment_";
 
             var uniqueAttachments = new HashSet<string>(attachments.Reverse());
