@@ -182,5 +182,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             EventHandler.Update();
         }
+
+        public static bool CanStoreBreadcrumbs(UnityEngineLogLevel logLevel, BacktraceBreadcrumbType backtraceBreadcrumbsLevel)
+        {
+            return backtraceBreadcrumbsLevel != BacktraceBreadcrumbType.None && logLevel != UnityEngineLogLevel.None;
+        }
     }
 }

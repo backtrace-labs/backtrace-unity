@@ -93,6 +93,19 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         }
 
         [Test]
+        public void TestBreadcrumbsInitializationForInvalidBreadcrumbType_ShouldReturnFalse_BreadcrumbsConfigurationIsInvalid()
+        {
+            // type not set - test simulates Unity Editor behavior 
+            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.None;
+            // any defined type
+            UnityEngineLogLevel level = UnityEngineLogLevel.Fatal;
+
+            var result = BacktraceBreadcrumbs.CanStoreBreadcrumbs(level, backtraceBreadcrumbType);
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
         public void DebugLogLevel_ShouldFilterDebugLogLevel_BreadcrumbsWasntSave()
         {
             const string message = "message";

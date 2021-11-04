@@ -95,7 +95,8 @@ namespace Backtrace.Unity.Model.Database
                 return null;
             }
 
-            return File.ReadAllText(DiagnosticDataPath);
+            DiagnosticDataJson = File.ReadAllText(DiagnosticDataPath);
+            return DiagnosticDataJson;
         }
 
         /// <summary>

@@ -30,6 +30,31 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         }
 
         [Test]
+        public void TestBreadcrumbsInitializationForInvalidLogLevel_ShouldReturnFalse_BreadcrumbsConfigurationIsInvalid()
+        {
+            // level not set - test simulates Unity Editor behavior 
+            UnityEngineLogLevel level = UnityEngineLogLevel.None;
+            // any defined type
+            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.Log;
+
+            var result = BacktraceBreadcrumbs.CanStoreBreadcrumbs(level, backtraceBreadcrumbType);
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void TestBreadcrumbsInitializationForValidOptions_ShouldReturnTrue_BreadcrumbsConfigurationIsValid()
+        {
+            // any log level that might be selected by user
+            UnityEngineLogLevel level = UnityEngineLogLevel.Debug;
+            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.Log;
+
+            var result = BacktraceBreadcrumbs.CanStoreBreadcrumbs(level, backtraceBreadcrumbType);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public void TestSystemLogs_ShouldEnableThem_EventsAreSet()
         {
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();

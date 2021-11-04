@@ -13,6 +13,21 @@ namespace Backtrace.Unity.Model
     [CreateAssetMenu(fileName = "Backtrace Configuration", menuName = "Backtrace/Configuration", order = 0)]
     public class BacktraceConfiguration : ScriptableObject
     {
+        private const BacktraceBreadcrumbType AllBreadcrumbsTypes =
+            BacktraceBreadcrumbType.Configuration |
+            BacktraceBreadcrumbType.Http |
+            BacktraceBreadcrumbType.Log |
+            BacktraceBreadcrumbType.Manual |
+            BacktraceBreadcrumbType.Navigation |
+            BacktraceBreadcrumbType.System |
+            BacktraceBreadcrumbType.User;
+
+        private const UnityEngineLogLevel AllLogTypes = UnityEngineLogLevel.Debug |
+            UnityEngineLogLevel.Error |
+            UnityEngineLogLevel.Fatal |
+            UnityEngineLogLevel.Info |
+            UnityEngineLogLevel.Warning;
+
         /// <summary>
         /// Backtrace server url
         /// </summary>
@@ -166,13 +181,13 @@ namespace Backtrace.Unity.Model
         /// Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumbs file
         /// </summary>
         [Tooltip("Breadcrumbs support breadcrumbs level- Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumb file")]
-        public BacktraceBreadcrumbType BacktraceBreadcrumbsLevel;
+        public BacktraceBreadcrumbType BacktraceBreadcrumbsLevel = AllBreadcrumbsTypes;
 
         /// <summary>
         /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
         /// </summary>
         [Tooltip("Breadcrumbs log level")]
-        public UnityEngineLogLevel LogLevel;
+        public UnityEngineLogLevel LogLevel = AllLogTypes;
 
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
