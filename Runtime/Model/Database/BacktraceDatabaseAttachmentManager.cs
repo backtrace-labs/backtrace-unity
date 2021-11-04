@@ -109,10 +109,8 @@ namespace Backtrace.Unity.Model.Database
                     RenderTexture screenTexture = RenderTexture.GetTemporary(Screen.width, Screen.height);
                     ScreenCapture.CaptureScreenshotIntoRenderTexture(screenTexture);
 #else
-                    
-Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
+                    Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
 #endif
-
                     // Create a render texture to render into
                     RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
 
@@ -141,9 +139,8 @@ Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
 #if UNITY_2019_1_OR_NEWER
                     RenderTexture.ReleaseTemporary(screenTexture);
 #else
-                        GameObject.Destroy(screenTexture);
+                    GameObject.Destroy(screenTexture);
 #endif
-
                     File.WriteAllBytes(screenshotPath, result.EncodeToJPG(ScreenshotQuality));
                     GameObject.Destroy(result);
 
