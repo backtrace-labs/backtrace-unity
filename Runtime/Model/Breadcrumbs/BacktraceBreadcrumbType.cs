@@ -8,6 +8,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
     [Flags]
     public enum BacktraceBreadcrumbType
     {
+        None = 0,
         Manual = BreadcrumbLevel.Manual,
         Log = BreadcrumbLevel.Log,
         Navigation = BreadcrumbLevel.Navigation,

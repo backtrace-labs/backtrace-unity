@@ -96,9 +96,9 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         public void TestBreadcrumbsInitializationForInvalidBreadcrumbType_ShouldReturnFalse_BreadcrumbsConfigurationIsInvalid()
         {
             // type not set - test simulates Unity Editor behavior 
-            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.Log;
+            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.None;
             // any defined type
-            UnityEngineLogLevel level = 0;
+            UnityEngineLogLevel level = UnityEngineLogLevel.Fatal;
 
             var result = BacktraceBreadcrumbs.CanStoreBreadcrumbs(level, backtraceBreadcrumbType);
 

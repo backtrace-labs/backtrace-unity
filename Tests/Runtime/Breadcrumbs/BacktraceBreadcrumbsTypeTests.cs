@@ -33,7 +33,7 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         public void TestBreadcrumbsInitializationForInvalidLogLevel_ShouldReturnFalse_BreadcrumbsConfigurationIsInvalid()
         {
             // level not set - test simulates Unity Editor behavior 
-            UnityEngineLogLevel level = 0;
+            UnityEngineLogLevel level = UnityEngineLogLevel.None;
             // any defined type
             BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.Log;
 

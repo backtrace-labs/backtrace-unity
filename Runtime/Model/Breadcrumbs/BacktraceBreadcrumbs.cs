@@ -185,7 +185,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         public static bool CanStoreBreadcrumbs(UnityEngineLogLevel logLevel, BacktraceBreadcrumbType backtraceBreadcrumbsLevel)
         {
-            return (ulong)backtraceBreadcrumbsLevel != 0 && (ulong)logLevel != 0;
+            return backtraceBreadcrumbsLevel != BacktraceBreadcrumbType.None && logLevel != UnityEngineLogLevel.None;
         }
     }
 }

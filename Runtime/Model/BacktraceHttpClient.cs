@@ -167,7 +167,7 @@ namespace Backtrace.Unity.Model
 
             foreach (var file in uniqueAttachments)
             {
-                if (string.IsNullOrEmpty(file) || File.Exists(file) == false)
+                if (string.IsNullOrEmpty(file) || !File.Exists(file))
                 {
                     continue;
                 }
