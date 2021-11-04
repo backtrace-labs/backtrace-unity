@@ -29,8 +29,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// Determine if breadcrumbs are enabled
         /// </summary>
         private bool _enabled = false;
-        public BacktraceBreadcrumbs(IBacktraceLogManager logManager)
+        public BacktraceBreadcrumbs(IBacktraceLogManager logManager, BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
         {
+            BreadcrumbsLevel = level;
+            UnityLogLevel = unityLogLevel;
             LogManager = logManager;
             EventHandler = new BacktraceBreadcrumbsEventHandler(this);
         }
@@ -43,22 +45,24 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             return LogManager.Clear();
         }
-
         public bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
+        {
+            UnityLogLevel = unityLogLevel;
+            BreadcrumbsLevel = level;
+            return EnableBreadcrumbs();
+        }
+        public bool EnableBreadcrumbs()
         {
             if (_enabled)
             {
                 return false;
             }
-            BreadcrumbsLevel = level;
-            UnityLogLevel = unityLogLevel;
-
             var breadcrumbStorageEnabled = LogManager.Enable();
             if (!breadcrumbStorageEnabled)
             {
                 return false;
             }
-            EventHandler.Register(level);
+            EventHandler.Register(BreadcrumbsLevel);
             return true;
         }
 
@@ -156,7 +160,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             return UnityLogLevel.HasFlag(type);
         }
 
-        internal UnityEngineLogLevel ConvertLogTypeToLogLevel(LogType type)
+        internal static UnityEngineLogLevel ConvertLogTypeToLogLevel(LogType type)
         {
             switch (type)
             {

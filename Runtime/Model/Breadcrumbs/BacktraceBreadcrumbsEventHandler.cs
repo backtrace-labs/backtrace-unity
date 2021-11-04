@@ -138,7 +138,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         private void Log(string message, LogType level, BreadcrumbLevel breadcrumbLevel, IDictionary<string, string> attributes = null)
         {
-            var type = _breadcrumbs.ConvertLogTypeToLogLevel(level);
+            var type = BacktraceBreadcrumbs.ConvertLogTypeToLogLevel(level);
             if (!_breadcrumbs.ShouldLog(type))
             {
                 return;

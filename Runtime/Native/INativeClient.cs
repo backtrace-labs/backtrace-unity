@@ -10,7 +10,7 @@ namespace Backtrace.Unity.Runtime.Native
         /// <summary>
         /// Handle ANR - Application not responding events
         /// </summary>
-        void HandleAnr(string gameObjectName, string callbackName);
+        void HandleAnr();
 
         /// <summary>
         /// Set native attribute
@@ -28,7 +28,7 @@ namespace Backtrace.Unity.Runtime.Native
         /// <summary>
         /// Update native client internal ANR timer.
         /// </summary>
-        void UpdateClientTime(float time);
+        void Update(float time);
 
         /// <summary>
         /// Disable native integration
