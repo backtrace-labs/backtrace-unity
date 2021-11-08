@@ -66,12 +66,23 @@ namespace Backtrace.Unity.Runtime.Native.Base
         public void Update(float time)
         {
             LastUpdateTime = time;
-            lock (_lockObject)
+            if (_shouldLogAnrsInBreadcrumbs && LogAnr)
             {
-                if (_shouldLogAnrsInBreadcrumbs && LogAnr)
+                if (Monitor.TryEnter(_lockObject))
                 {
-                    _breadcrumbs.AddBreadcrumbs(AnrMessage, BreadcrumbLevel.System, UnityEngineLogLevel.Warning);
-                    LogAnr = false;
+                    try
+                    {
+                        if (_shouldLogAnrsInBreadcrumbs && LogAnr)
+                        {
+                            _breadcrumbs.AddBreadcrumbs(AnrMessage, BreadcrumbLevel.System, UnityEngineLogLevel.Warning);
+                            LogAnr = false;
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(_lockObject);
+                    }
+
                 }
             }
         }

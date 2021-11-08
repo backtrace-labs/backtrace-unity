@@ -4,6 +4,7 @@ using Backtrace.Unity.Model.Breadcrumbs.InMemory;
 using Backtrace.Unity.Tests.Runtime.Native.Mocks;
 using NUnit.Framework;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace Backtrace.Unity.Tests.Runtime.Native
@@ -41,6 +42,36 @@ namespace Backtrace.Unity.Tests.Runtime.Native
             nativeClient.Update(1);
             nativeClient.Update(2);
 
+            Assert.AreEqual(expectedNumberOfBreadcrumbs, breadcrumbs.LogManager.Length());
+            Assert.AreEqual(TestableNativeClient.AnrMessage, backtraceStorageManager.Breadcrumbs.First().Message);
+        }
+
+        [Test]
+        public void TestAnrBreadcrumbReporting_ShouldAddSingleAnrBreadcrumbFromMultipleThreads_SingleBreadcrumbSuccessfullyStored()
+        {
+            const int numberOfThreads = 5;
+            const int expectedNumberOfBreadcrumbs = 1;
+            var backtraceStorageManager = new BacktraceInMemoryLogManager();
+            var breadcrumbs = new BacktraceBreadcrumbs(backtraceStorageManager, BacktraceBreadcrumbType.System, UnityEngineLogLevel.Warning);
+
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            var nativeClient = new TestableNativeClient(configuration, breadcrumbs);
+
+            nativeClient.SimulateAnr();
+            var threads = new Thread[numberOfThreads];
+            for (int i = 0; i < numberOfThreads; i++)
+            {
+                threads[i] = new Thread(() =>
+                {
+                    nativeClient.Update(0);
+                });
+                threads[i].Start();
+            }
+
+            for (int i = 0; i < numberOfThreads; i++)
+            {
+                threads[i].Join();
+            }
             Assert.AreEqual(expectedNumberOfBreadcrumbs, breadcrumbs.LogManager.Length());
             Assert.AreEqual(TestableNativeClient.AnrMessage, backtraceStorageManager.Breadcrumbs.First().Message);
         }

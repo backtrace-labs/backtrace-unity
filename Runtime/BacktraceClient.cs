@@ -536,7 +536,7 @@ namespace Backtrace.Unity
                 Database = GetComponent<BacktraceDatabase>();
                 if (Database != null)
                 {
-                    _breadcrumbs = Database.Breadcrumbs as BacktraceBreadcrumbs;
+                    _breadcrumbs = (BacktraceBreadcrumbs)Database.Breadcrumbs;
                     Database.Reload();
                     Database.SetApi(BacktraceApi);
                     Database.SetReportWatcher(_reportLimitWatcher);

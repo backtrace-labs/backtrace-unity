@@ -8,7 +8,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
     {
         BacktraceBreadcrumbType BreadcrumbsLevel { get; }
         bool EnableBreadcrumbs();
-        [Obsolete("Please use EnableBreadcurmbs instead. This function will be removed in the future updates")]
+        [Obsolete("Please use EnableBreadcrumbs instead. This function will be removed in the future updates")]
         bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel);
         bool ClearBreadcrumbs();
         bool Log(string message, LogType type, IDictionary<string, string> attributes);
