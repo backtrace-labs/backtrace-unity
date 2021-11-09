@@ -39,6 +39,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         [DllImport("__Internal", EntryPoint = "AddAttribute")]
         private static extern void AddAttribute(string key, string value);
 
+        [DllImport("__Internal", EntryPoint = "Disable")]
+        private static extern void DisableNativeIntegration();
+
         private static bool INITIALIZED = false;
 
         /// <summary>
@@ -94,6 +97,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             var attributeValues = attributes.Values.ToArray();
 
             Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, _configuration.OomReports, attachments.ToArray(), attachments.Count());
+            CaptureNativeCrashes = true;
         }
 
         /// <summary>
@@ -231,6 +235,18 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             // to avoid reporting low memory warning when application didn't crash 
             // native plugin will analyse previous application session             
             return true;
+        }
+        /// <summary>
+        /// Disable native client integration
+        /// </summary>
+        public override void Disable()
+        {
+            if (CaptureNativeCrashes)
+            {
+                CaptureNativeCrashes = false;
+                DisableNativeIntegration();
+            }
+            base.Disable();
         }
     }
 }
