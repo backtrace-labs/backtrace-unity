@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
 {
@@ -50,13 +49,14 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             {
                 BreadcrumbFile = breadcrumbFile
             };
-            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager);
-            var unityEngineLogLevel = breadcrumbsManager.ConvertLogTypeToLogLevel(testedLevel);
+            var unityEngineLogLevel = BacktraceBreadcrumbs.ConvertLogTypeToLogLevel(testedLevel);
             var logTypeThatUnsupportCurrentTestCase =
               (Enum.GetValues(typeof(UnityEngineLogLevel)) as IEnumerable<UnityEngineLogLevel>)
               .First(n => n == unityEngineLogLevel);
+            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager, ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
 
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
+
+            breadcrumbsManager.EnableBreadcrumbs();
             var added = breadcrumbsManager.Log(breadcrumbMessage, testedLevel);
 
             Assert.IsTrue(added);
@@ -81,11 +81,11 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
                 BreadcrumbFile = breadcrumbFile,
                 BreadcrumbsSize = minimalSize
             };
-            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager);
             var unityEngineLogLevel = UnityEngineLogLevel.Debug;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager, ManualBreadcrumbsType, unityEngineLogLevel);
             var breadcrumbStart = breadcrumbsManager.BreadcrumbId();
 
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, unityEngineLogLevel);
+            breadcrumbsManager.EnableBreadcrumbs();
             int numberOfAddedBreadcrumbs = 1;
             breadcrumbsManager.Log(breadcrumbMessage, LogType.Assert);
             var breadcrumbSize = breadcrumbFile.Size - 2;
@@ -124,11 +124,11 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             {
                 BreadcrumbFile = breadcrumbFile
             };
-            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager);
-            var expectedBreadcrumbId = breadcrumbsManager.BreadcrumbId();
             var unityEngineLogLevel = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Warning | UnityEngineLogLevel.Info | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(breadcrumbsStorageManager, BacktraceBreadcrumbType.Manual | BacktraceBreadcrumbType.System, unityEngineLogLevel);
+            var expectedBreadcrumbId = breadcrumbsManager.BreadcrumbId();
 
-            breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.Manual | BacktraceBreadcrumbType.System, unityEngineLogLevel);
+            breadcrumbsManager.EnableBreadcrumbs();
             breadcrumbsManager.Warning(messages[0], breadcrumb1Attributes);
             breadcrumbsManager.Info(messages[1]);
             breadcrumbsManager.Exception(messages[2]);

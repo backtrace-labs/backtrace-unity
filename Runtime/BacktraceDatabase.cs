@@ -36,9 +36,12 @@ namespace Backtrace.Unity
             {
                 if (_breadcrumbs == null)
                 {
-                    if (Enable && Configuration.EnableBreadcrumbsSupport)
+                    if (Enable && Configuration.EnableBreadcrumbsSupport && BacktraceBreadcrumbs.CanStoreBreadcrumbs(Configuration.LogLevel, Configuration.BacktraceBreadcrumbsLevel))
                     {
-                        _breadcrumbs = new BacktraceBreadcrumbs(new BacktraceStorageLogManager(Configuration.GetFullDatabasePath()));
+                        _breadcrumbs = new BacktraceBreadcrumbs(
+                            new BacktraceStorageLogManager(Configuration.GetFullDatabasePath()),
+                            Configuration.BacktraceBreadcrumbsLevel,
+                            Configuration.LogLevel);
                     }
                 }
                 return _breadcrumbs;
@@ -729,7 +732,7 @@ namespace Backtrace.Unity
             {
                 return false;
             }
-            return _breadcrumbs.EnableBreadcrumbs(Configuration.BacktraceBreadcrumbsLevel, Configuration.LogLevel);
+            return _breadcrumbs.EnableBreadcrumbs();
         }
     }
 }

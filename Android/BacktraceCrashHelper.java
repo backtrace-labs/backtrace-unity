@@ -6,6 +6,23 @@ import android.util.Log;
 
 
 public class BacktraceCrashHelper {
+
+    public void throwRuntimeException() {
+        Log.d("BacktraceCrashHelper", "Throwing runtime exception");
+        throw new RuntimeException("Unity-test: Uncaught JVM exception");
+    }
+    
+    public void throwBackgroundJavaException() {
+        Log.d("BacktraceCrashHelper", "throwing an unhandled background java exception");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int[] numbers = {10, 20, 30, 40};
+                Log.d("BacktraceCrashHelper", String.valueOf(numbers[5]));
+            }
+        }).start();
+    }
+
     public static void StartAnr() {
         Log.d("BacktraceCrashHelper", "Starting ANR");
         Handler handler = new Handler(Looper.getMainLooper());

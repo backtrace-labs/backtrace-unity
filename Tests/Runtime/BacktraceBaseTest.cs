@@ -31,6 +31,7 @@ namespace Backtrace.Unity.Tests.Runtime
             configuration.ServerUrl = "https://submit.backtrace.io/foo-bar-baz/1234123412341234123412341234123412341234123412341234123412341234/json";
             configuration.DestroyOnLoad = true;
             configuration.EnableMetricsSupport = false;
+            configuration.Sampling = 1;
             return configuration;
         }
 

@@ -1,6 +1,9 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿#if UNITY_STANDALONE_WIN
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Breadcrumbs.Storage;
+using Backtrace.Unity.Runtime.Native.Base;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -15,7 +18,7 @@ using UnityEngine;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Runtime.Native.Windows
 {
-    internal sealed class NativeClient : INativeClient
+    internal sealed class NativeClient : NativeClientBase, INativeClient
     {
         [Serializable]
         private class ScopedAttributesContainer
@@ -59,43 +62,20 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         [DllImport("BacktraceCrashpadWindows", EntryPoint = "DumpWithoutCrash")]
         private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread);
 
-        // Last Backtrace client update time 
-        volatile internal float _lastUpdateTime;
-
-        /// <summary>
-        /// Determine if the ANR background thread should be disabled or not 
-        /// for some period of time.
-        /// This option will be used by the native client implementation
-        /// once application goes to background/foreground
-        /// </summary>
-        volatile internal bool _preventAnr = false;
-
-        /// <summary>
-        /// Determine if ANR thread should exit
-        /// </summary>
-        volatile internal bool _stopAnr = false;
-
-        private Thread _anrThread;
-
-        private readonly BacktraceConfiguration _configuration;
-        private bool _captureNativeCrashes = false;
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
+        public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments) : base(configuration, breadcrumbs)
         {
-            _configuration = configuration;
             CleanScopedAttributes();
             HandleNativeCrashes(clientAttributes, attachments);
             AddScopedAttributes(clientAttributes);
-            HandleAnr();
+            if (!configuration.ReportFilterType.HasFlag(ReportFilterType.Hang))
+            {
+                HandleAnr();
+            }
         }
 
         private void HandleNativeCrashes(IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
-            var integrationDisabled =
-#if UNITY_STANDALONE_WIN
-                !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
-#else
-                true;
-#endif
+            var integrationDisabled = !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
             if (integrationDisabled)
             {
                 return;
@@ -121,14 +101,14 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 Directory.CreateDirectory(databasePath);
             }
 
-            _captureNativeCrashes = Initialize(
+            CaptureNativeCrashes = Initialize(
                 minidumpUrl,
                 databasePath,
                 crashpadHandlerPath,
                 attachments.ToArray(),
                 attachments.Count());
 
-            if (!_captureNativeCrashes)
+            if (!CaptureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
                 return;
@@ -147,28 +127,18 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from 
             // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
             // attribute via attributes parameters.
-            AddNativeAttribute("error.type", "Crash");
+            AddNativeAttribute(ErrorTypeAttribute, CrashType);
         }
-
-        public void Disable()
-        {
-            if (_anrThread != null)
-            {
-                _stopAnr = true;
-            }
-            return;
-        }
-
         public void GetAttributes(IDictionary<string, string> attributes)
         {
             return;
         }
 
-        public void HandleAnr(string gameObjectName = "", string callbackName = "")
+        public void HandleAnr()
         {
             var anrDisabled =
 #if UNITY_STANDALONE_WIN
-                !_captureNativeCrashes || !_configuration.HandleANR;
+                !CaptureNativeCrashes || !_configuration.HandleANR;
 #else
                 true;
 #endif
@@ -179,32 +149,29 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
             bool reported = false;
             var mainThreadId = Thread.CurrentThread.ManagedThreadId;
-            _anrThread = new Thread(() =>
+            AnrThread = new Thread(() =>
             {
                 float lastUpdatedCache = 0;
-                while (_anrThread.IsAlive && _stopAnr == false)
+                while (AnrThread.IsAlive && StopAnr == false)
                 {
-                    if (!_preventAnr)
+                    if (!PreventAnr)
                     {
                         if (lastUpdatedCache == 0)
                         {
-                            lastUpdatedCache = _lastUpdateTime;
+                            lastUpdatedCache = LastUpdateTime;
                         }
-                        else if (lastUpdatedCache == _lastUpdateTime)
+                        else if (lastUpdatedCache == LastUpdateTime)
                         {
                             if (!reported)
                             {
-
+                                OnAnrDetection();
                                 reported = true;
-                                if (AndroidJNI.AttachCurrentThread() == 0)
-                                {
-                                    // set temporary attribute to "Hang"
-                                    AddNativeAttribute("error.type", "Hang");
+                                // set temporary attribute to "Hang"
+                                AddNativeAttribute(ErrorTypeAttribute, HangType);
 
-                                    NativeReport("ANRException: Blocked thread detected.", true);
-                                    // update error.type attribute in case when crash happen 
-                                    AddNativeAttribute("error.type", "Crash");
-                                }
+                                NativeReport(AnrMessage, true);
+                                // update error.type attribute in case when crash happen 
+                                AddNativeAttribute(ErrorTypeAttribute, HangType);
                             }
                         }
                         else
@@ -212,7 +179,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                             reported = false;
                         }
 
-                        lastUpdatedCache = _lastUpdateTime;
+                        lastUpdatedCache = LastUpdateTime;
                     }
                     else if (lastUpdatedCache != 0)
                     {
@@ -223,19 +190,14 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                     Thread.Sleep(5000);
                 }
             });
-            _anrThread.IsBackground = true;
-            _anrThread.Start();
+            AnrThread.IsBackground = true;
+            AnrThread.Start();
             return;
         }
 
         public bool OnOOM()
         {
             return false;
-        }
-
-        public void PauseAnrThread(bool state)
-        {
-            _preventAnr = state;
         }
 
         public void SetAttribute(string key, string value)
@@ -250,11 +212,6 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 value = string.Empty;
             }
             AddAttributes(key, value);
-        }
-
-        public void UpdateClientTime(float time)
-        {
-            _lastUpdateTime = time;
         }
 
         /// <summary>
@@ -300,7 +257,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             IDictionary<string, string> attributes = GetScopedAttributes();
             // be sure that error.type attribute provided by default by our library
             // is always present in native attributes.
-            attributes["error.type"] = "Crash";
+            attributes[ErrorTypeAttribute] = CrashType;
 
             foreach (var crashDir in crashDirs)
             {
@@ -438,7 +395,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         /// <param name="value">attribute value</param>
         private void AddAttributes(string key, string value)
         {
-            if (_captureNativeCrashes)
+            if (CaptureNativeCrashes)
             {
                 AddNativeAttribute(key, value);
             }
@@ -491,3 +448,5 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         }
     }
 }
+
+#endif
