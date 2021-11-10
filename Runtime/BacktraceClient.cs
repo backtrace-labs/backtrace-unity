@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.7.0-preview.3";
+        public const string VERSION = "3.7.0";
         internal const string DefaultBacktraceGameObjectName = "BacktraceClient";
         public BacktraceConfiguration Configuration;
 
@@ -662,7 +662,7 @@ namespace Backtrace.Unity
         }
 
         /// <summary>
-        /// Update native client internal ANR timer.
+        /// Update native client internals.
         /// </summary>
         private void LateUpdate()
         {

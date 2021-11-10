@@ -1,11 +1,8 @@
 # Backtrace Unity Release Notes
 
-## Version 3.7.0-preview.3
+## Version 3.7.0
 
 - When an ANR/Hang is detected, it is now added to the Breadcrumbs on all the platforms we support ANRs for
-
-## Version 3.7.0-preview.2
-
 - Sampling has been enabled in the editor mode.
 - Disable API available in the editor mode. API allows to ignore all reports generated in the Unity editor.
 - Disable NDK integration when Application.Exit API has been invoked.
