@@ -23,7 +23,7 @@ namespace Backtrace.Unity.Editor
 #if UNITY_STANDALONE_WIN
             settings.MinidumpType = (MiniDumpType)EditorGUILayout.EnumFlagsField(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT, settings.MinidumpType);
 #else
-           settings.MinidumpType = MiniDumpType.None;
+            settings.MinidumpType = MiniDumpType.None;
 
 #endif
 
@@ -37,12 +37,12 @@ namespace Backtrace.Unity.Editor
             settings.MaxRecordCount = EditorGUILayout.IntField(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT, settings.MaxRecordCount);
             if (settings.MaxRecordCount < 0)
             {
-                settings.MaxRecordCount = 0;
+                settings.MaxRecordCount = BacktraceConfiguration.DefaultMaxRecordCount;
             }
             settings.MaxDatabaseSize = EditorGUILayout.LongField(BacktraceConfigurationLabels.LABEL_MAX_DATABASE_SIZE, settings.MaxDatabaseSize);
             if (settings.MaxDatabaseSize < 0)
             {
-                settings.MaxDatabaseSize = 0;
+                settings.MaxDatabaseSize = BacktraceConfiguration.DefaultMaxDatabaseSize;
             }
 
 
@@ -51,7 +51,7 @@ namespace Backtrace.Unity.Editor
             settings.RetryLimit = EditorGUILayout.IntField(BacktraceConfigurationLabels.LABEL_RETRY_LIMIT, settings.RetryLimit);
             if (settings.RetryLimit < 0)
             {
-                settings.RetryLimit = 1;
+                settings.RetryLimit = BacktraceConfiguration.DefaultRetryLimit;
             }
             settings.RetryOrder = (RetryOrder)EditorGUILayout.EnumPopup(BacktraceConfigurationLabels.LABEL_RETRY_ORDER, settings.RetryOrder);
         }
