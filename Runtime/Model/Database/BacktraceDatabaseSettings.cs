@@ -19,7 +19,7 @@ namespace Backtrace.Unity.Model.Database
 
             DatabasePath = databasePath;
             _configuration = configuration;
-            _retryInterval = configuration.RetryInterval >= 0 ? Convert.ToUInt32(_configuration.RetryInterval) : 60;
+            _retryInterval = configuration.RetryInterval > 0 ? (uint)_configuration.RetryInterval : BacktraceConfiguration.DefaultRetryInterval;
         }
         /// <summary>
         /// Directory path where reports and minidumps are stored
