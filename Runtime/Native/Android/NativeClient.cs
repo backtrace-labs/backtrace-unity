@@ -382,7 +382,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             try
             {
-                _anrWatcher = new AndroidJavaObject(_anrPath, GameObjectName, CallbackMethodName);
+                _anrWatcher = new AndroidJavaObject(_anrPath, GameObjectName, CallbackMethodName, AnrWatchdogTimeout);
             }
             catch (Exception e)
             {
@@ -440,7 +440,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                         // we won't false positive ANR report
                         lastUpdatedCache = 0;
                     }
-                    Thread.Sleep(5000);
+                    Thread.Sleep(AnrWatchdogTimeout);
                 }
             });
             AnrThread.IsBackground = true;

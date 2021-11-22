@@ -13,6 +13,7 @@ namespace Backtrace.Unity.Runtime.Native.Base
         protected const string CrashType = "Crash";
         protected const string ErrorTypeAttribute = "error.type";
 
+        protected int AnrWatchdogTimeout = 5000;
         /// <summary>
         /// Determine if ANR occurred and NativeClient should report ANR in breadcrumbs
         /// </summary>
@@ -57,6 +58,9 @@ namespace Backtrace.Unity.Runtime.Native.Base
             _configuration = configuration;
             _breadcrumbs = breadcrumbs;
             _shouldLogAnrsInBreadcrumbs = ShouldStoreAnrBreadcrumbs();
+            AnrWatchdogTimeout = configuration.AnrWatchdogTimeout > 1000
+                ? configuration.AnrWatchdogTimeout
+                : BacktraceConfiguration.DefaultAnrWatchdogTimeout;
         }
 
         /// <summary>

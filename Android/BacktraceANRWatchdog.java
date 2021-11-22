@@ -62,11 +62,11 @@ public class BacktraceANRWatchdog extends Thread {
     /**
      * Initialize new instance of BacktraceANRWatchdog with default timeout
      */
-    public BacktraceANRWatchdog(String gameObjectName, String methodName) {
+    public BacktraceANRWatchdog(String gameObjectName, String methodName, int anrTimeout) {
         Log.d(LOG_TAG, "Initializing ANR watchdog");
         this.methodName = methodName;
         this.gameObjectName = gameObjectName;
-        this.timeout = DEFAULT_ANR_TIMEOUT;
+        this.timeout = anrTimeout;
         this.debug = false;
         BacktraceANRWatchdog._instance = this;
         this.start();
@@ -77,6 +77,8 @@ public class BacktraceANRWatchdog extends Thread {
      */
     @Override
     public void run() {
+        Boolean reported = false;
+        Log.d(LOG_TAG, "Starting ANR watchdog. Anr timeout:" + this.timeout);
         while (!shouldStop && !isInterrupted()) {
             String dateTimeNow = Calendar.getInstance().getTime().toString();
             Log.d(LOG_TAG, "ANR WATCHDOG - " + dateTimeNow);
@@ -96,6 +98,7 @@ public class BacktraceANRWatchdog extends Thread {
             threadWatcher.tickPrivateCounter();
 
             if (threadWatcher.getCounter() == threadWatcher.getPrivateCounter()) {
+                reported = false;
                 Log.d(LOG_TAG, "ANR is not detected");
                 continue;
             }
@@ -105,6 +108,11 @@ public class BacktraceANRWatchdog extends Thread {
                         "is on and connected debugger");
                 continue;
             }
+            if(reported) {
+                // skipping, because we already reported an ANR report for current ANR
+                continue;
+            }
+            reported = true;
             NotifyUnityAboutANR();
         }
     }
