@@ -119,9 +119,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private AndroidJavaObject _unhandledExceptionWatcher;
 
         private readonly bool _enableClientSideUnwinding = false;
-        public string GameObjectName { get; internal set; } = BacktraceClient.DefaultBacktraceGameObjectName;
+        public string GameObjectName { get; internal set; }
         public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments) : base(configuration, breadcrumbs)
         {
+            GameObjectName = BacktraceClient.DefaultBacktraceGameObjectName;
             SetDefaultAttributeMaps();
             if (!_enabled)
             {
@@ -382,7 +383,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             try
             {
-                _anrWatcher = new AndroidJavaObject(_anrPath, GameObjectName, CallbackMethodName);
+                _anrWatcher = new AndroidJavaObject(_anrPath, GameObjectName, CallbackMethodName, AnrWatchdogTimeout);
             }
             catch (Exception e)
             {
@@ -440,7 +441,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                         // we won't false positive ANR report
                         lastUpdatedCache = 0;
                     }
-                    Thread.Sleep(5000);
+                    Thread.Sleep(AnrWatchdogTimeout);
                 }
             });
             AnrThread.IsBackground = true;

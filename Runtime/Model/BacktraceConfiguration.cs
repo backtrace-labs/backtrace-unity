@@ -28,6 +28,15 @@ namespace Backtrace.Unity.Model
             UnityEngineLogLevel.Info |
             UnityEngineLogLevel.Warning;
 
+        public const int DefaultAnrWatchdogTimeout = 5000;
+        public const int DefaultRetryLimit = 3;
+        public const int DefaultReportPerMin = 50;
+        public const int DefaultGameObjectDepth = -1;
+        public const int DefaultNumberOfLogs = 10;
+        public const int DefaultMaxRecordCount = 8;
+        public const int DefaultMaxDatabaseSize = 0;
+        public const int DefaultRetryInterval = 60;
+
         /// <summary>
         /// Backtrace server url
         /// </summary>
@@ -44,7 +53,7 @@ namespace Backtrace.Unity.Model
         /// Maximum number reports per minute
         /// </summary>
         [Tooltip("Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Default: 50")]
-        public int ReportPerMin = 50;
+        public int ReportPerMin = DefaultReportPerMin;
 
         /// <summary>
         /// "Disable error reporting integration in editor mode.
@@ -96,13 +105,13 @@ namespace Backtrace.Unity.Model
         /// Game object depth in Backtrace report
         /// </summary>
         [Tooltip("Allows developer to filter number of game object childrens in Backtrace report.")]
-        public int GameObjectDepth = -1;
+        public int GameObjectDepth = DefaultGameObjectDepth;
 
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
         [Tooltip("Number of logs collected by Backtrace-Unity")]
-        public uint NumberOfLogs = 10;
+        public uint NumberOfLogs = DefaultNumberOfLogs;
 
         /// <summary>
         /// Flag that allows to include performance statistics in Backtrace report
@@ -135,6 +144,11 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Capture ANR events - Application not responding")]
         public bool HandleANR = true;
+
+        /// <summary>
+        /// Anr watchdog timeout in ms. Time needed to detect an ANR event
+        /// </summary>
+        public int AnrWatchdogTimeout = DefaultAnrWatchdogTimeout;
 
 #if UNITY_ANDROID || UNITY_IOS
         /// <summary>
@@ -261,23 +275,23 @@ namespace Backtrace.Unity.Model
         /// Maximum number of stored reports in Database. If value is equal to zero, then limit not exists
         /// </summary>
         [Tooltip("This is one of two limits you can impose for controlling the growth of the offline store. This setting is the maximum number of stored reports in database. If value is equal to zero, then limit not exists, When the limit is reached, the database will remove the oldest entries.")]
-        public int MaxRecordCount = 8;
+        public int MaxRecordCount = DefaultMaxRecordCount;
 
         /// <summary>
         /// Database size in MB
         /// </summary>
         [Tooltip("This is the second limit you can impose for controlling the growth of the offline store. This setting is the maximum database size in MB. If value is equal to zero, then size is unlimited, When the limit is reached, the database will remove the oldest entries.")]
-        public long MaxDatabaseSize;
+        public long MaxDatabaseSize = DefaultMaxDatabaseSize;
         /// <summary>
         /// How much seconds library should wait before next retry.
         /// </summary>
         [Tooltip("If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries.")]
-        public int RetryInterval = 60;
+        public int RetryInterval = DefaultRetryInterval;
 
         /// <summary>
         /// Maximum number of retries
         [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.")]
-        public int RetryLimit = 3;
+        public int RetryLimit = DefaultRetryLimit;
 
         /// <summary>
         /// Retry order

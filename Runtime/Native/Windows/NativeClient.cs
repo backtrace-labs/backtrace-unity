@@ -1,6 +1,7 @@
 ﻿#if UNITY_STANDALONE_WIN
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Runtime.Native.Base;
@@ -187,7 +188,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                         // we won't false positive ANR report
                         lastUpdatedCache = 0;
                     }
-                    Thread.Sleep(5000);
+                    Thread.Sleep(AnrWatchdogTimeout);
                 }
             });
             AnrThread.IsBackground = true;
