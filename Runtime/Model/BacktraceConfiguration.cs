@@ -28,6 +28,7 @@ namespace Backtrace.Unity.Model
             UnityEngineLogLevel.Info |
             UnityEngineLogLevel.Warning;
 
+        public const int DefaultAnrWatchdogTimeout = 5000;
         public const int DefaultRetryLimit = 3;
         public const int DefaultReportPerMin = 50;
         public const int DefaultGameObjectDepth = -1;
@@ -143,6 +144,11 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Capture ANR events - Application not responding")]
         public bool HandleANR = true;
+
+        /// <summary>
+        /// Anr watchdog timeout in ms. Time needed to detect an ANR event
+        /// </summary>
+        public int AnrWatchdogTimeout = DefaultAnrWatchdogTimeout;
 
 #if UNITY_ANDROID || UNITY_IOS
         /// <summary>

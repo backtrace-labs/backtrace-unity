@@ -188,7 +188,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                         // we won't false positive ANR report
                         lastUpdatedCache = 0;
                     }
-                    Thread.Sleep(5000);
+                    Thread.Sleep(AnrWatchdogTimeout);
                 }
             });
             AnrThread.IsBackground = true;
