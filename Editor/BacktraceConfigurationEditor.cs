@@ -32,9 +32,7 @@ namespace Backtrace.Unity.Editor
                 serializedObject.FindProperty("HandleUnhandledExceptions"),
                 new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_UNHANDLED_EXCEPTION));
 
-            EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("ReportPerMin"),
-                new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_PER_MIN));
+            DrawIntegerTextboxWithDefault("ReportPerMin", BacktraceConfigurationLabels.LABEL_REPORT_PER_MIN, 0, BacktraceConfiguration.DefaultReportPerMin, serializedObject);
 
             GUIStyle clientAdvancedSettingsFoldout = new GUIStyle(EditorStyles.foldout);
             showClientAdvancedSettings = EditorGUILayout.Foldout(showClientAdvancedSettings, "Client advanced settings", clientAdvancedSettingsFoldout);
@@ -62,10 +60,7 @@ namespace Backtrace.Unity.Editor
                 }
 
                 DrawMultiselectDropdown("ReportFilterType", reportFilterType, BacktraceConfigurationLabels.LABEL_REPORT_FILTER, serializedObject);
-
-                EditorGUILayout.PropertyField(
-                        serializedObject.FindProperty("NumberOfLogs"),
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
+                DrawIntegerTextboxWithDefault("NumberOfLogs", BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS, 0, BacktraceConfiguration.DefaultNumberOfLogs, serializedObject);
 
                 EditorGUILayout.PropertyField(
                  serializedObject.FindProperty("PerformanceStatistics"),
@@ -79,16 +74,11 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("Sampling"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_SAMPLING));
 
-                SerializedProperty gameObjectDepth = serializedObject.FindProperty("GameObjectDepth");
-                EditorGUILayout.PropertyField(gameObjectDepth, new GUIContent(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH));
+                DrawIntegerTextboxWithDefault("GameObjectDepth", BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH, -1, BacktraceConfiguration.DefaultGameObjectDepth, serializedObject);
 
-                if (gameObjectDepth.intValue < -1)
-                {
-                    EditorGUILayout.HelpBox("Please insert value greater or equal -1", MessageType.Error);
-                }
                 EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("DisableInEditor"),
-                new GUIContent(BacktraceConfigurationLabels.DISABLE_IN_EDITOR));
+                    serializedObject.FindProperty("DisableInEditor"),
+                    new GUIContent(BacktraceConfigurationLabels.DISABLE_IN_EDITOR));
             }
 
 #if !UNITY_WEBGL
@@ -213,18 +203,12 @@ namespace Backtrace.Unity.Editor
                         serializedObject.FindProperty("GenerateScreenshotOnException"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION));
 
-                    SerializedProperty maxRecordCount = serializedObject.FindProperty("MaxRecordCount");
-                    EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT));
-
-                    SerializedProperty maxDatabaseSize = serializedObject.FindProperty("MaxDatabaseSize");
-                    EditorGUILayout.PropertyField(maxDatabaseSize, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_DATABASE_SIZE));
-
-                    SerializedProperty retryInterval = serializedObject.FindProperty("RetryInterval");
-                    EditorGUILayout.PropertyField(retryInterval, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_INTERVAL));
+                    DrawIntegerTextboxWithDefault("MaxRecordCount", BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT, 1, BacktraceConfiguration.DefaultMaxRecordCount, serializedObject);
+                    DrawIntegerTextboxWithDefault("MaxDatabaseSize", BacktraceConfigurationLabels.LABEL_MAX_DATABASE_SIZE, 0, BacktraceConfiguration.DefaultMaxDatabaseSize, serializedObject);
+                    DrawIntegerTextboxWithDefault("RetryInterval", BacktraceConfigurationLabels.LABEL_RETRY_INTERVAL, 1, BacktraceConfiguration.DefaultRetryInterval, serializedObject);
 
                     EditorGUILayout.LabelField("Backtrace database require at least one retry.");
-                    SerializedProperty retryLimit = serializedObject.FindProperty("RetryLimit");
-                    EditorGUILayout.PropertyField(retryLimit, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_LIMIT));
+                    DrawIntegerTextboxWithDefault("RetryLimit", BacktraceConfigurationLabels.LABEL_RETRY_LIMIT, 0, BacktraceConfiguration.DefaultRetryLimit, serializedObject);
 
                     SerializedProperty retryOrder = serializedObject.FindProperty("RetryOrder");
                     EditorGUILayout.PropertyField(retryOrder, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_ORDER));
@@ -232,6 +216,24 @@ namespace Backtrace.Unity.Editor
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+
+        /// <summary>
+        /// Draw the textbox control dedicated to unsigned integers and apply default if user passes negative value 
+        /// </summary>
+        /// <param name="propertyName">Backtrace configuration property name</param>
+        /// <param name="label">Property label</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <param name="serializedObject">Configuration object</param>
+        private static void DrawIntegerTextboxWithDefault(string propertyName, string label, int minimumValue, int defaultValue, SerializedObject serializedObject)
+        {
+            var property = serializedObject.FindProperty(propertyName);
+            EditorGUILayout.PropertyField(property, new GUIContent(label));
+            if (property.intValue < minimumValue)
+            {
+                property.intValue = defaultValue;
+            }
         }
 
         /// <summary>

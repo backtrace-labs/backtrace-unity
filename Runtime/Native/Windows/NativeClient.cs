@@ -1,6 +1,7 @@
 ﻿#if UNITY_STANDALONE_WIN
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Runtime.Native.Base;

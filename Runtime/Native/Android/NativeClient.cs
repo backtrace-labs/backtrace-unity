@@ -119,9 +119,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private AndroidJavaObject _unhandledExceptionWatcher;
 
         private readonly bool _enableClientSideUnwinding = false;
-        public string GameObjectName { get; internal set; } = BacktraceClient.DefaultBacktraceGameObjectName;
+        public string GameObjectName { get; internal set; }
         public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments) : base(configuration, breadcrumbs)
         {
+            GameObjectName = BacktraceClient.DefaultBacktraceGameObjectName;
             SetDefaultAttributeMaps();
             if (!_enabled)
             {
