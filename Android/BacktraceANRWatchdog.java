@@ -21,11 +21,6 @@ public class BacktraceANRWatchdog extends Thread {
 
     private final static transient String LOG_TAG = BacktraceANRWatchdog.class.getSimpleName();
 
-    /**
-     * Default timeout value in milliseconds
-     */
-    private final static transient int DEFAULT_ANR_TIMEOUT = 5000;
-
 
     /**
      * Enable debug mode - errors will not be sent if the debugger is connected
@@ -136,5 +131,6 @@ public class BacktraceANRWatchdog extends Thread {
     public void stopMonitoring() {
         Log.d(LOG_TAG, "ANR handler has been disabled.");
         shouldStop = true;
+        BacktraceANRWatchdog._instance = null;
     }
 }
