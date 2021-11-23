@@ -4,7 +4,7 @@
 
 New functionality
 
-- Where not allowed, negative number values in the Backtrace Configuration Asset will automatically be reset to zero.
+- Where not allowed, negative number values in the Backtrace Configuration Asset will automatically be reset to the default value.
 
 Bugfixes 
 
