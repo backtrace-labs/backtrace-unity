@@ -102,9 +102,11 @@ namespace Backtrace.Unity.Model
         public string ToSourceCode()
         {
             var stringBuilder = new StringBuilder();
-            foreach (var item in LogQueue)
+
+            var logs = LogQueue.ToArray();
+            foreach (var log in logs)
             {
-                stringBuilder.AppendLine(item);
+                stringBuilder.AppendLine(log);
             }
             return stringBuilder.ToString();
         }

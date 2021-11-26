@@ -158,8 +158,8 @@ namespace Backtrace.Unity.Model
             {
                 return;
             }
-            // make sure attachments are not bigger than 10 Mb.
-            const int maximumAttachmentSize = 10000000;
+            // make sure attachments are not bigger than 10 MiB.
+            const int maximumAttachmentSize = 10 * 1024 * 1024;
             const string attachmentPrefix = "attachment_";
 
             var uniqueAttachments = new HashSet<string>(attachments.Reverse());
@@ -167,7 +167,14 @@ namespace Backtrace.Unity.Model
 
             foreach (var file in uniqueAttachments)
             {
-                if (string.IsNullOrEmpty(file) || File.Exists(file) == false || new FileInfo(file).Length > maximumAttachmentSize)
+                if (string.IsNullOrEmpty(file) || !File.Exists(file))
+                {
+                    continue;
+                }
+
+                var fileSize = new FileInfo(file).Length;
+                var isInvalidFileSize = fileSize > maximumAttachmentSize || fileSize == 0;
+                if (isInvalidFileSize)
                 {
                     continue;
                 }

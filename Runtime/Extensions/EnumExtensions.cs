@@ -2,7 +2,7 @@
 
 namespace Backtrace.Unity.Extensions
 {
-    internal static class EnumExtensions
+    public static class EnumExtensions
     {
 #if !(NET_STANDARD_2_0 && NET_4_6)
         internal static bool HasFlag(this Enum variable, Enum value)
@@ -29,5 +29,27 @@ namespace Backtrace.Unity.Extensions
             return false;
         }
 #endif
+
+        /// <summary>
+        /// Check if enum flag has all flags set
+        /// </summary>
+        /// <typeparam name="T">Type with enum flag</typeparam>
+        /// <param name="source">enum</param>
+        /// <returns>True if all options are set.</returns>
+        public static bool HasAllFlags<T>(this T rawSource)
+        {
+            var source = rawSource as Enum;
+            Type enumType = typeof(T);
+
+            var enumValues = Enum.GetValues(enumType);
+            foreach (var value in enumValues)
+            {
+                if (!source.HasFlag((T)value as Enum))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

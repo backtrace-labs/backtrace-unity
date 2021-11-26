@@ -21,11 +21,6 @@ public class BacktraceANRWatchdog extends Thread {
 
     private final static transient String LOG_TAG = BacktraceANRWatchdog.class.getSimpleName();
 
-    /**
-     * Default timeout value in milliseconds
-     */
-    private final static transient int DEFAULT_ANR_TIMEOUT = 5000;
-
 
     /**
      * Enable debug mode - errors will not be sent if the debugger is connected
@@ -62,11 +57,11 @@ public class BacktraceANRWatchdog extends Thread {
     /**
      * Initialize new instance of BacktraceANRWatchdog with default timeout
      */
-    public BacktraceANRWatchdog(String gameObjectName, String methodName) {
+    public BacktraceANRWatchdog(String gameObjectName, String methodName, int anrTimeout) {
         Log.d(LOG_TAG, "Initializing ANR watchdog");
         this.methodName = methodName;
         this.gameObjectName = gameObjectName;
-        this.timeout = DEFAULT_ANR_TIMEOUT;
+        this.timeout = anrTimeout;
         this.debug = false;
         BacktraceANRWatchdog._instance = this;
         this.start();
@@ -77,9 +72,10 @@ public class BacktraceANRWatchdog extends Thread {
      */
     @Override
     public void run() {
+        Boolean reported = false;
+        Log.d(LOG_TAG, "Starting ANR watchdog. Anr timeout: " + this.timeout);
         while (!shouldStop && !isInterrupted()) {
             String dateTimeNow = Calendar.getInstance().getTime().toString();
-            Log.d(LOG_TAG, "ANR WATCHDOG - " + dateTimeNow);
             final backtrace.io.backtrace_unity_android_plugin.BacktraceThreadWatcher threadWatcher = new backtrace.io.backtrace_unity_android_plugin.BacktraceThreadWatcher(0, 0);
             mainThreadHandler.post(new Runnable() {
                 @Override
@@ -96,7 +92,7 @@ public class BacktraceANRWatchdog extends Thread {
             threadWatcher.tickPrivateCounter();
 
             if (threadWatcher.getCounter() == threadWatcher.getPrivateCounter()) {
-                Log.d(LOG_TAG, "ANR is not detected");
+                reported = false;
                 continue;
             }
 
@@ -105,6 +101,12 @@ public class BacktraceANRWatchdog extends Thread {
                         "is on and connected debugger");
                 continue;
             }
+            if (reported) {
+                // skipping, because we already reported an ANR report for current ANR
+                continue;
+            }
+            reported = true;
+            Log.d(LOG_TAG, "Detected blocked Java thread. Reporting Java ANR.");
             NotifyUnityAboutANR();
         }
     }
@@ -126,8 +128,9 @@ public class BacktraceANRWatchdog extends Thread {
         }
     }
 
-    public void stopMonitoringAnr() {
-        Log.d(LOG_TAG, "Stop monitoring ANR");
+    public void stopMonitoring() {
+        Log.d(LOG_TAG, "ANR handler has been disabled.");
         shouldStop = true;
+        BacktraceANRWatchdog._instance = null;
     }
 }

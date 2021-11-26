@@ -1,7 +1,10 @@
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
+using Backtrace.Unity.Types;
 using System;
 using UnityEditor;
 using UnityEngine;
+using Backtrace.Unity.Extensions;
 
 namespace Backtrace.Unity.Editor
 {
@@ -29,9 +32,7 @@ namespace Backtrace.Unity.Editor
                 serializedObject.FindProperty("HandleUnhandledExceptions"),
                 new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_UNHANDLED_EXCEPTION));
 
-            EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("ReportPerMin"),
-                new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_PER_MIN));
+            DrawIntegerTextboxWithDefault("ReportPerMin", BacktraceConfigurationLabels.LABEL_REPORT_PER_MIN, 0, BacktraceConfiguration.DefaultReportPerMin, serializedObject);
 
             GUIStyle clientAdvancedSettingsFoldout = new GUIStyle(EditorStyles.foldout);
             showClientAdvancedSettings = EditorGUILayout.Foldout(showClientAdvancedSettings, "Client advanced settings", clientAdvancedSettingsFoldout);
@@ -52,13 +53,14 @@ namespace Backtrace.Unity.Editor
                  serializedObject.FindProperty("SendUnhandledGameCrashesOnGameStartup"),
                  new GUIContent(BacktraceConfigurationLabels.LABEL_SEND_UNHANDLED_GAME_CRASHES_ON_STARTUP));
 #endif
-                EditorGUILayout.PropertyField(
-                       serializedObject.FindProperty("ReportFilterType"),
-                       new GUIContent(BacktraceConfigurationLabels.LABEL_REPORT_FILTER));
+                var reportFilterType = (ReportFilterType)ConvertPropertyToEnum("ReportFilterType", serializedObject);
+                if (reportFilterType.HasAllFlags())
+                {
+                    EditorGUILayout.HelpBox("You've selected to filter out Everything, which means no reports will be submitted to Backtrace.", MessageType.Error);
+                }
 
-                EditorGUILayout.PropertyField(
-                        serializedObject.FindProperty("NumberOfLogs"),
-                        new GUIContent(BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS));
+                DrawMultiselectDropdown("ReportFilterType", reportFilterType, BacktraceConfigurationLabels.LABEL_REPORT_FILTER, serializedObject);
+                DrawIntegerTextboxWithDefault("NumberOfLogs", BacktraceConfigurationLabels.LABEL_NUMBER_OF_LOGS, 0, BacktraceConfiguration.DefaultNumberOfLogs, serializedObject);
 
                 EditorGUILayout.PropertyField(
                  serializedObject.FindProperty("PerformanceStatistics"),
@@ -72,13 +74,11 @@ namespace Backtrace.Unity.Editor
                     serializedObject.FindProperty("Sampling"),
                     new GUIContent(BacktraceConfigurationLabels.LABEL_SAMPLING));
 
-                SerializedProperty gameObjectDepth = serializedObject.FindProperty("GameObjectDepth");
-                EditorGUILayout.PropertyField(gameObjectDepth, new GUIContent(BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH));
+                DrawIntegerTextboxWithDefault("GameObjectDepth", BacktraceConfigurationLabels.LABEL_GAME_OBJECT_DEPTH, -1, BacktraceConfiguration.DefaultGameObjectDepth, serializedObject);
 
-                if (gameObjectDepth.intValue < -1)
-                {
-                    EditorGUILayout.HelpBox("Please insert value greater or equal -1", MessageType.Error);
-                }
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("DisableInEditor"),
+                    new GUIContent(BacktraceConfigurationLabels.DISABLE_IN_EDITOR));
             }
 
 #if !UNITY_WEBGL
@@ -126,25 +126,28 @@ namespace Backtrace.Unity.Editor
                 showDatabaseSettings = EditorGUILayout.Foldout(showDatabaseSettings, "Advanced database settings", databaseFoldout);
                 if (showDatabaseSettings)
                 {
-                    EditorGUILayout.PropertyField(
-                       serializedObject.FindProperty("DeduplicationStrategy"),
-                       new GUIContent(BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES));
+                    DrawMultiselectDropdown("DeduplicationStrategy", BacktraceConfigurationLabels.LABEL_DEDUPLICATION_RULES, serializedObject);
 
                     GUIStyle showNativeCrashesSupportFoldout = new GUIStyle(EditorStyles.foldout);
                     showNativeCrashesSettings = EditorGUILayout.Foldout(showNativeCrashesSettings, BacktraceConfigurationLabels.LABEL_NATIVE_CRASHES, showNativeCrashesSupportFoldout);
                     if (showNativeCrashesSettings)
                     {
 #if UNITY_STANDALONE_WIN
-                        EditorGUILayout.PropertyField(
-                            serializedObject.FindProperty("MinidumpType"),
-                            new GUIContent(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT));
+                        DrawMultiselectDropdown("MinidumpType", BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT, serializedObject);
 #endif
 
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+                        SerializedProperty captureNativeCrashes = serializedObject.FindProperty("CaptureNativeCrashes");
                         EditorGUILayout.PropertyField(
-                            serializedObject.FindProperty("CaptureNativeCrashes"),
+                            captureNativeCrashes,
                             new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
+#if !UNITY_2019_1_OR_NEWER
+                        if (captureNativeCrashes.boolValue)
+                        {
+                            EditorGUILayout.HelpBox("Native crash reporter will be disabled for Unity 2018 and older versions that use NDK16b. Please contact Backtrace support for additional details.", MessageType.Warning);
+                        }
+#endif
 
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("HandleANR"),
@@ -177,13 +180,8 @@ namespace Backtrace.Unity.Editor
 
                         if (enableBreadcrumbsSupport.boolValue)
                         {
-                            EditorGUILayout.PropertyField(
-                                serializedObject.FindProperty("BacktraceBreadcrumbsLevel"),
-                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMBS_EVENTS));
-
-                            EditorGUILayout.PropertyField(
-                                serializedObject.FindProperty("LogLevel"),
-                                new GUIContent(BacktraceConfigurationLabels.LABEL_BREADCRUMNS_LOG_LEVEL));
+                            DrawMultiselectDropdown("BacktraceBreadcrumbsLevel", BacktraceConfigurationLabels.LABEL_BREADCRUMBS_EVENTS, serializedObject);
+                            DrawMultiselectDropdown("LogLevel", BacktraceConfigurationLabels.LABEL_BREADCRUMNS_LOG_LEVEL, serializedObject);
                         }
                     }
 
@@ -205,18 +203,12 @@ namespace Backtrace.Unity.Editor
                         serializedObject.FindProperty("GenerateScreenshotOnException"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_GENERATE_SCREENSHOT_ON_EXCEPTION));
 
-                    SerializedProperty maxRecordCount = serializedObject.FindProperty("MaxRecordCount");
-                    EditorGUILayout.PropertyField(maxRecordCount, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT));
-
-                    SerializedProperty maxDatabaseSize = serializedObject.FindProperty("MaxDatabaseSize");
-                    EditorGUILayout.PropertyField(maxDatabaseSize, new GUIContent(BacktraceConfigurationLabels.LABEL_MAX_DATABASE_SIZE));
-
-                    SerializedProperty retryInterval = serializedObject.FindProperty("RetryInterval");
-                    EditorGUILayout.PropertyField(retryInterval, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_INTERVAL));
+                    DrawIntegerTextboxWithDefault("MaxRecordCount", BacktraceConfigurationLabels.LABEL_MAX_REPORT_COUNT, 1, BacktraceConfiguration.DefaultMaxRecordCount, serializedObject);
+                    DrawIntegerTextboxWithDefault("MaxDatabaseSize", BacktraceConfigurationLabels.LABEL_MAX_DATABASE_SIZE, 0, BacktraceConfiguration.DefaultMaxDatabaseSize, serializedObject);
+                    DrawIntegerTextboxWithDefault("RetryInterval", BacktraceConfigurationLabels.LABEL_RETRY_INTERVAL, 1, BacktraceConfiguration.DefaultRetryInterval, serializedObject);
 
                     EditorGUILayout.LabelField("Backtrace database require at least one retry.");
-                    SerializedProperty retryLimit = serializedObject.FindProperty("RetryLimit");
-                    EditorGUILayout.PropertyField(retryLimit, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_LIMIT));
+                    DrawIntegerTextboxWithDefault("RetryLimit", BacktraceConfigurationLabels.LABEL_RETRY_LIMIT, 0, BacktraceConfiguration.DefaultRetryLimit, serializedObject);
 
                     SerializedProperty retryOrder = serializedObject.FindProperty("RetryOrder");
                     EditorGUILayout.PropertyField(retryOrder, new GUIContent(BacktraceConfigurationLabels.LABEL_RETRY_ORDER));
@@ -224,6 +216,65 @@ namespace Backtrace.Unity.Editor
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+
+        /// <summary>
+        /// Draw the textbox control dedicated to unsigned integers and apply default if user passes negative value 
+        /// </summary>
+        /// <param name="propertyName">Backtrace configuration property name</param>
+        /// <param name="label">Property label</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <param name="serializedObject">Configuration object</param>
+        private static void DrawIntegerTextboxWithDefault(string propertyName, string label, int minimumValue, int defaultValue, SerializedObject serializedObject)
+        {
+            var property = serializedObject.FindProperty(propertyName);
+            EditorGUILayout.PropertyField(property, new GUIContent(label));
+            if (property.intValue < minimumValue)
+            {
+                property.intValue = defaultValue;
+            }
+        }
+
+        /// <summary>
+        /// Draw multiselect dropdown. By default PropertyField won't work correctly in Unity 2017/2018
+        /// if editor has to display multiselect dropdown by using enum flags. This code allows to generate
+        /// multiselect dropdown based on the available enum.
+        /// </summary>
+        /// <param name="propertyName">Enum property name</param>
+        /// <param name="label">Label</param>
+        /// <param name="serializedObject">Serialized object</param>
+        private static void DrawMultiselectDropdown(string propertyName, string label, SerializedObject serializedObject)
+        {
+            var @enum = ConvertPropertyToEnum(propertyName, serializedObject);
+            DrawMultiselectDropdown(propertyName, @enum, label, serializedObject);
+        }
+
+        private static void DrawMultiselectDropdown(string propertyName, Enum enumValue, string label, SerializedObject serializedObject)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            var value = EditorGUILayout.EnumFlagsField(label, enumValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.FindProperty(propertyName).longValue = Convert.ToInt64(value);
+            }
+        }
+
+        /// <summary>
+        /// Convert UI serialized property to enum
+        /// </summary>
+        /// <param name="propertyName">Enum property name</param>
+        /// <param name="serializedObject">UI serialized object</param>
+        /// <returns>Enum </returns>
+        private static Enum ConvertPropertyToEnum(string propertyName, SerializedObject serializedObject)
+        {
+            const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+
+            var property = serializedObject.FindProperty(propertyName);
+            var targetObject = property.serializedObject.targetObject;
+            var enumValue = (Enum)targetObject.GetType().GetField(propertyName, flags).GetValue(targetObject);
+            return enumValue;
         }
     }
 }

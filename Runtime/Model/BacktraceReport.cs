@@ -205,7 +205,10 @@ namespace Backtrace.Unity.Model
                 {
                     // set attributes instead of fingerprint to still allow our user to define customer
                     // fingerprints for reports without stack trace and apply deduplication rules in report flow.
-                    Attributes[modFingerprintAttributeName] = Message.OnlyLetters().GetSha();
+                    var fingerPrint = string.IsNullOrEmpty(Message)
+                        ? "0000000000000000000000000000000000000000000000000000000000000000"
+                        : Message.OnlyLetters().GetSha();
+                    Attributes[modFingerprintAttributeName] = fingerPrint;
                 }
             }
 

@@ -95,7 +95,8 @@ namespace Backtrace.Unity.Model.Database
                 return null;
             }
 
-            return File.ReadAllText(DiagnosticDataPath);
+            DiagnosticDataJson = File.ReadAllText(DiagnosticDataPath);
+            return DiagnosticDataJson;
         }
 
         /// <summary>
@@ -181,6 +182,10 @@ namespace Backtrace.Unity.Model.Database
         /// <returns>Saved database record</returns>
         internal static BacktraceDatabaseRecord ReadFromFile(FileInfo file)
         {
+            if (!file.Exists)
+            {
+                return null;
+            }
             using (StreamReader streamReader = file.OpenText())
             {
                 var json = streamReader.ReadToEnd();

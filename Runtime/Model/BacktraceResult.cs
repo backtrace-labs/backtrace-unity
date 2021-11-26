@@ -114,20 +114,26 @@ namespace Backtrace.Unity.Model
 
         public static BacktraceResult FromJson(string json)
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                return new BacktraceResult()
-                {
-                    Status = BacktraceResultStatus.Empty
-                };
-            }
-            var rawResult = JsonUtility.FromJson<BacktraceRawResult>(json);
             var result = new BacktraceResult()
             {
-                response = rawResult.response,
-                _rxId = rawResult._rxid,
-                Status = rawResult.response == "ok" ? BacktraceResultStatus.Ok : BacktraceResultStatus.ServerError
+                Status = string.IsNullOrEmpty(json) ? BacktraceResultStatus.Empty : BacktraceResultStatus.Ok
             };
+
+            if (result.Status == BacktraceResultStatus.Empty)
+            {
+                return result;
+            }
+
+            try
+            {
+                var rawResult = JsonUtility.FromJson<BacktraceRawResult>(json);
+                result.response = rawResult.response;
+                result._rxId = rawResult._rxid;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Cannot parse Backtrace JSON response. Error: {0}. Content: {1}", json, e.Message));
+            }
             return result;
         }
 

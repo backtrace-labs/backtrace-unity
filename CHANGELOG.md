@@ -1,5 +1,47 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.1
+
+New functionality
+
+- Where not allowed, negative number values in the Backtrace Configuration Asset will automatically be reset to the default value.
+
+Bugfixes 
+
+- Fixed redundant ANR detection 
+- Improved ANR configurability. Client settings not allow you to specify how many seconds of a delay constitutes an ANR. This value can be set dynamically based on the the exact devices, choosing higher values for older devices for example.
+- Add iOS cleanup for invalid cached reports
+- Backward compatibility support for .NET 3.5
+
+## Version 3.7.0
+
+- When an ANR/Hang is detected, it is now added to the Breadcrumbs on all the platforms we support ANRs for
+- Sampling has been enabled in the editor mode.
+- Disable API available in the editor mode. API allows to ignore all reports generated in the Unity editor.
+- Disable NDK integration when Application.Exit API has been invoked.
+- Java background exception handler
+- BacktraceConfiguration default options change for DatabasePath and CreateDatabaseDirectory properties.
+- Updated Backtrace-Android dependencies to version 3.6.0
+
+## Version 3.6.2
+
+Bugfixes
+
+- Fixed invalid behavior of multi select dropdown in Unity 2017/2018. Now users can select multiple values (instead of one) on multi select dropdowns.
+- Fixed invalid escaping of control characters, affecting reports in Chinese to be rendered incorrectly in the Backtrace UI.
+- Fixed a bug caused by the Unity API when Backtrace tries to parse Unity message from a background thread.
+- General API improvements.
+
+## Version 3.6.1
+
+Bugfixes
+
+- Fixed unhandled exception caused by truncated stack trace
+
+Improvements
+
+- improved client side unwinding support on Android
+
 ## Version 3.6.0
 
 New functionality

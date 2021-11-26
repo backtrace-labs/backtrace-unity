@@ -22,13 +22,13 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string message = "message";
             const int expectedNumberOfLogs = 0;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
-
             var logTypeThatUnsupportCurrentTestCase =
                 (Enum.GetValues(typeof(UnityEngineLogLevel)) as IEnumerable<UnityEngineLogLevel>)
-                .First(n => n != breadcrumbsManager.ConvertLogTypeToLogLevel(testedLevel));
+                .First(n => n != BacktraceBreadcrumbs.ConvertLogTypeToLogLevel(testedLevel));
 
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
+
+            breadcrumbsManager.EnableBreadcrumbs();
 
             var result = breadcrumbsManager.Log(message, testedLevel);
 
@@ -46,13 +46,13 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string message = "message";
             const int expectedNumberOfLogs = 1;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
-            var unityEngineLogLevel = breadcrumbsManager.ConvertLogTypeToLogLevel(testedLevel);
+            var unityEngineLogLevel = BacktraceBreadcrumbs.ConvertLogTypeToLogLevel(testedLevel);
             var logTypeThatUnsupportCurrentTestCase =
                 (Enum.GetValues(typeof(UnityEngineLogLevel)) as IEnumerable<UnityEngineLogLevel>)
                 .First(n => n == unityEngineLogLevel);
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
 
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
+            breadcrumbsManager.EnableBreadcrumbs();
             var result = breadcrumbsManager.Log(message, testedLevel);
 
             Assert.IsTrue(result);
@@ -76,13 +76,14 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string attributeValue = "bar";
             const int expectedNumberOfLogs = 1;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
-            var unityEngineLogLevel = breadcrumbsManager.ConvertLogTypeToLogLevel(testedLevel);
+            var unityEngineLogLevel = BacktraceBreadcrumbs.ConvertLogTypeToLogLevel(testedLevel);
             var logTypeThatUnsupportCurrentTestCase =
                 (Enum.GetValues(typeof(UnityEngineLogLevel)) as IEnumerable<UnityEngineLogLevel>)
                 .First(n => n == unityEngineLogLevel);
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
 
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
+
+            breadcrumbsManager.EnableBreadcrumbs();
             var result = breadcrumbsManager.Log(message, testedLevel, new Dictionary<string, string>() { { attributeName, attributeValue } });
 
             Assert.IsTrue(result);
@@ -93,15 +94,28 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         }
 
         [Test]
+        public void TestBreadcrumbsInitializationForInvalidBreadcrumbType_ShouldReturnFalse_BreadcrumbsConfigurationIsInvalid()
+        {
+            // type not set - test simulates Unity Editor behavior 
+            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.None;
+            // any defined type
+            UnityEngineLogLevel level = UnityEngineLogLevel.Fatal;
+
+            var result = BacktraceBreadcrumbs.CanStoreBreadcrumbs(level, backtraceBreadcrumbType);
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
         public void DebugLogLevel_ShouldFilterDebugLogLevel_BreadcrumbsWasntSave()
         {
             const string message = "message";
             const int expectedNumberOfLogs = 0;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             var logTypeThatUnsupportCurrentTestCase = UnityEngineLogLevel.Error;
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
 
+            breadcrumbsManager.EnableBreadcrumbs();
             var result = breadcrumbsManager.Debug(message);
 
             Assert.IsFalse(result);
@@ -114,9 +128,9 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string message = "message";
             const int expectedNumberOfLogs = 1;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             var supportedLogLevel = UnityEngineLogLevel.Debug;
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, supportedLogLevel);
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, supportedLogLevel);
+            breadcrumbsManager.EnableBreadcrumbs();
 
             var result = breadcrumbsManager.Debug(message);
 
@@ -132,10 +146,10 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string attributeValue = "bar";
             const int expectedNumberOfLogs = 1;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             var supportedLogLevel = UnityEngineLogLevel.Debug;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, supportedLogLevel);
 
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, supportedLogLevel);
+            breadcrumbsManager.EnableBreadcrumbs();
             var result = breadcrumbsManager.Debug(message, new Dictionary<string, string>() { { attributeName, attributeValue } });
 
             Assert.IsTrue(result);
@@ -151,10 +165,10 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string message = "message";
             const int expectedNumberOfLogs = 0;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             var logTypeThatUnsupportCurrentTestCase = UnityEngineLogLevel.Error;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
 
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, logTypeThatUnsupportCurrentTestCase);
+            breadcrumbsManager.EnableBreadcrumbs();
             var result = breadcrumbsManager.Warning(message);
 
             Assert.IsFalse(result);
@@ -167,10 +181,10 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string message = "message";
             const int expectedNumberOfLogs = 1;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             var supportedLogLevel = UnityEngineLogLevel.Warning;
-            breadcrumbsManager.EnableBreadcrumbs(ManualBreadcrumbsType, supportedLogLevel);
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, ManualBreadcrumbsType, supportedLogLevel);
 
+            breadcrumbsManager.EnableBreadcrumbs();
             var result = breadcrumbsManager.Warning(message);
 
             Assert.IsTrue(result);

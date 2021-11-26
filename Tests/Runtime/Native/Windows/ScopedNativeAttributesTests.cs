@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿#if UNITY_STANDALONE_WIN
+using Backtrace.Unity.Model;
 using Backtrace.Unity.Services;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -48,7 +49,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             const string testAttributeString = "foo-key";
             const string testAttributeValue = "foo-bar-value";
 
-            new NativeClient("game-object-name", configuration, new Dictionary<string, string>() { { testAttributeString, testAttributeValue } }, new List<string>());
+            new NativeClient(configuration, null, new Dictionary<string, string>() { { testAttributeString, testAttributeValue } }, new List<string>());
             var scopedAttributes = NativeClient.GetScopedAttributes();
 
             Assert.AreEqual(scopedAttributes[testAttributeString], testAttributeValue);
@@ -69,7 +70,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             const string testAttributeString = "foo-key";
             const string testAttributeValue = "foo-bar-value";
 
-            new NativeClient("game-object-name", configuration, new Dictionary<string, string>() { { testAttributeString, testAttributeValue } }, new List<string>());
+            new NativeClient(configuration, null, new Dictionary<string, string>() { { testAttributeString, testAttributeValue } }, new List<string>());
             var scopedAttributes = NativeClient.GetScopedAttributes();
 
             Assert.AreEqual(scopedAttributes["application.version"], testVersion);
@@ -87,7 +88,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             const string testAttributeKey = "foo-key-bar-baz";
             const string testAttributeValue = "123123";
 
-            var client = new NativeClient("game-object-name", configuration, new Dictionary<string, string>(), new List<string>());
+            var client = new NativeClient(configuration, null, new Dictionary<string, string>(), new List<string>());
             client.SetAttribute(testAttributeKey, testAttributeValue);
             var scopedAttributes = NativeClient.GetScopedAttributes();
 
@@ -109,7 +110,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             const string testAttributeString = "foo-key";
             const string testAttributeValue = "foo-bar-value";
 
-            new NativeClient("game-object-name", configuration, new Dictionary<string, string>() { { testAttributeString, testAttributeValue } }, new List<string>());
+            new NativeClient(configuration, null, new Dictionary<string, string>() { { testAttributeString, testAttributeValue } }, new List<string>());
             var attributesBeforeCleanup = NativeClient.GetScopedAttributes();
             NativeClient.CleanScopedAttributes();
             var attributesAfterCleanup = NativeClient.GetScopedAttributes();
@@ -126,3 +127,5 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
         }
     }
 }
+
+#endif
