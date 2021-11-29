@@ -142,12 +142,12 @@ namespace Backtrace.Unity.Editor
                         EditorGUILayout.PropertyField(
                             captureNativeCrashes,
                             new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
-#if !UNITY_2019_1_OR_NEWER
-                        if (captureNativeCrashes.boolValue)
-                        {
-                            EditorGUILayout.HelpBox("Native crash reporter will be disabled for Unity 2018 and older versions that use NDK16b. Please contact Backtrace support for additional details.", MessageType.Warning);
-                        }
-#endif
+// #if !UNITY_2019_1_OR_NEWER
+//                         if (captureNativeCrashes.boolValue)
+//                         {
+//                             EditorGUILayout.HelpBox("You're using Backtrace-Unity integration with Unity 16b NDK support. Please contact Backtrace support for any additional help", MessageType.Warning);
+//                         }
+// #endif
 
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("HandleANR"),
