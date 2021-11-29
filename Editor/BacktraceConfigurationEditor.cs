@@ -142,12 +142,12 @@ namespace Backtrace.Unity.Editor
                         EditorGUILayout.PropertyField(
                             captureNativeCrashes,
                             new GUIContent(BacktraceConfigurationLabels.CAPTURE_NATIVE_CRASHES));
-// #if !UNITY_2019_1_OR_NEWER
-//                         if (captureNativeCrashes.boolValue)
-//                         {
-//                             EditorGUILayout.HelpBox("You're using Backtrace-Unity integration with Unity 16b NDK support. Please contact Backtrace support for any additional help", MessageType.Warning);
-//                         }
-// #endif
+#if !UNITY_2019_1_OR_NEWER
+                        if (captureNativeCrashes.boolValue)
+                        {
+                            EditorGUILayout.HelpBox("You're using Backtrace-Unity integration with Unity 16b NDK support. Please contact Backtrace support for any additional help", MessageType.Warning);
+                        }
+#endif
 
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("HandleANR"),
