@@ -16,6 +16,9 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
     private final static transient String LOG_TAG = BacktraceAndroidBackgroundUnhandledExceptionHandler.class.getSimpleName();
     private final Thread.UncaughtExceptionHandler mRootHandler;
 
+    private Thread _exceptionThread;
+    private Throwable _backgroundException;
+
     /**
      * Check if data shouldn't be reported.
      */
@@ -34,15 +37,19 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
     }
 
     @Override
-    public void uncaughtException(Thread thread, Throwable exception) {
+    public void uncaughtException(final Thread thread, final Throwable exception) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUPCAKE && mRootHandler != null && shouldStop == false) {
-            if(Looper.getMainLooper().getThread().getId() == thread.getId()) {
-                // prevent from sending exception happened to main thread - we will catch them via unity logger
-                return;
+            if (exception instanceof Exception) {
+                if(Looper.getMainLooper().getThread().getId() == thread.getId()) {
+                    // prevent from sending exception happened to main thread - we will catch them via unity logger
+                    return;
+                }
+                String exceptionType = exception.getClass().getName();
+                Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + exceptionType + ". Reporting to Backtrace");
+                _exceptionThread = thread;
+                _backgroundException = exception;
+                ReportThreadException(exceptionType + " : " + exception.getMessage(), stackTraceToString(exception.getStackTrace()));
             }
-            String exceptionType = exception.getClass().getName();
-            Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + exceptionType + ". Reporting to Backtrace");
-            ReportThreadException(exceptionType + " : " + exception.getMessage(), stackTraceToString(exception.getStackTrace()));
         }
     }
 
@@ -60,6 +67,15 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
         for(StackTraceElement stackTraceEl : stackTrace) {
             pw.println(stackTraceEl);
         }
+    }
+
+    public void finish() {
+        if (_exceptionThread == null || _backgroundException == null) {
+            Log.d(LOG_TAG, "pass unhandled exception to the thread root handler, because exception thread/background thread doesn't exist");
+            return;
+        }
+        Log.d(LOG_TAG, "The unhandled exception has been stored in the database.");
+        mRootHandler.uncaughtException(_exceptionThread, _backgroundException);
     }
 
     public void stopMonitoring() {

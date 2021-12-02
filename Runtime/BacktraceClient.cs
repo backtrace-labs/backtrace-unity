@@ -991,7 +991,19 @@ namespace Backtrace.Unity
             }
             var message = backgroundExceptionMessage.Substring(0, splitIndex);
             var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
-            HandleUnityMessage(message, stackTrace, LogType.Exception);
+            if (Database != null)
+            {
+                Database.Add(new BacktraceReport(new BacktraceUnhandledException(message, stackTrace)).ToBacktraceData(null, GameObjectDepth));
+            }
+            else
+            {
+                HandleUnityMessage(message, stackTrace, LogType.Exception);
+            }
+            var androidNativeClient = _nativeClient as Runtime.Native.Android.NativeClient;
+            if (androidNativeClient != null)
+            {
+                androidNativeClient.FinishUnhandledBackgroundException();
+            }
         }
 #endif
 
