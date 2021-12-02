@@ -4,7 +4,7 @@
 
 **Note**: For developers creating Android games on **Unity 2018.4 (NDK16b)** and requiring support for **native events on Android (crashes, ANR, low memory)** Backtrace **requires** you use the [3.6.0-ndk16b](https://github.com/backtrace-labs/backtrace-unity/tree/3.6.0-ndk16b) version.
 
-Create your Backtrace instance at https://backtrace.io/create-unity today and then integrate this library into your game.
+Create your Backtrace instance at https://register.backtrace.io/signup/ today and then integrate this library into your game.
 
 [![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
 
@@ -66,7 +66,7 @@ catch(Exception exception)
 - Unity environment 2018.4.x+
 - .NET 3.5/4.5/Standard 2.0 scripting runtime version
 - Mono or IL2CPP scripting backend
-- Backtrace instance - Create your own at https://backtrace.io/create-unity
+- Backtrace instance - Create your own at https://register.backtrace.io/signup/
 
 # Platforms Supported
 
