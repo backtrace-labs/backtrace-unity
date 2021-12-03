@@ -16,6 +16,10 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
     private final static transient String LOG_TAG = BacktraceAndroidBackgroundUnhandledExceptionHandler.class.getSimpleName();
     private final Thread.UncaughtExceptionHandler mRootHandler;
 
+    /** 
+    * Last caught background exception/thread that will be passed to the main thread when Unity notifies 
+    * that the C# layer stored the data in database/sent it to user
+    */
     private Thread _lastCaughtBackgroundExceptionThread;
     private Throwable _lastCaughtBackgroundException;
 
@@ -68,12 +72,12 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
     }
 
     public void finish() {
-        if (_exceptionThread == null || _backgroundException == null) {
+        if (_lastCaughtBackgroundExceptionThread == null || _lastCaughtBackgroundException == null) {
             Log.d(LOG_TAG, "pass unhandled exception to the thread root handler, because exception thread/background thread doesn't exist");
             return;
         }
         Log.d(LOG_TAG, "The unhandled exception has been stored in the database.");
-        mRootHandler.uncaughtException(_exceptionThread, _backgroundException);
+        mRootHandler.uncaughtException(_lastCaughtBackgroundExceptionThread, _lastCaughtBackgroundException);
     }
 
     public void stopMonitoring() {
