@@ -120,9 +120,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
         private readonly bool _enableClientSideUnwinding = false;
         public string GameObjectName { get; internal set; }
-        public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments) : base(configuration, breadcrumbs)
+        public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments, string gameObjectName) : base(configuration, breadcrumbs)
         {
-            GameObjectName = BacktraceClient.DefaultBacktraceGameObjectName;
+            GameObjectName = gameObjectName;
             SetDefaultAttributeMaps();
             if (!_enabled)
             {
@@ -158,7 +158,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             const string callbackName = "HandleUnhandledExceptionsFromAndroidBackgroundThread";
             try
             {
-                _unhandledExceptionWatcher = new AndroidJavaObject(_unhandledExceptionPath, GameObjectName, callbackName);
+                _unhandledExceptionWatcher = new AndroidJavaObject(_unhandledExceptionPath, "Backtrace", callbackName);
             }
             catch (Exception e)
             {
@@ -372,6 +372,15 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
         }
 
+        public void FinishUnhandledBackgroundException()
+        {
+            if (_unhandledExceptionWatcher == null)
+            {
+                return;
+            }
+            _unhandledExceptionWatcher.Call("finish");
+        }
+
         /// <summary>
         /// Setup Android ANR support and set callback function when ANR happened.
         /// </summary>
@@ -488,8 +497,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
         {
             if (CaptureNativeCrashes)
             {
-                CaptureNativeCrashes = false;
-                DisableNativeIntegration();
+               CaptureNativeCrashes = false;
+               DisableNativeIntegration();
             }
             if (_anrWatcher != null)
             {
