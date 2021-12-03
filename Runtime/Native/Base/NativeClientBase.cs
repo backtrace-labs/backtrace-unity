@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Extensions;
 using System.Threading;
@@ -58,11 +59,9 @@ namespace Backtrace.Unity.Runtime.Native.Base
             _configuration = configuration;
             _breadcrumbs = breadcrumbs;
             _shouldLogAnrsInBreadcrumbs = ShouldStoreAnrBreadcrumbs();
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
             AnrWatchdogTimeout = configuration.AnrWatchdogTimeout > 1000
                 ? configuration.AnrWatchdogTimeout
                 : BacktraceConfiguration.DefaultAnrWatchdogTimeout;
-#endif
         }
 
         /// <summary>
@@ -131,3 +130,4 @@ namespace Backtrace.Unity.Runtime.Native.Base
         }
     }
 }
+#endif
