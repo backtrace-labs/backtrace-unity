@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Extensions;
 using System.Threading;
@@ -13,7 +14,7 @@ namespace Backtrace.Unity.Runtime.Native.Base
         protected const string CrashType = "Crash";
         protected const string ErrorTypeAttribute = "error.type";
 
-        protected int AnrWatchdogTimeout;
+        protected int AnrWatchdogTimeout = BacktraceConfiguration.DefaultAnrWatchdogTimeout;
         /// <summary>
         /// Determine if ANR occurred and NativeClient should report ANR in breadcrumbs
         /// </summary>
@@ -129,3 +130,4 @@ namespace Backtrace.Unity.Runtime.Native.Base
         }
     }
 }
+#endif
