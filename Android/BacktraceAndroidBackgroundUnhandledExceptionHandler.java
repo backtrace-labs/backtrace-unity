@@ -39,17 +39,15 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
     @Override
     public void uncaughtException(final Thread thread, final Throwable exception) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUPCAKE && mRootHandler != null && shouldStop == false) {
-            if (exception instanceof Exception) {
-                if(Looper.getMainLooper().getThread().getId() == thread.getId()) {
-                    // prevent from sending exception happened to main thread - we will catch them via unity logger
-                    return;
-                }
-                String exceptionType = exception.getClass().getName();
-                Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + exceptionType + ". Reporting to Backtrace");
-                _exceptionThread = thread;
-                _backgroundException = exception;
-                ReportThreadException(exceptionType + " : " + exception.getMessage(), stackTraceToString(exception.getStackTrace()));
+            if(Looper.getMainLooper().getThread().getId() == thread.getId()) {
+                // prevent from sending exception happened to main thread - we will catch them via unity logger
+                return;
             }
+            String exceptionType = exception.getClass().getName();
+            Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + exceptionType + ". Reporting to Backtrace");
+            _exceptionThread = thread;
+            _backgroundException = exception;
+            ReportThreadException(exceptionType + " : " + exception.getMessage(), stackTraceToString(exception.getStackTrace()));
         }
     }
 
