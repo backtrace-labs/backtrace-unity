@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Runtime.Native;
 using Backtrace.Unity.Runtime.Native.Base;
@@ -44,3 +45,4 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Mocks
         }
     }
 }
+#endif

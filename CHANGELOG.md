@@ -1,14 +1,20 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.2
+
+Bugfixes
+- Improves background handler for last caught exceptions.
+- Fixed the compilation issue in the native client base class.
+
 ## Version 3.7.1
 
 New functionality
 
 - Where not allowed, negative number values in the Backtrace Configuration Asset will automatically be reset to the default value.
 
-Bugfixes 
+Bugfixes
 
-- Fixed redundant ANR detection 
+- Fixed redundant ANR detection
 - Improved ANR configurability. Client settings not allow you to specify how many seconds of a delay constitutes an ANR. This value can be set dynamically based on the the exact devices, choosing higher values for older devices for example.
 - Add iOS cleanup for invalid cached reports
 - Backward compatibility support for .NET 3.5
