@@ -100,7 +100,7 @@ namespace Backtrace.Unity.Model.Database
                 {
                     Texture2D result;
 
-                    float ratio = Screen.width / Screen.height;
+                    float ratio = (float)Screen.width / (float)Screen.height;
                     var applyDefaultSettings = ScreenshotMaxHeight == Screen.height;
                     int targetHeight = applyDefaultSettings ? Screen.height : Mathf.Min(Screen.height, ScreenshotMaxHeight);
                     int targetWidth = applyDefaultSettings ? Screen.width : Mathf.RoundToInt(targetHeight * ratio);
