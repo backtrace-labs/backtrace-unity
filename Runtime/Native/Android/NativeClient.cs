@@ -163,7 +163,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             catch (Exception e)
             {
                 Debug.LogWarning(string.Format("Cannot initialize unhandled exception watcher - reason: {0}", e.Message));
-                _enabled = false;
             }
         }
 
@@ -397,7 +396,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             catch (Exception e)
             {
                 Debug.LogWarning(string.Format("Cannot initialize ANR watchdog - reason: {0}", e.Message));
-                _enabled = false;
             }
 
             if (!CaptureNativeCrashes)
@@ -504,11 +502,13 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 _anrWatcher.Call("stopMonitoring");
                 _anrWatcher.Dispose();
+                _anrWatcher = null;
             }
             if (_unhandledExceptionWatcher != null)
             {
                 _unhandledExceptionWatcher.Call("stopMonitoring");
                 _unhandledExceptionWatcher.Dispose();
+                _unhandledExceptionWatcher = null;
             }
             base.Disable();
         }
