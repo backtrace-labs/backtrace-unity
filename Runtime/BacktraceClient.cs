@@ -993,7 +993,9 @@ namespace Backtrace.Unity
             var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
             if (Database != null)
             {
-                Database.Add(new BacktraceReport(new BacktraceUnhandledException(message, stackTrace)).ToBacktraceData(null, GameObjectDepth));
+                var backtraceData = new BacktraceReport(new BacktraceUnhandledException(message, stackTrace)).ToBacktraceData(null, GameObjectDepth);
+                AttributeProvider.AddAttributes(backtraceData.Attributes.Attributes);
+                Database.Add(backtraceData);
             }
             else
             {
