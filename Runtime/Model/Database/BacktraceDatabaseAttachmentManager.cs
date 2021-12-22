@@ -39,7 +39,7 @@ namespace Backtrace.Unity.Model.Database
             }
             catch (Exception e)
             {
-                Debug.LogWarning(string.Format("Canont generate report attachments. Reason: {0}", e.Message));
+                Debug.LogWarning(string.Format("Cannot generate report attachments. Reason: {0}", e.Message));
             }
             return result;
         }
