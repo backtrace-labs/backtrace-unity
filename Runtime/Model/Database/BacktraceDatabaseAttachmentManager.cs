@@ -31,9 +31,16 @@ namespace Backtrace.Unity.Model.Database
             var attachmentPrefix = data.UuidString;
 
             var result = new List<string>();
-            AddIfPathIsNotEmpty(result, GetScreenshotPath(attachmentPrefix));
-            AddIfPathIsNotEmpty(result, GetUnityPlayerLogFile(data, attachmentPrefix));
-            AddIfPathIsNotEmpty(result, GetMinidumpPath(data, attachmentPrefix));
+            try
+            {
+                AddIfPathIsNotEmpty(result, GetScreenshotPath(attachmentPrefix));
+                AddIfPathIsNotEmpty(result, GetUnityPlayerLogFile(data, attachmentPrefix));
+                AddIfPathIsNotEmpty(result, GetMinidumpPath(data, attachmentPrefix));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Canont generate report attachments. Reason: {0}", e.Message));
+            }
             return result;
         }
 
