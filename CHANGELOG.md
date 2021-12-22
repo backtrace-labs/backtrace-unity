@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.3
+
+Bugfixes
+- Fixed the game object name issue used by native integration when ANR or background exception occured,
+- fixed invalid cast in the screenshot generation algorithm,
+- fixed a problem with the dispose method in the Backtrace Android native integration - now backtrace-unity will dispose native integation only once.
+- prevent from throwing an exception from the BacktraceDatabase object if BacktraceDatabaseAttachments object generates attachment and disk is full.
+
+
 ## Version 3.7.2
 
 Bugfixes

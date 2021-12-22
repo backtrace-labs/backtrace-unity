@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.7.2";
+        public const string VERSION = "3.7.3";
         internal const string DefaultBacktraceGameObjectName = "BacktraceClient";
         public BacktraceConfiguration Configuration;
 
@@ -993,7 +993,9 @@ namespace Backtrace.Unity
             var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
             if (Database != null)
             {
-                Database.Add(new BacktraceReport(new BacktraceUnhandledException(message, stackTrace)).ToBacktraceData(null, GameObjectDepth));
+                var backtraceData = new BacktraceReport(new BacktraceUnhandledException(message, stackTrace)).ToBacktraceData(null, GameObjectDepth);
+                AttributeProvider.AddAttributes(backtraceData.Attributes.Attributes);
+                Database.Add(backtraceData);
             }
             else
             {

@@ -31,9 +31,16 @@ namespace Backtrace.Unity.Model.Database
             var attachmentPrefix = data.UuidString;
 
             var result = new List<string>();
-            AddIfPathIsNotEmpty(result, GetScreenshotPath(attachmentPrefix));
-            AddIfPathIsNotEmpty(result, GetUnityPlayerLogFile(data, attachmentPrefix));
-            AddIfPathIsNotEmpty(result, GetMinidumpPath(data, attachmentPrefix));
+            try
+            {
+                AddIfPathIsNotEmpty(result, GetScreenshotPath(attachmentPrefix));
+                AddIfPathIsNotEmpty(result, GetUnityPlayerLogFile(data, attachmentPrefix));
+                AddIfPathIsNotEmpty(result, GetMinidumpPath(data, attachmentPrefix));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Cannot generate report attachments. Reason: {0}", e.Message));
+            }
             return result;
         }
 
@@ -100,7 +107,7 @@ namespace Backtrace.Unity.Model.Database
                 {
                     Texture2D result;
 
-                    float ratio = Screen.width / Screen.height;
+                    float ratio = (float)Screen.width / (float)Screen.height;
                     var applyDefaultSettings = ScreenshotMaxHeight == Screen.height;
                     int targetHeight = applyDefaultSettings ? Screen.height : Mathf.Min(Screen.height, ScreenshotMaxHeight);
                     int targetWidth = applyDefaultSettings ? Screen.width : Mathf.RoundToInt(targetHeight * ratio);
