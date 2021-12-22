@@ -158,7 +158,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             const string callbackName = "HandleUnhandledExceptionsFromAndroidBackgroundThread";
             try
             {
-                _unhandledExceptionWatcher = new AndroidJavaObject(_unhandledExceptionPath, "Backtrace", callbackName);
+                _unhandledExceptionWatcher = new AndroidJavaObject(_unhandledExceptionPath, GameObjectName, callbackName);
             }
             catch (Exception e)
             {
