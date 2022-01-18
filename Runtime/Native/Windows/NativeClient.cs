@@ -89,7 +89,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             }
 
             var crashpadHandlerPath = GetDefaultPathToCrashpadHandler();
-            if (!File.Exists(crashpadHandlerPath))
+            if (string.IsNullOrEmpty(crashpadHandlerPath) || !File.Exists(crashpadHandlerPath))
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot find path to Crashpad handler.");
                 return;
@@ -323,13 +323,20 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         {
             const string crashpadHandlerName = "crashpad_handler.dll";
             const string pluginDir = "Plugins";
-            string architecture = IntPtr.Size == 8 ? "x86_64" : "x86";
+            string[] availablePlugins = new string[2] { "x86_64", "x86" };
+            var pluginDirectoryPath = Path.Combine(Application.dataPath, pluginDir);
+            var pluginDirectory = new DirectoryInfo(pluginDirectoryPath);
+            if (!pluginDirectory.Exists)
+            {
+                return string.Empty;
+            }
+            var architectureDirectory = pluginDirectory.GetDirectories().FirstOrDefault(n => availablePlugins.Any(m => m == n.Name));
+            if (architectureDirectory == null)
+            {
+                return string.Empty;
+            }
 
-            string pluginPath = Path.Combine(pluginDir, architecture);
-            string pluginHandlerPath = Path.Combine(pluginPath, crashpadHandlerName);
-
-            // generate full path to .dll file in plugins dir.
-            return Path.Combine(Application.dataPath, pluginHandlerPath);
+            return Path.Combine(architectureDirectory.FullName, crashpadHandlerName);
 
         }
         /// <summary>
