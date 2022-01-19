@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Model.Database;
@@ -251,7 +252,7 @@ namespace Backtrace.Unity.Services
             {
                 return false;
             }
-            return Path.GetDirectoryName(path) == _path && !path.EndsWith(BacktraceStorageLogManager.BreadcrumbLogFileName);
+            return ClientPathHelper.IsFileInDatabaseDirectory(databasePath: _path, filePath: path) && !path.EndsWith(BacktraceStorageLogManager.BreadcrumbLogFileName);
         }
 
         /// <summary>
