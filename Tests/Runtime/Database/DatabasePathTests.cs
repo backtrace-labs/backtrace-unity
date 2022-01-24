@@ -123,5 +123,29 @@ namespace Backtrace.Unity.Tests.Runtime
             var actualDatabasePath = ClientPathHelper.GetFullPath(testedInvalidPath);
             Assert.AreEqual(Path.GetFullPath(expectedInvalidPath), actualDatabasePath);
         }
+        
+        [Test]
+        public void TestDbPath_SamePathsDbPathWithoutTrailingSlash_ShouldBeTrue()
+        {
+            string dbPath = "/Users/backtrace/Library/DefaultCompany/TestProject1/backtrace";
+            string filePath = "/Users/backtrace/Library/DefaultCompany/TestProject1/backtrace/bt-breadcrumbs-0";
+            Assert.IsTrue(ClientPathHelper.IsFileInDatabaseDirectory(databasePath: dbPath, filePath: filePath));
+        }
+        
+        [Test]
+        public void TestDbPath_SamePathsWithDbPathTrailingSlash_ShouldBeTrue()
+        {
+            string dbPath = "/Users/backtrace/Library/DefaultCompany/TestProject1/backtrace/";
+            string filePath = "/Users/backtrace/Library/DefaultCompany/TestProject1/backtrace/bt-breadcrumbs-0";
+            Assert.IsTrue(ClientPathHelper.IsFileInDatabaseDirectory(databasePath: dbPath, filePath: filePath));
+        }
+        
+        [Test]
+        public void TestDbPath_DifferentPaths_ShouldBeFalse()
+        {
+            string dbPath = "/Users/backtrace/Library/DefaultCompany/NotRight/backtrace/";
+            string filePath = "/Users/backtrace/Library/DefaultCompany/TestProject1/backtrace/bt-breadcrumbs-0";
+            Assert.IsFalse(ClientPathHelper.IsFileInDatabaseDirectory(databasePath: dbPath, filePath: filePath));
+        }
     }
 }

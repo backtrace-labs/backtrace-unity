@@ -69,5 +69,15 @@ namespace Backtrace.Unity.Common
             }
 
         }
+        
+        internal static bool IsFileInDatabaseDirectory(string databasePath, string filePath)
+        {
+            // If databasePath does not have a trailing slash, it is already a directory.
+           if (!databasePath.EndsWith("/")) {
+               return databasePath == Path.GetDirectoryName(filePath);
+           }
+           // Handles case when users put a trailing slash in their database path
+           return Path.GetDirectoryName(databasePath) == Path.GetDirectoryName(filePath);
+        }
     }
 }
