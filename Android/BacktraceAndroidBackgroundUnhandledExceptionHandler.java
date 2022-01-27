@@ -16,13 +16,6 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
     private final static transient String LOG_TAG = BacktraceAndroidBackgroundUnhandledExceptionHandler.class.getSimpleName();
     private final Thread.UncaughtExceptionHandler mRootHandler;
 
-    /** 
-    * Last caught background exception/thread that will be passed to the main thread when Unity notifies 
-    * that the C# layer stored the data in database/sent it to user
-    */
-    private Thread _lastCaughtBackgroundExceptionThread;
-    private Throwable _lastCaughtBackgroundException;
-
     /**
      * Check if data shouldn't be reported.
      */
@@ -30,33 +23,33 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
 
     private final String _gameObject;
     private final String _methodName;
+    private final long  _mainThreadId;
 
     public BacktraceAndroidBackgroundUnhandledExceptionHandler(String gameObject, String methodName) {
         Log.d(LOG_TAG, "Initializing Android unhandled exception handler");
         this._gameObject = gameObject;
         this._methodName = methodName;
-
+        _mainThreadId = Looper.getMainLooper().getThread().getId();
         mRootHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 
     @Override
     public void uncaughtException(final Thread thread, final Throwable throwable) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUPCAKE && mRootHandler != null && shouldStop == false) {
-            if(Looper.getMainLooper().getThread().getId() == thread.getId()) {
-                // prevent from sending exception happened to main thread - we will catch them via unity logger
-                return;
-            }
-            String throwableType = throwable.getClass().getName();
-            Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + throwableType + ". Reporting to Backtrace");
-            _lastCaughtBackgroundExceptionThread = thread;
-            _lastCaughtBackgroundException = throwable;
-            ReportThreadException(throwableType + " : " + throwable.getMessage(), stackTraceToString(throwable.getStackTrace()));
+        Log.d(LOG_TAG, "Captured unhandled android exception");
+        if (shouldStop == false) {
+            Log.d(LOG_TAG, "Detected an exception generated in the main thread");
+            mRootHandler.uncaughtException(thread, throwable);
         }
+        String throwableType = throwable.getClass().getName();
+        Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + throwableType + ". Reporting to Backtrace");
+        ReportThreadException(throwableType + " : " + throwable.getMessage(), stackTraceToString(throwable.getStackTrace()));
+        mRootHandler.uncaughtException(thread, throwable);
     }
 
     public void ReportThreadException(String message, String stackTrace) {        
         UnityPlayer.UnitySendMessage(this._gameObject, this._methodName, message + '\n' + stackTrace);
+        Log.d(LOG_TAG, "UnitySendMessageFinished. passing an exception object.");
     }
 
     private static String stackTraceToString(StackTraceElement[] stackTrace) {
@@ -69,15 +62,6 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
         for(StackTraceElement stackTraceEl : stackTrace) {
             pw.println(stackTraceEl);
         }
-    }
-
-    public void finish() {
-        if (_lastCaughtBackgroundExceptionThread == null || _lastCaughtBackgroundException == null) {
-            Log.d(LOG_TAG, "pass unhandled exception to the thread root handler, because exception thread/background thread doesn't exist");
-            return;
-        }
-        Log.d(LOG_TAG, "The unhandled exception has been stored in the database.");
-        mRootHandler.uncaughtException(_lastCaughtBackgroundExceptionThread, _lastCaughtBackgroundException);
     }
 
     public void stopMonitoring() {
