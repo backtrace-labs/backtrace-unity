@@ -63,11 +63,14 @@ public class BacktraceANRWatchdog extends Thread {
      */
     @Override
     public void run() {
-        Boolean reported = false;
-        Log.d(LOG_TAG, "Starting ANR watchdog. Anr timeout: " + this.timeout);
         if (Debug.isDebuggerConnected() || Debug.waitingForDebugger()) {
+            Log.d(LOG_TAG, "Detected a debugger connection. ANR Watchdog is disabled");
             return;
         }
+        
+        Boolean reported = false;
+        Log.d(LOG_TAG, "Starting ANR watchdog. Anr timeout: " + this.timeout);
+
         while (!shouldStop && !isInterrupted()) {
             final backtrace.io.backtrace_unity_android_plugin.BacktraceThreadWatcher threadWatcher = new backtrace.io.backtrace_unity_android_plugin.BacktraceThreadWatcher(0, 0);
             mainThreadHandler.post(new Runnable() {
