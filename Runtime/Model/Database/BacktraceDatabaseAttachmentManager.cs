@@ -3,6 +3,7 @@ using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model.Database
@@ -18,6 +19,7 @@ namespace Backtrace.Unity.Model.Database
         private readonly BacktraceDatabaseSettings _settings;
         private float _lastScreenTime;
         private string _lastScreenPath;
+        private List<string> _screens;
         private readonly object _lock = new object();
         public BacktraceDatabaseAttachmentManager(BacktraceDatabaseSettings settings)
         {
@@ -43,6 +45,22 @@ namespace Backtrace.Unity.Model.Database
             }
             return result;
         }
+
+        private void AddIfPathIsNotEmpty(List<string> source, IEnumerable<string> attachmentPaths)
+        {
+            if (attachmentPaths == null || attachmentPaths.Count() == 0)
+            {
+                return;
+            }
+            foreach (var attachmentPath in attachmentPaths)
+            {
+                if (!string.IsNullOrEmpty(attachmentPath))
+                {
+                    source.Add(attachmentPath);
+                }
+            }
+        }
+
 
         private void AddIfPathIsNotEmpty(List<string> source, string attachmentPath)
         {
@@ -84,78 +102,68 @@ namespace Backtrace.Unity.Model.Database
         /// Get path to game screenshot when exception occured
         /// </summary>
         /// <returns>Path to game screenshot</returns>
-        private string GetScreenshotPath(string dataPrefix)
+        private List<string> GetScreenshotPath(string dataPrefix)
         {
             if (!_settings.GenerateScreenshotOnException)
             {
-                return string.Empty;
+                return null;
             }
-            var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}-screen.jpg", dataPrefix));
-
+            var result = new List<string>();
             lock (_lock)
             {
-                if (BacktraceDatabase.LastFrameTime == _lastScreenTime)
+                //if (BacktraceDatabase.LastFrameTime == _lastScreenTime)
+                //{
+                //    foreach (var screenPath in _screens)
+                //    {
+                //        if (File.Exists(screenPath))
+                //        {
+                //            File.Copy(screenPath, );
+                //        }
+                //    }
+                //    return result;
+                //}
+                //else
+                //{
+                var screenshots = new string[Camera.allCamerasCount];
+                float ratio = (float)Screen.width / (float)Screen.height;
+                var applyDefaultSettings = ScreenshotMaxHeight == Screen.height;
+                int targetHeight = applyDefaultSettings ? Screen.height : Mathf.Min(Screen.height, ScreenshotMaxHeight);
+                int targetWidth = applyDefaultSettings ? Screen.width : Mathf.RoundToInt(targetHeight * ratio);
+
+                var source = new Rect(0, 0, targetWidth, targetHeight);
+                Camera[] Cameras = Camera.allCameras;
+                RenderTexture previousActiveRT = RenderTexture.active;
+                foreach (Camera camera in Cameras)
                 {
-                    if (File.Exists(_lastScreenPath))
-                    {
-                        File.Copy(_lastScreenPath, screenshotPath);
-                        return screenshotPath;
-                    }
-                    return _lastScreenPath;
-                }
-                else
-                {
-                    Texture2D result;
+                    var rt = RenderTexture.GetTemporary(targetWidth, targetHeight, 24);
+                    //RenderTexture rt = new RenderTexture();
+                    Texture2D screenShot = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
 
-                    float ratio = (float)Screen.width / (float)Screen.height;
-                    var applyDefaultSettings = ScreenshotMaxHeight == Screen.height;
-                    int targetHeight = applyDefaultSettings ? Screen.height : Mathf.Min(Screen.height, ScreenshotMaxHeight);
-                    int targetWidth = applyDefaultSettings ? Screen.width : Mathf.RoundToInt(targetHeight * ratio);
-
-#if UNITY_2019_1_OR_NEWER
-                    RenderTexture screenTexture = RenderTexture.GetTemporary(Screen.width, Screen.height);
-                    ScreenCapture.CaptureScreenshotIntoRenderTexture(screenTexture);
-#else
-                    Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
-#endif
-                    // Create a render texture to render into
-                    RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
-
-                    if (SystemInfo.graphicsUVStartsAtTop)
-                    {
-                        Graphics.Blit(screenTexture, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
-                    }
-                    else
-                    {
-                        Graphics.Blit(screenTexture, rt);
-                    }
-
-                    RenderTexture previousActiveRT = RenderTexture.active;
+                    camera.targetTexture = rt;
+                    camera.Render();
                     RenderTexture.active = rt;
+                    screenShot.ReadPixels(source, 0, 0);
+                    camera.targetTexture = null;
+                    RenderTexture.active = null;
 
-                    // Create a texture & read data from the active RenderTexture
-                    result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
-                    result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
-                    result.Apply();
-
-                    // Reset to initial state
-                    RenderTexture.active = previousActiveRT;
-
-                    RenderTexture.ReleaseTemporary(rt);
-
+                    //GameObject.Destroy(rt);
 #if UNITY_2019_1_OR_NEWER
-                    RenderTexture.ReleaseTemporary(screenTexture);
+                    RenderTexture.ReleaseTemporary(rt);
 #else
-                    GameObject.Destroy(screenTexture);
+                    GameObject.Destroy(rt);
 #endif
-                    File.WriteAllBytes(screenshotPath, result.EncodeToJPG(ScreenshotQuality));
-                    GameObject.Destroy(result);
+                    //rt.Release();
+                    var screenshotPath = Path.Combine(_settings.DatabasePath, string.Format("{0}-{1}.jpg", camera.name, dataPrefix));
+                    File.WriteAllBytes(screenshotPath, screenShot.EncodeToJPG());
 
-                    _lastScreenTime = BacktraceDatabase.LastFrameTime;
-                    _lastScreenPath = screenshotPath;
+                    result.Add(screenshotPath);
                 }
+                RenderTexture.active = previousActiveRT;
+                _lastScreenTime = BacktraceDatabase.LastFrameTime;
+                _screens = result;
             }
-            return screenshotPath;
+            //}
+            return result;
         }
 
 
