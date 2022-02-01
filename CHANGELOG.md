@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.4
+Bugfixes
+- Updated backtrace native libraries on Windows.
+- Removed native support for x86 games on Windows.
+- Background thread exception handler on Android improvements - allow to capture managed crashes and forward exception information to other exceptions handlers.
+- Fixed a problem with invalid database path when database path in the configuration file ends with `/`.
+- Disable the prompt window in the Android symbols upload mode in the batch mode.
+
+
 ## Version 3.7.3
 
 Bugfixes

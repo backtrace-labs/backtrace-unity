@@ -59,7 +59,7 @@ namespace Backtrace.Unity.Editor.Build
 
                 Debug.Log("Backtrace symbols upload. Detected Backtrace configuration with enabled symbols upload option.");
                 Debug.Log(string.Format("Configuration path {0}", path));
-                if (!EditorUtility.DisplayDialog("Backtrace symbols upload",
+                if (!Application.isBatchMode && !EditorUtility.DisplayDialog("Backtrace symbols upload",
                     "Would you like to upload generated symbols files for better debugging experience?",
                     "Yes", "Skip"))
                 {
