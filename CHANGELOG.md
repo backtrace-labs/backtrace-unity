@@ -2,11 +2,11 @@
 
 ## Version 3.7.4
 Bugfixes
-- Updated backtrace native libraries on Windows.
-- Removed native support for x86 games on Windows.
-- Background thread exception handler on Android improvements - allow to capture managed crashes and forward exception information to other exceptions handlers.
-- Fixed a problem with invalid database path when database path in the configuration file ends with `/`.
-- Disable the prompt window in the Android symbols upload mode in the batch mode.
+- Updates native libraries for Windows.
+- Removes native support for x86 games on Windows.
+- Improves the background thread exception handler on Android, which allows you to capture managed crashes and forward exception information to other exceptions handlers.
+- Handles database paths in the configuration file that end with trailing slashes (“/”).
+- Disables the dialog used to upload symbols for Android when Unity is running in batch mode.
 
 
 ## Version 3.7.3
