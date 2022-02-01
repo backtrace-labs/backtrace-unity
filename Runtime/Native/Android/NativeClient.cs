@@ -431,7 +431,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
                                     NativeReport(AndroidJNI.NewStringUTF(AnrMessage), true);
                                     // update error.type attribute in case when crash happen 
-                                    SetAttribute(ErrorTypeAttribute, CrashType);
+                                    AddAttribute(
+                                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
+                                        AndroidJNI.NewStringUTF(CrashType));
                                 }
                             }
                         }
@@ -495,8 +497,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
         {
             if (CaptureNativeCrashes)
             {
-               CaptureNativeCrashes = false;
-               DisableNativeIntegration();
+                CaptureNativeCrashes = false;
+                DisableNativeIntegration();
             }
             if (_anrWatcher != null)
             {
