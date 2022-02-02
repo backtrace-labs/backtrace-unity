@@ -8,7 +8,9 @@ namespace Backtrace.Unity.Runtime.Native
     {
         internal static INativeClient CreateNativeClient(BacktraceConfiguration configuration, string gameObjectName, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> attributes, ICollection<string> attachments)
         {
-#if UNITY_STANDALONE_WIN
+#if UNITY_EDITOR
+            return null;
+#elif UNITY_STANDALONE_WIN
             return new Windows.NativeClient(configuration, breadcrumbs, attributes, attachments);
 #elif UNITY_ANDROID
             return new Android.NativeClient(configuration, breadcrumbs, attributes, attachments, gameObjectName);

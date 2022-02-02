@@ -29,34 +29,38 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
     private volatile boolean shouldStop = false;
 
     private final String _gameObject;
-    private final String _methodName;
+    private final String _methodName;    
 
     public BacktraceAndroidBackgroundUnhandledExceptionHandler(String gameObject, String methodName) {
         Log.d(LOG_TAG, "Initializing Android unhandled exception handler");
         this._gameObject = gameObject;
         this._methodName = methodName;
-
         mRootHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 
     @Override
     public void uncaughtException(final Thread thread, final Throwable throwable) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUPCAKE && mRootHandler != null && shouldStop == false) {
-            if(Looper.getMainLooper().getThread().getId() == thread.getId()) {
-                // prevent from sending exception happened to main thread - we will catch them via unity logger
-                return;
-            }
+        _lastCaughtBackgroundExceptionThread = thread;
+        _lastCaughtBackgroundException = throwable;
+        if (shouldStop == true) {
+            Log.d(LOG_TAG, "Background exception handler is disabled.");
+            finish();
+            return;
+        }
+        if (throwable instanceof Exception) {
             String throwableType = throwable.getClass().getName();
             Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + throwableType + ". Reporting to Backtrace");
-            _lastCaughtBackgroundExceptionThread = thread;
-            _lastCaughtBackgroundException = throwable;
             ReportThreadException(throwableType + " : " + throwable.getMessage(), stackTraceToString(throwable.getStackTrace()));
+        } else {
+            Log.d(LOG_TAG, "Detected android crash. Using native crash reporter to report an error.");
+            finish();
         }
     }
 
     public void ReportThreadException(String message, String stackTrace) {        
         UnityPlayer.UnitySendMessage(this._gameObject, this._methodName, message + '\n' + stackTrace);
+        Log.d(LOG_TAG, "UnitySendMessageFinished. passing an exception object. Game object: " + this._gameObject + " method name: " + this._methodName);
     }
 
     private static String stackTraceToString(StackTraceElement[] stackTrace) {
@@ -73,12 +77,16 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
 
     public void finish() {
         if (_lastCaughtBackgroundExceptionThread == null || _lastCaughtBackgroundException == null) {
-            Log.d(LOG_TAG, "pass unhandled exception to the thread root handler, because exception thread/background thread doesn't exist");
+            Log.d(LOG_TAG, "The exception object or the exception thread is not available. This is probably a bug.");
             return;
         }
-        Log.d(LOG_TAG, "The unhandled exception has been stored in the database.");
+        if (shouldStop) {
+            Log.d(LOG_TAG, "Backtrace client has been disposed. The report won't be available.");
+            return;
+        }
         mRootHandler.uncaughtException(_lastCaughtBackgroundExceptionThread, _lastCaughtBackgroundException);
     }
+
 
     public void stopMonitoring() {
         Log.d(LOG_TAG, "Uncaught exception handler has been disabled.");
