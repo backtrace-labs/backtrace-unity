@@ -22,6 +22,9 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["system.memory.temp"] = Profiler.GetTempAllocatorSize().ToString(CultureInfo.InvariantCulture);
             attributes["mono.heap"] = Profiler.GetMonoHeapSizeLong().ToString(CultureInfo.InvariantCulture);
             attributes["mono.used"] = Profiler.GetMonoUsedSizeLong().ToString(CultureInfo.InvariantCulture);
+            attributes["application.playing"] = Application.isPlaying.ToString(CultureInfo.InvariantCulture);
+            attributes["application.focused"] = Application.isFocused.ToString(CultureInfo.InvariantCulture);
+            attributes["application.internet_reachability"] = Application.internetReachability.ToString();
 
         }
     }

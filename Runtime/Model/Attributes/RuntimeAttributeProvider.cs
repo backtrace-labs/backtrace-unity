@@ -23,11 +23,8 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["application.data_path"] = Application.dataPath;
             attributes["application.id"] = Application.identifier;
             attributes["application.installer.name"] = Application.installerName;
-            attributes["application.internet_reachability"] = Application.internetReachability.ToString();
-            attributes["application.editor"] = Application.isEditor.ToString(CultureInfo.InvariantCulture);
-            attributes["application.focused"] = Application.isFocused.ToString(CultureInfo.InvariantCulture);
-            attributes["application.mobile"] = Application.isMobilePlatform.ToString(CultureInfo.InvariantCulture);
-            attributes["application.playing"] = Application.isPlaying.ToString(CultureInfo.InvariantCulture);
+            attributes["application.editor"] = Application.isEditor.ToString(CultureInfo.InvariantCulture);            
+            attributes["application.mobile"] = Application.isMobilePlatform.ToString(CultureInfo.InvariantCulture);            
             attributes["application.background"] = Application.runInBackground.ToString(CultureInfo.InvariantCulture);
             attributes["application.sandboxType"] = Application.sandboxType.ToString();
             attributes["application.system.language"] = Application.systemLanguage.ToString();
