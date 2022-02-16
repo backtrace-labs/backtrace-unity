@@ -10,5 +10,6 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         bool Enable();
         int Length();
         double BreadcrumbId();
+        string Archive();
     }
 }

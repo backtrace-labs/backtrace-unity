@@ -29,5 +29,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         double BreadcrumbId();
         void UnregisterEvents();
         void Update();
+
+        /// <summary>
+        /// Archive current breadcrumb file
+        /// </summary>
+        /// <returns>path to archived breadcurmb file if archive went successfully, otherwise empty string.</returns>
+        string Archive();
     }
 }

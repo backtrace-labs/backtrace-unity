@@ -46,6 +46,15 @@ namespace Backtrace.Unity.Model.Breadcrumbs.InMemory
             }
         }
 
+        /// <summary>
+        /// Archive in memory breadcrumbs. For in-memory breadcrumbs this operation is unsupported.
+        /// </summary>
+        /// <returns>Empty string</returns>
+        public string Archive()
+        {
+            return string.Empty;
+        }
+
         public bool Add(string message, BreadcrumbLevel type, UnityEngineLogLevel level, IDictionary<string, string> attributes)
         {
             lock (_lockObject)

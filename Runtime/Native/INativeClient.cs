@@ -41,5 +41,10 @@ namespace Backtrace.Unity.Runtime.Native
         /// <param name="state">True if should pause, otherwise false.</param>
         void PauseAnrThread(bool state);
 
+        /// <summary>
+        /// Determine if the native integration layer is initialized
+        /// </summary>
+        /// <returns>True, if the native client is enabled</returns>
+        bool Initialized();
     }
 }

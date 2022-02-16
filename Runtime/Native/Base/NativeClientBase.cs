@@ -128,6 +128,11 @@ namespace Backtrace.Unity.Runtime.Native.Base
             }
             return _breadcrumbs.BreadcrumbsLevel.HasFlag(BacktraceBreadcrumbType.System) && _breadcrumbs.UnityLogLevel.HasFlag(UnityEngineLogLevel.Warning);
         }
+
+        public bool Initialized()
+        {
+            return CaptureNativeCrashes;
+        }
     }
 }
 #endif

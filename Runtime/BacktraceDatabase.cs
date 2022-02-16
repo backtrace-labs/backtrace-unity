@@ -4,6 +4,8 @@ using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Model.Database;
+using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Runtime.Native;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -23,9 +25,17 @@ namespace Backtrace.Unity
     {
         private bool _timerBackgroundWork = false;
 
+        /// <summary>
+        /// Determine if Backtrace Database was already initialized to prevent
+        /// double initialization process 
+        /// </summary>
+        private bool _initialized = false;
+
         public BacktraceConfiguration Configuration;
 
         private BacktraceBreadcrumbs _breadcrumbs;
+
+        internal INativeClient NativeClient;
 
         /// <summary>
         /// Backtrace Breadcrumbs
@@ -182,7 +192,7 @@ namespace Backtrace.Unity
 #if UNITY_SWITCH
             Enable = false;
 #else
-            Enable = Configuration.Enabled && InitializeDatabasePaths();
+            Enable = Configuration.Enabled;
 #endif
             if (!Enable)
             {
@@ -193,17 +203,24 @@ namespace Backtrace.Unity
                 return;
             }
 
-
+            // determine the database path before initializing every object 
+            DatabasePath = Configuration.GetFullDatabasePath();
             //setup database object
             DatabaseSettings = new BacktraceDatabaseSettings(DatabasePath, Configuration);
-            SetupMultisceneSupport();
-            _lastConnection = Time.unscaledTime;
-            LastFrameTime = Time.unscaledTime;
             //Setup database context
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabaseSettings);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabaseSettings);
-            BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
-            _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
+            if (BacktraceApi == null)
+            {
+                BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
+            }
+            if (_reportLimitWatcher == null)
+            {
+                _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
+            }
+            SetupMultisceneSupport();
+            _lastConnection = Time.unscaledTime;
+            LastFrameTime = Time.unscaledTime;
         }
 
         /// <summary>
@@ -214,9 +231,24 @@ namespace Backtrace.Unity
             Enable = false;
         }
 
-        /// <summary>
-        /// Backtrace database awake event
-        /// </summary>
+        private void OnDestroy()
+        {
+            Enable = false;
+            if (_breadcrumbs != null)
+            {
+                _breadcrumbs.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
+                _breadcrumbs.UnregisterEvents();
+            }
+#if UNITY_ANDROID || UNITY_IOS
+            Application.lowMemory -= HandleLowMemory;
+#endif
+            _instance = null;
+            if (NativeClient != null)
+            {
+                NativeClient.Disable();
+            }
+        }
+
         private void Awake()
         {
             Reload();
@@ -231,6 +263,12 @@ namespace Backtrace.Unity
             {
                 return;
             }
+
+            if (NativeClient != null)
+            {
+                NativeClient.Update(Time.unscaledTime);
+            }
+
             if (_breadcrumbs != null)
             {
                 _breadcrumbs.Update();
@@ -255,12 +293,30 @@ namespace Backtrace.Unity
             }
         }
 
-        private void Start()
+        internal void Start()
         {
             if (!Enable)
             {
                 return;
             }
+            if (_initialized)
+            {
+                return;
+            }
+            _initialized = true;
+            if (!InitializeDatabasePaths())
+            {
+                Enable = false;
+                return;
+            }
+
+            var nativeIntegrationResult = SetupNativeIntegration();
+#if UNITY_ANDROID || UNITY_IOS
+            if (nativeIntegrationResult && Configuration.HandleUnhandledExceptions && Configuration.OomReports)
+            {
+                Application.lowMemory += HandleLowMemory;
+            }
+#endif
             // load reports from hard drive
             LoadReports();
             // remove orphaned files
@@ -270,6 +326,83 @@ namespace Backtrace.Unity
                 _lastConnection = Time.unscaledTime;
                 SendData(BacktraceDatabaseContext.FirstOrDefault());
             }
+            // enable breadcrumbs support in the end to give native integration time
+            // to process data from the previous session
+            EnableBreadcrumbsSupport();
+            if (_breadcrumbs != null)
+            {
+                _breadcrumbs.FromMonoBehavior("Application start", LogType.Assert, null);
+            }
+        }
+
+        private void OnApplicationQuit()
+        {
+            if (NativeClient != null)
+            {
+                NativeClient.Disable();
+            }
+        }
+        private void OnApplicationPause(bool pause)
+        {
+            if (_breadcrumbs != null && _initialized == true)
+            {
+                _breadcrumbs.FromMonoBehavior("Application pause", LogType.Assert, new Dictionary<string, string> { { "paused", pause.ToString(CultureInfo.InvariantCulture).ToLower() } });
+            }
+            if (NativeClient != null)
+            {
+                NativeClient.PauseAnrThread(pause);
+            }
+        }
+
+#if UNITY_ANDROID || UNITY_IOS
+        internal void HandleLowMemory()
+        {
+            if (NativeClient != null)
+            {
+                // inform native layer about oom error
+                NativeClient.OnOOM();
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Setup native integration and result setup result.
+        /// </summary>
+        /// <returns>True if native integation is available. Otherwise false.</returns>
+        private bool SetupNativeIntegration()
+        {
+            var client = GetComponent<BacktraceClient>();
+
+            if (client == null)
+            {
+                Debug.LogError("Cannot start BacktraceDatabase integration without existing BacktraceClient.");
+                return false;
+            }
+
+            var nativeAttachments = client.GetAbsolutePathsToAttachments();
+            var breadcrumnbsPath = Breadcrumbs == null
+                ? string.Empty
+                : Breadcrumbs.GetBreadcrumbLogPath();
+
+            // avoid adding breadcurmbs file earlier - to avoid managing breadcrumb file in two places
+            // in windows managed integration with unity crash handler
+            // breadcrumb path is required by native integration and will be added just before native integration initialization
+            if (!string.IsNullOrEmpty(breadcrumnbsPath))
+            {
+                nativeAttachments.Add(breadcrumnbsPath);
+            }
+
+            // send minidump files generated by unity engine or unity game, not captured by Windows native integration
+            // this integration should start before native integration and before breadcrumbs integration
+            // to allow algorithm to send breadcrumbs file - if the breadcrumb file is available
+            var scopedAttributes = client.AttributeProvider.GenerateAttributes(false);
+            NativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _breadcrumbs, scopedAttributes, nativeAttachments);
+            if (NativeClient == null)
+            {
+                return false;
+            }
+            client.AttributeProvider.AddDynamicAttributeProvider(NativeClient);
+            return NativeClient.Initialized();
         }
 
         /// <summary>
@@ -581,7 +714,6 @@ namespace Backtrace.Unity
             {
                 return false;
             }
-            DatabasePath = Configuration.GetFullDatabasePath();
             if (string.IsNullOrEmpty(DatabasePath))
             {
                 Debug.LogWarning("Backtrace database path is empty or unavailable.");
@@ -622,7 +754,21 @@ namespace Backtrace.Unity
             {
                 return;
             }
+
             var files = BacktraceDatabaseFileContext.GetRecords();
+            if (!files.Any())
+            {
+                return;
+            }
+
+            string breadcrumbPath = string.Empty;
+            string breadcrumbArchive = string.Empty;
+            if (Breadcrumbs != null)
+            {
+                breadcrumbPath = Breadcrumbs.GetBreadcrumbLogPath();
+                breadcrumbArchive = Breadcrumbs.Archive();
+            }
+
             foreach (var file in files)
             {
                 var record = BacktraceDatabaseRecord.ReadFromFile(file);
@@ -634,6 +780,14 @@ namespace Backtrace.Unity
                 {
                     BacktraceDatabaseFileContext.Delete(record);
                     continue;
+                }
+                if (!string.IsNullOrEmpty(breadcrumbArchive))
+                {
+                    bool result = record.Attachments.Remove(breadcrumbPath);
+                    if (result)
+                    {
+                        record.Attachments.Add(breadcrumbArchive);
+                    }
                 }
                 BacktraceDatabaseContext.Add(record);
                 ValidateDatabaseSize();
