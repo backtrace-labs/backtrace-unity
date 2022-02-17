@@ -104,6 +104,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// <returns>true if breadcrumbs file was created. Otherwise false.</returns>
         public bool Enable()
         {
+            if (currentSize != 0)
+            {
+                return true;
+            }
             try
             {
                 if (BreadcrumbFile.Exists())
@@ -116,6 +120,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
                     _breadcrumbStream.Write(StartOfDocument, 0, StartOfDocument.Length);
                     _breadcrumbStream.Write(EndOfDocument, 0, EndOfDocument.Length);
                 }
+                _emptyFile = true;
                 currentSize = StartOfDocument.Length + EndOfDocument.Length;
             }
             catch (Exception e)
@@ -136,6 +141,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// <returns>True if breadcrumb was stored in the breadcrumbs file. Otherwise false.</returns>
         public bool Add(string message, BreadcrumbLevel level, UnityEngineLogLevel type, IDictionary<string, string> attributes)
         {
+            // file is not initialized 
+            if (currentSize == 0)
+            {
+                return false;
+            }
             byte[] bytes;
             lock (_lockObject)
             {

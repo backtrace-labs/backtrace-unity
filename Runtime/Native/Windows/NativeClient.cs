@@ -132,7 +132,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
             foreach (var attribute in clientAttributes)
             {
-                AddNativeAttribute(attribute.Key, attribute.Value);
+                AddNativeAttribute(attribute.Key, attribute.Value == null ? string.Empty : attribute.Value);
             }
 
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
