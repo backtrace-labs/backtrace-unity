@@ -25,7 +25,6 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["application.installer.name"] = Application.installerName;
             attributes["application.editor"] = Application.isEditor.ToString(CultureInfo.InvariantCulture);            
             attributes["application.mobile"] = Application.isMobilePlatform.ToString(CultureInfo.InvariantCulture);            
-            attributes["application.background"] = Application.runInBackground.ToString(CultureInfo.InvariantCulture);
             attributes["application.sandboxType"] = Application.sandboxType.ToString();
             attributes["application.system.language"] = Application.systemLanguage.ToString();
             attributes["application.unity.version"] = Application.unityVersion;

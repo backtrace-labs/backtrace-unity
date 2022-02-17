@@ -24,6 +24,7 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["mono.used"] = Profiler.GetMonoUsedSizeLong().ToString(CultureInfo.InvariantCulture);
             attributes["application.playing"] = Application.isPlaying.ToString(CultureInfo.InvariantCulture);
             attributes["application.focused"] = Application.isFocused.ToString(CultureInfo.InvariantCulture);
+            attributes["application.background"] = Application.runInBackground.ToString(CultureInfo.InvariantCulture);
             attributes["application.internet_reachability"] = Application.internetReachability.ToString();
 
         }
