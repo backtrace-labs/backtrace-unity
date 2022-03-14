@@ -1,6 +1,6 @@
 # Backtrace Unity Release Notes
 
-## Version 3.7.4-preview.2
+## Version 3.7.4
 
 Bugfixes
 - Updates native libraries for Windows.
