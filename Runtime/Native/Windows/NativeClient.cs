@@ -81,17 +81,32 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             {
                 return;
             }
+
+
+            var pluginDirectoryPath = GetPluginDirectoryPath();
+            if (!Directory.Exists(pluginDirectoryPath))
+            {
+                Debug.LogWarning("Backtrace native lib directory doesn't exist");
+                return;
+            }
+            // prevent from initialization in the x86 devices
+            const int intPtrSizeOnx86 = 4;
+            if (Isx86Build(pluginDirectoryPath) || IntPtr.Size == intPtrSizeOnx86)
+            {
+                return;
+            }
+
+            var crashpadHandlerPath = GetDefaultPathToCrashpadHandler(pluginDirectoryPath);
+            if (string.IsNullOrEmpty(crashpadHandlerPath) || !File.Exists(crashpadHandlerPath))
+            {
+                Debug.LogWarning("Backtrace native integration status: Cannot find path to Crashpad handler.");
+                return;
+            }
+
             var databasePath = _configuration.CrashpadDatabasePath;
             if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(_configuration.GetFullDatabasePath()))
             {
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
-                return;
-            }
-
-            var crashpadHandlerPath = GetDefaultPathToCrashpadHandler();
-            if (!File.Exists(crashpadHandlerPath))
-            {
-                Debug.LogWarning("Backtrace native integration status: Cannot find path to Crashpad handler.");
                 return;
             }
 
@@ -117,7 +132,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
             foreach (var attribute in clientAttributes)
             {
-                AddNativeAttribute(attribute.Key, attribute.Value);
+                AddNativeAttribute(attribute.Key, attribute.Value == null ? string.Empty : attribute.Value);
             }
 
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
@@ -130,6 +145,15 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             // attribute via attributes parameters.
             AddNativeAttribute(ErrorTypeAttribute, CrashType);
         }
+
+        private bool Isx86Build(string pluginDirectoryPath)
+        {
+            const string unsupportedx86BuildPath = "x86";
+            const string backtraceLib = "BacktraceCrashpadWindows.dll";
+            var buildPath = Path.Combine(pluginDirectoryPath, unsupportedx86BuildPath);
+            return File.Exists(Path.Combine(buildPath, backtraceLib));
+        }
+
         public void GetAttributes(IDictionary<string, string> attributes)
         {
             return;
@@ -315,21 +339,22 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 }
             }
         }
+
+        private string GetPluginDirectoryPath()
+        {
+            const string pluginDir = "Plugins";
+            return Path.Combine(Application.dataPath, pluginDir);
+        }
         /// <summary>
         /// Generate path to Crashpad handler binary
         /// </summary>
         /// <returns>Path to crashpad handler binary</returns>
-        private string GetDefaultPathToCrashpadHandler()
+        private string GetDefaultPathToCrashpadHandler(string pluginDirectoryPath)
         {
             const string crashpadHandlerName = "crashpad_handler.dll";
-            const string pluginDir = "Plugins";
-            string architecture = IntPtr.Size == 8 ? "x86_64" : "x86";
-
-            string pluginPath = Path.Combine(pluginDir, architecture);
-            string pluginHandlerPath = Path.Combine(pluginPath, crashpadHandlerName);
-
-            // generate full path to .dll file in plugins dir.
-            return Path.Combine(Application.dataPath, pluginHandlerPath);
+            const string supportedArchitecture = "x86_64";
+            var architectureDirectory = Path.Combine(pluginDirectoryPath, supportedArchitecture);
+            return Path.Combine(architectureDirectory, crashpadHandlerName);
 
         }
         /// <summary>

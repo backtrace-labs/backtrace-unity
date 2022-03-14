@@ -2,8 +2,6 @@
 
 [Backtrace](http://backtrace.io/)'s integration with Unity allows developers to capture and report log errors, handled and unhandled Unity exceptions, and native crashes to their Backtrace instance, instantly offering the ability to prioritize and debug software errors.
 
-**Note**: For developers creating Android games on **Unity 2018.4 (NDK16b)** and requiring support for **native events on Android (crashes, ANR, low memory)** Backtrace **requires** you use the [3.6.0-ndk16b](https://github.com/backtrace-labs/backtrace-unity/tree/3.6.0-ndk16b) version.
-
 Create your Backtrace instance at https://register.backtrace.io/signup/ today and then integrate this library into your game.
 
 [![openupm](https://img.shields.io/npm/v/io.backtrace.unity?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/io.backtrace.unity/)
