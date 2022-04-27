@@ -1,5 +1,9 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.5
+Bugfixes
+- Disabled OOM support for iOS 15.3.1+
+
 ## Version 3.7.4
 
 Bugfixes
