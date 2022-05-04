@@ -1,4 +1,4 @@
-using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Types;
 using System;
@@ -156,12 +156,16 @@ namespace Backtrace.Unity.Editor
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("OomReports"),
                              new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_OOM));
-#endif
 
-#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("ClientSideUnwinding"),
                             new GUIContent(BacktraceConfigurationLabels.LABEL_ENABLE_CLIENT_SIDE_UNWINDING));
+#endif
+
+#endif
+
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
 
                         EditorGUILayout.PropertyField(
                            serializedObject.FindProperty("SymbolsUploadToken"),
