@@ -63,7 +63,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             if (_configuration.CaptureNativeCrashes)
             {
-                HandleNativeCrashes(clientAttributes, attachments, configuration.ClientSideUnwinding);
+                HandleNativeCrashes(clientAttributes, attachments);
                 INITIALIZED = true;
             }
             if (_configuration.HandleANR)
@@ -77,7 +77,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes(IDictionary<string, string> attributes, IEnumerable<string> attachments, bool enableClientSideUnwinding)
+        private void HandleNativeCrashes(IDictionary<string, string> attributes, IEnumerable<string> attachments)
         {
             var databasePath = _configuration.GetFullDatabasePath();
             // make sure database is enabled 
@@ -96,7 +96,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             var attributeKeys = attributes.Keys.ToArray();
             var attributeValues = attributes.Values.ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, _configuration.OomReports, attachments.ToArray(), attachments.Count(), enableClientSideUnwinding);
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, _configuration.OomReports, attachments.ToArray(), attachments.Count(), _configuration.ClientSideUnwinding);
             CaptureNativeCrashes = true;
         }
 
