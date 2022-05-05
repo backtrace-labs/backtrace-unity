@@ -1,15 +1,12 @@
 # Backtrace Unity Release Notes
 
 ## Version 3.7.5
-
 Bugfixes
-
 - Disabled OOM support for iOS 15.3.1+
 
 ## Version 3.7.4
 
 Bugfixes
-
 - Updates native libraries for Windows.
 - Removes native support for x86 games on Windows.
 - Improves the background thread exception handler on Android, which allows you to capture managed crashes and forward exception information to other exceptions handlers.
@@ -20,7 +17,6 @@ Bugfixes
 ## Version 3.7.3
 
 Bugfixes
-
 - Fixed the game object name issue used by native integration when ANR or background exception occured,
 - fixed invalid cast in the screenshot generation algorithm,
 - fixed a problem with the dispose method in the Backtrace Android native integration - now backtrace-unity will dispose native integation only once.
@@ -29,7 +25,6 @@ Bugfixes
 ## Version 3.7.2
 
 Bugfixes
-
 - Improves background handler for last caught exceptions.
 - Fixed the compilation issue in the native client base class.
 
