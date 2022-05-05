@@ -69,7 +69,6 @@ namespace Backtrace.Unity.Common
             }
 
         }
-
         internal static bool IsFileInDatabaseDirectory(string databasePath, string filePath)
         {
             // If databasePath does not have a trailing slash, it is already a directory.

@@ -296,6 +296,12 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             const string pluginDir = "Plugins";
             return Path.Combine(Application.dataPath, pluginDir);
         }
+
+        private string GetPluginDirectoryPath()
+        {
+            const string pluginDir = "Plugins";
+            return Path.Combine(Application.dataPath, pluginDir);
+        }
         /// <summary>
         /// Generate path to Crashpad handler binary
         /// </summary>
