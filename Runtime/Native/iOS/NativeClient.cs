@@ -1,4 +1,4 @@
-#if UNITY_IOS
+﻿#if UNITY_IOS
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,7 +25,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         }
 
         [DllImport("__Internal", EntryPoint = "StartBacktraceIntegration")]
-        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize);
+        private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize, bool enableClientSideUnwinding);
 
         [DllImport("__Internal", EntryPoint = "NativeReport")]
         private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread, bool ignoreIfDebugger);
@@ -96,7 +96,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             var attributeKeys = attributes.Keys.ToArray();
             var attributeValues = attributes.Values.ToArray();
 
-            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, _configuration.OomReports, attachments.ToArray(), attachments.Count());
+            Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, _configuration.OomReports, attachments.ToArray(), attachments.Count(), _configuration.ClientSideUnwinding);
             CaptureNativeCrashes = true;
         }
 

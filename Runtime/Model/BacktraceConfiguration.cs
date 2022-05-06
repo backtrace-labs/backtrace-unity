@@ -1,4 +1,4 @@
-using Backtrace.Unity.Common;
+﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
@@ -156,15 +156,18 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
         public bool OomReports = false;
-#endif
 
-#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER
         /// <summary>
         /// Enable client side unwinding.
         /// </summary>
         [Tooltip("Enable client-side unwinding.")]
         public bool ClientSideUnwinding = false;
+#endif
 
+#endif
+
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         /// <summary>
         /// Symbols upload token
         /// </summary>
