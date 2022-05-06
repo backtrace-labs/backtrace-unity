@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.6-preview.1
+
+New functionality
+- Added option for enabling or disabling client side unwinding of native crashes on iOS (Unity 2019+) (by default is disabled)
+
+Bugfixes
+- Fixes OOM reporting for iOS 15.3.1+ by disabling client side unwinding by default
+- Enabled OOM support for iOS 15.3.1+
+
 ## Version 3.7.5
 Bugfixes
 - Disabled OOM support for iOS 15.3.1+
