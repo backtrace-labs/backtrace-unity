@@ -1,6 +1,6 @@
 # Backtrace Unity Release Notes
 
-## Version 3.7.6-preview.1
+## Version 3.7.6
 
 New functionality
 - Added option for enabling or disabling client side unwinding of native crashes on iOS (Unity 2019+) (by default is disabled)
