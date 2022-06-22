@@ -622,7 +622,19 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            var files = BacktraceDatabaseFileContext.GetRecords();
+            var files = BacktraceDatabaseFileContext.GetRecords().ToArray();
+            if(files.Length == 0)
+            {
+                return;
+            }
+            string breadcrumbPath = string.Empty;
+            string breadcrumbArchive = string.Empty;
+
+            if(Breadcrumbs != null)
+            {
+                breadcrumbPath = Breadcrumbs.GetBreadcrumbLogPath();
+                breadcrumbArchive = Breadcrumbs.Archi
+            }
             foreach (var file in files)
             {
                 var record = BacktraceDatabaseRecord.ReadFromFile(file);
