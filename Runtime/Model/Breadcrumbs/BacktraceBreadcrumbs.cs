@@ -192,9 +192,22 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             return backtraceBreadcrumbsLevel != BacktraceBreadcrumbType.None && logLevel != UnityEngineLogLevel.None;
         }
+        /// <summary>
+        /// Archives a breadcrumb file from the previous session.
+        /// </summary>
+        /// <returns>
+        /// Path to the archived breadcrumb library. 
+        /// If the operation failed then the method returns
+        /// an empty string.
+        /// </returns>
         public string Archive()
         {
-            return LogManager.Archive()
+            var breadcrumbArchiveManager = LogManager as IArchiveableBreadcrumbManager;
+            if (breadcrumbArchiveManager == null)
+            {
+                return string.Empty;
+            }
+            return breadcrumbArchiveManager.Archive();
 
         }
     }
