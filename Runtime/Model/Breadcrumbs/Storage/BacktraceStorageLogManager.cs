@@ -333,11 +333,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
 
             const string archivePattern = "{0}-1";
             var copyPath = Path.Combine(_storagePath, string.Format(archivePattern, BreadcrumbLogFilePrefix));
-            if (File.Exists(copyPath))
-            {
-                File.Delete(copyPath);
-            }
-            File.Copy(BreadcrumbsFilePath, copyPath);
+            File.Copy(BreadcrumbsFilePath, copyPath, true);
             return copyPath;
         }
     }
