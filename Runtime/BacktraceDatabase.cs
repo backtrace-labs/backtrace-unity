@@ -265,6 +265,8 @@ namespace Backtrace.Unity
             LoadReports();
             // remove orphaned files
             RemoveOrphaned();
+            // enable breadcrumb support after finishing loading reports
+            EnableBreadcrumbsSupport();
             if (DatabaseSettings.AutoSendMode)
             {
                 _lastConnection = Time.unscaledTime;
@@ -622,7 +624,20 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            var files = BacktraceDatabaseFileContext.GetRecords();
+            var files = BacktraceDatabaseFileContext.GetRecords().ToArray();
+            if (files.Length == 0)
+            {
+                return;
+            }
+            string breadcrumbPath = string.Empty;
+            string breadcrumbArchive = string.Empty;
+
+            if (Breadcrumbs != null)
+            {
+                breadcrumbPath = Breadcrumbs.GetBreadcrumbLogPath();
+                breadcrumbArchive = Breadcrumbs.Archive();
+            }
+            var shouldUseArchiveBreadcrumbArchive = !string.IsNullOrEmpty(breadcrumbArchive);
             foreach (var file in files)
             {
                 var record = BacktraceDatabaseRecord.ReadFromFile(file);
@@ -635,6 +650,17 @@ namespace Backtrace.Unity
                     BacktraceDatabaseFileContext.Delete(record);
                     continue;
                 }
+
+                // Use always the breadcrumb archive instead of the old breadcrumb file.
+                if (shouldUseArchiveBreadcrumbArchive)
+                {
+                    bool replacementResult = record.Attachments.Remove(breadcrumbPath);
+                    if (replacementResult)
+                    {
+                        record.Attachments.Add(breadcrumbArchive);
+                    }
+                }
+
                 BacktraceDatabaseContext.Add(record);
                 ValidateDatabaseSize();
                 record.Unlock();

@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Backtrace.Unity.Model.Breadcrumbs.Storage
 {
-    internal sealed class BacktraceStorageLogManager : IBacktraceLogManager
+    internal sealed class BacktraceStorageLogManager : IBacktraceLogManager, IArchiveableBreadcrumbManager
     {
         /// <summary>
         /// Path to the breadcrumbs file
@@ -86,6 +86,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// </summary>
         private readonly Queue<long> _logSize = new Queue<long>();
 
+        /// <summary>
+        /// Breadcrumb storage directory
+        /// </summary>
+        private readonly string _storagePath;
+
         internal IBreadcrumbFile BreadcrumbFile { get; set; }
 
         public BacktraceStorageLogManager(string storagePath)
@@ -94,7 +99,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
             {
                 throw new ArgumentException("Breadcrumbs storage path is null or empty");
             }
-            BreadcrumbsFilePath = Path.Combine(storagePath, BreadcrumbLogFileName);
+            _storagePath = storagePath;
+            BreadcrumbsFilePath = Path.Combine(_storagePath, BreadcrumbLogFileName);
             BreadcrumbFile = new BreadcrumbFile(BreadcrumbsFilePath);
         }
 
@@ -316,6 +322,19 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         public double BreadcrumbId()
         {
             return _breadcrumbId;
+        }
+
+        public string Archive()
+        {
+            if (!File.Exists(BreadcrumbsFilePath))
+            {
+                return string.Empty;
+            }
+
+            const string archivePattern = "{0}-1";
+            var copyPath = Path.Combine(_storagePath, string.Format(archivePattern, BreadcrumbLogFilePrefix));
+            File.Copy(BreadcrumbsFilePath, copyPath, true);
+            return copyPath;
         }
     }
 }

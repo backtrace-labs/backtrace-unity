@@ -29,6 +29,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// Determine if breadcrumbs are enabled
         /// </summary>
         private bool _enabled = false;
+
         public BacktraceBreadcrumbs(IBacktraceLogManager logManager, BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
         {
             BreadcrumbsLevel = level;
@@ -190,6 +191,24 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         public static bool CanStoreBreadcrumbs(UnityEngineLogLevel logLevel, BacktraceBreadcrumbType backtraceBreadcrumbsLevel)
         {
             return backtraceBreadcrumbsLevel != BacktraceBreadcrumbType.None && logLevel != UnityEngineLogLevel.None;
+        }
+        /// <summary>
+        /// Archives a breadcrumb file from the previous session.
+        /// </summary>
+        /// <returns>
+        /// Path to the archived breadcrumb library. 
+        /// If the operation failed then the method returns
+        /// an empty string.
+        /// </returns>
+        public string Archive()
+        {
+            var breadcrumbArchiveManager = LogManager as IArchiveableBreadcrumbManager;
+            if (breadcrumbArchiveManager == null)
+            {
+                return string.Empty;
+            }
+            return breadcrumbArchiveManager.Archive();
+
         }
     }
 }

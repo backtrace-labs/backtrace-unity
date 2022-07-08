@@ -570,7 +570,6 @@ namespace Backtrace.Unity
                 }
                 _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _breadcrumbs, scopedAttributes, nativeAttachments);
                 AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
-                Database.EnableBreadcrumbsSupport();
             }
         }
 
