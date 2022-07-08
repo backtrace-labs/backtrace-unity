@@ -3,21 +3,20 @@ using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Net.NetworkInformation;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model.Attributes
 {
     internal sealed class MachineAttributeProvider : IScopeAttributeProvider
     {
+        private readonly MachineIdStorage _machineIdStorage = new MachineIdStorage();
         public void GetAttributes(IDictionary<string, string> attributes)
         {
             if (attributes == null)
             {
                 return;
             }
-            attributes["guid"] = GenerateMachineId();
+            attributes["guid"] = _machineIdStorage.GenerateMachineId();
             IncludeGraphicCardInformation(attributes);
             IncludeOsInformation(attributes);
         }
@@ -82,36 +81,6 @@ namespace Backtrace.Unity.Model.Attributes
 
             attributes["graphic.shader"] = SystemInfo.graphicsShaderLevel.ToString(CultureInfo.InvariantCulture);
             attributes["graphic.topUv"] = SystemInfo.graphicsUVStartsAtTop.ToString(CultureInfo.InvariantCulture);
-        }
-
-        private string GenerateMachineId()
-        {
-#if !UNITY_WEBGL && !UNITY_SWITCH
-            // DeviceUniqueIdentifier will return "Switch" on Nintendo Switch
-            // try to generate random guid instead
-            if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
-            {
-                return SystemInfo.deviceUniqueIdentifier;
-            }
-            var networkInterface =
-                 NetworkInterface.GetAllNetworkInterfaces()
-                    .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up);
-
-            PhysicalAddress physicalAddr = null;
-            string macAddress = null;
-            if (networkInterface == null
-                || (physicalAddr = networkInterface.GetPhysicalAddress()) == null
-                || string.IsNullOrEmpty(macAddress = physicalAddr.ToString()))
-            {
-                return Guid.NewGuid().ToString();
-            }
-
-            string hex = macAddress.Replace(":", string.Empty);
-            var value = Convert.ToInt64(hex, 16);
-            return GuidExtensions.FromLong(value).ToString();
-#else
-            return Guid.NewGuid().ToString();
-#endif
         }
     }
 }
