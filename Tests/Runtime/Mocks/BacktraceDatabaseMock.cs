@@ -12,7 +12,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Debug.Log("Removing old reports");
         }
 
-        protected override void LoadReports()
+        protected override void LoadReports(string _, string __)
         {
             Debug.Log("Loading reports");
         }
