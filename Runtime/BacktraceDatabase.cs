@@ -662,6 +662,7 @@ namespace Backtrace.Unity
                 return;
             }
             var shouldUseArchiveBreadcrumbArchive = !string.IsNullOrEmpty(breadcrumbArchive);
+            
             foreach (var file in files)
             {
                 var record = BacktraceDatabaseRecord.ReadFromFile(file);
