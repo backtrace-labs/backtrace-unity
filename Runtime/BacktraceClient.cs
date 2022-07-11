@@ -1317,7 +1317,7 @@ namespace Backtrace.Unity
 
         internal IList<string> GetNativeAttachments()
         {
-            return _clientReportAttachments.ToList()
+            return _clientReportAttachments
                 .Where(n => !string.IsNullOrEmpty(n))
                 .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase)
                 .ToList();

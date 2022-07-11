@@ -288,7 +288,7 @@ namespace Backtrace.Unity
             {
                 var client = _client.NativeClient as IStartupMinidumpSender;
                 var attachments = _client.GetNativeAttachments();
-                if(string.IsNullOrEmpty(breadcrumbArchive))
+                if(!string.IsNullOrEmpty(breadcrumbArchive))
                 {
                     attachments.Add(breadcrumbArchive);
                 }
