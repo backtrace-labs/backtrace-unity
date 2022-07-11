@@ -8,7 +8,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
 {
     class BacktraceAttributeMachineIdTests
     {
-        [TearDown]
+        [SetUp]
         public void Cleanup()
         {
             PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);
@@ -21,7 +21,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
 
             var machineId = machineIdStorage.GenerateMachineId();
 
-            Assert.IsFalse(GuidHelper.IsEmptyGuid(machineId));
+            Assert.IsFalse(GuidHelper.IsNullOrEmpty(machineId));
         }
 
         [Test]
@@ -31,7 +31,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
 
             var machineId = machineIdStorage.GenerateMachineId();
 
-            Assert.IsFalse(GuidHelper.IsEmptyGuid(machineId));
+            Assert.IsFalse(GuidHelper.IsNullOrEmpty(machineId));
         }
 
         [Test]
@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
 
             var machineId = machineIdStorage.GenerateMachineId();
 
-            Assert.IsFalse(GuidHelper.IsEmptyGuid(machineId));
+            Assert.IsFalse(GuidHelper.IsNullOrEmpty(machineId));
         }
 
         [Test]
@@ -69,6 +69,30 @@ namespace Backtrace.Unity.Tests.Runtime.Client
             var secGenerationOfMachineIdStorage = new MachineIdStorageMock(false, false).GenerateMachineId();
 
             Assert.IsTrue(firstMachineIdStorage == secGenerationOfMachineIdStorage);
+        }
+
+        [Test]
+        public void TestMachineAttributes_ShouldAlwaysGenerateTheSameUntiyAttribute_ShouldReturnTheSameUnityIdentitfier()
+        {
+            var machineIdStorage = new MachineIdStorageMock();
+
+            var machineId = machineIdStorage.GenerateMachineId();
+            PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);
+            var machineIdAfterCleanup = machineIdStorage.GenerateMachineId();
+
+            Assert.AreEqual(machineId, machineIdAfterCleanup);
+        }
+
+        [Test]
+        public void TestMachineAttributes_ShouldAlwaysGenerateTheSameMacAttribute_ShouldReturnTheSameMacIdentitfier()
+        {
+            var machineIdStorage = new MachineIdStorageMock(false);
+
+            var machineId = machineIdStorage.GenerateMachineId();
+            PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);
+            var machineIdAfterCleanup = machineIdStorage.GenerateMachineId();
+
+            Assert.AreEqual(machineId, machineIdAfterCleanup);
         }
     }
 }
