@@ -22,6 +22,7 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["application.company.name"] = Application.companyName;
             attributes["application.data_path"] = Application.dataPath;
             attributes["application.id"] = Application.identifier;
+            attributes["application.package"] = Application.identifier;
             attributes["application.installer.name"] = Application.installerName;
             attributes["application.editor"] = Application.isEditor.ToString(CultureInfo.InvariantCulture);            
             attributes["application.mobile"] = Application.isMobilePlatform.ToString(CultureInfo.InvariantCulture);            
