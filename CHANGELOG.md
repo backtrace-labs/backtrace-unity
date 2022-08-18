@@ -1,5 +1,11 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.7
+
+New functionality
+- Upgrade PLCrashreporter to 1.10.1
+
+
 ## Version 3.7.6
 
 New functionality
