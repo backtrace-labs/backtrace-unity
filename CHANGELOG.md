@@ -1,5 +1,18 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.7
+
+New functionality
+- Improved machine identifier functionality - if default identifier methods fail, a new machine identifier will be stored in the internal storage and will stay the same between game restarts.
+- Added a new attribute `application.package` that stores information about an application package id. 
+
+Bugfixes
+- Fixed a problem with missing breadcrumbs files in the database records after a game restart.
+- Fixed a problem with 00000000-0000-0000-0000-000000000000 guid on Xbox and other consoles.
+
+Maintenance
+- Upgraded the PLCrashReporter library.
+
 ## Version 3.7.6
 
 New functionality
