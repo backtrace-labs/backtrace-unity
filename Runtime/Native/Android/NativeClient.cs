@@ -250,6 +250,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Directory.CreateDirectory(databasePath);
             }
 
+            Debug.Log($"Database Path : {databasePath}");
+
             // crashpad is available only for API level 21+ 
             // make sure we don't want ot start crashpad handler 
             // on the unsupported API
@@ -275,7 +277,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             const string crashpadHandlerName = "libcrashpad_handler.so";
             var crashpadHandlerPath = Path.Combine(libDirectory, crashpadHandlerName);
-
+            Debug.Log($"handler Path : {crashpadHandlerPath}");
             if (string.IsNullOrEmpty(crashpadHandlerPath))
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
@@ -300,6 +302,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
                 return;
             }
+            Debug.Log($"Crashpad enabled?: {CaptureNativeCrashes}");
             foreach (var attribute in backtraceAttributes)
             {
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
