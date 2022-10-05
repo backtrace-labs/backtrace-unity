@@ -1,8 +1,9 @@
-﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model.Attributes
@@ -33,7 +34,7 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["uname.sysname"] = SystemHelper.Name();
 
             //The version of the operating system
-            attributes["uname.version"] = Environment.OSVersion.Version.ToString();
+            attributes["uname.version"] = GetVersionString();
             attributes["uname.fullname"] = SystemInfo.operatingSystem;
             attributes["uname.family"] = SystemInfo.operatingSystemFamily.ToString();
             attributes["cpu.count"] = SystemInfo.processorCount.ToString(CultureInfo.InvariantCulture);
@@ -81,6 +82,26 @@ namespace Backtrace.Unity.Model.Attributes
 
             attributes["graphic.shader"] = SystemInfo.graphicsShaderLevel.ToString(CultureInfo.InvariantCulture);
             attributes["graphic.topUv"] = SystemInfo.graphicsUVStartsAtTop.ToString(CultureInfo.InvariantCulture);
+        }
+
+        // Helper functions for getting the version number.
+        private string GetVersionString()
+        {
+            if (SystemInfo.operatingSystem.StartsWith("iPhone"))
+            {
+                // for exaple: "iPhone OS 8.4" on iOS 8.4
+                var match = Regex.Match(SystemInfo.operatingSystem, @"\d+(?:\.\d+)+");
+
+                if (!match.Success)
+                {
+                    return "unknown";
+                }
+
+                return match.Value;
+            }
+
+            // Default case, such as for Windows/Linux/PS5/etc
+            return Environment.OSVersion.Version.ToString();
         }
     }
 }
