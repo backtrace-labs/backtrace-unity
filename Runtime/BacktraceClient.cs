@@ -578,45 +578,46 @@ namespace Backtrace.Unity
             return Database.EnableBreadcrumbsSupport();
         }
 #if !UNITY_WEBGL
-        public void EnableMetrics()
+        public bool EnableMetrics()
         {
-            EnableMetrics(true);
+            return EnableMetrics(true);
         }
-        private void EnableMetrics(bool enableIfConfigurationIsDisabled = true)
+        private bool EnableMetrics(bool enableIfConfigurationIsDisabled = true)
         {
             if (!Configuration.EnableMetricsSupport)
             {
                 if (!enableIfConfigurationIsDisabled)
                 {
-                    return;
+                    return false;
                 }
                 Debug.LogWarning("Event aggregation configuration was disabled. Enabling it manually via API");
             }
-            var universeName = Configuration.GetUniverseName();
-            var token = Configuration.GetToken();
-            EnableMetrics(
-                BacktraceMetrics.GetDefaultUniqueEventsUrl(universeName, token),
-                BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
-                Configuration.GetEventAggregationIntervalTimerInMs());
+            return EnableMetrics(BacktraceMetrics.DefaultUniqueAttributeName);
         }
 
-        public void EnableMetrics(string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
+        public bool EnableMetrics(string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
         {
             var universeName = Configuration.GetUniverseName();
+            if(string.IsNullOrEmpty(universeName))
+            {
+                Debug.LogWarning("Cannot initialize event aggregation - Unknown Backtrace URL.");
+                return false;
+            }
             var token = Configuration.GetToken();
             EnableMetrics(
                 BacktraceMetrics.GetDefaultUniqueEventsUrl(universeName, token),
                 BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
                 Configuration.GetEventAggregationIntervalTimerInMs(),
                 uniqueAttributeName);
+            return true;
         }
 
-        public void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
+        public bool EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
         {
             if (_metrics != null)
             {
                 Debug.LogWarning("Backtrace metrics support is enabled. Please use BacktraceClient.Metrics.");
-                return;
+                return false;
             }
             _metrics = new BacktraceMetrics(
                 attributeProvider: AttributeProvider,
@@ -629,6 +630,7 @@ namespace Backtrace.Unity
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };
             StartupMetrics();
+            return true;
         }
 
         private void StartupMetrics()
