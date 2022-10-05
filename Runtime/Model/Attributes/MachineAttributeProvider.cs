@@ -1,5 +1,4 @@
-using Backtrace.Unity.Common;
-using Backtrace.Unity.Extensions;
+﻿using Backtrace.Unity.Common;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -87,7 +86,49 @@ namespace Backtrace.Unity.Model.Attributes
         // Helper functions for getting the version number.
         private string GetVersionString()
         {
-            if (SystemInfo.operatingSystem.StartsWith("iPhone"))
+            if (SystemInfo.operatingSystem.StartsWith("Android"))
+            {
+                var APILevelToVersion = new Dictionary<int, string>(){
+                    { 0, "N.a." },
+                    { 1, "1.0" },
+                    { 2, "1.1" },
+                    { 3, "1.5" },
+                    { 4, "1.6" },
+                    { 5, "2.0" },
+                    { 6, "2.0.1" },
+                    { 7, "2.1" },
+                    { 8, "2.2" },
+                    { 9, "2.3" },
+                    { 10, "2.3.3" },
+                    { 11, "3.0" },
+                    { 12, "3.1" },
+                    { 13, "3.2" },
+                    { 14, "4.0" },
+                    { 15, "4.0.3" },
+                    { 16, "4.1" },
+                    { 17, "4.2" },
+                    { 18, "4.3" },
+                    { 19, "4.4" },
+                    { 20, "4.4" },
+                    { 21, "5.0" },
+                    { 22, "5.1" },
+                    { 23, "6.0" },
+                    { 24, "7.0" },
+                    { 25, "7.1.1" },
+                    { 26, "8.0" },
+                    { 27, "8" },
+                    { 28, "9" },
+                    { 29, "10" },
+                    { 30, "11" },
+                    { 31, "12" },
+                    { 32, "12L" },
+                    { 33, "13" },
+                    { 10000, "Next" },
+                };
+
+                return APILevelToVersion.GetValueOrDefault(getAndroidSDKInt(), "unknown");
+            }
+            else if (SystemInfo.operatingSystem.StartsWith("iPhone"))
             {
                 // for exaple: "iPhone OS 8.4" on iOS 8.4
                 var match = Regex.Match(SystemInfo.operatingSystem, @"\d+(?:\.\d+)+");
@@ -102,6 +143,13 @@ namespace Backtrace.Unity.Model.Attributes
 
             // Default case, such as for Windows/Linux/PS5/etc
             return Environment.OSVersion.Version.ToString();
+        }
+        private static int getAndroidSDKInt()
+        {
+            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            {
+                return version.GetStatic<int>("SDK_INT");
+            }
         }
     }
 }
