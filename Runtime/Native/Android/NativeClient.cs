@@ -275,6 +275,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             const string crashpadHandlerName = "libcrashpad_handler.so";
             var crashpadHandlerPath = Path.Combine(libDirectory, crashpadHandlerName);
+
             if (string.IsNullOrEmpty(crashpadHandlerPath))
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
