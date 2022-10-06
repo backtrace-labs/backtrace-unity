@@ -322,7 +322,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
 
         /// <summary>
-        /// Retrieves the SDK level of the current device.
+        /// Retrieves the Android SDK level.
         /// </summary>
         public static int GetAndroidSDKLevel()
         {

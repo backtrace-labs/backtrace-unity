@@ -1,11 +1,13 @@
 ﻿using Backtrace.Unity.Common;
-using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text.RegularExpressions;
 using UnityEngine;
+#if UNITY_IOS
+using System.Text.RegularExpressions;
+#elif UNITY_ANDROID
 using Backtrace.Unity.Runtime.Native.Android;
+#endif
 
 namespace Backtrace.Unity.Model.Attributes
 {
@@ -128,7 +130,7 @@ namespace Backtrace.Unity.Model.Attributes
             };
 
             return APILevelToVersion.GetValueOrDefault(NativeClient.GetAndroidSDKLevel(), "unknown");
-#elif UNITY_IOS || UNITY_
+#elif UNITY_IOS
             // For exaple: "iPhone OS 8.4" on iOS 8.4
             var match = Regex.Match(SystemInfo.operatingSystem, @"\d+(?:\.\d+)+");
 
