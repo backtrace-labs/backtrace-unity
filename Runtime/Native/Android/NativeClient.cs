@@ -253,15 +253,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // crashpad is available only for API level 21+ 
             // make sure we don't want ot start crashpad handler 
             // on the unsupported API
-            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            int apiLevel = GetAndroidSDKLevel();
+            _builtInAttributes["device.sdk"] = apiLevel.ToString();
+            if (apiLevel < 21)
             {
-                int apiLevel = version.GetStatic<int>("SDK_INT");
-                _builtInAttributes["device.sdk"] = apiLevel.ToString();
-                if (apiLevel < 21)
-                {
-                    Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
-                    return;
-                }
+                Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
+                return;
             }
 
             var libDirectory = GetNativeDirectoryPath();
@@ -322,6 +319,17 @@ namespace Backtrace.Unity.Runtime.Native.Android
             AddAttribute(
                         AndroidJNI.NewStringUTF(ErrorTypeAttribute),
                         AndroidJNI.NewStringUTF(CrashType));
+        }
+
+        /// <summary>
+        /// Retrieves the SDK level of the current device.
+        /// </summary>
+        public static int GetAndroidSDKLevel()
+        {
+            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            {
+                return version.GetStatic<int>("SDK_INT");
+            }
         }
 
         /// <summary>
