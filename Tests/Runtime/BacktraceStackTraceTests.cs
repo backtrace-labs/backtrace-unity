@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Types;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -538,6 +539,32 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(backtraceUnhandledException.StackFrames[0].FunctionName, simpleFunctionName);
             Assert.AreEqual(backtraceUnhandledException.StackFrames[3].FunctionName, functionNameWithWrappedManagedPrefix);
             Assert.AreEqual(backtraceUnhandledException.StackFrames[4].FunctionName, functioNamewithMonoJitCodePrefix);
+        }
+
+        [Test]
+        public void XboxStackTrace_ShouldIgnoreAndroidFrames_ShouldSetCsharpExtensionCorrectly()
+        {
+
+            var functionName = "Can't delete buffers from graphics jobs";
+            var xboxStackTrace = string.Format(@" {0}
+                    Unity.Entities.ComponentDependencyManager:CompleteReadAndWriteDependencyNoChecks(Int32)
+                    Unity.Entities.ComponentDependencyManager:CompleteDependenciesNoChecks(Int32*, Int32, Int32*, Int32)
+                    Unity.Entities.SystemBase:CompleteDependency()
+                    Unity.Entities.SystemBase:Update()
+                    Unity.Entities.ComponentSystemGroup:UpdateAllSystems()
+                    Unity.Entities.ComponentSystem:Update()",
+                 functionName);
+
+
+            var backtraceUnhandledException = new BacktraceUnhandledException("test message", xboxStackTrace);
+
+            Assert.AreEqual(functionName, backtraceUnhandledException.Message);
+            Assert.AreEqual(6, backtraceUnhandledException.StackFrames.Count);
+            foreach (var frame in backtraceUnhandledException.StackFrames)
+            {
+                Assert.AreEqual(BacktraceStackFrameType.Dotnet, frame.StackFrameType);
+                Assert.IsTrue(frame.FunctionName.StartsWith("Unity.Entities."));
+            }
         }
 
         internal string ConvertStackTraceToString(List<SampleStackFrame> data)

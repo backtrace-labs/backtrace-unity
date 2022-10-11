@@ -61,7 +61,7 @@ namespace Backtrace.Unity.Model
                 var stackTraceMessage = GetStackTraceErrorMessage(stackFrameHeader);
                 if (!string.IsNullOrEmpty(stackTraceMessage))
                 {
-                    _message = frames.ElementAt(0);
+                    _message = stackTraceMessage;
                     _header = true;
                     frames = frames.Skip(1);
                 }
@@ -83,6 +83,7 @@ namespace Backtrace.Unity.Model
 
         private string GetStackTraceErrorMessage(string beginningOfTheFrame)
         {
+            beginningOfTheFrame = beginningOfTheFrame.Trim();
             // verify if the exception message has classifier
             var indexOfExceptionClassifier = beginningOfTheFrame.IndexOf("Exception:");
             if (indexOfExceptionClassifier != -1)
@@ -122,14 +123,18 @@ namespace Backtrace.Unity.Model
                 if (methodNameEndIndex == -1)
                 {
                     //invalid stack frame
+                    result.Add(new BacktraceStackFrame() { FunctionName = frame });
                     continue;
+
                 }
 
                 //methodname index should be greater than 0 AND '(' should be before ')'
                 if (methodNameEndIndex < 1 && frameString[methodNameEndIndex - 1] != '(')
                 {
-                    //invalid stack frame
-                    break;
+                    result.Add(new BacktraceStackFrame()
+                    {
+                        FunctionName = frame
+                    });
                 }
 
                 result.Add(ConvertFrame(frameString, methodNameEndIndex));
@@ -395,7 +400,7 @@ namespace Backtrace.Unity.Model
                     return result;
                 }
                 var substring = sourceString.Substring(atSeparator, endLine);
-                
+
                 result.Library = (substring == null ? string.Empty : substring.Trim());
 
                 if (!string.IsNullOrEmpty(result.Library))
