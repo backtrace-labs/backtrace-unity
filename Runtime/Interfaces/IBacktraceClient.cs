@@ -64,12 +64,12 @@ namespace Backtrace.Unity.Interfaces
         /// <summary>
         /// Enable event aggregation support.
         /// </summary>
-        void EnableMetrics();
+        bool EnableMetrics();
 
         /// <summary>
         /// Enable event aggregation support.
         /// </summary>
-        void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec, string uniqueEventName);
+        bool EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec, string uniqueEventName);
 #endif
     }
 }
