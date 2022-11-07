@@ -242,6 +242,19 @@ namespace Backtrace.Unity.Model
             {
                 stackFrame.FunctionName = frameString;
             }
+
+            if (!string.IsNullOrEmpty(stackFrame.FunctionName))
+            {
+                var libraryNameSeparator = stackFrame.FunctionName.IndexOf(':');
+                if (libraryNameSeparator != -1)
+                {
+                    stackFrame.Library = stackFrame.FunctionName.Substring(0, libraryNameSeparator).Trim();
+                    stackFrame.FunctionName = stackFrame.FunctionName.Substring(++libraryNameSeparator).Trim();
+                } else
+                {
+                    stackFrame.Library = "native";
+                }
+            }
             return stackFrame;
 
         }
@@ -411,6 +424,10 @@ namespace Backtrace.Unity.Model
                     {
                         result.Library = null;
                     }
+                }
+                if (string.IsNullOrEmpty(result.Library))
+                {
+                    result.Library = result.FunctionName.Substring(0, result.FunctionName.LastIndexOf(".", result.FunctionName.IndexOf("(")));
                 }
             }
             return result;
