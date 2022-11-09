@@ -1,6 +1,7 @@
 ﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Backtrace.Unity.Runtime.Native
 {
@@ -20,5 +21,49 @@ namespace Backtrace.Unity.Runtime.Native
             return null;
 #endif
         }
+
+        /// <summary>
+        /// Native client - enabling crash loop detection
+        /// </summary>
+        [DllImport("backtrace-native")]
+        private static extern bool EnableCrashLoopDetection();
+
+        /// <summary>
+        /// Native client - checking if safe mode should be turned on
+        /// </summary>
+        [DllImport("backtrace-native")]
+        private static extern bool IsSafeModeRequired(string database);
+
+        /// <summary>
+        /// Native client - checking consecutive crashes count
+        /// </summary>
+        [DllImport("backtrace-native")]
+        private static extern int ConsecutiveCrashesCount(string database);
+
+        public static bool EnableCrashLoopDetection1()
+        {
+            return EnableCrashLoopDetection();
+        }
+
+        /*
+                    // Performing check if we need to turn safe mode on
+
+            Debug.LogWarning("BTCLD - Enabling");
+            EnableCrashLoopDetection();
+            Debug.LogWarning("BTCLD - Enabled");
+
+            Debug.LogWarning("BTCLD - Checking if Safe Mode is required");
+            if(IsSafeModeRequired("."))
+            {
+                Debug.LogWarning("BTCLD - Safe Mode IS required");
+                return;
+            }
+            int count = ConsecutiveCrashesCount(".");
+            Debug.LogWarning(string.Format("BTCLD - consecutive crashes: {0}", count));
+            Debug.LogWarning("BTCLD - Safe Mode IS NOT required. Turning Backtrace ON");
+
+            // TODO: find correct DB path
+
+        */
     }
 }

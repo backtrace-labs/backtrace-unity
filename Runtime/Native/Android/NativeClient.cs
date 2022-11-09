@@ -34,24 +34,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private static extern bool DisableNativeIntegration();
 
         /// <summary>
-        /// Native client - enabling crash loop detection
-        /// </summary>
-        [DllImport("crashpad_native")]
-        private static extern bool EnableCrashLoopDetection();
-
-        /// <summary>
-        /// Native client - checking if safe mode should be turned on
-        /// </summary>
-        [DllImport("crashpad_native")]
-        private static extern bool IsSafeModeRequired(string database);
-
-        /// <summary>
-        /// Native client - checking consecutive crashes count
-        /// </summary>
-        [DllImport("crashpad_native")]
-        private static extern int ConsecutiveCrashesCount(string database);
-
-        /// <summary>
         /// Native client built-in specific attributes
         /// </summary>
         private readonly Dictionary<string, string> _builtInAttributes = new Dictionary<string, string>();
@@ -140,25 +122,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public string GameObjectName { get; internal set; }
         public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments, string gameObjectName) : base(configuration, breadcrumbs)
         {
-            // Performing check if we need to turn safe mode on
-
-            Debug.LogWarning("BTCLD - Enabling");
-            EnableCrashLoopDetection();
-            Debug.LogWarning("BTCLD - Enabled");
-
-            Debug.LogWarning("BTCLD - Checking if Safe Mode is required");
-            if(IsSafeModeRequired("."))
-            {
-                Debug.LogWarning("BTCLD - Safe Mode IS required");
-                return;
-            }
-            int count = ConsecutiveCrashesCount(".");
-            Debug.LogWarning(string.Format("BTCLD - consecutive crashes: {0}", count));
-            Debug.LogWarning("BTCLD - Safe Mode IS NOT required. Turning Backtrace ON");
-
-            // TODO: find correct DB path
-
-
             GameObjectName = gameObjectName;
             SetDefaultAttributeMaps();
             if (!_enabled)

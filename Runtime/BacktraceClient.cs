@@ -394,6 +394,8 @@ namespace Backtrace.Unity
         /// <returns>Backtrace client</returns>
         public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = DefaultBacktraceGameObjectName)
         {
+            Debug.Log("BTCLD: Testing DEBUG");
+            
             if (string.IsNullOrEmpty(gameObjectName))
             {
                 throw new ArgumentException("Missing game object name");
@@ -564,7 +566,9 @@ namespace Backtrace.Unity
                 {
                     nativeAttachments.Add(breadcrumbsPath);
                 }
+                Debug.Log("BTCLD: NativeClientFactory.CreateNativeClient");
                 _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _breadcrumbs, scopedAttributes, nativeAttachments);
+                Debug.Log("BTCLD: _nativeClient == null: " + (_nativeClient == null ? "true" : "false"));
                 AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
             }
         }
@@ -1321,6 +1325,34 @@ namespace Backtrace.Unity
                 .Where(n => !string.IsNullOrEmpty(n))
                 .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase)
                 .ToList();
+        }
+
+        private static string db_path;
+
+        /// <summary>
+        /// Crash Loop Detector Public API - enabling crash loop detection
+        /// </summary>
+        static public bool EnableCrashLoopDetection(string path)
+        {
+            db_path = path;
+            // return true; 
+            return NativeClientFactory.EnableCrashLoopDetection1();
+        }
+
+        /// <summary>
+        /// Crash Loop Detector Public API - checking if safe mode should be turned on
+        /// </summary>
+        static public bool IsSafeModeRequired()
+        {
+            return false; // NativeClientFactory.IsSafeModeRequired(db_path);
+        }
+
+        /// <summary>
+        /// Crash Loop Detector Public API - checking consecutive crashes count
+        /// </summary>
+        static public int ConsecutiveCrashesCount()
+        {
+            return 0; // NativeClientFactory.ConsecutiveCrashesCount(db_path);
         }
     }
 }
