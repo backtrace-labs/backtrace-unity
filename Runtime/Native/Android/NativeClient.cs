@@ -34,6 +34,24 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private static extern bool DisableNativeIntegration();
 
         /// <summary>
+        /// Native client - enabling crash loop detection
+        /// </summary>
+        [DllImport("crashpad_handler")]
+        public static extern bool EnableCrashLoopDetection();
+
+        /// <summary>
+        /// Native client - checking if safe mode should be turned on
+        /// </summary>
+        [DllImport("crashpad_handler")]
+        public static extern bool IsSafeModeRequired(string database);
+
+        /// <summary>
+        /// Native client - checking consecutive crashes count
+        /// </summary>
+        [DllImport("crashpad_handler")]
+        public static extern int ConsecutiveCrashesCount(string database);
+
+        /// <summary>
         /// Native client built-in specific attributes
         /// </summary>
         private readonly Dictionary<string, string> _builtInAttributes = new Dictionary<string, string>();
