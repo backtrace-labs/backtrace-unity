@@ -8,6 +8,8 @@ Bugfixes
 
 Maintenance
 - Upgraded Android native crash handler.
+- Cleaned up documentation images
+ 
 ## Version 3.7.7
 
 New functionality
