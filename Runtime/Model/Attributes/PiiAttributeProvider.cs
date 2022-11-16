@@ -18,6 +18,7 @@ namespace Backtrace.Unity.Model.Attributes
             if (SystemInfo.deviceModel != SystemInfo.unsupportedIdentifier)
             {
                 attributes["device.model"] = SystemInfo.deviceModel;
+                attributes["device.machine"] = SystemInfo.deviceModel;
                 // This is typically the "name" of the device as it appears on the networks.
                 attributes["device.name"] = SystemInfo.deviceName;
                 attributes["device.type"] = SystemInfo.deviceType.ToString();
