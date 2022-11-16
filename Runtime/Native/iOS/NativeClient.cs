@@ -8,6 +8,7 @@ using System.Threading;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Runtime.Native.Base;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native.iOS
@@ -44,6 +45,8 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         private static bool INITIALIZED = false;
 
+        private readonly string _osVersion;
+
         /// <summary>
         /// Determine if ios integration should be enabled
         /// </summary>
@@ -61,6 +64,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return;
             }
+
             if (_configuration.CaptureNativeCrashes)
             {
                 HandleNativeCrashes(clientAttributes, attachments);
@@ -70,6 +74,10 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 HandleAnr();
             }
+            var osVersionResult = Regex.Match(SystemInfo.operatingSystem, @"\d+(?:\.\d+)+");
+            _osVersion = osVersionResult.Success 
+                ? osVersionResult.Value 
+                : Environment.OSVersion.Version.ToString();
         }
 
 
@@ -110,6 +118,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             {
                 return;
             }
+            result["uname.version"] = _osVersion;
             IntPtr pUnmanagedArray;
             int keysCount;
             GetNativeAttributes(out pUnmanagedArray, out keysCount);

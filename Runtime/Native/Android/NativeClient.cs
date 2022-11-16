@@ -138,7 +138,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 const string deviceManufacturerKey = "device.manufacturer";
                 _builtInAttributes[deviceManufacturerKey] = build.GetStatic<string>("MANUFACTURER").ToString();
             }
-            HandleNativeCrashes(clientAttributes, attachments);
+            // crashpad is available only for API level 21+ 
+            // make sure we don't want ot start crashpad handler 
+            // on the unsupported API
+            int apiLevel = GetAndroidSDKLevel();
+            _builtInAttributes["device.sdk"] = apiLevel.ToString();
+            _builtInAttributes["uname.version"] = GetVersionString(apiLevel);
+
+            HandleNativeCrashes(clientAttributes, attachments, apiLevel);
             if (!configuration.ReportFilterType.HasFlag(Types.ReportFilterType.Hang))
             {
                 HandleAnr();
@@ -225,8 +232,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
-        private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes, IEnumerable<string> attachments)
+        private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes, IEnumerable<string> attachments, int apiLevel)
         {
+            if (apiLevel < 21)
+            {
+                Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
+                return;
+            }
+
             // make sure database is enabled 
             var integrationDisabled =
 #if UNITY_ANDROID
@@ -250,17 +263,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Directory.CreateDirectory(databasePath);
             }
 
-            // crashpad is available only for API level 21+ 
-            // make sure we don't want ot start crashpad handler 
-            // on the unsupported API
-            int apiLevel = GetAndroidSDKLevel();
-            _builtInAttributes["device.sdk"] = apiLevel.ToString();
-            if (apiLevel < 21)
-            {
-                Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
-                return;
-            }
 
+          
             var libDirectory = GetNativeDirectoryPath();
             if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
             {
@@ -521,6 +525,49 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 _unhandledExceptionWatcher = null;
             }
             base.Disable();
+        }
+
+        private string GetVersionString(int sdklevel)
+        {
+            var apiLevelToVersion = new Dictionary<int, string>(){
+                { 0, "N.a." },
+                { 1, "1.0" },
+                { 2, "1.1" },
+                { 3, "1.5" },
+                { 4, "1.6" },
+                { 5, "2.0" },
+                { 6, "2.0.1" },
+                { 7, "2.1" },
+                { 8, "2.2" },
+                { 9, "2.3" },
+                { 10, "2.3.3" },
+                { 11, "3.0" },
+                { 12, "3.1" },
+                { 13, "3.2" },
+                { 14, "4.0" },
+                { 15, "4.0.3" },
+                { 16, "4.1" },
+                { 17, "4.2" },
+                { 18, "4.3" },
+                { 19, "4.4" },
+                { 20, "4.4" },
+                { 21, "5.0" },
+                { 22, "5.1" },
+                { 23, "6.0" },
+                { 24, "7.0" },
+                { 25, "7.1.1" },
+                { 26, "8.0" },
+                { 27, "8" },
+                { 28, "9" },
+                { 29, "10" },
+                { 30, "11" },
+                { 31, "12" },
+                { 32, "12L" },
+                { 33, "13" },
+                { 10000, "Next" },
+            };
+
+            return apiLevelToVersion.GetValueOrDefault(sdklevel, Environment.OSVersion.Version.ToString());
         }
     }
 }
