@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
