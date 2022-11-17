@@ -2,6 +2,7 @@
 using Backtrace.Unity.Model.Breadcrumbs;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native
 {
@@ -34,7 +35,7 @@ namespace Backtrace.Unity.Runtime.Native
         internal static bool IsSafeModeRequired(string databasePath)
         {
 #if UNITY_ANDROID
-            return Android.NativeClient.IsSafeModeRequired(databasePath);
+            return Android.NativeClient.IsSafeModeRequired(AndroidJNI.NewStringUTF(databasePath));
 #else
             return false;
 #endif
@@ -43,7 +44,7 @@ namespace Backtrace.Unity.Runtime.Native
         public static int ConsecutiveCrashesCount(string databasePath)
         {
 #if UNITY_ANDROID
-            return Android.NativeClient.ConsecutiveCrashesCount(databasePath);
+            return Android.NativeClient.ConsecutiveCrashesCount(AndroidJNI.NewStringUTF(databasePath));
 #else
             return 0;
 #endif
