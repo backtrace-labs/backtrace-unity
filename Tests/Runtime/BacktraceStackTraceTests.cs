@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Types;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -516,8 +517,12 @@ namespace Backtrace.Unity.Tests.Runtime
         {
 
             var simpleFunctionName = "GetStacktrace";
-            var functionNameWithWrappedManagedPrefix = "UnityEngine.DebugLogHandler:Internal_Log";
-            var functioNamewithMonoJitCodePrefix = "ServerGameManager:SendInitialiseNetObjectToClient";
+            var libraryNameWithWrappedManagedPrefix = "UnityEngine.DebugLogHandler";
+            var functionNameWithWrappedManagedPrefix = "Internal_Log";
+            var stackFrameWithManagedPrefix = string.Format("{0}:{1}", libraryNameWithWrappedManagedPrefix, functionNameWithWrappedManagedPrefix);
+            var libraryNamewithMonoJitCodePrefix = "ServerGameManager";
+            var functioNamewithMonoJitCodePrefix = "SendInitialiseNetObjectToClient";
+            var stackFrameWithMonoJitCodePrefix = string.Format("{0}:{1}", libraryNamewithMonoJitCodePrefix, functioNamewithMonoJitCodePrefix);
             var jitStackTrace = string.Format(@"#0 {0} (int)
                  #1 DebugStringToFile(DebugStringToFileData const&)
                  #2 DebugLogHandler_CUSTOM_Internal_Log(LogType, LogOption, ScriptingBackendNativeStringPtrOpaque*, ScriptingBackendNativeObjectPtrOpaque*)
@@ -529,7 +534,7 @@ namespace Backtrace.Unity.Tests.Runtime
                  #8  (Mono JIT Code) FG.Common.UnityNetworkMessageHandler:HandleAndFreeInboundGameMessage (FG.Common.MessageEnvelope)
                  #9  (Mono JIT Code) FG.Common.UnityNetworkMessageHandler:PeekAndHandleMessage (UnityEngine.Networking.NetworkMessage,FG.Common.GameConnection)
                  #10  (Mono JIT Code) FG.Common.FG_UnityInternetNetworkManager:ServerHandleMessageReceived (UnityEngine.Networking.NetworkMessage)",
-                 simpleFunctionName, functionNameWithWrappedManagedPrefix, functioNamewithMonoJitCodePrefix);
+                 simpleFunctionName, stackFrameWithManagedPrefix, stackFrameWithMonoJitCodePrefix);
 
 
             var backtraceUnhandledException = new BacktraceUnhandledException("foo", jitStackTrace);
@@ -537,7 +542,56 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(11, backtraceUnhandledException.StackFrames.Count);
             Assert.AreEqual(backtraceUnhandledException.StackFrames[0].FunctionName, simpleFunctionName);
             Assert.AreEqual(backtraceUnhandledException.StackFrames[3].FunctionName, functionNameWithWrappedManagedPrefix);
+            Assert.AreEqual(backtraceUnhandledException.StackFrames[3].Library, libraryNameWithWrappedManagedPrefix);
             Assert.AreEqual(backtraceUnhandledException.StackFrames[4].FunctionName, functioNamewithMonoJitCodePrefix);
+            Assert.AreEqual(backtraceUnhandledException.StackFrames[4].Library, libraryNamewithMonoJitCodePrefix);
+        }
+
+        [Test]
+        public void XboxStackTrace_ShouldIgnoreAndroidFrames_ShouldSetCsharpExtensionCorrectly()
+        {
+
+            var functionName = "Can't delete buffers from graphics jobs";
+            var xboxStackTrace = string.Format(@" {0}
+                    Unity.Entities.ComponentDependencyManager:CompleteReadAndWriteDependencyNoChecks(Int32)
+                    Unity.Entities.ComponentDependencyManager:CompleteDependenciesNoChecks(Int32*, Int32, Int32*, Int32)
+                    Unity.Entities.SystemBase:CompleteDependency()
+                    Unity.Entities.SystemBase:Update()
+                    Unity.Entities.ComponentSystemGroup:UpdateAllSystems()
+                    Unity.Entities.ComponentSystem:Update()",
+                 functionName);
+
+
+            var backtraceUnhandledException = new BacktraceUnhandledException("test message", xboxStackTrace);
+
+            Assert.AreEqual(functionName, backtraceUnhandledException.Message);
+            Assert.AreEqual(6, backtraceUnhandledException.StackFrames.Count);
+            foreach (var frame in backtraceUnhandledException.StackFrames)
+            {
+                Assert.AreEqual(BacktraceStackFrameType.Dotnet, frame.StackFrameType);
+                Assert.IsTrue(frame.FunctionName.StartsWith("Unity.Entities."));
+            }
+        }
+        [Test]
+        public void LibraryName_ShouldCorrectlyFindLibraryNameOnProductionBuild_LibraryNameAvailable()
+        {
+            var defaultLibraryNamespace = "UnitTestLibrary";
+            var additionalLibraryName = "AdditionalLibraryName";
+            var genericLibraryName = "Generic+WithPlus";
+            var stackTrace = string.Format(@"{0}.{1}.get_PlayerResults () (at <00000000000000000000000000000000>:0)
+                {0}.{2}.DoSomething (Session.Parameter session, System.Boolean test) (at <00000000000000000000000000000000>:0)
+                {0}.Generator`2[TOwner,TSignal].ProcessSignal () (at <00000000000000000000000000000000>:0)
+                {0}.OtherGenerator`2[TOwner,TSignal].Update () (at <00000000000000000000000000000000>:0)
+                {0}.State.OnUpdate () (at <00000000000000000000000000000000>:0)
+                {0}.DifferentState.StateUpdate () (at <00000000000000000000000000000000>:0)
+                {0}.State+InnerState_Active.Update (Advanced.Parameter.State state) (at <00000000000000000000000000000000>:0)",
+                defaultLibraryNamespace, additionalLibraryName, genericLibraryName);
+
+            var backtraceUnhandledException = new BacktraceUnhandledException("foo", stackTrace);
+
+            Assert.AreEqual(backtraceUnhandledException.StackFrames[0].Library, string.Format("{0}.{1}", defaultLibraryNamespace, additionalLibraryName));
+            Assert.AreEqual(backtraceUnhandledException.StackFrames[1].Library, string.Format("{0}.{1}", defaultLibraryNamespace, genericLibraryName));
+
         }
 
         internal string ConvertStackTraceToString(List<SampleStackFrame> data)

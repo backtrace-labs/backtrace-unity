@@ -346,7 +346,8 @@ namespace Backtrace.Unity.Model
                 var domainIndex = submissionUrl.IndexOf(backtraceDomain);
                 if (domainIndex == -1)
                 {
-                    throw new ArgumentException("Invalid Backtrace url");
+                    // capture situation when the URL doesn't point to known Backtrace URL
+                    return null;
                 }
 
                 var uri = new UriBuilder(submissionUrl);

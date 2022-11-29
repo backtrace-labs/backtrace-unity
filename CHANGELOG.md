@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.7.8
+
+Bugfixes
+- Fixed a problem with invalid stack frame type.
+- Allow users to use custom Backtrace URls in the configuration.
+
+Maintenance
+- Upgraded Android native crash handler.
+- Cleaned up documentation images
+ 
 ## Version 3.7.7
 
 New functionality
