@@ -1332,26 +1332,26 @@ namespace Backtrace.Unity
         /// <summary>
         /// Crash Loop Detector Public API - enabling crash loop detection
         /// </summary>
-        public static bool EnableCrashLoopDetection(string path)
+        public bool EnableCrashLoopDetection()
         {
-            db_path = path;
+            // db_path = path;
             return NativeClientFactory.EnableCrashLoopDetection();
         }
 
         /// <summary>
         /// Crash Loop Detector Public API - checking if safe mode should be turned on
         /// </summary>
-        public static bool IsSafeModeRequired()
+        public bool IsSafeModeRequired()
         {
-            return NativeClientFactory.IsSafeModeRequired(db_path);
+            return NativeClientFactory.IsSafeModeRequired();
         }
 
         /// <summary>
         /// Crash Loop Detector Public API - checking consecutive crashes count
         /// </summary>
-        public static int ConsecutiveCrashesCount()
+        public int ConsecutiveCrashesCount()
         {
-            return NativeClientFactory.ConsecutiveCrashesCount(db_path);
+            return NativeClientFactory.ConsecutiveCrashesCount();
         }
     }
 }

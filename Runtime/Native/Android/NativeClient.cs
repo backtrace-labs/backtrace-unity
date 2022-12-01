@@ -36,20 +36,20 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Native client - enabling crash loop detection
         /// </summary>
-        [DllImport("backtrace-native")]
+        [DllImport("backtrace-native", EntryPoint = "EnableCrashLoopDetectionBackend")]
         public static extern bool EnableCrashLoopDetection();
 
         /// <summary>
         /// Native client - checking if safe mode should be turned on
         /// </summary>
-        [DllImport("backtrace-native")]
-        public static extern bool IsSafeModeRequired(IntPtr database);
+        [DllImport("backtrace-native", EntryPoint = "IsSafeModeRequiredBackend")]
+        public static extern bool IsSafeModeRequired();
 
         /// <summary>
         /// Native client - checking consecutive crashes count
         /// </summary>
-        [DllImport("backtrace-native")]
-        public static extern int ConsecutiveCrashesCount(IntPtr database);
+        [DllImport("backtrace-native", EntryPoint = "ConsecutiveCrashesCountBackend")]
+        public static extern int ConsecutiveCrashesCount();
 
         /// <summary>
         /// Native client built-in specific attributes

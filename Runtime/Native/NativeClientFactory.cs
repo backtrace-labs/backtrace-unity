@@ -32,19 +32,19 @@ namespace Backtrace.Unity.Runtime.Native
 #endif
         }
 
-        internal static bool IsSafeModeRequired(string databasePath)
+        internal static bool IsSafeModeRequired()
         {
 #if UNITY_ANDROID
-            return Android.NativeClient.IsSafeModeRequired(AndroidJNI.NewStringUTF(databasePath));
+            return Android.NativeClient.IsSafeModeRequired();
 #else
             return false;
 #endif
         }
 
-        public static int ConsecutiveCrashesCount(string databasePath)
+        public static int ConsecutiveCrashesCount()
         {
 #if UNITY_ANDROID
-            return Android.NativeClient.ConsecutiveCrashesCount(AndroidJNI.NewStringUTF(databasePath));
+            return Android.NativeClient.ConsecutiveCrashesCount();
 #else
             return 0;
 #endif
