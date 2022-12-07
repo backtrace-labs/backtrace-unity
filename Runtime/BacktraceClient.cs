@@ -44,6 +44,16 @@ namespace Backtrace.Unity
             }
         }
 
+        private CrashDetector _crashDetector;
+
+        public ICrashDetector CrashDetection
+        {
+            get
+            {
+                return _crashDetector;
+            }
+        }
+
         public bool Enabled { get; private set; }
 
         private AttributeProvider _attributeProvider;
@@ -566,6 +576,7 @@ namespace Backtrace.Unity
                 }
                 _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _breadcrumbs, scopedAttributes, nativeAttachments);
                 AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
+                _crashDetector = new CrashDetector(_nativeClient as INativeCrashDetector);
             }
         }
 
@@ -598,7 +609,7 @@ namespace Backtrace.Unity
         public bool EnableMetrics(string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
         {
             var universeName = Configuration.GetUniverseName();
-            if(string.IsNullOrEmpty(universeName))
+            if (string.IsNullOrEmpty(universeName))
             {
                 Debug.LogWarning("Cannot initialize event aggregation - Unknown Backtrace URL.");
                 return false;
