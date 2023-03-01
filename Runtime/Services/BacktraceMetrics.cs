@@ -233,7 +233,7 @@ namespace Backtrace.Unity.Services
         /// </summary>
         public void SendStartupEvent()
         {
-            _uniqueEventsSubmissionQueue.StartWithEvent(DefaultUniqueAttributeName);
+            _uniqueEventsSubmissionQueue.StartWithEvent(StartupUniqueAttributeName);
             _summedEventsSubmissionQueue.StartWithEvent(StartupEventName);
         }
 
