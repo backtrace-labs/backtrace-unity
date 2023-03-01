@@ -18,11 +18,20 @@ namespace Backtrace.Unity.Runtime.Native.Android
     /// <summary>
     /// Android native client 
     /// </summary>
-    internal sealed class NativeClient : NativeClientBase, INativeClient
+    internal sealed class NativeClient : NativeClientBase, INativeClient, INativeCrashDetector
     {
         private const string CallbackMethodName = "OnAnrDetected";
         [DllImport("backtrace-native")]
         private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding, int unwindingMode);
+
+        [DllImport("backtrace-native")]
+        private static extern bool EnableCrashLoopDetectionBackend();
+
+        [DllImport("backtrace-native")]
+        private static extern bool IsSafeModeRequiredBackend();
+
+        [DllImport("backtrace-native")]
+        private static extern int ConsecutiveCrashesCountBackend();
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
@@ -378,6 +387,21 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
             _unhandledExceptionWatcher.Call("finish");
+        }
+
+        public bool EnableCrashLoopDetection()
+        {
+            return EnableCrashLoopDetectionBackend();
+        }
+
+        public bool IsSafeModeRequired()
+        {
+            return IsSafeModeRequiredBackend();
+        }
+
+        public int ConsecutiveCrashesCount()
+        {
+            return ConsecutiveCrashesCountBackend();
         }
 
         /// <summary>
