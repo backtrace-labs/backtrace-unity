@@ -175,7 +175,7 @@ namespace Backtrace.Unity.Model.Database
                     string.Format("~/.config/unity3d/{0}/{1}/Player.log", Application.companyName, Application.productName);
 #elif UNITY_STANDALONE_OSX
                     string.Format("~/Library/Logs/{0}/{1}/Player.log", Application.companyName, Application.productName);
-#elif UNITY_STANDALONE_WIN
+#elif UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
                     Path.Combine(
                         Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)).FullName,
                         string.Format("LocalLow/{0}/{1}/Player.log", Application.companyName, Application.productName));

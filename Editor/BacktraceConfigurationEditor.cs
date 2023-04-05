@@ -132,12 +132,12 @@ namespace Backtrace.Unity.Editor
                     showNativeCrashesSettings = EditorGUILayout.Foldout(showNativeCrashesSettings, BacktraceConfigurationLabels.LABEL_NATIVE_CRASHES, showNativeCrashesSupportFoldout);
                     if (showNativeCrashesSettings)
                     {
-#if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
                         DrawMultiselectDropdown("MinidumpType", BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT, serializedObject);
 #endif
 
 
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
                         SerializedProperty captureNativeCrashes = serializedObject.FindProperty("CaptureNativeCrashes");
                         EditorGUILayout.PropertyField(
                             captureNativeCrashes,
@@ -189,7 +189,7 @@ namespace Backtrace.Unity.Editor
                         }
                     }
 
-#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
                     EditorGUILayout.PropertyField(
                         serializedObject.FindProperty("AddUnityLogToReport"),
                         new GUIContent(BacktraceConfigurationLabels.LABEL_ADD_UNITY_LOG));

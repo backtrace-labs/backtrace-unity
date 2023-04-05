@@ -10,6 +10,8 @@ namespace Backtrace.Unity.Runtime.Native
         {
 #if UNITY_EDITOR
             return null;
+#elif UNITY_GAMECORE_XBOXSERIES
+            return new XBOX.NativeClient(configuration, breadcrumbs, attributes, attachments);
 #elif UNITY_STANDALONE_WIN
             return new Windows.NativeClient(configuration, breadcrumbs, attributes, attachments);
 #elif UNITY_ANDROID

@@ -20,7 +20,7 @@ namespace Backtrace.Unity.Editor
                 EditorGUILayout.HelpBox("Please insert valid Backtrace database path!", MessageType.Error);
             }
 
-#if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
             settings.MinidumpType = (MiniDumpType)EditorGUILayout.EnumFlagsField(BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT, settings.MinidumpType);
 #else
             settings.MinidumpType = MiniDumpType.None;
