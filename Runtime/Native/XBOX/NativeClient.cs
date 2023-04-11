@@ -40,9 +40,6 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
         );
 
         [DllImport("breakpad_xbox_simplified_abi_mt.dll")]
-        private static extern bool BacktraceBreakpadInitialized();
-
-        [DllImport("breakpad_xbox_simplified_abi_mt.dll")]
         private static extern bool BacktraceInitializeBreakpad();
 
         /// <summary>
@@ -73,7 +70,7 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
         {
             foreach (var attribute in attributes)
             {
-                if (attribute.Key == null || attribute.Value == null)
+                if (string.IsNullOrEmpty(attribute.Key) || attribute.Value == null)
                 {
                     continue;
                 }
@@ -91,35 +88,34 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
             }
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
+            BacktraceSetUrl(minidumpUrl);
+
             foreach (var attachment in attachments)
             {
                 var name = Path.GetFileName(attachment);
                 BacktraceAddFile(name, attachment);
             }
 
-            BacktraceSetUrl(minidumpUrl);
             CaptureNativeCrashes = BacktraceInitializeBreakpad();
 
             if (!CaptureNativeCrashes)
             {
-                Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
+                Debug.LogWarning("Backtrace native integration status: Cannot initialize the Breakpad client");
                 return;
             }
         }
 
         public void GetAttributes(IDictionary<string, string> attributes)
         {
-            throw new NotImplementedException();
         }
 
         public void HandleAnr()
         {
-            throw new NotImplementedException();
         }
 
         public bool OnOOM()
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public void SetAttribute(string key, string value)

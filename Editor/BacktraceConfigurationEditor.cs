@@ -132,7 +132,7 @@ namespace Backtrace.Unity.Editor
                     showNativeCrashesSettings = EditorGUILayout.Foldout(showNativeCrashesSettings, BacktraceConfigurationLabels.LABEL_NATIVE_CRASHES, showNativeCrashesSupportFoldout);
                     if (showNativeCrashesSettings)
                     {
-#if UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
+#if UNITY_STANDALONE_WIN
                         DrawMultiselectDropdown("MinidumpType", BacktraceConfigurationLabels.LABEL_MINIDUMP_SUPPORT, serializedObject);
 #endif
 
