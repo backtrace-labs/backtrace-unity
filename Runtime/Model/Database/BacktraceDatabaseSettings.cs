@@ -114,7 +114,7 @@ namespace Backtrace.Unity.Model.Database
         {
             get
             {
-#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
+#if UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
                 return _configuration.AddUnityLogToReport;
 #else
                 return false;
@@ -135,7 +135,7 @@ namespace Backtrace.Unity.Model.Database
             get
             {
 
-#if UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
+#if UNITY_STANDALONE_WIN
                 return _configuration.MinidumpType;
 #else
                 return MiniDumpType.None;

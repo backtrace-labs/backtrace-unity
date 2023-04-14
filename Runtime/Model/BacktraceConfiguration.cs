@@ -139,11 +139,13 @@ namespace Backtrace.Unity.Model
 #endif
 
         public bool CaptureNativeCrashes = true;
+#if !UNITY_GAMECORE_XBOXSERIES
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
         [Tooltip("Capture ANR events - Application not responding")]
         public bool HandleANR = true;
+#endif
 
         /// <summary>
         /// Anr watchdog timeout in ms. Time needed to detect an ANR event

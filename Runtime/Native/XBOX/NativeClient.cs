@@ -19,28 +19,28 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
 
     internal class NativeClient : NativeClientBase, INativeClient
     {
-        [DllImport("breakpad_xbox_simplified_abi_mt.dll")]
+        [DllImport("backtrace_native_xbox_mt.dll")]
         private static extern bool BacktraceCrash();
 
-        [DllImport("breakpad_xbox_simplified_abi_mt.dll")]
+        [DllImport("backtrace_native_xbox_mt.dll")]
         private static extern bool BacktraceAddAttribute(
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             [MarshalAs(UnmanagedType.LPWStr)] string value
         );
 
-        [DllImport("breakpad_xbox_simplified_abi_mt.dll")]
+        [DllImport("backtrace_native_xbox_mt.dll")]
         private static extern bool BacktraceAddFile(
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             [MarshalAs(UnmanagedType.LPWStr)] string path
         );
 
-        [DllImport("breakpad_xbox_simplified_abi_mt.dll")]
+        [DllImport("backtrace_native_xbox_mt.dll")]
         private static extern bool BacktraceSetUrl(
             [MarshalAs(UnmanagedType.LPWStr)] string url
         );
 
-        [DllImport("breakpad_xbox_simplified_abi_mt.dll")]
-        private static extern bool BacktraceInitializeBreakpad();
+        [DllImport("backtrace_native_xbox_mt.dll")]
+        private static extern bool BacktraceNativeInitialize();
 
         /// <summary>
         /// Determine if the XBOX integration should be enabled
@@ -60,13 +60,36 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
             }
             AddScopedAttributes(clientAttributes);
             HandleNativeCrashes(clientAttributes, attachments);
-            if (!configuration.ReportFilterType.HasFlag(ReportFilterType.Hang))
-            {
-                HandleAnr();
-            }
         }
 
-        internal void AddScopedAttributes(IDictionary<string, string> attributes)
+        public void GetAttributes(IDictionary<string, string> attributes)
+        {
+        }
+
+        public void HandleAnr()
+        {
+        }
+
+        public bool OnOOM()
+        {
+            return false;
+        }
+
+        public void SetAttribute(string key, string value)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+            // avoid null reference in crashpad source code
+            if (value == null)
+            {
+                value = string.Empty;
+            }
+            BacktraceAddAttribute(key, value);
+        }
+
+        private void AddScopedAttributes(IDictionary<string, string> attributes)
         {
             foreach (var attribute in attributes)
             {
@@ -96,40 +119,13 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
                 BacktraceAddFile(name, attachment);
             }
 
-            CaptureNativeCrashes = BacktraceInitializeBreakpad();
+            CaptureNativeCrashes = BacktraceNativeInitialize();
 
             if (!CaptureNativeCrashes)
             {
-                Debug.LogWarning("Backtrace native integration status: Cannot initialize the Breakpad client");
+                Debug.LogWarning("Backtrace native integration status: Cannot initialize the Native Crash Reporting client");
                 return;
             }
-        }
-
-        public void GetAttributes(IDictionary<string, string> attributes)
-        {
-        }
-
-        public void HandleAnr()
-        {
-        }
-
-        public bool OnOOM()
-        {
-            return false;
-        }
-
-        public void SetAttribute(string key, string value)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return;
-            }
-            // avoid null reference in crashpad source code
-            if (value == null)
-            {
-                value = string.Empty;
-            }
-            BacktraceAddAttribute(key, value);
         }
     }
 }
