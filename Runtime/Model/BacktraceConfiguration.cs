@@ -125,13 +125,13 @@ namespace Backtrace.Unity.Model
         [Tooltip("Try to find game native crashes and send them on Game startup")]
         public bool SendUnhandledGameCrashesOnGameStartup = true;
 
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
 #if UNITY_ANDROID
         /// <summary>
         /// Capture native NDK Crashes.
         /// </summary>
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
-#elif UNITY_IOS || UNITY_STANDALONE_WIN
+#elif UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
         /// <summary>
         /// Capture native crashes.
         /// </summary>
@@ -139,11 +139,13 @@ namespace Backtrace.Unity.Model
 #endif
 
         public bool CaptureNativeCrashes = true;
+#if !UNITY_GAMECORE_XBOXSERIES
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
         [Tooltip("Capture ANR events - Application not responding")]
         public bool HandleANR = true;
+#endif
 
         /// <summary>
         /// Anr watchdog timeout in ms. Time needed to detect an ANR event

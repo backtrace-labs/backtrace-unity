@@ -1,4 +1,4 @@
-﻿#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+﻿#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Extensions;

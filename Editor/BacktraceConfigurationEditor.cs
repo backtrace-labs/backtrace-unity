@@ -137,7 +137,7 @@ namespace Backtrace.Unity.Editor
 #endif
 
 
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
                         SerializedProperty captureNativeCrashes = serializedObject.FindProperty("CaptureNativeCrashes");
                         EditorGUILayout.PropertyField(
                             captureNativeCrashes,
@@ -148,10 +148,11 @@ namespace Backtrace.Unity.Editor
                             EditorGUILayout.HelpBox("You're using Backtrace-Unity integration with Unity 16b NDK support. Please contact Backtrace support for any additional help", MessageType.Warning);
                         }
 #endif
-
+#if !UNITY_GAMECORE_XBOXSERIES
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("HandleANR"),
                              new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
+#endif
 #if UNITY_ANDROID || UNITY_IOS
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("OomReports"),

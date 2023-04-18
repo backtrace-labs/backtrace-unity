@@ -1,6 +1,8 @@
 ﻿using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Backtrace.Unity.Runtime.Native
 {
@@ -8,8 +10,12 @@ namespace Backtrace.Unity.Runtime.Native
     {
         internal static INativeClient CreateNativeClient(BacktraceConfiguration configuration, string gameObjectName, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> attributes, ICollection<string> attachments)
         {
+            try
+            {
 #if UNITY_EDITOR
-            return null;
+                return null;
+#elif UNITY_GAMECORE_XBOXSERIES
+            return new XBOX.NativeClient(configuration, breadcrumbs, attributes, attachments);
 #elif UNITY_STANDALONE_WIN
             return new Windows.NativeClient(configuration, breadcrumbs, attributes, attachments);
 #elif UNITY_ANDROID
@@ -19,6 +25,12 @@ namespace Backtrace.Unity.Runtime.Native
 #else
             return null;
 #endif
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Cannot startup the native client. Reason: {0}", e.Message));
+                return null;
+            }
         }
     }
 }
