@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 3.8.1
+
+Bugfixes
+- Fixed an issue with passing non-ASCII characters to the native crash handler on Windows.
+
 ## Version 3.8.0
 
 New functionality
