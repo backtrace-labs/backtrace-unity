@@ -6,31 +6,22 @@ PluginImporter:
   iconMap: {}
   executionOrder: {}
   defineConstraints: []
-  isPreloaded: 1
+  isPreloaded: 0
   isOverridable: 0
   isExplicitlyReferenced: 0
   validateReferences: 1
   platformData:
   - first:
-     '': Any
+      Any: 
     second:
-      enabled: 0
-      settings:
-        Exclude Win64: 0
+      enabled: 1
+      settings: {}
   - first:
       Editor: Editor
     second:
       enabled: 0
       settings:
-        CPU: x86_64
         DefaultValueInitialized: true
-        OS: AnyOS
-  - first:
-      Standalone: Win64
-    second:
-      enabled: 1
-      settings:
-        CPU: x86_64
   userData: 
   assetBundleName: 
   assetBundleVariant: 

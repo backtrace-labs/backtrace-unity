@@ -55,7 +55,12 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
 
         [DllImport("BacktraceCrashpadWindows", EntryPoint = "Initialize")]
-        private static extern bool Initialize(string submissionUrl, string databasePath, string handlerPath, string[] attachments, int attachmentSize);
+        private static extern bool Initialize(
+            string submissionUrl,
+            [MarshalAs(UnmanagedType.LPWStr)] string databasePath,
+            [MarshalAs(UnmanagedType.LPWStr)] string handlerPath,
+            string[] attachments,
+            int attachmentSize);
 
         [DllImport("BacktraceCrashpadWindows", EntryPoint = "AddAttribute")]
         private static extern bool AddNativeAttribute(string key, string value);
@@ -135,13 +140,13 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 AddNativeAttribute(attribute.Key, attribute.Value == null ? string.Empty : attribute.Value);
             }
 
-            // add exception type to crashes handled by crashpad - all exception handled by crashpad 
+            // add exception type to crashes handled by crashpad - all exception handled by crashpad
             // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
             // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
 
-            // warning 
-            // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from 
-            // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
+            // warning
+            // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from
+            // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type
             // attribute via attributes parameters.
             AddNativeAttribute(ErrorTypeAttribute, CrashType);
         }
@@ -195,7 +200,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                                 AddNativeAttribute(ErrorTypeAttribute, HangType);
 
                                 NativeReport(AnrMessage, true);
-                                // update error.type attribute in case when crash happen 
+                                // update error.type attribute in case when crash happen
                                 AddNativeAttribute(ErrorTypeAttribute, HangType);
                             }
                         }
@@ -313,7 +318,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         /// </summary>
         internal static void CleanScopedAttributes()
         {
-            // cleaning scoped attributes should be skipped when 
+            // cleaning scoped attributes should be skipped when
             // Configuration.SendUnhandledGameCrashesOnGameStartup  is set to false
             // the reason behind this decision is to make sure user change in the configuration
             // won't leave any useless data
