@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.8.0";
+        public const string VERSION = "3.8.1";
         internal const string DefaultBacktraceGameObjectName = "BacktraceClient";
         public BacktraceConfiguration Configuration;
 
@@ -598,7 +598,7 @@ namespace Backtrace.Unity
         public bool EnableMetrics(string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
         {
             var universeName = Configuration.GetUniverseName();
-            if(string.IsNullOrEmpty(universeName))
+            if (string.IsNullOrEmpty(universeName))
             {
                 Debug.LogWarning("Cannot initialize event aggregation - Unknown Backtrace URL.");
                 return false;
