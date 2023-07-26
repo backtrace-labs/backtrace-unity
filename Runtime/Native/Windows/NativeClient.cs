@@ -250,13 +250,24 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         public IEnumerator SendMinidumpOnStartup(ICollection<string> clientAttachments, IBacktraceApi backtraceApi)
         {
             // Path to the native crash directory
-            string nativeCrashesDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    string.Format("Temp/{0}/{1}/crashes", Application.companyName, Application.productName));
+            string tmpDir = string.Format("Temp/{0}/{1}/crashes", Application.companyName, Application.productName);
+            string sdeckCrashPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), tmpDir);
+            string windowsCrashPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), tmpDir);
 
-            if (string.IsNullOrEmpty(nativeCrashesDir) || !Directory.Exists(nativeCrashesDir))
+            string nativeCrashesDir;
+            if (string.IsNullOrEmpty(windowsCrashPath) || !Directory.Exists(windowsCrashPath))
             {
-                yield break;
+                if (string.IsNullOrEmpty(sdeckCrashPath) || !Directory.Exists(sdeckCrashPath))
+                {
+                    yield break;
+                } 
+                else
+                {
+                    nativeCrashesDir = sdeckCrashPath;
+                }
+            } else
+            {
+                nativeCrashesDir = windowsCrashPath;
             }
 
             var attachments = clientAttachments == null
