@@ -249,61 +249,67 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         /// </summary>
         public IEnumerator SendMinidumpOnStartup(ICollection<string> clientAttachments, IBacktraceApi backtraceApi)
         {
-            // Path to the native crash directory
-            string tmpDir = string.Format("Temp/{0}/{1}/crashes", Application.companyName, Application.productName);
-            string sdeckCrashPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), tmpDir);
-            string windowsCrashPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), tmpDir);
-
-            string nativeCrashesDir;
-            if (string.IsNullOrEmpty(windowsCrashPath) || !Directory.Exists(windowsCrashPath))
+            // Path to the native crash directories
+            string tempDirectory = string.Format("Temp/{0}/{1}/crashes", Application.companyName, Application.productName);
+            string[] crashDirectories = new string[2] {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), tempDirectory),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), tempDirectory)
+            };
+              
+            List<string> nativeCrashesDirs = new List<string>();
+            foreach (string direcotry in crashDirectories)
             {
-                if (string.IsNullOrEmpty(sdeckCrashPath) || !Directory.Exists(sdeckCrashPath))
+                if (!Directory.Exists(direcotry))
                 {
-                    yield break;
-                } 
-                else
-                {
-                    nativeCrashesDir = sdeckCrashPath;
+                    continue;
                 }
-            } else
-            {
-                nativeCrashesDir = windowsCrashPath;
+                nativeCrashesDirs.Add(direcotry);
             }
 
-            var attachments = clientAttachments == null
-                ? new List<string>()
-                : new List<string>(clientAttachments);
-
-            var crashDirs = Directory.GetDirectories(nativeCrashesDir);
+            if (nativeCrashesDirs.Count == 0)
+            {
+                yield break;
+            }
 
             IDictionary<string, string> attributes = GetScopedAttributes();
+
             // be sure that error.type attribute provided by default by our library
             // is always present in native attributes.
             attributes[ErrorTypeAttribute] = CrashType;
 
-            foreach (var crashDir in crashDirs)
+            foreach (var nativeCrashesDir in nativeCrashesDirs)
             {
-                var crashDirFullPath = Path.Combine(nativeCrashesDir, crashDir);
-                var crashFiles = Directory.GetFiles(crashDirFullPath);
 
-                var alreadyUploaded = crashFiles.Any(n => n.EndsWith("backtrace.json"));
-                if (alreadyUploaded)
+                var attachments = clientAttachments == null
+                    ? new List<string>()
+                    : new List<string>(clientAttachments);
+
+                var crashDirs = Directory.GetDirectories(nativeCrashesDir);
+
+                foreach (var crashDir in crashDirs)
                 {
-                    continue;
-                }
-                var minidumpPath = crashFiles.FirstOrDefault(n => n.EndsWith("crash.dmp"));
-                if (string.IsNullOrEmpty(minidumpPath))
-                {
-                    continue;
-                }
-                var dumpAttachment = crashFiles.Concat(attachments).Where(n => n != minidumpPath).ToList();
-                yield return backtraceApi.SendMinidump(minidumpPath, dumpAttachment, attributes, (BacktraceResult result) =>
-                {
-                    if (result != null && result.Status == BacktraceResultStatus.Ok)
+                    var crashDirFullPath = Path.Combine(nativeCrashesDir, crashDir);
+                    var crashFiles = Directory.GetFiles(crashDirFullPath);
+
+                    var alreadyUploaded = crashFiles.Any(n => n.EndsWith("backtrace.json"));
+                    if (alreadyUploaded)
                     {
-                        File.Create(Path.Combine(crashDirFullPath, "backtrace.json"));
+                        continue;
                     }
-                });
+                    var minidumpPath = crashFiles.FirstOrDefault(n => n.EndsWith("crash.dmp"));
+                    if (string.IsNullOrEmpty(minidumpPath))
+                    {
+                        continue;
+                    }
+                    var dumpAttachment = crashFiles.Concat(attachments).Where(n => n != minidumpPath).ToList();
+                    yield return backtraceApi.SendMinidump(minidumpPath, dumpAttachment, attributes, (BacktraceResult result) =>
+                    {
+                        if (result != null && result.Status == BacktraceResultStatus.Ok)
+                        {
+                            File.Create(Path.Combine(crashDirFullPath, "backtrace.json"));
+                        }
+                    });
+                }
             }
         }
 
