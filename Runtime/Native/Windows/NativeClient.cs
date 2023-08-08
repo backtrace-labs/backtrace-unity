@@ -271,7 +271,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 yield break;
             }
 
-            IDictionary<string, string> attributes = GetScopedAttributes();
+            var attributes = GetScopedAttributes();
 
             // be sure that error.type attribute provided by default by our library
             // is always present in native attributes.
