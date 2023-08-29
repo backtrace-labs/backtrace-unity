@@ -381,11 +381,11 @@ namespace Backtrace.Unity
 
             //add built-in attachments
             var attachments = BacktraceDatabaseFileContext.GenerateRecordAttachments(data);
-            foreach (var attachment in attachments)
+            for (int attachmentIndex = 0; attachmentIndex < attachments.Count(); attachmentIndex++)
             {
-                if (!string.IsNullOrEmpty(attachment))
+                if (!string.IsNullOrEmpty(attachments.ElementAt(attachmentIndex)))
                 {
-                    data.Attachments.Add(attachment);
+                    data.Attachments.Add(attachments.ElementAt(attachmentIndex));
                 }
             }
             // add to fresh new record breadcrumb attachment
