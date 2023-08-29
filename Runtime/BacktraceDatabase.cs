@@ -381,11 +381,11 @@ namespace Backtrace.Unity
 
             //add built-in attachments
             var attachments = BacktraceDatabaseFileContext.GenerateRecordAttachments(data);
-            for (int attachmentIndex = 0; attachmentIndex < attachments.Count(); attachmentIndex++)
+            foreach (var attachment in attachments)
             {
-                if (!string.IsNullOrEmpty(attachments.ElementAt(attachmentIndex)))
+                if (!string.IsNullOrEmpty(attachment))
                 {
-                    data.Attachments.Add(attachments.ElementAt(attachmentIndex));
+                    data.Attachments.Add(attachment);
                 }
             }
             // add to fresh new record breadcrumb attachment
@@ -495,8 +495,8 @@ namespace Backtrace.Unity
                 return;
             }
             var stopWatch = Configuration.PerformanceStatistics
-                ? new System.Diagnostics.Stopwatch()
-                : System.Diagnostics.Stopwatch.StartNew();
+                ? System.Diagnostics.Stopwatch.StartNew()
+                : null;
 
             var backtraceData = record.BacktraceDataJson();
             Delete(record);
@@ -530,7 +530,7 @@ namespace Backtrace.Unity
             }
             var stopWatch = Configuration.PerformanceStatistics
                ? System.Diagnostics.Stopwatch.StartNew()
-               : new System.Diagnostics.Stopwatch();
+               : null;
 
             var backtraceData = record != null ? record.BacktraceDataJson() : null;
             //check if report exists on hard drive 
