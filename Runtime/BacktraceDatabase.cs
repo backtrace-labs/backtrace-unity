@@ -495,8 +495,8 @@ namespace Backtrace.Unity
                 return;
             }
             var stopWatch = Configuration.PerformanceStatistics
-                ? new System.Diagnostics.Stopwatch()
-                : System.Diagnostics.Stopwatch.StartNew();
+                ? System.Diagnostics.Stopwatch.StartNew()
+                : null;
 
             var backtraceData = record.BacktraceDataJson();
             Delete(record);
@@ -530,7 +530,7 @@ namespace Backtrace.Unity
             }
             var stopWatch = Configuration.PerformanceStatistics
                ? System.Diagnostics.Stopwatch.StartNew()
-               : new System.Diagnostics.Stopwatch();
+               : null;
 
             var backtraceData = record != null ? record.BacktraceDataJson() : null;
             //check if report exists on hard drive 
