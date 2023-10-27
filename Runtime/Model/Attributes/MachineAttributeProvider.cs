@@ -72,6 +72,11 @@ namespace Backtrace.Unity.Model.Attributes
                 attributes["vm.rss.size"] = (SystemInfo.systemMemorySize * 1048576L).ToString(CultureInfo.InvariantCulture);
             }
 #endif
+
+
+#if UNITY_IOS
+            attributes["uname.version"] = UnityEngine.iOS.Device.systemVersion;
+#endif
         }
         private void IncludeGraphicCardInformation(IDictionary<string, string> attributes)
         {
