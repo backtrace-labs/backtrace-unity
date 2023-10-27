@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 3.8.2
+
+Bugfixes
+- Fixed a duplicate identifier issue available in the generated xcode project.
+
 ## Version 3.8.1
 
 Bugfixes
