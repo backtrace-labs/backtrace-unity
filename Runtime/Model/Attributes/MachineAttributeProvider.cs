@@ -65,6 +65,7 @@ namespace Backtrace.Unity.Model.Attributes
                 attributes["device.sdk"] = version.GetStatic<int>("SDK_INT").ToString();
                 attributes["uname.version"] = version.GetStatic<string>("RELEASE").ToString();
             }
+            attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #else
             if (SystemInfo.systemMemorySize != 0)
             {
@@ -76,6 +77,7 @@ namespace Backtrace.Unity.Model.Attributes
 
 #if UNITY_IOS
             attributes["uname.version"] = UnityEngine.iOS.Device.systemVersion;
+            attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #endif
         }
         private void IncludeGraphicCardInformation(IDictionary<string, string> attributes)
