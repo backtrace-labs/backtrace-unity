@@ -32,7 +32,6 @@ namespace Backtrace.Unity.Model.Attributes
             //Operating system name = such as "windows"
             attributes["uname.sysname"] = SystemHelper.Name();
 
-            //The version of the operating system
             attributes["uname.version"] = Environment.OSVersion.Version.ToString();
             attributes["uname.fullname"] = SystemInfo.operatingSystem;
             attributes["uname.family"] = SystemInfo.operatingSystemFamily.ToString();
@@ -52,7 +51,21 @@ namespace Backtrace.Unity.Model.Attributes
 
             //The hostname of the crashing system.
             attributes["hostname"] = Environment.MachineName;
-#if !UNITY_ANDROID
+#if UNITY_ANDROID
+
+            using (var build = new AndroidJavaClass("android.os.Build"))
+            {
+                attributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
+                attributes["device.brand"] = build.GetStatic<string>("BRAND").ToString();
+                attributes["device.product"] = build.GetStatic<string>("PRODUCT").ToString();
+            }
+
+            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            {
+                attributes["device.sdk"] = version.GetStatic<int>("SDK_INT").ToString();
+                attributes["uname.version"] = version.GetStatic<string>("RELEASE").ToString();
+            }
+#else
             if (SystemInfo.systemMemorySize != 0)
             {
                 //number of kilobytes that application is using.
