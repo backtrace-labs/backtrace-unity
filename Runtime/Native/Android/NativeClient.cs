@@ -34,11 +34,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private static extern bool DisableNativeIntegration();
 
         /// <summary>
-        /// Native client built-in specific attributes
-        /// </summary>
-        private readonly Dictionary<string, string> _builtInAttributes = new Dictionary<string, string>();
-
-        /// <summary>
         /// Attribute maps - list of attribute maps that allows Backtrace-Unity to rename attributes 
         /// grabbed from android specific directories
         /// </summary>
@@ -132,12 +127,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
 #endif
             HandlerANR = _configuration.HandleANR;
-            // read device manufacturer
-            using (var build = new AndroidJavaClass("android.os.Build"))
-            {
-                const string deviceManufacturerKey = "device.manufacturer";
-                _builtInAttributes[deviceManufacturerKey] = build.GetStatic<string>("MANUFACTURER").ToString();
-            }
             HandleNativeCrashes(clientAttributes, attachments);
             if (!configuration.ReportFilterType.HasFlag(Types.ReportFilterType.Hang))
             {
@@ -250,18 +239,20 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Directory.CreateDirectory(databasePath);
             }
 
+            var apiLevelString = backtraceAttributes["device.sdk"];
+            int apiLevel;
+            if (apiLevelString == null || !int.TryParse(apiLevelString, out apiLevel))
+            {
+                return;
+            }
+
             // crashpad is available only for API level 21+ 
             // make sure we don't want ot start crashpad handler 
             // on the unsupported API
-            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            if (apiLevel < 21)
             {
-                int apiLevel = version.GetStatic<int>("SDK_INT");
-                _builtInAttributes["device.sdk"] = apiLevel.ToString();
-                if (apiLevel < 21)
-                {
-                    Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
-                    return;
-                }
+                Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
+                return;
             }
 
             var libDirectory = GetNativeDirectoryPath();
@@ -305,12 +296,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
 
-            // add native client built-in attributes
-            foreach (var attribute in _builtInAttributes)
-            {
-                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
-            }
-
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
             // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
             // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
@@ -333,11 +318,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (!_enabled)
             {
                 return;
-            }
-            // rewrite built in attributes to report attributes
-            foreach (var builtInAttribute in _builtInAttributes)
-            {
-                result[builtInAttribute.Key] = builtInAttribute.Value;
             }
 
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
