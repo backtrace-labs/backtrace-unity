@@ -140,10 +140,10 @@ namespace Backtrace.Unity.Model
             var jObject = new BacktraceJObject(new Dictionary<string, string>()
             {
                 { "uuid", UuidString },
-                {"lang",  Lang },
-                {"langVersion", LangVersion },
-                {"agent",  Agent},
-                {"agentVersion", AgentVersion },
+                { "lang",  Lang },
+                { "langVersion", LangVersion },
+                { "agent",  Agent},
+                { "agentVersion", AgentVersion },
                 { "mainThread", MainThread},
             });
             jObject.Add("timestamp", Timestamp);
