@@ -5,6 +5,9 @@
 Bugfixes
 - Fixed a duplicate identifier issue available in the generated xcode project.
 
+New functionality
+- Added support for uploading Android symbols files on OSes other than Windows.
+
 ## Version 3.8.1
 
 Bugfixes
