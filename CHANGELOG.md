@@ -4,9 +4,11 @@
 
 Bugfixes
 - Fixed a duplicate identifier issue available in the generated xcode project.
+- Normalized system attributes on iOS and Android
 
 New functionality
 - Added support for uploading Android symbols files on OSes other than Windows.
+- SteamDeck support
 
 ## Version 3.8.1
 
