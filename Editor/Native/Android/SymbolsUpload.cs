@@ -93,7 +93,21 @@ namespace Backtrace.Unity.Editor.Build
 
             try
             {
+#if !(NET_STANDARD_2_0 && NET_4_6)
+                var unpackProcess = new System.Diagnostics.Process()
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                        FileName = "tar",
+                        Arguments = string.Format("-C {0} -xf {1}", symbolsTmpDir, symbolsArchive)
+                    }
+                };
+                unpackProcess.Start();
+                unpackProcess.WaitForExit();
+#else
                 System.IO.Compression.ZipFile.ExtractToDirectory(symbolsArchive, symbolsTmpDir);
+#endif
                 var files = Directory.GetFiles(symbolsTmpDir, "*.sym.so", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
@@ -101,7 +115,21 @@ namespace Backtrace.Unity.Editor.Build
                     File.Move(file, newName);
                 }
                 var backtraceSymbols = Path.Combine(Path.GetTempPath(), string.Format("backtrace-{0}-symbols.zip", Guid.NewGuid().ToString()));
+#if !(NET_STANDARD_2_0 && NET_4_6)
+                var zipProcess = new System.Diagnostics.Process()
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                        FileName = "tar",
+                        Arguments = string.Format("-czvf {0} {1}", backtraceSymbols, symbolsTmpDir)
+                    }
+                };
+                zipProcess.Start();
+                zipProcess.WaitForExit();
+#else
                 System.IO.Compression.ZipFile.CreateFromDirectory(symbolsTmpDir, backtraceSymbols);
+#endif
                 return backtraceSymbols;
             }
             catch (Exception e)
