@@ -93,17 +93,22 @@ namespace Backtrace.Unity.Editor.Build
 
             try
             {
+
+#if NET_UNITY_4_8 || NET_STANDARD_2_0
+                System.IO.Compression.ZipFile.ExtractToDirectory(symbolsArchive, symbolsTmpDir);
+#else
                 var unpackProcess = new System.Diagnostics.Process()
-                {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo
                     {
-                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
-                        FileName = "tar",
-                        Arguments = string.Format("-C {0} -xf {1}", symbolsTmpDir, symbolsArchive)
-                    }
-                };
+                        StartInfo = new System.Diagnostics.ProcessStartInfo
+                        {
+                            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                            FileName = "tar",
+                            Arguments = string.Format("-C {0} -xf {1}", symbolsTmpDir, symbolsArchive)
+                        }
+                    };
                 unpackProcess.Start();
                 unpackProcess.WaitForExit();
+#endif
                 var files = Directory.GetFiles(symbolsTmpDir, "*.sym.so", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
@@ -111,7 +116,9 @@ namespace Backtrace.Unity.Editor.Build
                     File.Move(file, newName);
                 }
                 var backtraceSymbols = Path.Combine(Path.GetTempPath(), string.Format("backtrace-{0}-symbols.zip", Guid.NewGuid().ToString()));
-
+#if NET_UNITY_4_8 || NET_STANDARD_2_0
+                System.IO.Compression.ZipFile.CreateFromDirectory(symbolsTmpDir, backtraceSymbols);
+#else
                 var zipProcess = new System.Diagnostics.Process()
                 {
                     StartInfo = new System.Diagnostics.ProcessStartInfo
@@ -123,6 +130,7 @@ namespace Backtrace.Unity.Editor.Build
                 };
                 zipProcess.Start();
                 zipProcess.WaitForExit();
+#endif
                 return backtraceSymbols;
             }
             catch (Exception e)
