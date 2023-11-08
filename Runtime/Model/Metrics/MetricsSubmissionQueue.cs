@@ -138,13 +138,17 @@ namespace Backtrace.Unity.Model.Metrics
 
         public void SendPendingEvents(float time)
         {
-            for (int index = 0; index < _submissionJobs.Count; index++)
+            for (int index = 0; index < _submissionJobs.Count; )
             {
                 var submissionJob = _submissionJobs.ElementAt(index);
                 if (submissionJob.NextInvokeTime < time)
                 {
                     SendPayload(submissionJob.Events, submissionJob.NumberOfAttempts);
                     _submissionJobs.RemoveAt(index);
+                }
+                else
+                {
+                   index++;
                 }
             }
         }
