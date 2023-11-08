@@ -116,8 +116,11 @@ namespace Backtrace.Unity.Model.Metrics
                 {
                     OnRequestCompleted();
                 }
-                else if (statusCode > 501 && statusCode != 505)
+                else if (httpError == true || (statusCode > 501 && statusCode != 505))
                 {
+                    // Failed to communicate with server or received a 5xx response code. Retry
+                    // again at a later time, up to the configured number of maximum attempts.
+                    //
                     _numberOfDroppedRequests++;
                     if (attempts + 1 == BacktraceMetrics.MaxNumberOfAttempts)
                     {
