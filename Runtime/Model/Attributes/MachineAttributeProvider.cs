@@ -51,7 +51,7 @@ namespace Backtrace.Unity.Model.Attributes
 
             //The hostname of the crashing system.
             attributes["hostname"] = Environment.MachineName;
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
 
             using (var build = new AndroidJavaClass("android.os.Build"))
             {
@@ -75,7 +75,7 @@ namespace Backtrace.Unity.Model.Attributes
 #endif
 
 
-#if UNITY_IOS
+#if UNITY_IOS && !UNITY_EDITOR
             attributes["uname.version"] = UnityEngine.iOS.Device.systemVersion;
             attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #endif
