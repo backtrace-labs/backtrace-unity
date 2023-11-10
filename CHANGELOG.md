@@ -1,5 +1,11 @@
 # Backtrace Unity Release Notes
 
+## Version 3.8.3
+
+Bugfixes
+- Fixed android/ios specific code usage on Editor,
+- improved metrics management
+
 ## Version 3.8.2
 
 Bugfixes

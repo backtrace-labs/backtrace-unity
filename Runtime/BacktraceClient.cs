@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.8.2";
+        public const string VERSION = "3.8.3";
         internal const string DefaultBacktraceGameObjectName = "BacktraceClient";
         public BacktraceConfiguration Configuration;
 
@@ -616,7 +616,7 @@ namespace Backtrace.Unity
         {
             if (_metrics != null)
             {
-                Debug.LogWarning("Backtrace metrics support is enabled. Please use BacktraceClient.Metrics.");
+                Debug.LogWarning("Backtrace metrics support is already enabled. Please use BacktraceClient.Metrics.");
                 return false;
             }
             _metrics = new BacktraceMetrics(
