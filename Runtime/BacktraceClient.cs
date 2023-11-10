@@ -616,7 +616,7 @@ namespace Backtrace.Unity
         {
             if (_metrics != null)
             {
-                Debug.LogWarning("Backtrace metrics support is enabled. Please use BacktraceClient.Metrics.");
+                Debug.LogWarning("Backtrace metrics support is already enabled. Please use BacktraceClient.Metrics.");
                 return false;
             }
             _metrics = new BacktraceMetrics(
