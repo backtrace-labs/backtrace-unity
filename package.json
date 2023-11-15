@@ -20,5 +20,8 @@
     "url": "https://backtrace.io/"
   },
   "category": "Editor plugin + Script plugin",
-  "type": "library"
+  "type": "library",
+  "dependencies": {
+    "com.unity.modules.screencapture": "1.0.0"
+  }
 }
