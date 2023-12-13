@@ -19,28 +19,23 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
 
     internal class NativeClient : NativeClientBase, INativeClient
     {
-        [DllImport("backtrace_native_xbox_mt.dll")]
-        private static extern bool BacktraceCrash();
-
-        [DllImport("backtrace_native_xbox_mt.dll")]
+        [DllImport("backtrace_native_xbox.dll")]
         private static extern bool BacktraceAddAttribute(
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             [MarshalAs(UnmanagedType.LPWStr)] string value
         );
 
-        [DllImport("backtrace_native_xbox_mt.dll")]
+        [DllImport("backtrace_native_xbox.dll")]
         private static extern bool BacktraceAddFile(
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             [MarshalAs(UnmanagedType.LPWStr)] string path
         );
 
-        [DllImport("backtrace_native_xbox_mt.dll")]
-        private static extern bool BacktraceSetUrl(
-            [MarshalAs(UnmanagedType.LPWStr)] string url
+        [DllImport("backtrace_native_xbox.dll")]
+        private static extern bool BacktraceNativeXboxInit(
+            [MarshalAs(UnmanagedType.LPWStr)] string url,
+            [MarshalAs(UnmanagedType.LPWStr)] string dump_path
         );
-
-        [DllImport("backtrace_native_xbox_mt.dll")]
-        private static extern bool BacktraceNativeInitialize();
 
         /// <summary>
         /// Determine if the XBOX integration should be enabled
@@ -111,7 +106,7 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
             }
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-            BacktraceSetUrl(minidumpUrl);
+            var dumpPath = _configuration.GetFullDatabasePath();
 
             foreach (var attachment in attachments)
             {
@@ -119,7 +114,7 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
                 BacktraceAddFile(name, attachment);
             }
 
-            CaptureNativeCrashes = BacktraceNativeInitialize();
+            CaptureNativeCrashes = BacktraceNativeXboxInit(minidumpUrl, dumpPath);
 
             if (!CaptureNativeCrashes)
             {
