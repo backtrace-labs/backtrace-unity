@@ -108,6 +108,11 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
             var dumpPath = _configuration.GetFullDatabasePath();
 
+            if (string.IsNullOrEmpty(dumpPath) || !Directory.Exists(dumpPath))
+            {
+                Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
+                return;
+            }
             CaptureNativeCrashes = BacktraceNativeXboxInit(minidumpUrl, dumpPath);
 
             if (!CaptureNativeCrashes)
