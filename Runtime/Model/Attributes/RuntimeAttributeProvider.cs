@@ -13,6 +13,7 @@ namespace Backtrace.Unity.Model.Attributes
                 return;
             }
 
+            attributes["backtrace.agent"] = "backtrace-unity";
             attributes["backtrace.version"] = BacktraceClient.VERSION;
             attributes["api.compatibility"] = GetApiCompatibility();
             attributes["scripting.backend"] = GetScriptingBackend();
@@ -24,8 +25,8 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["application.id"] = Application.identifier;
             attributes["application.package"] = Application.identifier;
             attributes["application.installer.name"] = Application.installerName;
-            attributes["application.editor"] = Application.isEditor.ToString(CultureInfo.InvariantCulture);            
-            attributes["application.mobile"] = Application.isMobilePlatform.ToString(CultureInfo.InvariantCulture);            
+            attributes["application.editor"] = Application.isEditor.ToString(CultureInfo.InvariantCulture);
+            attributes["application.mobile"] = Application.isMobilePlatform.ToString(CultureInfo.InvariantCulture);
             attributes["application.sandboxType"] = Application.sandboxType.ToString();
             attributes["application.system.language"] = Application.systemLanguage.ToString();
             attributes["application.unity.version"] = Application.unityVersion;

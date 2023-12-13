@@ -53,8 +53,8 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
             {
                 return;
             }
+            HandleNativeCrashes(attachments);
             AddScopedAttributes(clientAttributes);
-            HandleNativeCrashes(clientAttributes, attachments);
         }
 
         public void GetAttributes(IDictionary<string, string> attributes)
@@ -86,18 +86,18 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
 
         private void AddScopedAttributes(IDictionary<string, string> attributes)
         {
+            if (!CaptureNativeCrashes)
+            {
+                return;
+            }
+
             foreach (var attribute in attributes)
             {
-                if (string.IsNullOrEmpty(attribute.Key) || attribute.Value == null)
-                {
-                    continue;
-                }
-
-                BacktraceAddAttribute(attribute.Key, attribute.Value);
+                SetAttribute(attribute.Key, attribute.Value);
             }
         }
 
-        private void HandleNativeCrashes(IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
+        private void HandleNativeCrashes(IEnumerable<string> attachments)
         {
             var integrationDisabled = !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
             if (integrationDisabled)
@@ -108,18 +108,19 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
             var dumpPath = _configuration.GetFullDatabasePath();
 
-            foreach (var attachment in attachments)
-            {
-                var name = Path.GetFileName(attachment);
-                BacktraceAddFile(name, attachment);
-            }
-
             CaptureNativeCrashes = BacktraceNativeXboxInit(minidumpUrl, dumpPath);
 
             if (!CaptureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize the Native Crash Reporting client");
                 return;
+            }
+
+            BacktraceAddAttribute(ErrorTypeAttribute, CrashType);
+
+            foreach (var attachment in attachments)
+            {
+                BacktraceAddFile(Path.GetFileName(attachment), attachment);
             }
         }
     }
