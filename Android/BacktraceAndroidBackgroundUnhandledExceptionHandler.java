@@ -48,14 +48,10 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
             finish();
             return;
         }
-        if (throwable instanceof Exception) {
-            String throwableType = throwable.getClass().getName();
-            Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + throwableType + ". Reporting to Backtrace");
-            ReportThreadException(throwableType + " : " + throwable.getMessage(), stackTraceToString(throwable.getStackTrace()));
-        } else {
-            Log.d(LOG_TAG, "Detected android crash. Using native crash reporter to report an error.");
-            finish();
-        }
+        String throwableType = throwable.getClass().getName();
+        Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + throwableType + ". Reporting to Backtrace");
+        ReportThreadException(throwableType + " : " + throwable.getMessage(), stackTraceToString(throwable.getStackTrace()));
+        finish();
     }
 
     public void ReportThreadException(String message, String stackTrace) {        
