@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.8.4
+
+Bugfixes
+- Unhandled exception handler on Android will now report all type of captured Android exceptions.
+- Added the screencapture module as a dependency
+
+Improvements
+- Xbox native crash handler now handles more types of crashes 
+
 ## Version 3.8.3
 
 Bugfixes
