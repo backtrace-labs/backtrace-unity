@@ -82,7 +82,11 @@ namespace Backtrace.Unity.Model.Attributes
         }
         private void IncludeGraphicCardInformation(IDictionary<string, string> attributes)
         {
-
+            // if a graphic card is not available
+            if (!SystemInfo.graphicsDeviceType)
+            {
+                return;
+            }
             //This is the PCI device ID of the user's graphics card. Together with SystemInfo.graphicsDeviceVendorID, 
             //this number uniquely identifies a particular graphics card model. 
             //The number is the same across operating systems and driver versions.

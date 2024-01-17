@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 3.8.5
+
+Bugfixes
+- Fixed populating graphic card attributes, when graphic card is not available.
+
 ## Version 3.8.4
 
 Bugfixes
