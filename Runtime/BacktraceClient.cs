@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.8.4";
+        public const string VERSION = "3.8.5";
         internal const string DefaultBacktraceGameObjectName = "BacktraceClient";
         public BacktraceConfiguration Configuration;
 
