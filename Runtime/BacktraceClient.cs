@@ -510,6 +510,13 @@ namespace Backtrace.Unity
 #endif
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
+            if (Configuration.HandleUnhandledExceptions)
+            {
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+#if UNITY_ANDROID || UNITY_IOS
+                Application.lowMemory += HandleLowMemory;
+#endif
+            }
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
             _clientReportAttachments = Configuration.GetAttachmentPaths();
 
@@ -1014,14 +1021,9 @@ namespace Backtrace.Unity
         private void CaptureUnityMessages()
         {
             _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
-            if (Configuration.HandleUnhandledExceptions)
-            {
-                Application.logMessageReceived += HandleUnityMessage;
-                Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
-#if UNITY_ANDROID || UNITY_IOS
-                Application.lowMemory += HandleLowMemory;
-#endif
-            }
+            Application.logMessageReceived += HandleUnityMessage;
+            Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
+
         }
 
         internal void OnApplicationPause(bool pause)
@@ -1282,6 +1284,17 @@ namespace Backtrace.Unity
                 SendReport(innerExceptionReport);
             }
         }
+
+        /// <summary>
+        /// Handle application domain exception that could happen
+        /// when the "Script call optimization" option is enabled.
+        /// </summary>
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var exception = e.ExceptionObject as Exception;
+            SendUnhandledException(exception);
+        }
+
 
         /// <summary>
         /// Validate if current client configuration is valid 
