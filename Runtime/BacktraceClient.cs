@@ -1144,7 +1144,7 @@ namespace Backtrace.Unity
             return value > Configuration.Sampling;
         }
 
-        private void SendUnhandledException(BacktraceUnhandledException exception, bool invokeSkipApi = true)
+        private void SendUnhandledException(Exception exception, bool invokeSkipApi = true)
         {
             if (OnUnhandledApplicationException != null)
             {
