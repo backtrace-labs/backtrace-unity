@@ -706,6 +706,7 @@ namespace Backtrace.Unity
             _instance = null;
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
+            AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 #if UNITY_ANDROID || UNITY_IOS
             Application.lowMemory -= HandleLowMemory;
 #endif
@@ -1292,7 +1293,25 @@ namespace Backtrace.Unity
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var exception = e.ExceptionObject as Exception;
-            SendUnhandledException(exception);
+            if (OnUnhandledApplicationException != null)
+            {
+                OnUnhandledApplicationException.Invoke(exception);
+            }
+
+            if (ShouldSkipReport(ReportFilterType.UnhandledException, exception, string.Empty))
+            {
+                return;
+            }
+
+            if (Database == null)
+            {
+                SendUnhandledException(exception);
+                return;
+            }
+            var report = new BacktraceReport(exception, new Dictionary<string, string>() {
+                { "error.type", BacktraceDefaultClassifierTypes.UnhandledExceptionType }
+            });
+            Database.Add(SetupBacktraceData(report));
         }
 
 
