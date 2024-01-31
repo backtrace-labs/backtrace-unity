@@ -22,10 +22,10 @@ jobs:
             Library-
 
       - name: set a correct package path
-            run: |
-              mkdir ./package
-              cp -r ./. ./package/
-      
+        run: |
+          mkdir ./package
+          cp -r ./. ./package/
+
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
