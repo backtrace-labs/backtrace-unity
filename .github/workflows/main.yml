@@ -31,7 +31,7 @@ jobs:
           cp -dr ./Demo~/ ./project
           ls ./project  
           cp -r ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./package.json ./project/Assets/backtrace-unity/
-          ls ./project
+          find ./project
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
