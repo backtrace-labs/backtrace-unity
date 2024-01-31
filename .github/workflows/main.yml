@@ -36,7 +36,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           packageMode: true
-          projectPath: ${{ matrix.projectPath }}
+          projectPath: ${{ matrix.projectPath }}/backtrace-unity
           unityVersion: ${{ matrix.unityVersion }}
           testMode: ${{ matrix.testMode }}
           artifactsPath: ${{ matrix.testMode }}-artifacts
