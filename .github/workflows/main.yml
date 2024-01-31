@@ -11,7 +11,7 @@ jobs:
       matrix:
         projectPath:
           - test-package
-        unityVersion: "2020.3.0f1" # some version must be included for package testing
+        unityVersion: '2020.3.0f1' # some version must be included for package testing
         testMode:
           - playmode
           - editmode
@@ -40,7 +40,7 @@ jobs:
           testMode: ${{ matrix.testMode }}
           artifactsPath: ${{ matrix.testMode }}-artifacts
           checkName: ${{ matrix.testMode }} Test Results
-          coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
+          coverageOptions: 'generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*'
 
       - uses: actions/upload-artifact@v3
         if: always()
