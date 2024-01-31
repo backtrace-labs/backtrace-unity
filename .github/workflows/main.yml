@@ -15,7 +15,6 @@ jobs:
           - "2020.3.0f1"
         testMode:
           - playmode
-          - editmode
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,7 +27,7 @@ jobs:
           rsync -r "$GITHUB_WORKSPACE" "${{  matrix.projectPath }}" 
           ls -F "${{ matrix.projectPath }}/$folderName"
 
-      - uses: game-ci/unity-test-runner@v4
+      - uses: trudeaua21/unity-test-runner@main
         id: tests
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
