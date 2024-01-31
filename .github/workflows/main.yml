@@ -21,6 +21,11 @@ jobs:
           restore-keys: |
             Library-
 
+      - name: copy dir to new dir
+        run: |
+          pwd
+          find . 
+          find Demo~/
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
