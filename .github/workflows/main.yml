@@ -21,6 +21,10 @@ jobs:
           restore-keys: |
             Library-
 
+     - name: set a correct package path
+          run: |
+            mkdir ./package
+            cp -r ./. ./package/
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
@@ -29,6 +33,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
+          projectPath: ./package
           packageMode: true
           unityVersion: "2020.3.0f1"
 
@@ -40,7 +45,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: ./project
+          projectPath: ./package
           targetPlatform: WebGL
           packageMode: true
 
