@@ -11,7 +11,8 @@ jobs:
       matrix:
         projectPath:
           - test-package
-        unityVersion: '2020.3.0f1' # some version must be included for package testing
+        unityVersion: 
+          - '2020.3.0f1'
         testMode:
           - playmode
           - editmode
