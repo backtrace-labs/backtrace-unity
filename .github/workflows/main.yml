@@ -28,6 +28,9 @@ jobs:
           find Demo~/
           echo "symlink"
           find . -type l -ls
+          ls ./Demo~/Assets/Plugins/backtrace-unity
+          cp -r ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./package.json Demo~/Assets/Plugins/backtrace-unity
+
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
