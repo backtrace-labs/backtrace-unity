@@ -28,7 +28,8 @@ jobs:
           find Demo~/
           echo "symlink"
           find . -type l -ls
-          ls ./Demo~/Assets/Plugins/backtrace-unity
+          cp -Lr ./Demo~/ ./project
+          ls ./project
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
@@ -37,7 +38,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: Demo~/
+          projectPath: ./project
 
       # Build
       - name: Build project
@@ -47,7 +48,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: Demo~/
+          projectPath: ./project
           targetPlatform: WebGL
 
       # Output
