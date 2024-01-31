@@ -28,9 +28,8 @@ jobs:
           find Demo~/
           echo "symlink"
           find . -type l -ls
-          cp -dr ./Demo~/ ./project
+          cp -Lr ./Demo~/ ./project
           ls ./project  
-          cp -rf ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./package.json ./project/Assets/Plugins/backtrace-unity
           rm -rf ./project/Assets/Plugins/backtrace-unity/Demo~
           find ./project
       # Test
