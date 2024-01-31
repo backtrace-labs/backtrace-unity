@@ -26,7 +26,7 @@ jobs:
           pwd
           folderName=$(echo "${PWD##*/}")
           rsync -r "$GITHUB_WORKSPACE" "${{  matrix.projectPath }}" 
-          ls -F "${{ matrix.projectPath }}"
+          ls -F "${{ matrix.projectPath }}/$folderName"
 
       - uses: game-ci/unity-test-runner@v4
         id: tests
@@ -36,7 +36,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           packageMode: true
-          projectPath: ${{ matrix.projectPath }}
+          projectPath: ./${{ matrix.projectPath }}/backtrace-unity
           unityVersion: ${{ matrix.unityVersion }}
           testMode: ${{ matrix.testMode }}
           artifactsPath: ${{ matrix.testMode }}-artifacts
