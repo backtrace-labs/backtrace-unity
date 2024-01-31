@@ -24,8 +24,10 @@ jobs:
       - name: copy dir to new dir
         run: |
           pwd
-          find . 
+          echo "demo structure"
           find Demo~/
+          echo "symlink"
+          find . -type l -ls
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
