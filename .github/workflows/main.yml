@@ -28,7 +28,7 @@ jobs:
           find Demo~/
           echo "symlink"
           find . -type l -ls
-          cp -Lr ./Demo~/ ./project
+          cp -dL ./Demo~/ ./project
           ls ./project  
           rm -rf ./project/Assets/Plugins/backtrace-unity/Demo~
           find ./project
