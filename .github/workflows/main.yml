@@ -27,7 +27,6 @@ jobs:
           folderName=$(echo "${PWD##*/}")
           rsync -r "$GITHUB_WORKSPACE" "package" 
           ls -F "package/$folderName"
-          find ./package
 
       # Test
       - name: Run tests
@@ -37,7 +36,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: ./package
+          projectPath: ./package/backtrace-unity
           packageMode: true
           unityVersion: "2020.3.0f1"
 
@@ -49,7 +48,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: ./package
+          projectPath: ./package/backtrace-unity
           targetPlatform: WebGL
           packageMode: true
 
