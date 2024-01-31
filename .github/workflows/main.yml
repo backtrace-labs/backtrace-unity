@@ -23,8 +23,11 @@ jobs:
 
       - name: set a correct package path
         run: |
-          mkdir ./package
-          cp -r ./. ./package/
+          pwd
+          folderName=$(echo "${PWD##*/}")
+          rsync -r "$GITHUB_WORKSPACE" "package" 
+          ls -F "package/$folderName"
+          find ./package
 
       # Test
       - name: Run tests
