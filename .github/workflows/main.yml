@@ -19,13 +19,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+
       - name: set a correct package path
         run: |
           pwd
           folderName=$(echo "${PWD##*/}")
           rsync -r "$GITHUB_WORKSPACE" "${{  matrix.projectPath }}" 
           ls -F "${{ matrix.projectPath }}/$folderName"
-        - uses: game-ci/unity-test-runner@v4
+
+      - uses: game-ci/unity-test-runner@v4
         id: tests
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
