@@ -25,6 +25,7 @@ jobs:
           run: |
             mkdir ./package
             cp -r ./. ./package/
+    
       # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
