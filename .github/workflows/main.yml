@@ -11,8 +11,8 @@ jobs:
       matrix:
         projectPath:
           - test-package
-        unityVersion: 
-          - '2020.3.0f1'
+        unityVersion:
+          - "2020.3.0f1"
         testMode:
           - playmode
           - editmode
@@ -26,7 +26,7 @@ jobs:
           pwd
           folderName=$(echo "${PWD##*/}")
           rsync -r "$GITHUB_WORKSPACE" "${{  matrix.projectPath }}" 
-          ls -F "${{ matrix.projectPath }}/$folderName"
+          ls -F "${{ matrix.projectPath }}"
 
       - uses: game-ci/unity-test-runner@v4
         id: tests
@@ -36,12 +36,12 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           packageMode: true
-          projectPath: ${{ matrix.projectPath }}/backtrace-unity
+          projectPath: ${{ matrix.projectPath }}
           unityVersion: ${{ matrix.unityVersion }}
           testMode: ${{ matrix.testMode }}
           artifactsPath: ${{ matrix.testMode }}-artifacts
           checkName: ${{ matrix.testMode }} Test Results
-          coverageOptions: 'generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*'
+          coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
 
       - uses: actions/upload-artifact@v3
         if: always()
