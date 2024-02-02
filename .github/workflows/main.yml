@@ -32,7 +32,7 @@ jobs:
           ls ./
           find ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
 
-      - uses: game-ci/unity-test-runner@v4
+      - uses: game-ci/unity-test-runner@v2.1.0
         id: tests
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -44,6 +44,7 @@ jobs:
           testMode: ${{ matrix.testMode }}
           artifactsPath: ${{ matrix.testMode }}-artifacts
           checkName: ${{ matrix.testMode }} Test Results
+          customParameters: "-nographics"
           coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
 
       - uses: actions/upload-artifact@v3
