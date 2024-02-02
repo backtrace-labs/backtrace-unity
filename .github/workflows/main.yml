@@ -21,12 +21,16 @@ jobs:
         with:
           lfs: true
 
-      - name: set a correct package path
+      - name: create a game by using demo project
         run: |
-          pwd
-          folderName=$(echo "${PWD##*/}")
-          rsync -r "$GITHUB_WORKSPACE" "${{  matrix.projectPath }}" 
-          ls -F "${{ matrix.projectPath }}/$folderName"
+          mkdir ${{ matrix.projectPath }}
+          cp -r ./Demo~/* ${{ matrix.projectPath }}
+          rm ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity 
+          mkdir ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
+
+          mv ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./package.json ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
+          ls ./
+          find ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
 
       - uses: game-ci/unity-test-runner@v4
         id: tests
@@ -35,7 +39,6 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          packageMode: true
           projectPath: ./${{ matrix.projectPath }}/backtrace-unity
           unityVersion: ${{ matrix.unityVersion }}
           testMode: ${{ matrix.testMode }}
