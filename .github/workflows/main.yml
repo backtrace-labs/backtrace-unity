@@ -20,11 +20,8 @@ jobs:
 
       - name: Setup Environment
         run: |
-          mkdir Tmp
-          mv Editor Tmp/
-          mv Runtime Tmp/
-          mv Tests Tmp/
-          mv package.json Tmp/package.json
+          mkdir Package
+          mv Editor Runtime Tests Android iOS Windows package.json Package/
 
       - name: Run Tests
         uses: game-ci/unity-test-runner@v4.0.0
@@ -34,6 +31,6 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           packageMode: true
-          projectPath: Tmp/
+          projectPath: Package/
           testMode: ${{ matrix.testMode }}
           unityVersion: 2022.1.11f1

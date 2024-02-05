@@ -839,7 +839,7 @@ namespace Backtrace.Unity
 
             if (Database != null && Database.Enabled())
             {
-
+                yield return WaitForFrame.Wait();
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Restart();
@@ -885,7 +885,7 @@ namespace Backtrace.Unity
                 stopWatch.Stop();
                 queryAttributes["performance.json"] = stopWatch.GetMicroseconds();
             }
-
+            yield return WaitForFrame.Wait();
             if (string.IsNullOrEmpty(json))
             {
                 yield break;
