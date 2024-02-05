@@ -59,10 +59,10 @@ namespace Backtrace.Unity.Tests.Runtime
         public void TestDbPath_ShouldCorrectlyGenerateFullpath_PathShouldntBeEmpty()
         {
             var expectedDatabasePath =
-#if UNITY_EDITOR_OSX || UNITY_IOS || UNITY_STANDALONE_OSX
-                "/Users/user/Library/Application Support/Backtrace/database/path";
+#if UNITY_STANDALONE_WIN
+                "C:/users/user/Backtrace/database/path";    
 #else
-            "C:/users/user/Backtrace/database/path";
+                "/Users/user/Library/Application Support/Backtrace/database/path";
 #endif
 
             var actualDatabasePath = ClientPathHelper.GetFullPath(expectedDatabasePath);
@@ -123,7 +123,7 @@ namespace Backtrace.Unity.Tests.Runtime
             var actualDatabasePath = ClientPathHelper.GetFullPath(testedInvalidPath);
             Assert.AreEqual(Path.GetFullPath(expectedInvalidPath), actualDatabasePath);
         }
-        
+
         [Test]
         public void TestDbPath_SamePathsDbPathWithoutTrailingSlash_ShouldBeTrue()
         {
@@ -131,7 +131,7 @@ namespace Backtrace.Unity.Tests.Runtime
             string filePath = "/Users/backtrace/Library/DefaultCompany/TestProject1/backtrace/bt-breadcrumbs-0";
             Assert.IsTrue(ClientPathHelper.IsFileInDatabaseDirectory(databasePath: dbPath, filePath: filePath));
         }
-        
+
         [Test]
         public void TestDbPath_SamePathsWithDbPathTrailingSlash_ShouldBeTrue()
         {
@@ -139,7 +139,7 @@ namespace Backtrace.Unity.Tests.Runtime
             string filePath = "/Users/backtrace/Library/DefaultCompany/TestProject1/backtrace/bt-breadcrumbs-0";
             Assert.IsTrue(ClientPathHelper.IsFileInDatabaseDirectory(databasePath: dbPath, filePath: filePath));
         }
-        
+
         [Test]
         public void TestDbPath_DifferentPaths_ShouldBeFalse()
         {
