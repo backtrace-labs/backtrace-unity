@@ -45,7 +45,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send("test");
             }
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.AreEqual(maximumNumberOfRetries, rateLimit);
             Assert.AreEqual(0, skippedReports);
         }
@@ -72,7 +72,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send("test");
             }
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.AreEqual(totalNumberOfReports, maximumNumberOfRetries + skippedReports);
             Assert.AreEqual(maximumNumberOfRetries, CLIENT_RATE_LIMIT);
             Assert.AreEqual(totalNumberOfReports - CLIENT_RATE_LIMIT, skippedReports);
@@ -102,7 +102,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
 
             }
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.AreEqual(totalNumberOfReports, maximumNumberOfRetries + skippedReports);
             Assert.AreEqual(maximumNumberOfRetries, CLIENT_RATE_LIMIT);
             Assert.AreEqual(totalNumberOfReports - CLIENT_RATE_LIMIT, skippedReports);
@@ -133,7 +133,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send(report);
             }
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.AreEqual(totalNumberOfReports, maximumNumberOfRetries + skippedReports);
             Assert.AreEqual(maximumNumberOfRetries, CLIENT_RATE_LIMIT);
             Assert.AreEqual(totalNumberOfReports - CLIENT_RATE_LIMIT, skippedReports);
@@ -155,7 +155,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send("test");
             }
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.AreEqual(2, maximumNumberOfRetries);
             yield return null;
         }

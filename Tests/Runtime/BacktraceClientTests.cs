@@ -108,7 +108,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return backtraceData;
             };
             BacktraceClient.Send(new Exception("test exception"));
-            yield return new WaitForEndOfFrame();
+
             Assert.IsTrue(trigger);
             yield return null;
         }
@@ -128,7 +128,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return new BacktraceResult();
             };
             BacktraceClient.Send(new Exception("test exception"));
-            yield return new WaitForEndOfFrame();
+
             Assert.IsTrue(trigger);
             yield return null;
         }
@@ -217,7 +217,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
-            yield return new WaitForEndOfFrame();
+
 
             Assert.IsTrue(eventFired);
         }
@@ -284,7 +284,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
-            yield return new WaitForEndOfFrame();
+
             Assert.IsTrue(eventFired);
         }
 
@@ -292,7 +292,7 @@ namespace Backtrace.Unity.Tests.Runtime
         private IEnumerator CallBacktraceClientAndWait(BacktraceReport report)
         {
             BacktraceClient.Send(report);
-            yield return new WaitForEndOfFrame();
+
         }
     }
 }

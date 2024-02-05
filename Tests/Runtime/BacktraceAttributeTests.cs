@@ -37,7 +37,7 @@ namespace Backtrace.Unity.Tests.Runtime
                  return null;
              };
             BacktraceClient.Send(new Exception("foo"));
-            yield return new WaitForEndOfFrame();
+
             Assert.IsNotNull(data);
             Assert.AreEqual(data.Attributes.Attributes[key], value);
             yield return null;
@@ -60,7 +60,7 @@ namespace Backtrace.Unity.Tests.Runtime
             foreach (var exceptionMessage in exceptionsMessage)
             {
                 BacktraceClient.Send(new Exception(exceptionMessage));
-                yield return new WaitForEndOfFrame();
+
             }
 
             Assert.AreEqual(data.Attributes.Attributes[key], value);
@@ -85,7 +85,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(new Exception("foo"));
-            yield return new WaitForEndOfFrame();
+
 
             Assert.IsNotNull(data);
             Assert.AreEqual(data.Attributes.Attributes[key], value);
