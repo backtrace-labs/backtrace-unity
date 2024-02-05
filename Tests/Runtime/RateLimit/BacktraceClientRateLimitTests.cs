@@ -48,6 +48,7 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
             
             Assert.AreEqual(maximumNumberOfRetries, rateLimit);
             Assert.AreEqual(0, skippedReports);
+            yield return null;
         }
 
         [UnityTest]

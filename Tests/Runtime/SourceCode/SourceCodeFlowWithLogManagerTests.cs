@@ -43,6 +43,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var threadName = lastData.ThreadData.MainThread;
             Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+            yield return null;
         }
 
 
@@ -63,6 +64,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var threadName = lastData.ThreadData.MainThread;
             Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+            yield return null;
         }
 
 
@@ -83,6 +85,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var threadName = lastData.ThreadData.MainThread;
             Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+            yield return null;
         }
 
         [UnityTest]
@@ -101,6 +104,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var threadName = lastData.ThreadData.MainThread;
             Assert.AreEqual(BacktraceSourceCode.SOURCE_CODE_PROPERTY, lastData.ThreadData.ThreadInformations[threadName].Stack.First().SourceCode);
+            yield return null;
         }
 
         [UnityTest]
@@ -128,6 +132,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(expectedExceptionMessage));
             Assert.IsTrue(generatedText.Contains(fakeLogMessage));
             Assert.IsTrue(generatedText.Contains(fakeWarningMessage));
+            yield return null;
         }
 
         [UnityTest]
@@ -158,6 +163,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(expectedExceptionMessage));
             Assert.IsTrue(generatedText.Contains(fakeLogMessage));
             Assert.IsTrue(generatedText.Contains(fakeWarningMessage));
+            yield return null;
         }
 
 
@@ -188,6 +194,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(expectedExceptionMessage));
             Assert.IsTrue(generatedText.Contains(fakeLogMessage));
             Assert.IsTrue(generatedText.Contains(fakeWarningMessage));
+            yield return null;
         }
 
         [UnityTest]
@@ -228,6 +235,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(fakeLogMessage));
             Assert.IsTrue(generatedText.Contains(fakeWarningMessage));
             Assert.IsTrue(generatedText.Contains(expectedReportMessage));
+            yield return null;
         }
     }
 }

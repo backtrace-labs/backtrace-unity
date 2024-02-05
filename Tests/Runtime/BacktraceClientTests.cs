@@ -294,6 +294,7 @@ namespace Backtrace.Unity.Tests.Runtime
         private IEnumerator CallBacktraceClientAndWait(BacktraceReport report)
         {
             BacktraceClient.Send(report);
+            yield return null;
 
         }
     }
