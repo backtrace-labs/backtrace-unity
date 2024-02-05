@@ -220,6 +220,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
 
             Assert.IsTrue(eventFired);
+            yield return null;
         }
 
         [Test]
@@ -286,6 +287,7 @@ namespace Backtrace.Unity.Tests.Runtime
             BacktraceClient.Send(report);
 
             Assert.IsTrue(eventFired);
+            yield return null;
         }
 
 

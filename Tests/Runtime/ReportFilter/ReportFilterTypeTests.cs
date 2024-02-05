@@ -35,6 +35,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             
 
             Assert.IsFalse(eventCalled);
+            yield return null;
         }
 
         [Test]
