@@ -27,7 +27,7 @@ jobs:
           mv package.json Tmp/package.json
 
       - name: Run Tests
-        uses: game-ci/unity-test-runner@v4
+        uses: game-ci/unity-test-runner@v4.0.0
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
