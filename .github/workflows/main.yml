@@ -36,4 +36,4 @@ jobs:
           packageMode: true
           projectPath: Tmp/
           testMode: ${{ matrix.testMode }}
-          unityVersion: 2022.3.17f1
+          unityVersion: 2022.1.11f1
