@@ -24,8 +24,10 @@ jobs:
       - name: create a game by using demo project
         run: |
           mkdir ${{ matrix.projectPath }}
+
+          rm -rf ./Demo~/Assets/Plugins
+          rm ./Demo~/Assets/Plugins.meta
           cp -r ./Demo~/* ${{ matrix.projectPath }}
-          rm -rf ./${{ matrix.projectPath }}/Assets/Plugins
           mkdir ./${{ matrix.projectPath }}/Assets/backtrace-unity
 
           mv ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./${{ matrix.projectPath }}/Assets/backtrace-unity
