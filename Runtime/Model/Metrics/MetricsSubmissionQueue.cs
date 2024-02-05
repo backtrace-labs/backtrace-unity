@@ -116,8 +116,11 @@ namespace Backtrace.Unity.Model.Metrics
                 {
                     OnRequestCompleted();
                 }
-                else if (statusCode > 501 && statusCode != 505)
+                else if (httpError == true || (statusCode > 501 && statusCode != 505))
                 {
+                    // Failed to communicate with server or received a 5xx response code. Retry
+                    // again at a later time, up to the configured number of maximum attempts.
+                    //
                     _numberOfDroppedRequests++;
                     if (attempts + 1 == BacktraceMetrics.MaxNumberOfAttempts)
                     {
@@ -138,13 +141,17 @@ namespace Backtrace.Unity.Model.Metrics
 
         public void SendPendingEvents(float time)
         {
-            for (int index = 0; index < _submissionJobs.Count; index++)
+            for (int index = 0; index < _submissionJobs.Count; )
             {
                 var submissionJob = _submissionJobs.ElementAt(index);
                 if (submissionJob.NextInvokeTime < time)
                 {
                     SendPayload(submissionJob.Events, submissionJob.NumberOfAttempts);
                     _submissionJobs.RemoveAt(index);
+                }
+                else
+                {
+                   index++;
                 }
             }
         }

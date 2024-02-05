@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Backtrace.Unity.Model.Breadcrumbs.Storage
 {
-    internal sealed class BacktraceStorageLogManager : IBacktraceLogManager
+    internal sealed class BacktraceStorageLogManager : IBacktraceLogManager, IArchiveableBreadcrumbManager
     {
         /// <summary>
         /// Path to the breadcrumbs file
@@ -86,6 +86,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// </summary>
         private readonly Queue<long> _logSize = new Queue<long>();
 
+        /// <summary>
+        /// Breadcrumb storage directory
+        /// </summary>
+        private readonly string _storagePath;
+
         internal IBreadcrumbFile BreadcrumbFile { get; set; }
 
         public BacktraceStorageLogManager(string storagePath)
@@ -94,7 +99,8 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
             {
                 throw new ArgumentException("Breadcrumbs storage path is null or empty");
             }
-            BreadcrumbsFilePath = Path.Combine(storagePath, BreadcrumbLogFileName);
+            _storagePath = storagePath;
+            BreadcrumbsFilePath = Path.Combine(_storagePath, BreadcrumbLogFileName);
             BreadcrumbFile = new BreadcrumbFile(BreadcrumbsFilePath);
         }
 
@@ -104,6 +110,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// <returns>true if breadcrumbs file was created. Otherwise false.</returns>
         public bool Enable()
         {
+            if (currentSize != 0)
+            {
+                return true;
+            }
             try
             {
                 if (BreadcrumbFile.Exists())
@@ -116,6 +126,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
                     _breadcrumbStream.Write(StartOfDocument, 0, StartOfDocument.Length);
                     _breadcrumbStream.Write(EndOfDocument, 0, EndOfDocument.Length);
                 }
+                _emptyFile = true;
                 currentSize = StartOfDocument.Length + EndOfDocument.Length;
             }
             catch (Exception e)
@@ -136,6 +147,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         /// <returns>True if breadcrumb was stored in the breadcrumbs file. Otherwise false.</returns>
         public bool Add(string message, BreadcrumbLevel level, UnityEngineLogLevel type, IDictionary<string, string> attributes)
         {
+            // file is not initialized 
+            if (currentSize == 0)
+            {
+                return false;
+            }
             byte[] bytes;
             lock (_lockObject)
             {
@@ -306,6 +322,19 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
         public double BreadcrumbId()
         {
             return _breadcrumbId;
+        }
+
+        public string Archive()
+        {
+            if (!File.Exists(BreadcrumbsFilePath))
+            {
+                return string.Empty;
+            }
+
+            const string archivePattern = "{0}-1";
+            var copyPath = Path.Combine(_storagePath, string.Format(archivePattern, BreadcrumbLogFilePrefix));
+            File.Copy(BreadcrumbsFilePath, copyPath, true);
+            return copyPath;
         }
     }
 }

@@ -1,4 +1,4 @@
-using Backtrace.Unity.Common;
+﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
@@ -13,6 +13,30 @@ namespace Backtrace.Unity.Model
     [CreateAssetMenu(fileName = "Backtrace Configuration", menuName = "Backtrace/Configuration", order = 0)]
     public class BacktraceConfiguration : ScriptableObject
     {
+        private const BacktraceBreadcrumbType AllBreadcrumbsTypes =
+            BacktraceBreadcrumbType.Configuration |
+            BacktraceBreadcrumbType.Http |
+            BacktraceBreadcrumbType.Log |
+            BacktraceBreadcrumbType.Manual |
+            BacktraceBreadcrumbType.Navigation |
+            BacktraceBreadcrumbType.System |
+            BacktraceBreadcrumbType.User;
+
+        private const UnityEngineLogLevel AllLogTypes = UnityEngineLogLevel.Debug |
+            UnityEngineLogLevel.Error |
+            UnityEngineLogLevel.Fatal |
+            UnityEngineLogLevel.Info |
+            UnityEngineLogLevel.Warning;
+
+        public const int DefaultAnrWatchdogTimeout = 5000;
+        public const int DefaultRetryLimit = 3;
+        public const int DefaultReportPerMin = 50;
+        public const int DefaultGameObjectDepth = -1;
+        public const int DefaultNumberOfLogs = 10;
+        public const int DefaultMaxRecordCount = 8;
+        public const int DefaultMaxDatabaseSize = 0;
+        public const int DefaultRetryInterval = 60;
+
         /// <summary>
         /// Backtrace server url
         /// </summary>
@@ -29,7 +53,13 @@ namespace Backtrace.Unity.Model
         /// Maximum number reports per minute
         /// </summary>
         [Tooltip("Reports per minute: Limits the number of reports the client will send per minutes. If set to 0, there is no limit. If set to a higher value and the value is reached, the client will not send any reports until the next minute. Default: 50")]
-        public int ReportPerMin = 50;
+        public int ReportPerMin = DefaultReportPerMin;
+
+        /// <summary>
+        /// "Disable error reporting integration in editor mode.
+        /// </summary>
+        [Tooltip("Disable error reporting integration in editor mode.")]
+        public bool DisableInEditor = false;
 
         /// <summary>
         /// Determine if client should catch unhandled exceptions
@@ -50,12 +80,12 @@ namespace Backtrace.Unity.Model
         public bool DestroyOnLoad = false;
 
         /// <summary>
-        /// Sampling configuration - fractional sampling allows to drop some % of unhandled exception.
+        /// Sampling configuration - fractional sampling allows to drop some % of Unity errors.
         /// </summary>
-        [Tooltip("Log random sampling rate - Enables a random sampling mechanism for unhandled exceptions - by default sampling is equal to 0.01 - which means only 1% of randomply sampling reports will be send to Backtrace. \n" +
-            "* 1 - means 100% of unhandled exception reports will be reported by library,\n" +
-            "* 0.1 - means 10% of unhandled exception reports will be reported by library,\n" +
-            "* 0 - means library is going to drop all unhandled exception.")]
+        [Tooltip("Log random sampling rate - Enables a random sampling mechanism for Unity.Error logs - by default sampling is equal to 0.01 - which means only 1% of randomply sampling reports will be send to Backtrace. \n" +
+            "* 1 - means 100% of error reports will be reported by library,\n" +
+            "* 0.1 - means 10% of error reports will be reported by library,\n" +
+            "* 0 - means library is going to drop all errors.")]
         [Range(0, 1)]
         public double Sampling = 0.01d;
 
@@ -75,13 +105,13 @@ namespace Backtrace.Unity.Model
         /// Game object depth in Backtrace report
         /// </summary>
         [Tooltip("Allows developer to filter number of game object childrens in Backtrace report.")]
-        public int GameObjectDepth = -1;
+        public int GameObjectDepth = DefaultGameObjectDepth;
 
         /// <summary>
         /// Number of logs collected by Backtrace-Unity
         /// </summary>
         [Tooltip("Number of logs collected by Backtrace-Unity")]
-        public uint NumberOfLogs = 10;
+        public uint NumberOfLogs = DefaultNumberOfLogs;
 
         /// <summary>
         /// Flag that allows to include performance statistics in Backtrace report
@@ -95,13 +125,13 @@ namespace Backtrace.Unity.Model
         [Tooltip("Try to find game native crashes and send them on Game startup")]
         public bool SendUnhandledGameCrashesOnGameStartup = true;
 
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
 #if UNITY_ANDROID
         /// <summary>
         /// Capture native NDK Crashes.
         /// </summary>
         [Tooltip("Capture native NDK Crashes (ANDROID API 21+)")]
-#elif UNITY_IOS || UNITY_STANDALONE_WIN
+#elif UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
         /// <summary>
         /// Capture native crashes.
         /// </summary>
@@ -109,11 +139,18 @@ namespace Backtrace.Unity.Model
 #endif
 
         public bool CaptureNativeCrashes = true;
+#if !UNITY_GAMECORE_XBOXSERIES
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
         [Tooltip("Capture ANR events - Application not responding")]
         public bool HandleANR = true;
+#endif
+
+        /// <summary>
+        /// Anr watchdog timeout in ms. Time needed to detect an ANR event
+        /// </summary>
+        public int AnrWatchdogTimeout = DefaultAnrWatchdogTimeout;
 
 #if UNITY_ANDROID || UNITY_IOS
         /// <summary>
@@ -121,15 +158,18 @@ namespace Backtrace.Unity.Model
         /// </summary>
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
         public bool OomReports = false;
-#endif
 
-#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
+#if UNITY_2019_2_OR_NEWER
         /// <summary>
         /// Enable client side unwinding.
         /// </summary>
         [Tooltip("Enable client-side unwinding.")]
         public bool ClientSideUnwinding = false;
+#endif
 
+#endif
+
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         /// <summary>
         /// Symbols upload token
         /// </summary>
@@ -160,13 +200,13 @@ namespace Backtrace.Unity.Model
         /// Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumbs file
         /// </summary>
         [Tooltip("Breadcrumbs support breadcrumbs level- Backtrace breadcrumbs log level controls what type of information will be available in the breadcrumb file")]
-        public BacktraceBreadcrumbType BacktraceBreadcrumbsLevel;
+        public BacktraceBreadcrumbType BacktraceBreadcrumbsLevel = AllBreadcrumbsTypes;
 
         /// <summary>
         /// Backtrace Unity Engine log Level controls what log types will be included in the final breadcrumbs file
         /// </summary>
         [Tooltip("Breadcrumbs log level")]
-        public UnityEngineLogLevel LogLevel;
+        public UnityEngineLogLevel LogLevel = AllLogTypes;
 
         /// <summary>
         /// Use normalized exception message instead environment stack trace, when exception doesn't have stack trace
@@ -196,7 +236,7 @@ namespace Backtrace.Unity.Model
         /// Directory path where reports and minidumps are stored
         /// </summary>
         [Tooltip("This is the path to directory where the Backtrace database will store reports on your game. NOTE: Backtrace database will remove all existing files on database start.")]
-        public string DatabasePath;
+        public string DatabasePath = "${Application.persistentDataPath}/backtrace";
 
         /// <summary>
         /// Enable event aggregation support
@@ -234,29 +274,29 @@ namespace Backtrace.Unity.Model
         /// Determine if BacktraceDatabase should try to create database directory on application start
         /// </summary>
         [Tooltip("If toggled, the library will create the offline database directory if the provided path doesn't exists.")]
-        public bool CreateDatabase = false;
+        public bool CreateDatabase = true;
 
         /// <summary>
         /// Maximum number of stored reports in Database. If value is equal to zero, then limit not exists
         /// </summary>
         [Tooltip("This is one of two limits you can impose for controlling the growth of the offline store. This setting is the maximum number of stored reports in database. If value is equal to zero, then limit not exists, When the limit is reached, the database will remove the oldest entries.")]
-        public int MaxRecordCount = 8;
+        public int MaxRecordCount = DefaultMaxRecordCount;
 
         /// <summary>
         /// Database size in MB
         /// </summary>
         [Tooltip("This is the second limit you can impose for controlling the growth of the offline store. This setting is the maximum database size in MB. If value is equal to zero, then size is unlimited, When the limit is reached, the database will remove the oldest entries.")]
-        public long MaxDatabaseSize;
+        public long MaxDatabaseSize = DefaultMaxDatabaseSize;
         /// <summary>
         /// How much seconds library should wait before next retry.
         /// </summary>
         [Tooltip("If the database is unable to send its record, this setting specifies how many seconds the library should wait between retries.")]
-        public int RetryInterval = 60;
+        public int RetryInterval = DefaultRetryInterval;
 
         /// <summary>
         /// Maximum number of retries
         [Tooltip("If the database is unable to send its record, this setting specifies the maximum number of retries before the system gives up.")]
-        public int RetryLimit = 3;
+        public int RetryLimit = DefaultRetryLimit;
 
         /// <summary>
         /// Retry order
@@ -296,7 +336,7 @@ namespace Backtrace.Unity.Model
             {
                 int universeIndexStart = backtraceSubmitUrl.Length;
                 int universeIndexEnd = submissionUrl.IndexOf('/', universeIndexStart);
-                if(universeIndexEnd == -1)
+                if (universeIndexEnd == -1)
                 {
                     throw new ArgumentException("Invalid Backtrace URL");
                 }
@@ -308,7 +348,8 @@ namespace Backtrace.Unity.Model
                 var domainIndex = submissionUrl.IndexOf(backtraceDomain);
                 if (domainIndex == -1)
                 {
-                    throw new ArgumentException("Invalid Backtrace url");
+                    // capture situation when the URL doesn't point to known Backtrace URL
+                    return null;
                 }
 
                 var uri = new UriBuilder(submissionUrl);

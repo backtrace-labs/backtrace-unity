@@ -36,15 +36,15 @@ namespace Backtrace.Unity.Extensions
         /// <typeparam name="T">Type with enum flag</typeparam>
         /// <param name="source">enum</param>
         /// <returns>True if all options are set.</returns>
-        public static bool HasAllFlags<T>(this T source) where T : Enum
+        public static bool HasAllFlags<T>(this T rawSource)
         {
+            var source = rawSource as Enum;
             Type enumType = typeof(T);
 
             var enumValues = Enum.GetValues(enumType);
             foreach (var value in enumValues)
             {
-                //long flag = (long)Convert.ChangeType(value, TypeCode.Int64);
-                if (!source.HasFlag((T)value))
+                if (!source.HasFlag((T)value as Enum))
                 {
                     return false;
                 }

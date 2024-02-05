@@ -18,7 +18,6 @@ namespace Backtrace.Unity.Tests.Runtime
             AfterSetup(false);
         }
 
-
         [UnityTest]
         public IEnumerator TestClientCreation_ValidBacktraceConfiguration_ValidClientCreation()
         {
@@ -28,7 +27,6 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(BacktraceClient.Enabled);
             yield return null;
         }
-
 
         [UnityTest]
         public IEnumerator TestClientCreation_EmptyConfiguration_DisabledClientCreation()

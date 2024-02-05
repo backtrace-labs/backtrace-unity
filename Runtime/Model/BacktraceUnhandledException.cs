@@ -12,6 +12,8 @@ namespace Backtrace.Unity.Model
     public class BacktraceUnhandledException : Exception
     {
         private bool _header = false;
+
+        private static string[] _javaExtensions = new string[] { ".java", ".kt", "java." };
         public bool Header
         {
             get
@@ -50,12 +52,21 @@ namespace Backtrace.Unity.Model
         public BacktraceUnhandledException(string message, string stacktrace) : base(message)
         {
             Type = LogType.Exception;
-            StackFrames = new List<BacktraceStackFrame>();
             _message = message;
             _stacktrace = stacktrace;
             if (!string.IsNullOrEmpty(stacktrace))
             {
-                ConvertStackFrames();
+                IEnumerable<string> frames = _stacktrace.Split('\n');
+                var stackFrameHeader = frames.ElementAt(0);
+                var stackTraceMessage = GetStackTraceErrorMessage(stackFrameHeader);
+                if (!string.IsNullOrEmpty(stackTraceMessage))
+                {
+                    _message = stackTraceMessage;
+                    _header = true;
+                    frames = frames.Skip(1);
+                }
+
+                StackFrames = ConvertStackFrames(frames);
             }
 
             if (string.IsNullOrEmpty(stacktrace) || StackFrames.Count == 0)
@@ -70,16 +81,36 @@ namespace Backtrace.Unity.Model
 
         }
 
+        private string GetStackTraceErrorMessage(string beginningOfTheFrame)
+        {
+            beginningOfTheFrame = beginningOfTheFrame.Trim();
+            // verify if the exception message has classifier
+            var indexOfExceptionClassifier = beginningOfTheFrame.IndexOf("Exception:");
+            if (indexOfExceptionClassifier != -1)
+            {
+                return beginningOfTheFrame;
+            }
+            // verify if the exception message looks like a stack frame based on the exception arguments
+            if (beginningOfTheFrame.IndexOf('(') == -1 || beginningOfTheFrame.IndexOf(')') == -1)
+            {
+                return beginningOfTheFrame;
+            }
+
+            return string.Empty;
+
+        }
+
         /// <summary>
         /// Convert Unity error log message to Stack trace that Backtrace uses
         /// in an exception report. Method below support default Unity and Android stack trace.
         /// </summary>
-        private void ConvertStackFrames()
+        private List<BacktraceStackFrame> ConvertStackFrames(IEnumerable<string> frames)
         {
-            var frames = _stacktrace.Split('\n');
-            for (int frameIndex = 0; frameIndex < frames.Length; frameIndex++)
+            var result = new List<BacktraceStackFrame>();
+
+            for (int frameIndex = 0; frameIndex < frames.Count(); frameIndex++)
             {
-                var frame = frames[frameIndex];
+                var frame = frames.ElementAt(frameIndex);
                 if (string.IsNullOrEmpty(frame))
                 {
                     continue;
@@ -91,61 +122,76 @@ namespace Backtrace.Unity.Model
                 int methodNameEndIndex = frameString.IndexOf(')');
                 if (methodNameEndIndex == -1)
                 {
-                    // apply error message
-                    if (frameIndex == 0)
-                    {
-                        if (string.IsNullOrEmpty(_message))
-                        {
-                            _message = frameString;
-                        }
-                        _header = true;
-                        continue;
-                    }
-                    else
-                    {
-                        //invalid stack frame
-                        continue;
-                    }
+                    //invalid stack frame
+                    result.Add(new BacktraceStackFrame() { FunctionName = frame });
+                    continue;
+
                 }
 
                 //methodname index should be greater than 0 AND '(' should be before ')'
                 if (methodNameEndIndex < 1 && frameString[methodNameEndIndex - 1] != '(')
                 {
-                    //invalid stack frame
-                    return;
-                }
-
-                BacktraceStackFrame stackFrame = null;
-                if (frameString.StartsWith("0x"))
-                {
-                    stackFrame = SetNativeStackTraceInformation(frameString);
-                }
-                else if (frameString.StartsWith("#"))
-                {
-                    stackFrame = SetJITStackTraceInformation(frameString);
-                }
-                else if (frameString.IndexOf('(', methodNameEndIndex + 1) > -1)
-                {
-                    stackFrame = SetDefaultStackTraceInformation(frameString);
-                }
-                else
-                {
-                    stackFrame = SetAndroidStackTraceInformation(frameString);
-                }
-
-                // if function name is null - try to apply default parser
-                if (stackFrame == null || string.IsNullOrEmpty(stackFrame.FunctionName))
-                {
-                    stackFrame = new BacktraceStackFrame()
+                    result.Add(new BacktraceStackFrame()
                     {
-                        FunctionName = frameString
-                    };
+                        FunctionName = frame
+                    });
                 }
 
-                StackFrames.Add(stackFrame);
-
-
+                result.Add(ConvertFrame(frameString, methodNameEndIndex));
             }
+            return result;
+        }
+
+        private BacktraceStackFrame ConvertFrame(string frameString, int methodNameEndIndex)
+        {
+            if (frameString.StartsWith("0x"))
+            {
+                return SetNativeStackTraceInformation(frameString);
+            }
+            else if (frameString.StartsWith("#"))
+            {
+                return SetJITStackTraceInformation(frameString);
+            }
+            // allow to execute this code in the editor 
+            // to validate parser via unit tests
+#if UNITY_ANDROID || UNITY_EDITOR
+            // verify if the stack trace is from Untiy by checking if the
+            // by checking source code location
+            const char argumentStartInitialChar = '(';
+            var sourceCodeStartIndex = frameString.IndexOf(argumentStartInitialChar, methodNameEndIndex + 1);
+            if (sourceCodeStartIndex > -1)
+            {
+                return SetDefaultStackTraceInformation(frameString, methodNameEndIndex);
+            }
+            // verify if frame has parameters that contain source code information
+            var methodStartIndex = frameString.IndexOf(argumentStartInitialChar);
+            if (methodStartIndex == -1)
+            {
+                return new BacktraceStackFrame()
+                {
+                    FunctionName = frameString
+                };
+            }
+            // add length of the '('
+            methodStartIndex += 1;
+            var methodArguments = frameString.Substring(methodStartIndex, methodNameEndIndex - methodStartIndex);
+            if (methodArguments.IndexOf(':') != -1 || methodArguments == "Unknown Source")
+            {
+                return SetAndroidStackTraceInformation(frameString, methodStartIndex, methodNameEndIndex);
+            }
+            // check if popular extensions are available in the frame to determine if 
+            // the frame has any reference to java.
+            for (int i = 0; i < _javaExtensions.Length; i++)
+            {
+                if (frameString.IndexOf(_javaExtensions[i]) != -1)
+                {
+                    return SetAndroidStackTraceInformation(frameString, methodStartIndex, methodNameEndIndex);
+                }
+            }
+#endif
+            return SetDefaultStackTraceInformation(frameString, methodNameEndIndex);
+
+
         }
 
         /// <summary>
@@ -155,9 +201,10 @@ namespace Backtrace.Unity.Model
         /// <returns>Backtrace stack frame</returns>
         private BacktraceStackFrame SetJITStackTraceInformation(string frameString)
         {
-
-            var stackFrame = new BacktraceStackFrame();
-            stackFrame.StackFrameType = Types.BacktraceStackFrameType.Native;
+            var stackFrame = new BacktraceStackFrame
+            {
+                StackFrameType = Types.BacktraceStackFrameType.Native
+            };
             if (!frameString.StartsWith("#"))
             {
                 //handle sitaution when we detected jit stack trace
@@ -195,6 +242,19 @@ namespace Backtrace.Unity.Model
             {
                 stackFrame.FunctionName = frameString;
             }
+
+            if (!string.IsNullOrEmpty(stackFrame.FunctionName))
+            {
+                var libraryNameSeparator = stackFrame.FunctionName.IndexOf(':');
+                if (libraryNameSeparator != -1)
+                {
+                    stackFrame.Library = stackFrame.FunctionName.Substring(0, libraryNameSeparator).Trim();
+                    stackFrame.FunctionName = stackFrame.FunctionName.Substring(++libraryNameSeparator).Trim();
+                } else
+                {
+                    stackFrame.Library = "native";
+                }
+            }
             return stackFrame;
 
         }
@@ -206,10 +266,17 @@ namespace Backtrace.Unity.Model
         /// <returns>Backtrace stack frame</returns>
         private BacktraceStackFrame SetNativeStackTraceInformation(string frameString)
         {
-            var stackFrame = new BacktraceStackFrame();
-            stackFrame.StackFrameType = Types.BacktraceStackFrameType.Native;
+            var stackFrame = new BacktraceStackFrame
+            {
+                StackFrameType = Types.BacktraceStackFrameType.Native
+            };
             // parse address
             var addressSubstringIndex = frameString.IndexOf(' ');
+            if (addressSubstringIndex == -1)
+            {
+                stackFrame.FunctionName = frameString;
+                return stackFrame;
+            }
             stackFrame.Address = frameString.Substring(0, addressSubstringIndex);
             var indexPointer = addressSubstringIndex + 1;
 
@@ -260,31 +327,27 @@ namespace Backtrace.Unity.Model
         /// Try to convert Android stack frame string to Backtrace stack frame
         /// </summary>
         /// <param name="frameString">Android stack frame</param>
+        /// <param name="parameterStart">Index of parameters start character '('</param>
+        /// <param name="frameString">Index of paramters end character ')'</param>
         /// <returns>Backtrace stack frame</returns>
-        private BacktraceStackFrame SetAndroidStackTraceInformation(string frameString)
+        private BacktraceStackFrame SetAndroidStackTraceInformation(string frameString, int parameterStart, int parameterEnd)
         {
-            // validate if stack trace is from Android 
-            // try parse method and line number available in the function parameter
-            var parameterStart = frameString.LastIndexOf('(') + 1;
-            var parameterEnd = frameString.LastIndexOf(')');
-
-            var stackFrame = new BacktraceStackFrame();
-            stackFrame.StackFrameType = Types.BacktraceStackFrameType.Android;
-            if (parameterStart != -1 && parameterEnd != -1 && parameterEnd - parameterStart > 1)
+            var stackFrame = new BacktraceStackFrame
             {
-                stackFrame.FunctionName = frameString.Substring(0, parameterStart - 1);
-                var possibleSourceCodeInformation = frameString.Substring(parameterStart, parameterEnd - parameterStart);
+                FunctionName = frameString.Substring(0, parameterStart - 1),
+                StackFrameType = Types.BacktraceStackFrameType.Android
+            };
+            var possibleSourceCodeInformation = frameString.Substring(parameterStart, parameterEnd - parameterStart);
 
-                var sourceCodeInformation = possibleSourceCodeInformation.Split(':');
-                if (sourceCodeInformation.Length == 2)
-                {
-                    stackFrame.Library = sourceCodeInformation[0];
-                    int.TryParse(sourceCodeInformation[1], out stackFrame.Line);
-                }
-                else if (frameString.StartsWith("java.lang") || possibleSourceCodeInformation == "Unknown Source")
-                {
-                    stackFrame.Library = possibleSourceCodeInformation;
-                }
+            var sourceCodeInformation = possibleSourceCodeInformation.Split(':');
+            if (sourceCodeInformation.Length == 2)
+            {
+                stackFrame.Library = sourceCodeInformation[0];
+                int.TryParse(sourceCodeInformation[1], out stackFrame.Line);
+            }
+            else if (frameString.StartsWith("java.lang") || possibleSourceCodeInformation == "Unknown Source")
+            {
+                stackFrame.Library = possibleSourceCodeInformation;
             }
 
             return stackFrame;
@@ -296,16 +359,13 @@ namespace Backtrace.Unity.Model
         /// <param name="frameString">Unity stack frame</param>
         /// <param name="sourceInformationStartIndex"></param>
         /// <returns></returns>
-        private BacktraceStackFrame SetDefaultStackTraceInformation(string frameString)
+        private BacktraceStackFrame SetDefaultStackTraceInformation(string frameString, int methodNameEndIndex)
         {
             const string wrapperPrefix = "(wrapper remoting-invoke-with-check)";
             if (frameString.StartsWith(wrapperPrefix))
             {
                 frameString = frameString.Replace(wrapperPrefix, string.Empty);
             }
-            // find method parameters
-            int methodNameEndIndex = frameString.IndexOf(')');
-
             // detect source code information - format : 'at (...)'
 
             // find source code start based on method parameter start index
@@ -353,7 +413,7 @@ namespace Backtrace.Unity.Model
                     return result;
                 }
                 var substring = sourceString.Substring(atSeparator, endLine);
-                
+
                 result.Library = (substring == null ? string.Empty : substring.Trim());
 
                 if (!string.IsNullOrEmpty(result.Library))
@@ -364,6 +424,10 @@ namespace Backtrace.Unity.Model
                     {
                         result.Library = null;
                     }
+                }
+                if (string.IsNullOrEmpty(result.Library))
+                {
+                    result.Library = result.FunctionName.Substring(0, result.FunctionName.LastIndexOf(".", result.FunctionName.IndexOf("(")));
                 }
             }
             return result;

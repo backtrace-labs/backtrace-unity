@@ -29,8 +29,11 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         /// Determine if breadcrumbs are enabled
         /// </summary>
         private bool _enabled = false;
-        public BacktraceBreadcrumbs(IBacktraceLogManager logManager)
+
+        public BacktraceBreadcrumbs(IBacktraceLogManager logManager, BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
         {
+            BreadcrumbsLevel = level;
+            UnityLogLevel = unityLogLevel;
             LogManager = logManager;
             EventHandler = new BacktraceBreadcrumbsEventHandler(this);
         }
@@ -43,22 +46,24 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         {
             return LogManager.Clear();
         }
-
         public bool EnableBreadcrumbs(BacktraceBreadcrumbType level, UnityEngineLogLevel unityLogLevel)
+        {
+            UnityLogLevel = unityLogLevel;
+            BreadcrumbsLevel = level;
+            return EnableBreadcrumbs();
+        }
+        public bool EnableBreadcrumbs()
         {
             if (_enabled)
             {
                 return false;
             }
-            BreadcrumbsLevel = level;
-            UnityLogLevel = unityLogLevel;
-
             var breadcrumbStorageEnabled = LogManager.Enable();
             if (!breadcrumbStorageEnabled)
             {
                 return false;
             }
-            EventHandler.Register(level);
+            EventHandler.Register(BreadcrumbsLevel);
             return true;
         }
 
@@ -156,7 +161,7 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             return UnityLogLevel.HasFlag(type);
         }
 
-        internal UnityEngineLogLevel ConvertLogTypeToLogLevel(LogType type)
+        internal static UnityEngineLogLevel ConvertLogTypeToLogLevel(LogType type)
         {
             switch (type)
             {
@@ -181,6 +186,29 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         public void Update()
         {
             EventHandler.Update();
+        }
+
+        public static bool CanStoreBreadcrumbs(UnityEngineLogLevel logLevel, BacktraceBreadcrumbType backtraceBreadcrumbsLevel)
+        {
+            return backtraceBreadcrumbsLevel != BacktraceBreadcrumbType.None && logLevel != UnityEngineLogLevel.None;
+        }
+        /// <summary>
+        /// Archives a breadcrumb file from the previous session.
+        /// </summary>
+        /// <returns>
+        /// Path to the archived breadcrumb library. 
+        /// If the operation failed then the method returns
+        /// an empty string.
+        /// </returns>
+        public string Archive()
+        {
+            var breadcrumbArchiveManager = LogManager as IArchiveableBreadcrumbManager;
+            if (breadcrumbArchiveManager == null)
+            {
+                return string.Empty;
+            }
+            return breadcrumbArchiveManager.Archive();
+
         }
     }
 }

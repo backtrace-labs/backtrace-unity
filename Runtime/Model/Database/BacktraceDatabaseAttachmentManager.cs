@@ -23,7 +23,7 @@ namespace Backtrace.Unity.Model.Database
         {
             _settings = settings;
             ScreenshotMaxHeight = Screen.height;
-            ScreenshotQuality = 90;
+            ScreenshotQuality = 25;
         }
 
         public IEnumerable<string> GetReportAttachments(BacktraceData data)
@@ -31,9 +31,16 @@ namespace Backtrace.Unity.Model.Database
             var attachmentPrefix = data.UuidString;
 
             var result = new List<string>();
-            AddIfPathIsNotEmpty(result, GetScreenshotPath(attachmentPrefix));
-            AddIfPathIsNotEmpty(result, GetUnityPlayerLogFile(data, attachmentPrefix));
-            AddIfPathIsNotEmpty(result, GetMinidumpPath(data, attachmentPrefix));
+            try
+            {
+                AddIfPathIsNotEmpty(result, GetScreenshotPath(attachmentPrefix));
+                AddIfPathIsNotEmpty(result, GetUnityPlayerLogFile(data, attachmentPrefix));
+                AddIfPathIsNotEmpty(result, GetMinidumpPath(data, attachmentPrefix));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Cannot generate report attachments. Reason: {0}", e.Message));
+            }
             return result;
         }
 
@@ -99,56 +106,48 @@ namespace Backtrace.Unity.Model.Database
                 else
                 {
                     Texture2D result;
-                    if (ScreenshotMaxHeight < Screen.height)
+
+                    float ratio = (float)Screen.width / (float)Screen.height;
+                    var applyDefaultSettings = ScreenshotMaxHeight == Screen.height;
+                    int targetHeight = applyDefaultSettings ? Screen.height : Mathf.Min(Screen.height, ScreenshotMaxHeight);
+                    int targetWidth = applyDefaultSettings ? Screen.width : Mathf.RoundToInt(targetHeight * ratio);
+
+#if UNITY_2019_1_OR_NEWER
+                    RenderTexture screenTexture = RenderTexture.GetTemporary(Screen.width, Screen.height);
+                    ScreenCapture.CaptureScreenshotIntoRenderTexture(screenTexture);
+#else
+                    Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
+#endif
+                    // Create a render texture to render into
+                    RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
+
+                    if (SystemInfo.graphicsUVStartsAtTop)
                     {
-
-                        float ratio = Screen.width / Screen.height;
-                        int targetHeight = Mathf.Min(Screen.height, ScreenshotMaxHeight);
-                        int targetWidth = Mathf.RoundToInt(targetHeight * ratio);
-
-#if UNITY_2019_1_OR_NEWER
-                        RenderTexture screenTexture = RenderTexture.GetTemporary(Screen.width, Screen.height);
-                        ScreenCapture.CaptureScreenshotIntoRenderTexture(screenTexture);
-#else
-                        Texture2D screenTexture = ScreenCapture.CaptureScreenshotAsTexture();
-#endif
-
-                        // Create a render texture to render into
-                        RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
-
-                        if (SystemInfo.graphicsUVStartsAtTop)
-                        {
-                            Graphics.Blit(screenTexture, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
-                        }
-                        else
-                        {
-                            Graphics.Blit(screenTexture, rt);
-                        }
-
-                        RenderTexture previousActiveRT = RenderTexture.active;
-                        RenderTexture.active = rt;
-
-                        // Create a texture & read data from the active RenderTexture
-                        result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
-                        result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
-                        result.Apply();
-
-                        // Reset to initial state
-                        RenderTexture.active = previousActiveRT;
-
-                        RenderTexture.ReleaseTemporary(rt);
-
-#if UNITY_2019_1_OR_NEWER
-                        RenderTexture.ReleaseTemporary(screenTexture);
-#else
-                        GameObject.Destroy(screenTexture);
-#endif
+                        Graphics.Blit(screenTexture, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
                     }
                     else
                     {
-                        result = ScreenCapture.CaptureScreenshotAsTexture();
+                        Graphics.Blit(screenTexture, rt);
                     }
 
+                    RenderTexture previousActiveRT = RenderTexture.active;
+                    RenderTexture.active = rt;
+
+                    // Create a texture & read data from the active RenderTexture
+                    result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
+                    result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
+                    result.Apply();
+
+                    // Reset to initial state
+                    RenderTexture.active = previousActiveRT;
+
+                    RenderTexture.ReleaseTemporary(rt);
+
+#if UNITY_2019_1_OR_NEWER
+                    RenderTexture.ReleaseTemporary(screenTexture);
+#else
+                    GameObject.Destroy(screenTexture);
+#endif
                     File.WriteAllBytes(screenshotPath, result.EncodeToJPG(ScreenshotQuality));
                     GameObject.Destroy(result);
 

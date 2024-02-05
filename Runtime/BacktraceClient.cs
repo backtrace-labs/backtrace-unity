@@ -24,9 +24,14 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.6.2";
-
+        public const string VERSION = "3.8.5";
+        internal const string DefaultBacktraceGameObjectName = "BacktraceClient";
         public BacktraceConfiguration Configuration;
+
+        /// <summary>
+        /// Breadcrumbs instance for internal use. This instance allows to make system calls
+        /// </summary>
+        private BacktraceBreadcrumbs _breadcrumbs;
 
         /// <summary>
         /// Backtrace Breadcrumbs
@@ -35,11 +40,7 @@ namespace Backtrace.Unity
         {
             get
             {
-                if (Database == null)
-                {
-                    return null;
-                }
-                return Database.Breadcrumbs;
+                return _breadcrumbs;
             }
         }
 
@@ -319,6 +320,14 @@ namespace Backtrace.Unity
 
         private INativeClient _nativeClient;
 
+        internal INativeClient NativeClient
+        {
+            get
+            {
+                return _nativeClient;
+            }
+        }
+
         public bool EnablePerformanceStatistics
         {
             get
@@ -383,7 +392,7 @@ namespace Backtrace.Unity
         /// param name="attachments">List of attachments </param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
-        public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        public static BacktraceClient Initialize(BacktraceConfiguration configuration, Dictionary<string, string> attributes = null, string gameObjectName = DefaultBacktraceGameObjectName)
         {
             if (string.IsNullOrEmpty(gameObjectName))
             {
@@ -422,7 +431,7 @@ namespace Backtrace.Unity
         /// <param name="attributes">Client side attributes</param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
-        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string gameObjectName = DefaultBacktraceGameObjectName)
         {
             return Initialize(url, databasePath, attributes, null, gameObjectName);
         }
@@ -436,7 +445,7 @@ namespace Backtrace.Unity
         /// <param name="attachments">Paths to attachments that Backtrace client will include in managed/native reports</param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
-        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = "BacktraceClient")
+        public static BacktraceClient Initialize(string url, string databasePath, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = DefaultBacktraceGameObjectName)
         {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
@@ -454,7 +463,7 @@ namespace Backtrace.Unity
         /// <param name="attributes">Client side attributes</param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
-        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string gameObjectName = "BacktraceClient")
+        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string gameObjectName = DefaultBacktraceGameObjectName)
         {
             return Initialize(url, attributes, new string[0], gameObjectName);
         }
@@ -467,7 +476,7 @@ namespace Backtrace.Unity
         /// <param name="attachments">Paths to attachments that Backtrace client will include in managed/native reports</param>
         /// <param name="gameObjectName">game object name</param>
         /// <returns>Backtrace client</returns>
-        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = "BacktraceClient")
+        public static BacktraceClient Initialize(string url, Dictionary<string, string> attributes = null, string[] attachments = null, string gameObjectName = DefaultBacktraceGameObjectName)
         {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
@@ -493,7 +502,12 @@ namespace Backtrace.Unity
                 return;
             }
 
-            Enabled = true;
+            Enabled =
+#if UNITY_EDITOR
+                !Configuration.DisableInEditor;
+#else
+                true;
+#endif
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
@@ -519,11 +533,6 @@ namespace Backtrace.Unity
 #if !UNITY_WEBGL
             EnableMetrics(false);
 #endif
-            var nativeAttachments = _clientReportAttachments.ToList()
-                .Where(n => !string.IsNullOrEmpty(n))
-                .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase)
-                .ToList();
-
             string breadcrumbsPath = string.Empty;
             if (Configuration.Enabled)
             {
@@ -531,27 +540,23 @@ namespace Backtrace.Unity
                 if (Database != null)
                 {
                     Database.Reload();
+                    _breadcrumbs = (BacktraceBreadcrumbs)Database.Breadcrumbs;
                     Database.SetApi(BacktraceApi);
                     Database.SetReportWatcher(_reportLimitWatcher);
-                    if (Database.Breadcrumbs != null)
+                    if (_breadcrumbs != null)
                     {
-                        breadcrumbsPath = Database.Breadcrumbs.GetBreadcrumbLogPath();
-
+                        breadcrumbsPath = _breadcrumbs.GetBreadcrumbLogPath();
                     }
                 }
             }
-
-            // send minidump files generated by unity engine or unity game, not captured by Windows native integration
-            // this integration should start before native integration and before breadcrumbs integration
-            // to allow algorithm to send breadcrumbs file - if the breadcrumb file is available
-            var scopedAttributes = AttributeProvider.GenerateAttributes(false);
-            if (Configuration.SendUnhandledGameCrashesOnGameStartup && isActiveAndEnabled)
-            {
-                StartCoroutine(Runtime.Native.Windows.NativeClient.SendUnhandledGameCrashesOnGameStartup(nativeAttachments, breadcrumbsPath, Configuration.GetFullDatabasePath(), BacktraceApi));
-            }
-
             if (Database != null)
             {
+                // send minidump files generated by unity engine or unity game, not captured by Windows native integration
+                // this integration should start before native integration and before breadcrumbs integration
+                // to allow algorithm to send breadcrumbs file - if the breadcrumb file is available
+                var scopedAttributes = AttributeProvider.GenerateAttributes(false);
+
+                var nativeAttachments = GetNativeAttachments();
                 // avoid adding breadcurmbs file earlier - to avoid managing breadcrumb file in two places
                 // in windows managed integration with unity crash handler
                 // breadcrumb path is required by native integration and will be added just before native integration initialization
@@ -559,9 +564,8 @@ namespace Backtrace.Unity
                 {
                     nativeAttachments.Add(breadcrumbsPath);
                 }
-                _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, scopedAttributes, nativeAttachments);
+                _nativeClient = NativeClientFactory.CreateNativeClient(Configuration, name, _breadcrumbs, scopedAttributes, nativeAttachments);
                 AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
-                Database.EnableBreadcrumbsSupport();
             }
         }
 
@@ -574,45 +578,46 @@ namespace Backtrace.Unity
             return Database.EnableBreadcrumbsSupport();
         }
 #if !UNITY_WEBGL
-        public void EnableMetrics()
+        public bool EnableMetrics()
         {
-            EnableMetrics(true);
+            return EnableMetrics(true);
         }
-        private void EnableMetrics(bool enableIfConfigurationIsDisabled = true)
+        private bool EnableMetrics(bool enableIfConfigurationIsDisabled = true)
         {
             if (!Configuration.EnableMetricsSupport)
             {
                 if (!enableIfConfigurationIsDisabled)
                 {
-                    return;
+                    return false;
                 }
                 Debug.LogWarning("Event aggregation configuration was disabled. Enabling it manually via API");
             }
-            var universeName = Configuration.GetUniverseName();
-            var token = Configuration.GetToken();
-            EnableMetrics(
-                BacktraceMetrics.GetDefaultUniqueEventsUrl(universeName, token),
-                BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
-                Configuration.GetEventAggregationIntervalTimerInMs());
+            return EnableMetrics(BacktraceMetrics.DefaultUniqueAttributeName);
         }
 
-        public void EnableMetrics(string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
+        public bool EnableMetrics(string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
         {
             var universeName = Configuration.GetUniverseName();
+            if (string.IsNullOrEmpty(universeName))
+            {
+                Debug.LogWarning("Cannot initialize event aggregation - Unknown Backtrace URL.");
+                return false;
+            }
             var token = Configuration.GetToken();
             EnableMetrics(
                 BacktraceMetrics.GetDefaultUniqueEventsUrl(universeName, token),
                 BacktraceMetrics.GetDefaultSummedEventsUrl(universeName, token),
                 Configuration.GetEventAggregationIntervalTimerInMs(),
                 uniqueAttributeName);
+            return true;
         }
 
-        public void EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
+        public bool EnableMetrics(string uniqueEventsSubmissionUrl, string summedEventsSubmissionUrl, uint timeIntervalInSec = BacktraceMetrics.DefaultTimeIntervalInSec, string uniqueAttributeName = BacktraceMetrics.DefaultUniqueAttributeName)
         {
             if (_metrics != null)
             {
-                Debug.LogWarning("Backtrace metrics support is enabled. Please use BacktraceClient.Metrics.");
-                return;
+                Debug.LogWarning("Backtrace metrics support is already enabled. Please use BacktraceClient.Metrics.");
+                return false;
             }
             _metrics = new BacktraceMetrics(
                 attributeProvider: AttributeProvider,
@@ -625,6 +630,7 @@ namespace Backtrace.Unity
                 IgnoreSslValidation = Configuration.IgnoreSslValidation
             };
             StartupMetrics();
+            return true;
         }
 
         private void StartupMetrics()
@@ -645,21 +651,21 @@ namespace Backtrace.Unity
 
         private void Awake()
         {
-            if (Breadcrumbs != null)
+            if (_breadcrumbs != null)
             {
-                Breadcrumbs.FromMonoBehavior("Application awake", LogType.Assert, null);
+                _breadcrumbs.FromMonoBehavior("Application awake", LogType.Assert, null);
             }
             Refresh();
         }
 
         /// <summary>
-        /// Update native client internal ANR timer.
+        /// Update native client internals.
         /// </summary>
         private void LateUpdate()
         {
             if (_nativeClient != null)
             {
-                _nativeClient.UpdateClientTime(Time.unscaledTime);
+                _nativeClient.Update(Time.unscaledTime);
             }
 
 #if !UNITY_WEBGL
@@ -685,10 +691,10 @@ namespace Backtrace.Unity
         private void OnDestroy()
         {
             Enabled = false;
-            if (Breadcrumbs != null)
+            if (_breadcrumbs != null)
             {
-                Breadcrumbs.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
-                Breadcrumbs.UnregisterEvents();
+                _breadcrumbs.FromMonoBehavior("Backtrace Client: OnDestroy", LogType.Warning, null);
+                _breadcrumbs.UnregisterEvents();
             }
             _instance = null;
             Application.logMessageReceived -= HandleUnityMessage;
@@ -732,9 +738,9 @@ namespace Backtrace.Unity
               message: message,
               attachmentPaths: attachmentPaths,
               attributes: attributes);
-            if (Breadcrumbs != null)
+            if (_breadcrumbs != null)
             {
-                Breadcrumbs.FromBacktrace(report);
+                _breadcrumbs.FromBacktrace(report);
             }
             _backtraceLogManager.Enqueue(report);
             SendReport(report);
@@ -754,9 +760,9 @@ namespace Backtrace.Unity
             }
 
             var report = new BacktraceReport(exception, attributes, attachmentPaths);
-            if (Breadcrumbs != null)
+            if (_breadcrumbs != null)
             {
-                Breadcrumbs.FromBacktrace(report);
+                _breadcrumbs.FromBacktrace(report);
             }
             _backtraceLogManager.Enqueue(report);
             SendReport(report);
@@ -773,9 +779,9 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            if (Breadcrumbs != null)
+            if (_breadcrumbs != null)
             {
-                Breadcrumbs.FromBacktrace(report);
+                _breadcrumbs.FromBacktrace(report);
             }
             _backtraceLogManager.Enqueue(report);
             SendReport(report, sendCallback);
@@ -791,6 +797,10 @@ namespace Backtrace.Unity
             if (BacktraceApi == null)
             {
                 Debug.LogWarning("Backtrace API doesn't exist. Please validate client token or server url!");
+                return;
+            }
+            if (!Enabled)
+            {
                 return;
             }
             StartCoroutine(CollectDataAndSend(report, sendCallback));
@@ -963,6 +973,37 @@ namespace Backtrace.Unity
             }
             SendUnhandledException(hang);
         }
+
+        /// <summary>
+        /// Handle background exceptions with single exception message (that contains information about exception message and stack trace) 
+        /// </summary>
+        /// <param name="backgroundExceptionMessage">exception message</param>
+        internal void HandleUnhandledExceptionsFromAndroidBackgroundThread(string backgroundExceptionMessage)
+        {
+            var splitIndex = backgroundExceptionMessage.IndexOf('\n');
+            if (splitIndex == -1)
+            {
+                Debug.LogWarning(string.Format("Received incorrect background exception message. Message: {0}", backgroundExceptionMessage));
+                return;
+            }
+            var message = backgroundExceptionMessage.Substring(0, splitIndex);
+            var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
+            if (Database != null)
+            {
+                var backtraceData = new BacktraceReport(new BacktraceUnhandledException(message, stackTrace)).ToBacktraceData(null, GameObjectDepth);
+                AttributeProvider.AddAttributes(backtraceData.Attributes.Attributes);
+                Database.Add(backtraceData);
+            }
+            else
+            {
+                HandleUnityMessage(message, stackTrace, LogType.Exception);
+            }
+            var androidNativeClient = _nativeClient as Runtime.Native.Android.NativeClient;
+            if (androidNativeClient != null)
+            {
+                androidNativeClient.FinishUnhandledBackgroundException();
+            }
+        }
 #endif
 
         private Thread _current;
@@ -985,9 +1026,9 @@ namespace Backtrace.Unity
 
         internal void OnApplicationPause(bool pause)
         {
-            if (Breadcrumbs != null)
+            if (_breadcrumbs != null)
             {
-                Breadcrumbs.FromMonoBehavior("Application pause", LogType.Assert, new Dictionary<string, string> { { "paused", pause.ToString(CultureInfo.InvariantCulture).ToLower() } });
+                _breadcrumbs.FromMonoBehavior("Application pause", LogType.Assert, new Dictionary<string, string> { { "paused", pause.ToString(CultureInfo.InvariantCulture).ToLower() } });
             }
             if (_nativeClient != null)
             {
@@ -1093,18 +1134,12 @@ namespace Backtrace.Unity
         /// <returns>True, when client should skip report, otherwise false.</returns>
         private bool SamplingShouldSkip()
         {
-            // Sampling won't work in Editor mode - from editor we're allowing to send all type
-            // of possible errors.
-#if UNITY_EDITOR
-            return false;
-#else
             if (!Configuration || Configuration.Sampling == 1)
             {
                 return false;
             }
             var value = Random.NextDouble();
             return value > Configuration.Sampling;
-#endif
         }
 
         private void SendUnhandledException(BacktraceUnhandledException exception, bool invokeSkipApi = true)
@@ -1121,10 +1156,6 @@ namespace Backtrace.Unity
 
         private bool ShouldSendReport(Exception exception, List<string> attachmentPaths, Dictionary<string, string> attributes, bool invokeSkipApi = true)
         {
-            if (!Enabled)
-            {
-                return false;
-            }
             // guess report type
             var filterType = ReportFilterType.Exception;
             if (exception is BacktraceUnhandledException)
@@ -1134,7 +1165,6 @@ namespace Backtrace.Unity
                     ? ReportFilterType.Hang
                     : unhandledException.Type == LogType.Exception ? ReportFilterType.UnhandledException : ReportFilterType.Error;
             }
-
 
             if (invokeSkipApi && ShouldSkipReport(filterType, exception, string.Empty))
             {
@@ -1277,9 +1307,22 @@ namespace Backtrace.Unity
         /// <returns>true if client should skip report. Otherwise false.</returns>
         private bool ShouldSkipReport(ReportFilterType type, Exception exception, string message)
         {
+            if (!Enabled)
+            {
+                return false;
+            }
+
             return Configuration.ReportFilterType.HasFlag(type)
                 || (SkipReport != null && SkipReport.Invoke(type, exception, message));
 
+        }
+
+        internal IList<string> GetNativeAttachments()
+        {
+            return _clientReportAttachments
+                .Where(n => !string.IsNullOrEmpty(n))
+                .OrderBy(System.IO.Path.GetFileName, StringComparer.InvariantCultureIgnoreCase)
+                .ToList();
         }
     }
 }

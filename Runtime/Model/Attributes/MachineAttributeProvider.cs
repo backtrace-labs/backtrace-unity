@@ -3,21 +3,20 @@ using Backtrace.Unity.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Net.NetworkInformation;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model.Attributes
 {
     internal sealed class MachineAttributeProvider : IScopeAttributeProvider
     {
+        private readonly MachineIdStorage _machineIdStorage = new MachineIdStorage();
         public void GetAttributes(IDictionary<string, string> attributes)
         {
             if (attributes == null)
             {
                 return;
             }
-            attributes["guid"] = GenerateMachineId();
+            attributes["guid"] = _machineIdStorage.GenerateMachineId();
             IncludeGraphicCardInformation(attributes);
             IncludeOsInformation(attributes);
         }
@@ -33,7 +32,6 @@ namespace Backtrace.Unity.Model.Attributes
             //Operating system name = such as "windows"
             attributes["uname.sysname"] = SystemHelper.Name();
 
-            //The version of the operating system
             attributes["uname.version"] = Environment.OSVersion.Version.ToString();
             attributes["uname.fullname"] = SystemInfo.operatingSystem;
             attributes["uname.family"] = SystemInfo.operatingSystemFamily.ToString();
@@ -53,17 +51,43 @@ namespace Backtrace.Unity.Model.Attributes
 
             //The hostname of the crashing system.
             attributes["hostname"] = Environment.MachineName;
-#if !UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
+
+            using (var build = new AndroidJavaClass("android.os.Build"))
+            {
+                attributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
+                attributes["device.brand"] = build.GetStatic<string>("BRAND").ToString();
+                attributes["device.product"] = build.GetStatic<string>("PRODUCT").ToString();
+            }
+
+            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            {
+                attributes["device.sdk"] = version.GetStatic<int>("SDK_INT").ToString();
+                attributes["uname.version"] = version.GetStatic<string>("RELEASE").ToString();
+            }
+            attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
+#else
             if (SystemInfo.systemMemorySize != 0)
             {
                 //number of kilobytes that application is using.
                 attributes["vm.rss.size"] = (SystemInfo.systemMemorySize * 1048576L).ToString(CultureInfo.InvariantCulture);
             }
 #endif
+
+
+#if UNITY_IOS && !UNITY_EDITOR
+            attributes["uname.version"] = UnityEngine.iOS.Device.systemVersion;
+            attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
+#endif
         }
         private void IncludeGraphicCardInformation(IDictionary<string, string> attributes)
         {
+            // if a graphic card is not available
+            if (SystemInfo.graphicsDeviceType == null)
 
+            {
+                return;
+            }
             //This is the PCI device ID of the user's graphics card. Together with SystemInfo.graphicsDeviceVendorID, 
             //this number uniquely identifies a particular graphics card model. 
             //The number is the same across operating systems and driver versions.
@@ -82,36 +106,6 @@ namespace Backtrace.Unity.Model.Attributes
 
             attributes["graphic.shader"] = SystemInfo.graphicsShaderLevel.ToString(CultureInfo.InvariantCulture);
             attributes["graphic.topUv"] = SystemInfo.graphicsUVStartsAtTop.ToString(CultureInfo.InvariantCulture);
-        }
-
-        private string GenerateMachineId()
-        {
-#if !UNITY_WEBGL && !UNITY_SWITCH
-            // DeviceUniqueIdentifier will return "Switch" on Nintendo Switch
-            // try to generate random guid instead
-            if (SystemInfo.deviceUniqueIdentifier != SystemInfo.unsupportedIdentifier)
-            {
-                return SystemInfo.deviceUniqueIdentifier;
-            }
-            var networkInterface =
-                 NetworkInterface.GetAllNetworkInterfaces()
-                    .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up);
-
-            PhysicalAddress physicalAddr = null;
-            string macAddress = null;
-            if (networkInterface == null
-                || (physicalAddr = networkInterface.GetPhysicalAddress()) == null
-                || string.IsNullOrEmpty(macAddress = physicalAddr.ToString()))
-            {
-                return Guid.NewGuid().ToString();
-            }
-
-            string hex = macAddress.Replace(":", string.Empty);
-            var value = Convert.ToInt64(hex, 16);
-            return GuidExtensions.FromLong(value).ToString();
-#else
-            return Guid.NewGuid().ToString();
-#endif
         }
     }
 }

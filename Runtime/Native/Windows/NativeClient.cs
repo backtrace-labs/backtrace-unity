@@ -1,6 +1,10 @@
-﻿using Backtrace.Unity.Interfaces;
+﻿#if UNITY_STANDALONE_WIN
+using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Model.Breadcrumbs.Storage;
+using Backtrace.Unity.Runtime.Native.Base;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
 using System;
@@ -15,7 +19,7 @@ using UnityEngine;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Runtime.Native.Windows
 {
-    internal sealed class NativeClient : INativeClient
+    internal sealed class NativeClient : NativeClientBase, INativeClient, IStartupMinidumpSender
     {
         [Serializable]
         private class ScopedAttributesContainer
@@ -51,7 +55,12 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
 
         [DllImport("BacktraceCrashpadWindows", EntryPoint = "Initialize")]
-        private static extern bool Initialize(string submissionUrl, string databasePath, string handlerPath, string[] attachments, int attachmentSize);
+        private static extern bool Initialize(
+            string submissionUrl,
+            [MarshalAs(UnmanagedType.LPWStr)] string databasePath,
+            [MarshalAs(UnmanagedType.LPWStr)] string handlerPath,
+            string[] attachments,
+            int attachmentSize);
 
         [DllImport("BacktraceCrashpadWindows", EntryPoint = "AddAttribute")]
         private static extern bool AddNativeAttribute(string key, string value);
@@ -59,58 +68,50 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         [DllImport("BacktraceCrashpadWindows", EntryPoint = "DumpWithoutCrash")]
         private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread);
 
-        // Last Backtrace client update time 
-        volatile internal float _lastUpdateTime;
-
-        /// <summary>
-        /// Determine if the ANR background thread should be disabled or not 
-        /// for some period of time.
-        /// This option will be used by the native client implementation
-        /// once application goes to background/foreground
-        /// </summary>
-        volatile internal bool _preventAnr = false;
-
-        /// <summary>
-        /// Determine if ANR thread should exit
-        /// </summary>
-        volatile internal bool _stopAnr = false;
-
-        private Thread _anrThread;
-
-        private readonly BacktraceConfiguration _configuration;
-        private bool _captureNativeCrashes = false;
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
+        public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments) : base(configuration, breadcrumbs)
         {
-            _configuration = configuration;
             CleanScopedAttributes();
             HandleNativeCrashes(clientAttributes, attachments);
             AddScopedAttributes(clientAttributes);
-            HandleAnr();
+            if (!configuration.ReportFilterType.HasFlag(ReportFilterType.Hang))
+            {
+                HandleAnr();
+            }
         }
 
         private void HandleNativeCrashes(IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
         {
-            var integrationDisabled =
-#if UNITY_STANDALONE_WIN
-                !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
-#else
-                true;
-#endif
+            var integrationDisabled = !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
             if (integrationDisabled)
             {
                 return;
             }
+
+
+            var pluginDirectoryPath = GetPluginDirectoryPath();
+            if (!Directory.Exists(pluginDirectoryPath))
+            {
+                Debug.LogWarning("Backtrace native lib directory doesn't exist");
+                return;
+            }
+            // prevent from initialization in the x86 devices
+            const int intPtrSizeOnx86 = 4;
+            if (Isx86Build(pluginDirectoryPath) || IntPtr.Size == intPtrSizeOnx86)
+            {
+                return;
+            }
+
+            var crashpadHandlerPath = GetDefaultPathToCrashpadHandler(pluginDirectoryPath);
+            if (string.IsNullOrEmpty(crashpadHandlerPath) || !File.Exists(crashpadHandlerPath))
+            {
+                Debug.LogWarning("Backtrace native integration status: Cannot find path to Crashpad handler.");
+                return;
+            }
+
             var databasePath = _configuration.CrashpadDatabasePath;
             if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(_configuration.GetFullDatabasePath()))
             {
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
-                return;
-            }
-
-            var crashpadHandlerPath = GetDefaultPathToCrashpadHandler();
-            if (!File.Exists(crashpadHandlerPath))
-            {
-                Debug.LogWarning("Backtrace native integration status: Cannot find path to Crashpad handler.");
                 return;
             }
 
@@ -121,14 +122,14 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 Directory.CreateDirectory(databasePath);
             }
 
-            _captureNativeCrashes = Initialize(
+            CaptureNativeCrashes = Initialize(
                 minidumpUrl,
                 databasePath,
                 crashpadHandlerPath,
                 attachments.ToArray(),
                 attachments.Count());
 
-            if (!_captureNativeCrashes)
+            if (!CaptureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
                 return;
@@ -136,27 +137,26 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
             foreach (var attribute in clientAttributes)
             {
-                AddNativeAttribute(attribute.Key, attribute.Value);
+                AddNativeAttribute(attribute.Key, attribute.Value == null ? string.Empty : attribute.Value);
             }
 
-            // add exception type to crashes handled by crashpad - all exception handled by crashpad 
+            // add exception type to crashes handled by crashpad - all exception handled by crashpad
             // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
             // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
 
-            // warning 
-            // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from 
-            // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
+            // warning
+            // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from
+            // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type
             // attribute via attributes parameters.
-            AddNativeAttribute("error.type", "Crash");
+            AddNativeAttribute(ErrorTypeAttribute, CrashType);
         }
 
-        public void Disable()
+        private bool Isx86Build(string pluginDirectoryPath)
         {
-            if (_anrThread != null)
-            {
-                _stopAnr = true;
-            }
-            return;
+            const string unsupportedx86BuildPath = "x86";
+            const string backtraceLib = "BacktraceCrashpadWindows.dll";
+            var buildPath = Path.Combine(pluginDirectoryPath, unsupportedx86BuildPath);
+            return File.Exists(Path.Combine(buildPath, backtraceLib));
         }
 
         public void GetAttributes(IDictionary<string, string> attributes)
@@ -164,11 +164,11 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             return;
         }
 
-        public void HandleAnr(string gameObjectName = "", string callbackName = "")
+        public void HandleAnr()
         {
             var anrDisabled =
 #if UNITY_STANDALONE_WIN
-                !_captureNativeCrashes || !_configuration.HandleANR;
+                !CaptureNativeCrashes || !_configuration.HandleANR;
 #else
                 true;
 #endif
@@ -179,32 +179,29 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
             bool reported = false;
             var mainThreadId = Thread.CurrentThread.ManagedThreadId;
-            _anrThread = new Thread(() =>
+            AnrThread = new Thread(() =>
             {
                 float lastUpdatedCache = 0;
-                while (_anrThread.IsAlive && _stopAnr == false)
+                while (AnrThread.IsAlive && StopAnr == false)
                 {
-                    if (!_preventAnr)
+                    if (!PreventAnr)
                     {
                         if (lastUpdatedCache == 0)
                         {
-                            lastUpdatedCache = _lastUpdateTime;
+                            lastUpdatedCache = LastUpdateTime;
                         }
-                        else if (lastUpdatedCache == _lastUpdateTime)
+                        else if (lastUpdatedCache == LastUpdateTime)
                         {
                             if (!reported)
                             {
-
+                                OnAnrDetection();
                                 reported = true;
-                                if (AndroidJNI.AttachCurrentThread() == 0)
-                                {
-                                    // set temporary attribute to "Hang"
-                                    AddNativeAttribute("error.type", "Hang");
+                                // set temporary attribute to "Hang"
+                                AddNativeAttribute(ErrorTypeAttribute, HangType);
 
-                                    NativeReport("ANRException: Blocked thread detected.", true);
-                                    // update error.type attribute in case when crash happen 
-                                    AddNativeAttribute("error.type", "Crash");
-                                }
+                                NativeReport(AnrMessage, true);
+                                // update error.type attribute in case when crash happen
+                                AddNativeAttribute(ErrorTypeAttribute, HangType);
                             }
                         }
                         else
@@ -212,7 +209,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                             reported = false;
                         }
 
-                        lastUpdatedCache = _lastUpdateTime;
+                        lastUpdatedCache = LastUpdateTime;
                     }
                     else if (lastUpdatedCache != 0)
                     {
@@ -220,22 +217,17 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                         // we won't false positive ANR report
                         lastUpdatedCache = 0;
                     }
-                    Thread.Sleep(5000);
+                    Thread.Sleep(AnrWatchdogTimeout);
                 }
             });
-            _anrThread.IsBackground = true;
-            _anrThread.Start();
+            AnrThread.IsBackground = true;
+            AnrThread.Start();
             return;
         }
 
         public bool OnOOM()
         {
             return false;
-        }
-
-        public void PauseAnrThread(bool state)
-        {
-            _preventAnr = state;
         }
 
         public void SetAttribute(string key, string value)
@@ -252,126 +244,90 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             AddAttributes(key, value);
         }
 
-        public void UpdateClientTime(float time)
-        {
-            _lastUpdateTime = time;
-        }
-
         /// <summary>
         /// Read directory structure in the native crash directory and send new crashes to Backtrace
         /// </summary>
-        public static IEnumerator SendUnhandledGameCrashesOnGameStartup(ICollection<string> clientAttachments, string breadcrumbPath, string databasePath, IBacktraceApi backtraceApi)
+        public IEnumerator SendMinidumpOnStartup(ICollection<string> clientAttachments, IBacktraceApi backtraceApi)
         {
-            // Path to the native crash directory
-            string nativeCrashesDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    string.Format("Temp/{0}/{1}/crashes", Application.companyName, Application.productName));
+            // Path to the native crash directories
+            string tempDirectory = string.Format("Temp/{0}/{1}/crashes", Application.companyName, Application.productName);
+            string[] crashDirectories = new string[2] {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), tempDirectory),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), tempDirectory)
+            };
+              
+            List<string> nativeCrashesDirs = new List<string>();
+            foreach (string direcotry in crashDirectories)
+            {
+                if (!Directory.Exists(direcotry))
+                {
+                    continue;
+                }
+                nativeCrashesDirs.Add(direcotry);
+            }
 
-            if (string.IsNullOrEmpty(nativeCrashesDir) || !Directory.Exists(nativeCrashesDir))
+            if (nativeCrashesDirs.Count == 0)
             {
                 yield break;
             }
 
-            var attachments = clientAttachments == null
-                ? new List<string>()
-                : new List<string>(clientAttachments);
+            var attributes = GetScopedAttributes();
 
-            // make sure - when user close game in the middle of sending data, the library won't have a chance to clean up temporary breadcurmb
-            // file. Becuase of that we prefer to always check if we need to clean something that left in the previous application session
-
-            string breadcrumbsCopyName = string.Format("{0}-1", BacktraceStorageLogManager.BreadcrumbLogFilePrefix);
-            string breadcrumbCopyPath = Path.Combine(databasePath, breadcrumbsCopyName);
-            if (File.Exists(breadcrumbCopyPath))
-            {
-                File.Delete(breadcrumbCopyPath);
-            }
-
-
-            // determine if handler should create a copy of a breadcrumb file 
-            // on the application startup. This check also prevents a situation when
-            // algorithm will try to copy a breacrumb file when a breadcrumbs file doesn't exist
-            // Client prefers to make a copy of a breadcrumb file in the database directory. Otherwise, if database
-            // for any reason in new session is not available, algorithm shouldn't make a copy. 
-            bool requireBreadcrumbsCopy = string.IsNullOrEmpty(breadcrumbPath) || string.IsNullOrEmpty(databasePath) ? false : true;
-            bool copiedFile = false;
-
-            var crashDirs = Directory.GetDirectories(nativeCrashesDir);
-
-            IDictionary<string, string> attributes = GetScopedAttributes();
             // be sure that error.type attribute provided by default by our library
             // is always present in native attributes.
-            attributes["error.type"] = "Crash";
+            attributes[ErrorTypeAttribute] = CrashType;
 
-            foreach (var crashDir in crashDirs)
+            foreach (var nativeCrashesDir in nativeCrashesDirs)
             {
-                var crashDirFullPath = Path.Combine(nativeCrashesDir, crashDir);
-                var crashFiles = Directory.GetFiles(crashDirFullPath);
 
-                var alreadyUploaded = crashFiles.Any(n => n.EndsWith("backtrace.json"));
-                if (alreadyUploaded)
+                var attachments = clientAttachments == null
+                    ? new List<string>()
+                    : new List<string>(clientAttachments);
+
+                var crashDirs = Directory.GetDirectories(nativeCrashesDir);
+
+                foreach (var crashDir in crashDirs)
                 {
-                    continue;
-                }
-                var minidumpPath = crashFiles.FirstOrDefault(n => n.EndsWith("crash.dmp"));
-                if (string.IsNullOrEmpty(minidumpPath))
-                {
-                    continue;
-                }
-                if (requireBreadcrumbsCopy)
-                {
-                    try
+                    var crashDirFullPath = Path.Combine(nativeCrashesDir, crashDir);
+                    var crashFiles = Directory.GetFiles(crashDirFullPath);
+
+                    var alreadyUploaded = crashFiles.Any(n => n.EndsWith("backtrace.json"));
+                    if (alreadyUploaded)
                     {
-                        File.Copy(breadcrumbPath, breadcrumbCopyPath);
-                        attachments.Add(breadcrumbCopyPath);
-                        copiedFile = true;
+                        continue;
                     }
-                    catch (Exception e)
+                    var minidumpPath = crashFiles.FirstOrDefault(n => n.EndsWith("crash.dmp"));
+                    if (string.IsNullOrEmpty(minidumpPath))
                     {
-                        Debug.LogWarning(string.Format("Cannot make a copy of the breadcrumb file in the database directory. Reason: {0}", e.Message));
+                        continue;
                     }
-                    finally
+                    var dumpAttachment = crashFiles.Concat(attachments).Where(n => n != minidumpPath).ToList();
+                    yield return backtraceApi.SendMinidump(minidumpPath, dumpAttachment, attributes, (BacktraceResult result) =>
                     {
-                        requireBreadcrumbsCopy = false;
-                    }
-                }
-                var dumpAttachment = crashFiles.Concat(attachments).Where(n => n != minidumpPath).ToList();
-                yield return backtraceApi.SendMinidump(minidumpPath, dumpAttachment, attributes, (BacktraceResult result) =>
-                {
-                    if (result != null && result.Status == BacktraceResultStatus.Ok)
-                    {
-                        File.Create(Path.Combine(crashDirFullPath, "backtrace.json"));
-                    }
-                });
-            }
-            if (copiedFile)
-            {
-                try
-                {
-                    File.Delete(breadcrumbCopyPath);
-                }
-                catch (Exception e)
-                {
-                    // The file will be cleaned on the library startup via database integration
-                    // if native client for any reason won't be able to remove it.
-                    Debug.LogWarning(string.Format("Cannot remove temporary breadcrumb file. Reason: {0}", e.Message));
+                        if (result != null && result.Status == BacktraceResultStatus.Ok)
+                        {
+                            File.Create(Path.Combine(crashDirFullPath, "backtrace.json"));
+                        }
+                    });
                 }
             }
+        }
+
+        private string GetPluginDirectoryPath()
+        {
+            const string pluginDir = "Plugins";
+            return Path.Combine(Application.dataPath, pluginDir);
         }
         /// <summary>
         /// Generate path to Crashpad handler binary
         /// </summary>
         /// <returns>Path to crashpad handler binary</returns>
-        private string GetDefaultPathToCrashpadHandler()
+        private string GetDefaultPathToCrashpadHandler(string pluginDirectoryPath)
         {
             const string crashpadHandlerName = "crashpad_handler.dll";
-            const string pluginDir = "Plugins";
-            string architecture = IntPtr.Size == 8 ? "x86_64" : "x86";
-
-            string pluginPath = Path.Combine(pluginDir, architecture);
-            string pluginHandlerPath = Path.Combine(pluginPath, crashpadHandlerName);
-
-            // generate full path to .dll file in plugins dir.
-            return Path.Combine(Application.dataPath, pluginHandlerPath);
+            const string supportedArchitecture = "x86_64";
+            var architectureDirectory = Path.Combine(pluginDirectoryPath, supportedArchitecture);
+            return Path.Combine(architectureDirectory, crashpadHandlerName);
 
         }
         /// <summary>
@@ -379,7 +335,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         /// </summary>
         internal static void CleanScopedAttributes()
         {
-            // cleaning scoped attributes should be skipped when 
+            // cleaning scoped attributes should be skipped when
             // Configuration.SendUnhandledGameCrashesOnGameStartup  is set to false
             // the reason behind this decision is to make sure user change in the configuration
             // won't leave any useless data
@@ -438,7 +394,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         /// <param name="value">attribute value</param>
         private void AddAttributes(string key, string value)
         {
-            if (_captureNativeCrashes)
+            if (CaptureNativeCrashes)
             {
                 AddNativeAttribute(key, value);
             }
@@ -491,3 +447,5 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         }
     }
 }
+
+#endif

@@ -110,9 +110,9 @@ namespace Backtrace.Unity.Model.JsonData
             {
                 annotations.Add("Exception properties", new BacktraceJObject(new Dictionary<string, string>()
                 {
-                    {"message",  Exception.Message },
-                    {"stackTrace",Exception.StackTrace},
-                    {"type", Exception.GetType().FullName },
+                    { "message",  Exception.Message },
+                    { "stackTrace",Exception.StackTrace},
+                    { "type", Exception.GetType().FullName },
                     { "source",Exception.Source },
                 }));
             }
@@ -179,14 +179,14 @@ namespace Backtrace.Unity.Model.JsonData
             return new BacktraceJObject(new Dictionary<string, string>()
             {
                 { "name",  gameObject.name},
-                {"isStatic", gameObject.isStatic.ToString(CultureInfo.InvariantCulture).ToLower() },
-                {"layer",  gameObject.layer.ToString(CultureInfo.InvariantCulture) },
-                {"transform.position", gameObject.transform.position.ToString()},
-                {"transform.rotation", gameObject.transform.rotation.ToString()},
-                {"tag",gameObject.tag},
-                {"activeInHierarchy", gameObject.activeInHierarchy.ToString(CultureInfo.InvariantCulture).ToLower()},
-                {"activeSelf",  gameObject.activeSelf.ToString(CultureInfo.InvariantCulture).ToLower() },
-                {"instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
+                { "isStatic", gameObject.isStatic.ToString(CultureInfo.InvariantCulture).ToLower() },
+                { "layer",  gameObject.layer.ToString(CultureInfo.InvariantCulture) },
+                { "transform.position", gameObject.transform.position.ToString()},
+                { "transform.rotation", gameObject.transform.rotation.ToString()},
+                { "tag",gameObject.tag},
+                { "activeInHierarchy", gameObject.activeInHierarchy.ToString(CultureInfo.InvariantCulture).ToLower()},
+                { "activeSelf",  gameObject.activeSelf.ToString(CultureInfo.InvariantCulture).ToLower() },
+                { "instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
                 { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
             });
         }
@@ -195,10 +195,10 @@ namespace Backtrace.Unity.Model.JsonData
             return new BacktraceJObject(new Dictionary<string, string>()
             {
                 { "name",  gameObject.name},
-                {"transform.position", gameObject.transform.position.ToString()},
-                {"transform.rotation", gameObject.transform.rotation.ToString()},
-                {"tag",gameObject.tag},
-                {"instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
+                { "transform.position", gameObject.transform.position.ToString()},
+                { "transform.rotation", gameObject.transform.rotation.ToString()},
+                { "tag",gameObject.tag},
+                { "instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
                 { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
             });
         }

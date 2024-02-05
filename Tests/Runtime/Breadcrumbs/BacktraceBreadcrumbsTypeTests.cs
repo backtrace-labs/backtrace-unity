@@ -17,12 +17,12 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
             const string message = "message";
             const int expectedNumberOfLogs = 0;
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             //anything else than Manual
             var breadcrumbType = BacktraceBreadcrumbType.Configuration;
             UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, breadcrumbType, level);
 
-            breadcrumbsManager.EnableBreadcrumbs(breadcrumbType, level);
+            breadcrumbsManager.EnableBreadcrumbs();
             var result = breadcrumbsManager.Log(message, testedLevel);
 
             Assert.IsFalse(result);
@@ -30,13 +30,38 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         }
 
         [Test]
+        public void TestBreadcrumbsInitializationForInvalidLogLevel_ShouldReturnFalse_BreadcrumbsConfigurationIsInvalid()
+        {
+            // level not set - test simulates Unity Editor behavior 
+            UnityEngineLogLevel level = UnityEngineLogLevel.None;
+            // any defined type
+            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.Log;
+
+            var result = BacktraceBreadcrumbs.CanStoreBreadcrumbs(level, backtraceBreadcrumbType);
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void TestBreadcrumbsInitializationForValidOptions_ShouldReturnTrue_BreadcrumbsConfigurationIsValid()
+        {
+            // any log level that might be selected by user
+            UnityEngineLogLevel level = UnityEngineLogLevel.Debug;
+            BacktraceBreadcrumbType backtraceBreadcrumbType = BacktraceBreadcrumbType.Log;
+
+            var result = BacktraceBreadcrumbs.CanStoreBreadcrumbs(level, backtraceBreadcrumbType);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public void TestSystemLogs_ShouldEnableThem_EventsAreSet()
         {
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, BacktraceBreadcrumbType.System, level);
 
-            breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.System, level);
+            breadcrumbsManager.EnableBreadcrumbs();
 
             Assert.IsTrue(breadcrumbsManager.EventHandler.HasRegisteredEvents);
             breadcrumbsManager.UnregisterEvents();
@@ -46,10 +71,10 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         public void TestNavigationLogs_ShouldEnableThem_EventsAreSet()
         {
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, BacktraceBreadcrumbType.Navigation, level);
 
-            breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.Navigation, level);
+            breadcrumbsManager.EnableBreadcrumbs();
 
             Assert.IsTrue(breadcrumbsManager.EventHandler.HasRegisteredEvents);
             breadcrumbsManager.UnregisterEvents();
@@ -59,10 +84,10 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
         public void TestLogLogs_ShouldEnableThem_EventsAreSet()
         {
             var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
-            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage);
             UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, BacktraceBreadcrumbType.Log, level);
 
-            breadcrumbsManager.EnableBreadcrumbs(BacktraceBreadcrumbType.Log, level);
+            breadcrumbsManager.EnableBreadcrumbs();
 
             Assert.IsTrue(breadcrumbsManager.EventHandler.HasRegisteredEvents);
             breadcrumbsManager.UnregisterEvents();

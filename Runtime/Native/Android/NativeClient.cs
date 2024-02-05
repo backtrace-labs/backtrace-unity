@@ -1,5 +1,9 @@
-﻿using Backtrace.Unity.Common;
+#if UNITY_ANDROID
+using Backtrace.Unity.Common;
+using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Breadcrumbs;
+using Backtrace.Unity.Runtime.Native.Base;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,26 +18,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
     /// <summary>
     /// Android native client 
     /// </summary>
-    internal class NativeClient : INativeClient
+    internal sealed class NativeClient : NativeClientBase, INativeClient
     {
-        // Last Backtrace client update time 
-        volatile internal float _lastUpdateTime;
-
-        /// <summary>
-        /// Determine if the ANR background thread should be disabled or not 
-        /// for some period of time.
-        /// This option will be used by the native client implementation
-        /// once application goes to background/foreground
-        /// </summary>
-        volatile internal bool _preventAnr = false;
-
-        /// <summary>
-        /// Determine if ANR thread should exit
-        /// </summary>
-        volatile internal bool _stopAnr = false;
-
-        private Thread _anrThread;
-
+        private const string CallbackMethodName = "OnAnrDetected";
         [DllImport("backtrace-native")]
         private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding, int unwindingMode);
 
@@ -43,10 +30,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
         [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
         private static extern bool NativeReport(IntPtr message, bool setMainThreadAsFaultingThread);
 
-        /// <summary>
-        /// Native client built-in specific attributes
-        /// </summary>
-        private readonly Dictionary<string, string> _builtInAttributes = new Dictionary<string, string>();
+        [DllImport("backtrace-native", EntryPoint = "Disable")]
+        private static extern bool DisableNativeIntegration();
 
         /// <summary>
         /// Attribute maps - list of attribute maps that allows Backtrace-Unity to rename attributes 
@@ -90,8 +75,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             _attributeMapping.Add("VmallocUsed", "system.memory.vmalloc.used");
             _attributeMapping.Add("VmallocChunk", "system.memory.vmalloc.chunk");
         }
-
-        private readonly BacktraceConfiguration _configuration;
         // Android native interface paths
         private const string _namespace = "backtrace.io.backtrace_unity_android_plugin";
 
@@ -100,7 +83,15 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// </summary>
         private UnwindingMode UnwindingMode = UnwindingMode.LOCAL_DUMPWITHOUTCRASH;
 
+        /// <summary>
+        /// Path to class responsible for detecting ANRs occurred by Java code.
+        /// </summary>
         private readonly string _anrPath = string.Format("{0}.{1}", _namespace, "BacktraceANRWatchdog");
+
+        /// <summary>
+        /// Path to class responsible for capturing unhandled java exceptions.
+        /// </summary>
+        private readonly string _unhandledExceptionPath = string.Format("{0}.{1}", _namespace, "BacktraceAndroidBackgroundUnhandledExceptionHandler");
 
         /// <summary>
         /// Determine if android integration should be enabled
@@ -115,36 +106,53 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Anr watcher object
         /// </summary>
-#pragma warning disable IDE0052 // Remove unread private members
         private AndroidJavaObject _anrWatcher;
-#pragma warning restore IDE0052 // Remove unread private members
 
-        private bool _captureNativeCrashes = false;
+        /// <summary>
+        /// Unhandled exception watcher object reference
+        /// </summary>
+        private AndroidJavaObject _unhandledExceptionWatcher;
+
         private readonly bool _enableClientSideUnwinding = false;
-        private readonly bool _handlerANR = false;
-        public NativeClient(string gameObjectName, BacktraceConfiguration configuration, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments)
+        public string GameObjectName { get; internal set; }
+        public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments, string gameObjectName) : base(configuration, breadcrumbs)
         {
-            _configuration = configuration;
+            GameObjectName = gameObjectName;
             SetDefaultAttributeMaps();
             if (!_enabled)
             {
                 return;
             }
-
-#if UNITY_ANDROID
 #if UNITY_2019_2_OR_NEWER
             _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
 #endif
-            _handlerANR = _configuration.HandleANR;
-            // read device manufacturer
-            using (var build = new AndroidJavaClass("android.os.Build"))
-            {
-                const string deviceManufacturerKey = "device.manufacturer";
-                _builtInAttributes[deviceManufacturerKey] = build.GetStatic<string>("MANUFACTURER").ToString();
-            }
+            HandlerANR = _configuration.HandleANR;
             HandleNativeCrashes(clientAttributes, attachments);
-            HandleAnr(gameObjectName, "OnAnrDetected");
-#endif
+            if (!configuration.ReportFilterType.HasFlag(Types.ReportFilterType.Hang))
+            {
+                HandleAnr();
+            }
+            if (configuration.HandleUnhandledExceptions && !configuration.ReportFilterType.HasFlag(Types.ReportFilterType.UnhandledException))
+            {
+                HandleUnhandledExceptions();
+            }
+        }
+
+        /// <summary>
+        /// Setup communication between Untiy and Android to receive information about unhandled thread exceptions
+        /// </summary>
+        /// <param name="callbackName">Game object callback method name</param>
+        private void HandleUnhandledExceptions()
+        {
+            const string callbackName = "HandleUnhandledExceptionsFromAndroidBackgroundThread";
+            try
+            {
+                _unhandledExceptionWatcher = new AndroidJavaObject(_unhandledExceptionPath, GameObjectName, callbackName);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(string.Format("Cannot initialize unhandled exception watcher - reason: {0}", e.Message));
+            }
         }
 
         /// <summary>
@@ -231,18 +239,20 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Directory.CreateDirectory(databasePath);
             }
 
+            var apiLevelString = backtraceAttributes["device.sdk"];
+            int apiLevel;
+            if (apiLevelString == null || !int.TryParse(apiLevelString, out apiLevel))
+            {
+                return;
+            }
+
             // crashpad is available only for API level 21+ 
             // make sure we don't want ot start crashpad handler 
             // on the unsupported API
-            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+            if (apiLevel < 21)
             {
-                int apiLevel = version.GetStatic<int>("SDK_INT");
-                _builtInAttributes["device.sdk"] = apiLevel.ToString();
-                if (apiLevel < 21)
-                {
-                    Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
-                    return;
-                }
+                Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
+                return;
             }
 
             var libDirectory = GetNativeDirectoryPath();
@@ -257,7 +267,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             const string crashpadHandlerName = "libcrashpad_handler.so";
             var crashpadHandlerPath = Path.Combine(libDirectory, crashpadHandlerName);
 
-            if (string.IsNullOrEmpty(crashpadHandlerPath))
+            if (string.IsNullOrEmpty(crashpadHandlerPath) || !File.Exists(crashpadHandlerPath))
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
                 return;
@@ -267,7 +277,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             // reassign to captureNativeCrashes
             // to avoid doing anything on crashpad binary, when crashpad isn't available
-            _captureNativeCrashes = Initialize(
+            CaptureNativeCrashes = Initialize(
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(crashpadHandlerPath),
@@ -276,18 +286,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
                 _enableClientSideUnwinding,
                 (int)UnwindingMode);
-            if (!_captureNativeCrashes)
+            if (!CaptureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
                 return;
             }
             foreach (var attribute in backtraceAttributes)
-            {
-                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
-            }
-
-            // add native client built-in attributes
-            foreach (var attribute in _builtInAttributes)
             {
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
@@ -301,8 +305,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
             // attribute via attributes parameters.
             AddAttribute(
-                        AndroidJNI.NewStringUTF("error.type"),
-                        AndroidJNI.NewStringUTF("Crash"));
+                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
+                        AndroidJNI.NewStringUTF(CrashType));
         }
 
         /// <summary>
@@ -314,11 +318,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (!_enabled)
             {
                 return;
-            }
-            // rewrite built in attributes to report attributes
-            foreach (var builtInAttribute in _builtInAttributes)
-            {
-                result[builtInAttribute.Key] = builtInAttribute.Value;
             }
 
             var processId = System.Diagnostics.Process.GetCurrentProcess().Id;
@@ -352,61 +351,69 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
         }
 
+        public void FinishUnhandledBackgroundException()
+        {
+            if (_unhandledExceptionWatcher == null)
+            {
+                return;
+            }
+            _unhandledExceptionWatcher.Call("finish");
+        }
+
         /// <summary>
         /// Setup Android ANR support and set callback function when ANR happened.
         /// </summary>
-        /// <param name="gameObjectName">Backtrace game object name</param>
-        /// <param name="callbackName">Callback function name</param>
-        public void HandleAnr(string gameObjectName, string callbackName)
+        public void HandleAnr()
         {
-            if (!_handlerANR)
+            if (!HandlerANR)
             {
                 return;
             }
             try
             {
-                _anrWatcher = new AndroidJavaObject(_anrPath, gameObjectName, callbackName);
+                _anrWatcher = new AndroidJavaObject(_anrPath, GameObjectName, CallbackMethodName, AnrWatchdogTimeout);
             }
             catch (Exception e)
             {
                 Debug.LogWarning(string.Format("Cannot initialize ANR watchdog - reason: {0}", e.Message));
-                _enabled = false;
             }
 
-            if (!_captureNativeCrashes)
+            if (!CaptureNativeCrashes)
             {
                 return;
             }
 
             bool reported = false;
             var mainThreadId = Thread.CurrentThread.ManagedThreadId;
-            _anrThread = new Thread(() =>
+            AnrThread = new Thread(() =>
             {
                 float lastUpdatedCache = 0;
-                while (_anrThread.IsAlive && _stopAnr == false)
+                while (AnrThread.IsAlive && StopAnr == false)
                 {
-                    if (!_preventAnr)
+                    if (!PreventAnr)
                     {
                         if (lastUpdatedCache == 0)
                         {
-                            lastUpdatedCache = _lastUpdateTime;
+                            lastUpdatedCache = LastUpdateTime;
                         }
-                        else if (lastUpdatedCache == _lastUpdateTime)
+                        else if (lastUpdatedCache == LastUpdateTime)
                         {
                             if (!reported)
                             {
-
+                                OnAnrDetection();
                                 reported = true;
                                 if (AndroidJNI.AttachCurrentThread() == 0)
                                 {
                                     // set temporary attribute to "Hang"
                                     AddAttribute(
-                                        AndroidJNI.NewStringUTF("error.type"),
-                                        AndroidJNI.NewStringUTF("Hang"));
+                                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
+                                        AndroidJNI.NewStringUTF(HangType));
 
-                                    NativeReport(AndroidJNI.NewStringUTF("ANRException: Blocked thread detected."), true);
+                                    NativeReport(AndroidJNI.NewStringUTF(AnrMessage), true);
                                     // update error.type attribute in case when crash happen 
-                                    SetAttribute("error.type", "Crash");
+                                    AddAttribute(
+                                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
+                                        AndroidJNI.NewStringUTF(CrashType));
                                 }
                             }
                         }
@@ -415,7 +422,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                             reported = false;
                         }
 
-                        lastUpdatedCache = _lastUpdateTime;
+                        lastUpdatedCache = LastUpdateTime;
                     }
                     else if (lastUpdatedCache != 0)
                     {
@@ -423,11 +430,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
                         // we won't false positive ANR report
                         lastUpdatedCache = 0;
                     }
-                    Thread.Sleep(5000);
+                    Thread.Sleep(AnrWatchdogTimeout);
                 }
             });
-            _anrThread.IsBackground = true;
-            _anrThread.Start();
+            AnrThread.IsBackground = true;
+            AnrThread.Start();
         }
 
         /// <summary>
@@ -437,7 +444,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <param name="value">Attribute value</param>
         public void SetAttribute(string key, string value)
         {
-            if (!_captureNativeCrashes || string.IsNullOrEmpty(key))
+            if (!CaptureNativeCrashes || string.IsNullOrEmpty(key))
             {
                 return;
             }
@@ -464,32 +471,29 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
 
         /// <summary>
-        /// Update native client internal timer.
-        /// </summary>
-        /// <param name="time">Current time</param>
-        public void UpdateClientTime(float time)
-        {
-            _lastUpdateTime = time;
-        }
-
-        /// <summary>
         /// Disable native client integration
         /// </summary>
-        public void Disable()
+        public override void Disable()
         {
-            if (_anrThread != null)
+            if (CaptureNativeCrashes)
             {
-                _stopAnr = true;
+                CaptureNativeCrashes = false;
+                DisableNativeIntegration();
             }
-        }
-
-        /// <summary>
-        /// Pause ANR detection
-        /// </summary>
-        /// <param name="stopAnr">True - if native client should pause ANR detection"</param>
-        public void PauseAnrThread(bool stopAnr)
-        {
-            _preventAnr = stopAnr;
+            if (_anrWatcher != null)
+            {
+                _anrWatcher.Call("stopMonitoring");
+                _anrWatcher.Dispose();
+                _anrWatcher = null;
+            }
+            if (_unhandledExceptionWatcher != null)
+            {
+                _unhandledExceptionWatcher.Call("stopMonitoring");
+                _unhandledExceptionWatcher.Dispose();
+                _unhandledExceptionWatcher = null;
+            }
+            base.Disable();
         }
     }
 }
+#endif
