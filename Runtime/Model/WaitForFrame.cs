@@ -1,4 +1,5 @@
 using Backtrace.Unity.Model.Waiter;
+using System.Collections;
 
 namespace Backtrace.Unity.Model
 {

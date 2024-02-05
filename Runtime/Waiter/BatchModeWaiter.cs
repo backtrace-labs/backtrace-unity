@@ -1,9 +1,5 @@
-using Backtrace.Unity.Extensions;
-using Backtrace.Unity.Types;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+using System.Collections;
+using UnityEngine;
 namespace Backtrace.Unity.Model.Waiter
 {
     public class BatchModeWaiter : IWaiter
@@ -11,7 +7,7 @@ namespace Backtrace.Unity.Model.Waiter
         public IEnumerator Wait()
         {
             Debug.Log("Using BatchModeWaiter");
-            yield return null;
+            return null;
         }
     }
 }

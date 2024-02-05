@@ -1,9 +1,5 @@
-using Backtrace.Unity.Extensions;
-using Backtrace.Unity.Types;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+using System.Collections;
+using UnityEngine;
 namespace Backtrace.Unity.Model.Waiter
 {
     public class EndOfFrameWaiter : IWaiter
@@ -11,7 +7,7 @@ namespace Backtrace.Unity.Model.Waiter
         public IEnumerator Wait()
         {
             Debug.Log("Using EndOfFrameWaiter");
-            yield return new WaitForEndOfFrame();
+            return new WaitForEndOfFrame();
         }
     }
 }
