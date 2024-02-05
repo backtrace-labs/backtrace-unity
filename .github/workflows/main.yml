@@ -26,11 +26,11 @@ jobs:
           mkdir ${{ matrix.projectPath }}
           cp -r ./Demo~/* ${{ matrix.projectPath }}
           rm ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity 
-          mkdir ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
+          mkdir ./${{ matrix.projectPath }}/Assets/backtrace-unity
 
-          mv ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./package.json ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
+          mv ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./${{ matrix.projectPath }}/Assets/backtrace-unity
           ls ./
-          find ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
+          find ./${{ matrix.projectPath }}/Assets/
       - uses: actions/cache@v3
         with:
           path: |
