@@ -25,7 +25,7 @@ jobs:
         run: |
           mkdir ${{ matrix.projectPath }}
           cp -r ./Demo~/* ${{ matrix.projectPath }}
-          rm ./${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity 
+          rm -rf ./${{ matrix.projectPath }}/Assets/Plugins
           mkdir ./${{ matrix.projectPath }}/Assets/backtrace-unity
 
           mv ./Android ./Editor ./iOS ./Runtime ./Tests ./Windows ./${{ matrix.projectPath }}/Assets/backtrace-unity
