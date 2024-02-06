@@ -1,17 +1,30 @@
 using Backtrace.Unity.Model.Waiter;
-using System.Collections;
+using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
     public class WaitForFrame
     {
-        private static IWaiter _waiter = Application.isBatchMode
-             ? new BatchModeWaiter()
-             : new EndOfFrameWaiter();
+        private static IWaiter _waiter;
 
-        public static IEnumerator Wait()
+        static WaitForFrame ()
+        {
+            _waiter = CreateWaiterStrategy();
+        }
+
+        public static YieldInstruction Wait()
         {
             return _waiter.Wait();
+        }
+
+        private static IWaiter CreateWaiterStrategy()
+        {
+            if (Application.isBatchMode)
+            {
+                return new BatchModeWaiter();
+            }
+
+            return new EndOfFrameWaiter();
         }
     }
 }
