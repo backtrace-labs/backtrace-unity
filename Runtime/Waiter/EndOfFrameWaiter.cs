@@ -6,7 +6,6 @@ namespace Backtrace.Unity.Model.Waiter
     {
         public YieldInstruction Wait()
         {
-            Debug.Log("Using EndOfFrameWaiter");
             return new WaitForEndOfFrame();
         }
     }

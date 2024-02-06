@@ -5,12 +5,7 @@ namespace Backtrace.Unity.Model
 {
     public class WaitForFrame
     {
-        private static IWaiter _waiter;
-
-        static WaitForFrame ()
-        {
-            _waiter = CreateWaiterStrategy();
-        }
+        private static IWaiter _waiter = CreateWaiterStrategy();
 
         public static YieldInstruction Wait()
         {
