@@ -45,10 +45,9 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send("test");
             }
 
-            
+            yield return WaitForFrame.Wait();
             Assert.AreEqual(maximumNumberOfRetries, rateLimit);
             Assert.AreEqual(0, skippedReports);
-            yield return null;
         }
 
         [UnityTest]
@@ -73,11 +72,10 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send("test");
             }
 
-            
+            yield return WaitForFrame.Wait();
             Assert.AreEqual(totalNumberOfReports, maximumNumberOfRetries + skippedReports);
             Assert.AreEqual(maximumNumberOfRetries, CLIENT_RATE_LIMIT);
             Assert.AreEqual(totalNumberOfReports - CLIENT_RATE_LIMIT, skippedReports);
-            yield return null;
         }
 
         [UnityTest]
@@ -103,11 +101,10 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
 
             }
 
-            
+            yield return WaitForFrame.Wait();
             Assert.AreEqual(totalNumberOfReports, maximumNumberOfRetries + skippedReports);
             Assert.AreEqual(maximumNumberOfRetries, CLIENT_RATE_LIMIT);
             Assert.AreEqual(totalNumberOfReports - CLIENT_RATE_LIMIT, skippedReports);
-            yield return null;
         }
 
 
@@ -134,11 +131,10 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send(report);
             }
 
-            
+            yield return WaitForFrame.Wait();
             Assert.AreEqual(totalNumberOfReports, maximumNumberOfRetries + skippedReports);
             Assert.AreEqual(maximumNumberOfRetries, CLIENT_RATE_LIMIT);
             Assert.AreEqual(totalNumberOfReports - CLIENT_RATE_LIMIT, skippedReports);
-            yield return null;
         }
 
         [UnityTest]
@@ -156,9 +152,8 @@ namespace Backtrace.Unity.Tests.Runtime.RateLimit
                 BacktraceClient.Send("test");
             }
 
-            
+            yield return WaitForFrame.Wait();
             Assert.AreEqual(2, maximumNumberOfRetries);
-            yield return null;
         }
     }
 }

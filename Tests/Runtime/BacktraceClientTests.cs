@@ -93,7 +93,7 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var unhandledException = new BacktraceUnhandledException("foo", string.Empty);
             BacktraceClient.Send(unhandledException);
-            yield return null;
+            yield return WaitForFrame.Wait();
         }
 
         [UnityTest]
@@ -108,7 +108,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return backtraceData;
             };
             BacktraceClient.Send(new Exception("test exception"));
-
+            yield return WaitForFrame.Wait();
             Assert.IsTrue(trigger);
             yield return null;
         }
@@ -128,7 +128,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return new BacktraceResult();
             };
             BacktraceClient.Send(new Exception("test exception"));
-
+            yield return WaitForFrame.Wait();
             Assert.IsTrue(trigger);
             yield return null;
         }
@@ -217,7 +217,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
-
+            yield return WaitForFrame.Wait();
 
             Assert.IsTrue(eventFired);
             yield return null;
@@ -285,7 +285,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 return null;
             };
             BacktraceClient.Send(report);
-
+            yield return WaitForFrame.Wait();
             Assert.IsTrue(eventFired);
             yield return null;
         }
@@ -294,7 +294,7 @@ namespace Backtrace.Unity.Tests.Runtime
         private IEnumerator CallBacktraceClientAndWait(BacktraceReport report)
         {
             BacktraceClient.Send(report);
-            yield return null;
+            yield return WaitForFrame.Wait();
 
         }
     }

@@ -36,7 +36,7 @@ namespace Backtrace.Unity.Tests.Runtime
             };
 
             BacktraceClient.Send(new Exception("foo"));
-            
+            yield return WaitForFrame.Wait();
 
 
             Assert.IsNotNull(lastData.SourceCode);
@@ -58,7 +58,7 @@ namespace Backtrace.Unity.Tests.Runtime
             };
 
             BacktraceClient.Send("foo");
-            
+            yield return WaitForFrame.Wait();
 
             Assert.IsNotNull(lastData.SourceCode);
 
@@ -79,7 +79,7 @@ namespace Backtrace.Unity.Tests.Runtime
             };
 
             BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Exception);
-            
+            yield return WaitForFrame.Wait();
 
             Assert.IsNotNull(lastData.SourceCode);
 
@@ -99,7 +99,7 @@ namespace Backtrace.Unity.Tests.Runtime
             };
 
             BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Error);
-            
+            yield return WaitForFrame.Wait();
             Assert.IsNotNull(lastData.SourceCode);
 
             var threadName = lastData.ThreadData.MainThread;
@@ -125,7 +125,8 @@ namespace Backtrace.Unity.Tests.Runtime
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.HandleUnityMessage(expectedExceptionMessage, string.Empty, LogType.Exception);
-            
+            yield return WaitForFrame.Wait();
+
             Assert.IsNotNull(lastData.SourceCode);
 
             var generatedText = lastData.SourceCode.Text;
@@ -147,15 +148,15 @@ namespace Backtrace.Unity.Tests.Runtime
             //fake messages
             var fakeLogMessage = "log";
             BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
-            
+
             var fakeWarningMessage = "warning message";
             BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
-            
+
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.Send(new Exception(expectedExceptionMessage));
-            
+            yield return WaitForFrame.Wait();
 
             Assert.IsNotNull(lastData.SourceCode);
 
@@ -179,15 +180,17 @@ namespace Backtrace.Unity.Tests.Runtime
             //fake messages
             var fakeLogMessage = "log";
             BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
-            
+            yield return WaitForFrame.Wait();
+
             var fakeWarningMessage = "warning message";
             BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
-            
+            yield return WaitForFrame.Wait();
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.Send(expectedExceptionMessage);
-            
+            yield return WaitForFrame.Wait();
+
             Assert.IsNotNull(lastData.SourceCode);
 
             var generatedText = lastData.SourceCode.Text;
@@ -212,22 +215,20 @@ namespace Backtrace.Unity.Tests.Runtime
             //fake messages
             var fakeLogMessage = "log";
             BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
-            
 
             var fakeWarningMessage = "warning message";
             BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
-            
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.HandleUnityMessage(expectedExceptionMessage, string.Empty, LogType.Exception);
-            
+
             Assert.IsNull(api.LastData);
 
             var expectedReportMessage = "Report message";
             var report = new BacktraceReport(new Exception(expectedReportMessage));
             BacktraceClient.Send(report);
-            
+            yield return WaitForFrame.Wait();
             Assert.IsNotNull(lastData.SourceCode);
 
             var generatedText = lastData.SourceCode.Text;
