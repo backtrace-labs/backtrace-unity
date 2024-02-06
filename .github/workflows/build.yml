@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: Run Tests in ${{ matrix.testMode }} ${{ matrix.unityVersion }}
+    name: Run Build for ${{ matrix.unityVersion }} ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -12,7 +12,6 @@ jobs:
         projectPath:
           - test-package
         unityVersion:
-          - 2022.3.19f1
           - 2019.4.40f1
         targetPlatform:
           - StandaloneOSX
