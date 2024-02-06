@@ -32,9 +32,10 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Error;
 
             BacktraceClient.HandleUnityMessage(errorMessage, string.Empty, LogType.Error);
-            yield return new WaitForEndOfFrame();
+            
 
             Assert.IsFalse(eventCalled);
+            yield return null;
         }
 
         [Test]
@@ -68,7 +69,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             BacktraceClient.Configuration.ReportFilterType = ReportFilterType.UnhandledException;
 
             BacktraceClient.HandleUnityMessage(errorMessage, string.Empty, LogType.Error);
-            
+
             Assert.AreEqual(ReportFilterType.Error, reportFilterType);
         }
 
@@ -93,7 +94,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             var message = "report message";
 
             BacktraceClient.Send(message);
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsFalse(eventCalled);
 
             yield return null;
@@ -118,7 +119,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             var message = "report message";
 
             BacktraceClient.Send(message);
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsFalse(eventCalled);
 
             yield return null;
@@ -145,7 +146,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             var exception = new Exception("something really bad");
 
             BacktraceClient.Send(exception);
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsFalse(eventCalled);
 
             yield return null;
@@ -172,7 +173,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             var exception = new BacktraceUnhandledException(string.Empty, string.Empty);
 
             BacktraceClient.Send(exception);
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsFalse(eventCalled);
 
             yield return null;
@@ -199,7 +200,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             var exception = new BacktraceUnhandledException("ANRException: Blocked thread detected", string.Empty);
 
             BacktraceClient.Send(exception);
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsFalse(eventCalled);
 
             yield return null;
@@ -228,7 +229,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             BacktraceClient.Send(exception);
             BacktraceClient.Send(new Exception("foo bar"));
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsTrue(reportFilterCalled);
             Assert.IsTrue(beforeSendCalled);
             yield return null;
@@ -250,7 +251,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Message;
             BacktraceClient.Send(new Exception("foo bar"));
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsTrue(eventCalled);
 
             yield return null;
@@ -272,7 +273,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Exception;
             BacktraceClient.Send(new BacktraceUnhandledException(string.Empty, string.Empty));
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsTrue(eventCalled);
 
             yield return null;
@@ -300,7 +301,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Exception;
             BacktraceClient.Send(new BacktraceUnhandledException(string.Empty, string.Empty));
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsTrue(reportFilterCalled);
             Assert.IsFalse(eventCalled);
 
@@ -329,7 +330,7 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
             BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Exception;
             BacktraceClient.Send(new BacktraceUnhandledException(string.Empty, string.Empty));
 
-            yield return new WaitForEndOfFrame();
+            
             Assert.IsTrue(reportFilterCalled);
             Assert.IsTrue(eventCalled);
 

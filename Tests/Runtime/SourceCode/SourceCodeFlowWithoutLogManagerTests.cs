@@ -39,9 +39,9 @@ namespace Backtrace.Unity.Tests.Runtime
                 return lastData;
             };
             BacktraceClient.Send(new Exception("foo"));
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
             Assert.IsTrue(invoked);
-
+            yield return null;
         }
 
 
@@ -59,8 +59,9 @@ namespace Backtrace.Unity.Tests.Runtime
                 return lastData;
             };
             BacktraceClient.Send("foo");
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
             Assert.IsTrue(invoked);
+            yield return null;
         }
 
 
@@ -79,9 +80,9 @@ namespace Backtrace.Unity.Tests.Runtime
             };
 
             BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Exception);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
             Assert.IsTrue(invoked);
-
+            yield return null;
         }
 
         [UnityTest]
@@ -100,8 +101,9 @@ namespace Backtrace.Unity.Tests.Runtime
             };
 
             BacktraceClient.HandleUnityMessage("foo", string.Empty, LogType.Error);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
             Assert.IsTrue(invoked);
+            yield return null;
         }
 
         [UnityTest]
@@ -118,15 +120,15 @@ namespace Backtrace.Unity.Tests.Runtime
             //fake messages
             var fakeLogMessage = "log";
             BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, LogType.Log);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
             var fakeWarningMessage = "warning message";
             BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, LogType.Warning);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.HandleUnityMessage(expectedExceptionMessage, string.Empty, LogType.Exception);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
 
             Assert.IsNotNull(lastData.SourceCode);
 
@@ -134,6 +136,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(expectedExceptionMessage));
             Assert.IsFalse(generatedText.Contains(fakeLogMessage));
             Assert.IsFalse(generatedText.Contains(fakeWarningMessage));
+            yield return null;
         }
 
         [UnityTest]
@@ -150,15 +153,15 @@ namespace Backtrace.Unity.Tests.Runtime
             //fake messages
             var fakeLogMessage = "log";
             BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, UnityEngine.LogType.Log);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
             var fakeWarningMessage = "warning message";
             BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, UnityEngine.LogType.Warning);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.Send(new Exception(expectedExceptionMessage));
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
 
             Assert.IsNotNull(lastData.SourceCode);
 
@@ -166,6 +169,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(expectedExceptionMessage));
             Assert.IsFalse(generatedText.Contains(fakeLogMessage));
             Assert.IsFalse(generatedText.Contains(fakeWarningMessage));
+            yield return null;
         }
 
 
@@ -181,13 +185,14 @@ namespace Backtrace.Unity.Tests.Runtime
             //fake messages
             var fakeLogMessage = "log";
             BacktraceClient.HandleUnityMessage(fakeLogMessage, string.Empty, UnityEngine.LogType.Log);
+
             var fakeWarningMessage = "warning message";
             BacktraceClient.HandleUnityMessage(fakeWarningMessage, string.Empty, UnityEngine.LogType.Warning);
 
             // real exception
             var expectedExceptionMessage = "Exception message";
             BacktraceClient.Send(expectedExceptionMessage);
-            yield return new WaitForEndOfFrame();
+            yield return WaitForFrame.Wait();
 
             Assert.IsNotNull(lastData.SourceCode);
 
@@ -195,6 +200,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsTrue(generatedText.Contains(expectedExceptionMessage));
             Assert.IsFalse(generatedText.Contains(fakeLogMessage));
             Assert.IsFalse(generatedText.Contains(fakeWarningMessage));
+            yield return null;
         }
     }
 }
