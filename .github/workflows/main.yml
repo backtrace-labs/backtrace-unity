@@ -54,6 +54,7 @@ jobs:
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - uses: game-ci/unity-builder@v4
+        name: Build game for platform ${{ matrix.targetPlatform }}
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
