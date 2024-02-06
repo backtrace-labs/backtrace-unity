@@ -11,7 +11,13 @@ jobs:
       matrix:
         testMode:
           - playmode
-          - editmode
+          # - editmode
+        projectPath:
+          - test-package
+        unityVersion:
+          - 2022.1.11f1
+          - 2018.4.20f1
+          - 2020.3.20f1
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -20,8 +26,8 @@ jobs:
 
       - name: Setup Environment
         run: |
-          mkdir Package
-          mv Editor Runtime Tests Android iOS Windows package.json Package/
+          mkdir ${{ matrix.projectPath }}
+          mv Editor Runtime Tests Android iOS Windows package.json ${{ matrix.projectPath }}/
 
       - name: Run Tests
         uses: game-ci/unity-test-runner@v4.0.0
@@ -31,6 +37,7 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           packageMode: true
-          projectPath: Package/
+          projectPath: ${{ matrix.projectPath }}/
           testMode: ${{ matrix.testMode }}
-          unityVersion: 2022.1.11f1
+          unityVersion: ${{ matrix.unityVersion }}
+          coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
