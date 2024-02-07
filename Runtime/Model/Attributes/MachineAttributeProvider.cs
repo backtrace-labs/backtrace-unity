@@ -83,8 +83,7 @@ namespace Backtrace.Unity.Model.Attributes
         private void IncludeGraphicCardInformation(IDictionary<string, string> attributes)
         {
             // if a graphic card is not available
-            if (SystemInfo.graphicsDeviceType == null)
-
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
             {
                 return;
             }
