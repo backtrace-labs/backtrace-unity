@@ -187,7 +187,7 @@ namespace Backtrace.Unity.Model.JsonData
                 { "activeInHierarchy", gameObject.activeInHierarchy.ToString(CultureInfo.InvariantCulture).ToLower()},
                 { "activeSelf",  gameObject.activeSelf.ToString(CultureInfo.InvariantCulture).ToLower() },
                 { "instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
-                { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
+                { "parentName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
             });
         }
         private BacktraceJObject GetJObject(Component gameObject, string parentName = "")
@@ -199,7 +199,7 @@ namespace Backtrace.Unity.Model.JsonData
                 { "transform.rotation", gameObject.transform.rotation.ToString()},
                 { "tag",gameObject.tag},
                 { "instanceId", gameObject.GetInstanceID().ToString(CultureInfo.InvariantCulture) },
-                { "parnetName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
+                { "parentName", string.IsNullOrEmpty(parentName) ? "root object" : parentName }
             });
         }
     }
