@@ -72,7 +72,7 @@ namespace Backtrace.Unity.Common
                 case RuntimePlatform.Android:
                     return "Android";
                 case RuntimePlatform.IPhonePlayer:
-                    return "IOS";
+                    return "iOS";
                 case RuntimePlatform.LinuxEditor:
                 case RuntimePlatform.LinuxPlayer:
                     return "Linux";
