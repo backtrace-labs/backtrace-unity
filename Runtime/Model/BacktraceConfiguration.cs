@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Common;
+﻿using Backtrace.Unity.Attributes;
+using Backtrace.Unity.Common;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
@@ -125,7 +126,6 @@ namespace Backtrace.Unity.Model
         [Tooltip("Try to find game native crashes and send them on Game startup")]
         public bool SendUnhandledGameCrashesOnGameStartup = true;
 
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
 #if UNITY_ANDROID
         /// <summary>
         /// Capture native NDK Crashes.
@@ -136,47 +136,66 @@ namespace Backtrace.Unity.Model
         /// Capture native crashes.
         /// </summary>
         [Tooltip("Capture native Crashes")]
+#else
+        /// <summary>  
+        /// Capture native crashes.
+        /// </summary>
+        [NotSupported]
 #endif
-
         public bool CaptureNativeCrashes = true;
-#if !UNITY_GAMECORE_XBOXSERIES
+
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
         [Tooltip("Capture ANR events - Application not responding")]
-        public bool HandleANR = true;
+#else
+        [NotSupported]
 #endif
+        public bool HandleANR = true;
+
 
         /// <summary>
         /// Anr watchdog timeout in ms. Time needed to detect an ANR event
         /// </summary>
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+        [Tooltip("ANR watchdog timeout")]
+#else
+        [NotSupported]
+#endif
         public int AnrWatchdogTimeout = DefaultAnrWatchdogTimeout;
 
-#if UNITY_ANDROID || UNITY_IOS
         /// <summary>
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
+#if UNITY_ANDROID || UNITY_IOS
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
+#else
+        [NotSupported]
+#endif
         public bool OomReports = false;
 
-#if UNITY_2019_2_OR_NEWER
         /// <summary>
         /// Enable client side unwinding.
         /// </summary>
+#if UNITY_2019_2_OR_NEWER && (UNITY_ANDROID || UNITY_IOS)
         [Tooltip("Enable client-side unwinding.")]
+#else
+        [NotSupported]
+#endif
         public bool ClientSideUnwinding = false;
-#endif
 
-#endif
 
-#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         /// <summary>
         /// Symbols upload token
         /// </summary>
+#if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         [Tooltip("Symbols upload token required to upload symbols to Backtrace")]
+#else
+        [NotSupported]
+#endif
         public string SymbolsUploadToken = string.Empty;
-#endif
-#endif
+
 
         /// <summary>
         /// Backtrace client deduplication strategy. 
