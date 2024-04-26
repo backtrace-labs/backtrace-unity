@@ -69,14 +69,15 @@ namespace Backtrace.Unity.Model.Breadcrumbs
 
         public bool FromBacktrace(BacktraceReport report)
         {
+            const BreadcrumbLevel level = BreadcrumbLevel.System;
             var type = report.ExceptionTypeReport ? UnityEngineLogLevel.Error : UnityEngineLogLevel.Info;
-            if (!ShouldLog(type))
+            if (!ShouldLog(level, type))
             {
                 return false;
             }
             return AddBreadcrumbs(
                 report.Message,
-                BreadcrumbLevel.System,
+                level,
                 type,
                 null);
         }
@@ -137,24 +138,31 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         }
         public bool Log(string message, LogType logType, IDictionary<string, string> attributes)
         {
-            var type = ConvertLogTypeToLogLevel(logType);
-            if (!ShouldLog(type))
-            {
-                return false;
-            }
-            return AddBreadcrumbs(message, BreadcrumbLevel.Manual, type, attributes);
+            return Log(message, BreadcrumbLevel.Manual, logType, attributes);
         }
+
+        public bool Log(string message, BreadcrumbLevel level, LogType logType, IDictionary<string, string> attributes)
+        {
+            var type = ConvertLogTypeToLogLevel(logType);
+            return AddBreadcrumbs(message, level, type, attributes);
+        }
+
         internal bool AddBreadcrumbs(string message, BreadcrumbLevel level, UnityEngineLogLevel type, IDictionary<string, string> attributes = null)
         {
-            if (!BreadcrumbsLevel.HasFlag((BacktraceBreadcrumbType)level))
+            if (!ShouldLog(level, type))
             {
                 return false;
             }
             return LogManager.Add(message, level, type, attributes);
         }
-        internal bool ShouldLog(UnityEngineLogLevel type)
+
+        internal bool ShouldLog(BreadcrumbLevel level, UnityEngineLogLevel type)
         {
-            if (!BreadcrumbsLevel.HasFlag(BacktraceBreadcrumbType.Manual))
+            return ShouldLog((BacktraceBreadcrumbType)level, type);
+        }
+        internal bool ShouldLog(BacktraceBreadcrumbType level, UnityEngineLogLevel type)
+        {
+            if (!BreadcrumbsLevel.HasFlag(level))
             {
                 return false;
             }
