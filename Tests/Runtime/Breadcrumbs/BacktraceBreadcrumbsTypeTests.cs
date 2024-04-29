@@ -7,6 +7,36 @@ namespace Backtrace.Unity.Tests.Runtime.Breadcrumbs
 {
     public class BacktraceBreadcrumbsTypeTests
     {
+
+        [Test]
+        public void TestManualLogWithLogLevel_ShouldSuccessfullyAddLog_LogIsStored()
+        {
+            const string message = "message";
+            var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
+            //anything else than Manual
+            BreadcrumbLevel breadcrumbLevel = BreadcrumbLevel.System;
+            UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, BacktraceBreadcrumbType.System, level);
+            breadcrumbsManager.EnableBreadcrumbs();
+            var result = breadcrumbsManager.Log(message, breadcrumbLevel, LogType.Log, null);
+            Assert.IsTrue(result);
+        }
+
+
+        [Test]
+        public void TestManualLogWithLogLevel_ShouldDropUnwantedBreadcrumbLevel_ReturnFalse()
+        {
+            const string message = "message";
+            var inMemoryBreadcrumbStorage = new BacktraceInMemoryLogManager();
+            //anything else than Manual
+            BreadcrumbLevel breadcrumbLevel = BreadcrumbLevel.Configuration;
+            UnityEngineLogLevel level = UnityEngineLogLevel.Debug | UnityEngineLogLevel.Error | UnityEngineLogLevel.Fatal | UnityEngineLogLevel.Info | UnityEngineLogLevel.Warning;
+            var breadcrumbsManager = new BacktraceBreadcrumbs(inMemoryBreadcrumbStorage, BacktraceBreadcrumbType.User, level);
+            breadcrumbsManager.EnableBreadcrumbs();
+            var result = breadcrumbsManager.Log(message, breadcrumbLevel, LogType.Log, null);
+            Assert.IsFalse(result);
+
+        }
         [TestCase(LogType.Log)]
         [TestCase(LogType.Warning)]
         [TestCase(LogType.Assert)]
