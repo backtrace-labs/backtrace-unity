@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.8.7
+
+Bugfixes
+- Changed uname.sysname attribute from IOS to iOS.
+- Do not report OOMs generated when application is in background.
+ 
+Improvements
+- Added an option to define breadcrumb type.
+- Allow to use not available configuration options on specific platform.
+
 ## Version 3.8.6
 
 Bugfixes
