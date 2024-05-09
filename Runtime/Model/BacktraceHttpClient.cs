@@ -98,7 +98,6 @@ namespace Backtrace.Unity.Model
             request.timeout = RequestTimeout;
             request.IgnoreSsl(IgnoreSslValidation);
             request.SetMultipartFormData(boundaryIdBytes);
-            source.SetRequestHeader(ContentTypeHeader, string.Format("{0}{1}", multipartContentTypePrefix, Encoding.UTF8.GetString(boundaryId)));
             return request;
         }
 
