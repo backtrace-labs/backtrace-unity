@@ -19,13 +19,14 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [UnityTest]
+        [Obsolete]
         public IEnumerator TestClientConfigurationOptions_ValidConfigurationWithAllOptions_AllowsToUseNotSupportedOptions()
         {
             var clientConfiguration = GetValidClientConfiguration();
-            clientConfiguration.OomReports = false;
             clientConfiguration.HandleANR = false;
             clientConfiguration.AnrWatchdogTimeout = 0;
             clientConfiguration.CaptureNativeCrashes = false;
+            clientConfiguration.OomReports = false;
             clientConfiguration.ClientSideUnwinding = false;
             clientConfiguration.SymbolsUploadToken = string.Empty;
             BacktraceClient.Configuration = clientConfiguration;

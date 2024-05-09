@@ -1,5 +1,4 @@
-﻿using Backtrace.Unity.Attributes;
-using Backtrace.Unity.Common;
+﻿using Backtrace.Unity.Common;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
@@ -140,7 +139,7 @@ namespace Backtrace.Unity.Model
         /// <summary>  
         /// Capture native crashes.
         /// </summary>
-        [NotSupported]
+        [Obsolete("Not supported")]
 #endif
         public bool CaptureNativeCrashes = true;
 
@@ -150,7 +149,7 @@ namespace Backtrace.Unity.Model
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
         [Tooltip("Capture ANR events - Application not responding")]
 #else
-        [NotSupported]
+        [Obsolete("Not supported")]
 #endif
         public bool HandleANR = true;
 
@@ -161,7 +160,7 @@ namespace Backtrace.Unity.Model
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
         [Tooltip("ANR watchdog timeout")]
 #else
-        [NotSupported]
+        [Obsolete("Not supported")]
 #endif
         public int AnrWatchdogTimeout = DefaultAnrWatchdogTimeout;
 
@@ -171,7 +170,7 @@ namespace Backtrace.Unity.Model
 #if UNITY_ANDROID || UNITY_IOS
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
 #else
-        [NotSupported]
+        [Obsolete("Not supported")]
 #endif
         public bool OomReports = false;
 
@@ -181,7 +180,7 @@ namespace Backtrace.Unity.Model
 #if UNITY_2019_2_OR_NEWER && (UNITY_ANDROID || UNITY_IOS)
         [Tooltip("Enable client-side unwinding.")]
 #else
-        [NotSupported]
+        [Obsolete("Not supported")]
 #endif
         public bool ClientSideUnwinding = false;
 
@@ -192,7 +191,7 @@ namespace Backtrace.Unity.Model
 #if UNITY_2019_2_OR_NEWER && UNITY_ANDROID
         [Tooltip("Symbols upload token required to upload symbols to Backtrace")]
 #else
-        [NotSupported]
+        [Obsolete("Not supported")]
 #endif
         public string SymbolsUploadToken = string.Empty;
 
