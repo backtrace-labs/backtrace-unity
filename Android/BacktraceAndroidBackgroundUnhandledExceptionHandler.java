@@ -51,7 +51,6 @@ public class BacktraceAndroidBackgroundUnhandledExceptionHandler implements Thre
         String throwableType = throwable.getClass().getName();
         Log.d(LOG_TAG, "Detected unhandled background thread exception. Exception type: " + throwableType + ". Reporting to Backtrace");
         ReportThreadException(throwableType + " : " + throwable.getMessage(), stackTraceToString(throwable.getStackTrace()));
-        finish();
     }
 
     public void ReportThreadException(String message, String stackTrace) {        
