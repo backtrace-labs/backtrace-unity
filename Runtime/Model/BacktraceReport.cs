@@ -188,7 +188,10 @@ namespace Backtrace.Unity.Model
             }
             else
             {
-                Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.ExceptionType;
+                if (!Attributes.ContainsKey(ErrorTypeAttributeName))
+                {
+                    Attributes[ErrorTypeAttributeName] = BacktraceDefaultClassifierTypes.ExceptionType;
+                }
                 Classifier = Exception.GetType().Name;
             }
         }
