@@ -1002,7 +1002,7 @@ namespace Backtrace.Unity
             var message = backgroundExceptionMessage.Substring(0, splitIndex);
             var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
             var report = new BacktraceReport(new BacktraceUnhandledException(message, stackTrace));
-             if (_useProguard) {
+            if (_useProguard) {
                 report.UseSymbolication("proguard");
             }
             
