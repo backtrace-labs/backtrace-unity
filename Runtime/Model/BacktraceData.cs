@@ -83,6 +83,11 @@ namespace Backtrace.Unity.Model
         public string[] Classifier;
 
         /// <summary>
+        /// Symbolication method
+        /// </summary>
+        public String Symbolication;
+
+        /// <summary>
         /// Source code information.
         /// </summary>
         public BacktraceSourceCode SourceCode;
@@ -125,6 +130,7 @@ namespace Backtrace.Unity.Model
             Uuid = Report.Uuid;
             Timestamp = Report.Timestamp;
             Classifier = Report.ExceptionTypeReport ? new[] { Report.Classifier } : new string[0];
+            Symbolication = report.Symbolication;
 
             SetAttributes(clientAttributes, gameObjectDepth);
             SetThreadInformations();
@@ -152,6 +158,11 @@ namespace Backtrace.Unity.Model
             jObject.Add("attributes", Attributes.ToJson());
             jObject.Add("annotations", Annotation.ToJson());
             jObject.Add("threads", ThreadData.ToJson());
+            
+            if (!String.IsNullOrEmpty(Symbolication)) {
+                jObject.Add("symbolication", Symbolication);
+            }
+            
             if (SourceCode != null)
             {
                 jObject.Add("sourceCode", SourceCode.ToJson());

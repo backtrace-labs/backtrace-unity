@@ -66,6 +66,15 @@ namespace Backtrace.Unity
             }
         }
 
+#if UNITY_ANDROID
+        private bool _useProguard = false;
+
+        public void UseProguard(String symbolicationId) {
+            _useProguard = true;
+            AttributeProvider["symbolication_id"] = symbolicationId;
+        }
+#endif
+
 #if !UNITY_WEBGL
         private BacktraceMetrics _metrics;
 
@@ -971,7 +980,11 @@ namespace Backtrace.Unity
             {
                 Breadcrumbs.FromMonoBehavior(anrMessage, LogType.Warning, new Dictionary<string, string> { { "stackTrace", stackTrace } });
             }
-            SendUnhandledException(hang);
+            var report = new BacktraceReport(hang);
+            if (_useProguard) {
+                report.UseSymbolication("proguard");
+            }
+            SendUnhandledExceptionReport(report);
         }
 
         /// <summary>
@@ -988,15 +1001,20 @@ namespace Backtrace.Unity
             }
             var message = backgroundExceptionMessage.Substring(0, splitIndex);
             var stackTrace = backgroundExceptionMessage.Substring(splitIndex);
+            var report = new BacktraceReport(new BacktraceUnhandledException(message, stackTrace));
+             if (_useProguard) {
+                report.UseSymbolication("proguard");
+            }
+            
             if (Database != null)
             {
-                var backtraceData = new BacktraceReport(new BacktraceUnhandledException(message, stackTrace)).ToBacktraceData(null, GameObjectDepth);
+                var backtraceData = report.ToBacktraceData(null, GameObjectDepth);
                 AttributeProvider.AddAttributes(backtraceData.Attributes.Attributes);
                 Database.Add(backtraceData);
             }
             else
             {
-                HandleUnityMessage(message, stackTrace, LogType.Exception);
+                SendUnhandledExceptionReport(report);
             }
             var androidNativeClient = _nativeClient as Runtime.Native.Android.NativeClient;
             if (androidNativeClient != null)
@@ -1125,7 +1143,7 @@ namespace Backtrace.Unity
                 };
             }
 
-            SendUnhandledException(exception, invokeSkipApi);
+            SendUnhandledExceptionReport(new BacktraceReport(exception), invokeSkipApi);
         }
 
         /// <summary>
@@ -1142,15 +1160,15 @@ namespace Backtrace.Unity
             return value > Configuration.Sampling;
         }
 
-        private void SendUnhandledException(BacktraceUnhandledException exception, bool invokeSkipApi = true)
+        private void SendUnhandledExceptionReport(BacktraceReport report, bool invokeSkipApi = true)
         {
             if (OnUnhandledApplicationException != null)
             {
-                OnUnhandledApplicationException.Invoke(exception);
+                OnUnhandledApplicationException.Invoke(report.Exception);
             }
-            if (ShouldSendReport(exception, null, null, invokeSkipApi))
+            if (ShouldSendReport(report.Exception, null, null, invokeSkipApi))
             {
-                SendReport(new BacktraceReport(exception));
+                SendReport(report);
             }
         }
 

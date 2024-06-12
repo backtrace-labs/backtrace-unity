@@ -72,6 +72,11 @@ namespace Backtrace.Unity.Model
         public List<BacktraceStackFrame> DiagnosticStack { get; set; }
 
         /// <summary>
+        /// Current report symbolication method
+        /// </summary>
+        public String Symbolication { get; set; }
+
+        /// <summary>
         /// Source code
         /// </summary>
         public BacktraceSourceCode SourceCode = null;
@@ -117,6 +122,14 @@ namespace Backtrace.Unity.Model
                 SetStacktraceInformation();
             }
             SetDefaultAttributes();
+        }
+
+        
+        /// <summary>
+        /// Sets report symbolication type
+        /// </summary>
+        public void UseSymbolication(String symbolication) {
+            Symbolication = symbolication;
         }
 
         private void SetDefaultAttributes()
