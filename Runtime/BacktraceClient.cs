@@ -69,6 +69,10 @@ namespace Backtrace.Unity
 #if UNITY_ANDROID
         private bool _useProguard = false;
 
+         /// <summary>
+        /// Allow to enable Proguard support for captured Exceptions.
+        /// </summary>
+        /// <param name="symbolicationId">Proguard map symbolication id</param>
         public void UseProguard(String symbolicationId) {
             _useProguard = true;
             AttributeProvider["symbolication_id"] = symbolicationId;
