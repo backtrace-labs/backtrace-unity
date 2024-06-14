@@ -334,7 +334,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             var envVariableDictionary =  Environment.GetEnvironmentVariables();
             if (envVariableDictionary == null) {
-                Debug.LogWarning("Environment variables are not available.");
+                Debug.LogWarning("Environment variables are not defined.");
                 return false;
             }
 
