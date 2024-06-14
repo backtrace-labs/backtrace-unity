@@ -58,12 +58,23 @@ namespace Backtrace.Unity.Model.Attributes
                 attributes["device.manufacturer"] = build.GetStatic<string>("MANUFACTURER").ToString();
                 attributes["device.brand"] = build.GetStatic<string>("BRAND").ToString();
                 attributes["device.product"] = build.GetStatic<string>("PRODUCT").ToString();
-            }
+                using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+                {
+                    attributes["uname.version"] = version.GetStatic<string>("RELEASE").ToString();
 
-            using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
-            {
-                attributes["device.sdk"] = version.GetStatic<int>("SDK_INT").ToString();
-                attributes["uname.version"] = version.GetStatic<string>("RELEASE").ToString();
+                    var deviceSdkVersion = version.GetStatic<int>("SDK_INT");
+                    attributes["device.sdk"] = deviceSdkVersion.ToString();
+                    if(deviceSdkVersion >= 21) 
+                    {
+                        string[] supportedAbis = build.GetStatic<string[]>("SUPPORTED_ABIS");
+                        
+                        if (supportedAbis != null && supportedAbis.Length > 0)
+                        {
+                            attributes["device.abi"] =  supportedAbis[0];
+                        }
+                        
+                    }
+                }
             }
             attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #else
@@ -80,6 +91,7 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #endif
         }
+
         private void IncludeGraphicCardInformation(IDictionary<string, string> attributes)
         {
             // if a graphic card is not available

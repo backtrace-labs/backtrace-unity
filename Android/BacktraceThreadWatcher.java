@@ -1,4 +1,4 @@
-package backtrace.io.backtrace_unity_android_plugin;
+package backtraceio.unity;
 
 /**
  * This class is a representation of the state of the thread,
