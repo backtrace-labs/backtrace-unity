@@ -6,7 +6,7 @@ Bugfixes
 - Allow unity to finish capturing uncaught exception generated on the Android native layer (#215).
 
 Improvements
-- Proguard support (#216)
+- Proguard Support. Added support for native managed exceptions when ProGuard obfuscation is in use (#216).
 - Updated native NDK libraries to the latest version of the backtrace-android library (#217).
 - Added support for a new crash flow when the crash handler executable cannot be extracted on Android. The `useLegacyPackaging` is no longer required. (#218).
 
