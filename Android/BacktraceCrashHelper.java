@@ -1,4 +1,4 @@
-package backtrace.io.backtrace_unity_android_plugin;
+package backtraceio.unity;
 
 import android.os.Handler;
 import android.os.Looper;

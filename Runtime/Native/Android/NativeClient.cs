@@ -5,6 +5,7 @@ using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
 using Backtrace.Unity.Runtime.Native.Base;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -23,6 +24,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private const string CallbackMethodName = "OnAnrDetected";
         [DllImport("backtrace-native")]
         private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding, int unwindingMode);
+
+        [DllImport("backtrace-native")]
+        private static extern bool InitializeJavaCrashHandler(IntPtr submissionUrl, IntPtr databasePath, IntPtr classPath, IntPtr keys, IntPtr values, IntPtr attachments, IntPtr environmentVariables);
 
         [DllImport("backtrace-native")]
         private static extern bool AddAttribute(IntPtr key, IntPtr value);
@@ -75,8 +79,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
             _attributeMapping.Add("VmallocUsed", "system.memory.vmalloc.used");
             _attributeMapping.Add("VmallocChunk", "system.memory.vmalloc.chunk");
         }
-        // Android native interface paths
-        private const string _namespace = "backtrace.io.backtrace_unity_android_plugin";
+
+        // Android base native interface path
+        private const string _baseNamespace = "backtraceio";
+
+        // Unity-Android native interface path
+        private const string _namespace = "backtraceio.unity";
 
         /// <summary>
         /// unwinding mode
@@ -92,6 +100,16 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// Path to class responsible for capturing unhandled java exceptions.
         /// </summary>
         private readonly string _unhandledExceptionPath = string.Format("{0}.{1}", _namespace, "BacktraceAndroidBackgroundUnhandledExceptionHandler");
+
+        /// <summary>
+        /// Path to class responsible for generating and sending native dump on crash
+        /// </summary>
+        private readonly string _crashHandlerPath = string.Format("{0}.library.nativeCalls.BacktraceCrashHandler", _baseNamespace);
+
+        /// <summary>
+        /// Backtrace-Android native library name
+        /// </summary>
+        private readonly string _nativeLibraryName = "libbacktrace-native.so";
 
         /// <summary>
         /// Determine if android integration should be enabled
@@ -255,37 +273,20 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
 
+            var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
+            
             var libDirectory = GetNativeDirectoryPath();
             if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
             {
                 libDirectory = GuessNativeDirectoryPath();
             }
-            if (!Directory.Exists(libDirectory))
-            {
-                return;
-            }
             const string crashpadHandlerName = "libcrashpad_handler.so";
             var crashpadHandlerPath = Path.Combine(libDirectory, crashpadHandlerName);
 
-            if (string.IsNullOrEmpty(crashpadHandlerPath) || !File.Exists(crashpadHandlerPath))
-            {
-                Debug.LogWarning("Backtrace native integration status: Cannot find crashpad library");
-                return;
-            }
+            CaptureNativeCrashes = CanInitializeExecutableCrashHandler(libDirectory, crashpadHandlerPath)
+                ? InitializeExecutableCrashHandler(minidumpUrl, databasePath, crashpadHandlerPath, attachments)
+                : InitializeJavaCrashHandler(minidumpUrl, databasePath, backtraceAttributes["device.abi"], libDirectory, attachments);
 
-            var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-
-            // reassign to captureNativeCrashes
-            // to avoid doing anything on crashpad binary, when crashpad isn't available
-            CaptureNativeCrashes = Initialize(
-                AndroidJNI.NewStringUTF(minidumpUrl),
-                AndroidJNI.NewStringUTF(databasePath),
-                AndroidJNI.NewStringUTF(crashpadHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
-                _enableClientSideUnwinding,
-                (int)UnwindingMode);
             if (!CaptureNativeCrashes)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
@@ -307,6 +308,71 @@ namespace Backtrace.Unity.Runtime.Native.Android
             AddAttribute(
                         AndroidJNI.NewStringUTF(ErrorTypeAttribute),
                         AndroidJNI.NewStringUTF(CrashType));
+        }
+
+        private bool CanInitializeExecutableCrashHandler(String nativeLibraryDirectory, String handlerPath) {
+            return Directory.Exists(nativeLibraryDirectory) && File.Exists(handlerPath);
+        }
+
+        private bool InitializeExecutableCrashHandler(String minidumpUrl, String databasePath, String crashpadHandlerPath, IEnumerable<String> attachments) {
+            return Initialize(
+                AndroidJNI.NewStringUTF(minidumpUrl),
+                AndroidJNI.NewStringUTF(databasePath),
+                AndroidJNI.NewStringUTF(crashpadHandlerPath),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
+                _enableClientSideUnwinding,
+                (int)UnwindingMode);
+        }
+
+        private bool InitializeJavaCrashHandler(String minidumpUrl, String databasePath, String deviceAbi, String nativeDirectory, IEnumerable<String> attachments) {
+            if (String.IsNullOrEmpty(deviceAbi)) {
+                Debug.LogWarning("Cannot determine device ABI");
+                return false;
+            }
+
+            var envVariableDictionary =  Environment.GetEnvironmentVariables();
+            if (envVariableDictionary == null) {
+                Debug.LogWarning("Environment variables are not defined.");
+                return false;
+            }
+
+            // verify if the library is already extracted
+            var backtraceNativeLibraryPath = Path.Combine(nativeDirectory, _nativeLibraryName);
+            if (!File.Exists(backtraceNativeLibraryPath)) {
+                backtraceNativeLibraryPath = string.Format("{0}!/lib/{1}/{2}", Application.dataPath, deviceAbi, _nativeLibraryName);
+            }
+
+            // prepare native crash handler environment variables
+            List<String> environmentVariables = new List<string> () {
+                string.Format("CLASSPATH={0}", Application.dataPath),
+                string.Format("BACKTRACE_UNITY_CRASH_HANDLER={0}", backtraceNativeLibraryPath),
+                string.Format("LD_LIBRARY_PATH={0}", string.Join(":", nativeDirectory, Directory.GetParent(nativeDirectory), GetLibrarySystemPath(), "/data/local")),
+                "ANDROID_DATA=/data"
+            };
+
+            foreach (DictionaryEntry kvp in envVariableDictionary) {
+                environmentVariables.Add(string.Format("{0}={1}", kvp.Key, kvp.Value == null ? "NULL" : kvp.Value));
+            }
+            
+
+            return InitializeJavaCrashHandler(
+                AndroidJNI.NewStringUTF(minidumpUrl),
+                AndroidJNI.NewStringUTF(databasePath),
+                AndroidJNI.NewStringUTF(_crashHandlerPath),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
+                AndroidJNIHelper.ConvertToJNIArray(environmentVariables.ToArray())
+            );
+        }
+
+        private string GetLibrarySystemPath() {
+            using (var systemClass = new AndroidJavaClass("java.lang.System"))
+            {
+                return systemClass.CallStatic<string>("getProperty", "java.library.path");
+            }
         }
 
         /// <summary>

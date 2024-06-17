@@ -1,4 +1,4 @@
-package backtrace.io.backtrace_unity_android_plugin;
+package backtraceio.unity;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
@@ -72,7 +72,7 @@ public class BacktraceANRWatchdog extends Thread {
         Log.d(LOG_TAG, "Starting ANR watchdog. Anr timeout: " + this.timeout);
 
         while (!shouldStop && !isInterrupted()) {
-            final backtrace.io.backtrace_unity_android_plugin.BacktraceThreadWatcher threadWatcher = new backtrace.io.backtrace_unity_android_plugin.BacktraceThreadWatcher(0, 0);
+            final BacktraceThreadWatcher threadWatcher = new BacktraceThreadWatcher(0, 0);
             mainThreadHandler.post(new Runnable() {
                 @Override
                 public void run() {
