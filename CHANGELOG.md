@@ -8,7 +8,7 @@ Bugfixes
 Improvements
 - Proguard support (#216)
 - Updated native NDK libraries to the latest version of the backtrace-android library (#217).
-- Added support for a new crash flow when the crash handler executable cannot be extracted on Android (#218).
+- Added support for a new crash flow when the crash handler executable cannot be extracted on Android. The `useLegacyPackaging` is no longer required. (#218).
 
 ## Version 3.8.7
 
