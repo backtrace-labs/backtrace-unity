@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.9.0
+
+Bugfixes
+- Allow unity to finish capturing uncaught exception generated on the Android native layer (#215).
+
+Improvements
+- Proguard support (#216)
+- Updated native NDK libraries to the latest version of the backtrace-android library (#217).
+- Added support for a new crash flow when the crash handler executable cannot be extracted on Android (#218).
+
 ## Version 3.8.7
 
 Bugfixes
