@@ -345,6 +345,23 @@ namespace Backtrace.Unity.Tests.Runtime
             }
         }
 
+        [Test]
+        public void TestNativeStackTraceDetection_AndroidExceptionShouldSetFlag_NativeStackTraceIsSet()
+        {
+            var stackTrace = ConvertStackTraceToString(_anrStackTrace);
+            var exception = new BacktraceUnhandledException(string.Empty, stackTrace);
+            Assert.IsTrue(exception.NativeStackTrace);
+        }
+
+
+        [Test]
+        public void TestNativeStackTraceDetection_UnityExceptionShouldNotSetFlag_NativeStackTraceIsNotSet()
+        {
+            var stackTrace = ConvertStackTraceToString(_simpleStack);
+            var exception = new BacktraceUnhandledException(string.Empty, stackTrace);
+            Assert.IsFalse(exception.NativeStackTrace);
+        }
+
 
         [Test]
         public void TestStackTraceCreation_AndroidMixModeCallStack_ValidStackTraceObject()
