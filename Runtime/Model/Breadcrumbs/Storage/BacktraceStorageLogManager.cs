@@ -290,14 +290,12 @@ namespace Backtrace.Unity.Model.Breadcrumbs.Storage
             int nextLineBytes = NewRow.Length;
             while (numberOfFreeBytes < expectedFreedBytes)
             {
-                if (_logSize.TryDequeue(out long result))
-                {
-                    numberOfFreeBytes += (result + nextLineBytes);
-                }
-                else
+                if (_logSize.Count == 0)
                 {
                     return numberOfFreeBytes;
                 }
+
+                numberOfFreeBytes += (_logSize.Dequeue() + nextLineBytes);
             }
 
             return numberOfFreeBytes;
