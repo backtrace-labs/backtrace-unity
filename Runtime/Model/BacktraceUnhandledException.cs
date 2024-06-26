@@ -48,6 +48,14 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public readonly List<BacktraceStackFrame> StackFrames;
 
+        /// <summary>
+        /// Returns information if the stack trace is from the native environment (non-Unity)
+        /// </summary>
+        internal bool NativeStackTrace
+        {
+            get;
+            private set;
+        }
 
         public BacktraceUnhandledException(string message, string stacktrace) : base(message)
         {
@@ -172,6 +180,8 @@ namespace Backtrace.Unity.Model
                     FunctionName = frameString
                 };
             }
+
+            NativeStackTrace = true;
             // add length of the '('
             methodStartIndex += 1;
             var methodArguments = frameString.Substring(methodStartIndex, methodNameEndIndex - methodStartIndex);
@@ -250,7 +260,8 @@ namespace Backtrace.Unity.Model
                 {
                     stackFrame.Library = stackFrame.FunctionName.Substring(0, libraryNameSeparator).Trim();
                     stackFrame.FunctionName = stackFrame.FunctionName.Substring(++libraryNameSeparator).Trim();
-                } else
+                }
+                else
                 {
                     stackFrame.Library = "native";
                 }
