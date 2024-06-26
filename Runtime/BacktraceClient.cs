@@ -1146,8 +1146,14 @@ namespace Backtrace.Unity
                     Type = type
                 };
             }
+            var report = new BacktraceReport(exception);
+#if UNITY_ANDROID
+            if(exception.NativeStackTrace && _useProguard) {
+                report.UseSymbolication("proguard");
+            }
+#endif
 
-            SendUnhandledExceptionReport(new BacktraceReport(exception), invokeSkipApi);
+            SendUnhandledExceptionReport(report, invokeSkipApi);
         }
 
         /// <summary>
