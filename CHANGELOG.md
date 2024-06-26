@@ -3,13 +3,14 @@
 ## Version 3.9.1
 
 Bugfixes
-- Fixed potential overflow that can happen during breadcrumb deletion flow (#220)
-- Added proguard support for Android uncaught exception captured by the Unity uncaught exception handler (#221)
+- Fixed potential overflow that can happen during breadcrumb deletion flow (#220).
+- Added proguard support for Android uncaught exception captured by the Unity uncaught exception handler (#221).
 
 Improvements
-- Native crash reporting binary upgrade - PlCrashReporter upgrade from 1.7.2 to 1.11.2 (#222)
-- iOS crash handler: store client attributes in the PlCrashReporter crashData object.
-- iOS native attributes: Renaming process.vm.* attributes to vm.*
+- Native crash reporting binary upgrade - PlCrashReporter upgrade from 1.7.2 to 1.11.2 (#222).
+- iOS crash handler: store client attributes in the PlCrashReporter crashData object (#222).
+- iOS native attributes: Renaming process.vm.* attributes to vm.* (#222).
+- iOS native crash: create a readable crash message - do not use signal number as a report message (#222).
 
 ## Version 3.9.0
 
