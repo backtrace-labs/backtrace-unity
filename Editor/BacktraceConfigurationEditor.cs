@@ -137,7 +137,7 @@ namespace Backtrace.Unity.Editor
 #endif
 
 
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN || UNITY_GAMECORE_XBOXSERIES || UNITY_STANDALONE_OSX
                         SerializedProperty captureNativeCrashes = serializedObject.FindProperty("CaptureNativeCrashes");
                         EditorGUILayout.PropertyField(
                             captureNativeCrashes,
