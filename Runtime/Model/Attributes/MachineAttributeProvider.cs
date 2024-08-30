@@ -90,6 +90,10 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["uname.version"] = UnityEngine.iOS.Device.systemVersion;
             attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #endif
+
+#if UNITY_STANDALONE_OSX && !UNITY_EDITOR
+            attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
+#endif
         }
 
         private void IncludeGraphicCardInformation(IDictionary<string, string> attributes)

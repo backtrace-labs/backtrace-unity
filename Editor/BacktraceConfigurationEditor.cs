@@ -153,7 +153,7 @@ namespace Backtrace.Unity.Editor
                             serializedObject.FindProperty("HandleANR"),
                              new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_ANR));
 #endif
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
                         EditorGUILayout.PropertyField(
                             serializedObject.FindProperty("OomReports"),
                              new GUIContent(BacktraceConfigurationLabels.LABEL_HANDLE_OOM));
