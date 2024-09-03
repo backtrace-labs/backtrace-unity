@@ -25,7 +25,7 @@ namespace Backtrace.Unity.Runtime.Native
 #elif UNITY_STANDALONE_OSX
             return new OSX.NativeClient(configuration, breadcrumbs, attributes, attachments);
 #else
-                return null;
+            return null;
 #endif
             }
             catch (Exception e)
