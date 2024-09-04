@@ -22,6 +22,8 @@ namespace Backtrace.Unity.Runtime.Native
             return new Android.NativeClient(configuration, breadcrumbs, attributes, attachments, gameObjectName);
 #elif UNITY_IOS
             return new iOS.NativeClient(configuration, breadcrumbs, attributes, attachments);
+#elif UNITY_STANDALONE_OSX
+            return new OSX.NativeClient(configuration, breadcrumbs, attributes, attachments);
 #else
             return null;
 #endif

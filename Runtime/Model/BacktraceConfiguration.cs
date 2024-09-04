@@ -146,7 +146,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Handle ANR events - Application not responding
         /// </summary>
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
         [Tooltip("Capture ANR events - Application not responding")]
 #else
         [Obsolete("Not supported")]
@@ -157,7 +157,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Anr watchdog timeout in ms. Time needed to detect an ANR event
         /// </summary>
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_WIN
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
         [Tooltip("ANR watchdog timeout")]
 #else
         [Obsolete("Not supported")]
@@ -167,7 +167,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Send Out of memory exceptions to Backtrace. 
         /// </summary>
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
         [Tooltip("Send Out of Memory exceptions to Backtrace")]
 #else
         [Obsolete("Not supported")]
@@ -177,7 +177,7 @@ namespace Backtrace.Unity.Model
         /// <summary>
         /// Enable client side unwinding.
         /// </summary>
-#if UNITY_2019_2_OR_NEWER && (UNITY_ANDROID || UNITY_IOS)
+#if UNITY_2019_2_OR_NEWER && (UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX)
         [Tooltip("Enable client-side unwinding.")]
 #else
         [Obsolete("Not supported")]

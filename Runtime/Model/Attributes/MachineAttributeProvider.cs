@@ -89,6 +89,8 @@ namespace Backtrace.Unity.Model.Attributes
 #if UNITY_IOS && !UNITY_EDITOR
             attributes["uname.version"] = UnityEngine.iOS.Device.systemVersion;
             attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
+#elif UNITY_STANDALONE_OSX && !UNITY_EDITOR
+            attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #endif
         }
 

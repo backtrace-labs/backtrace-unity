@@ -26,7 +26,7 @@ namespace Backtrace.Unity.Editor
 #else
             settings.IgnoreSslValidation = false;
 #endif
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
             settings.HandleANR = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_HANDLE_ANR, settings.HandleANR);
             settings.OomReports = EditorGUILayout.Toggle(BacktraceConfigurationLabels.LABEL_HANDLE_OOM, settings.OomReports);
 #endif

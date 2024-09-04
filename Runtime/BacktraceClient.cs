@@ -712,7 +712,7 @@ namespace Backtrace.Unity
             _instance = null;
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
             Application.lowMemory -= HandleLowMemory;
 #endif
             if (_nativeClient != null)
@@ -1040,7 +1040,7 @@ namespace Backtrace.Unity
             {
                 Application.logMessageReceived += HandleUnityMessage;
                 Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
                 Application.lowMemory += HandleLowMemory;
 #endif
             }
@@ -1069,7 +1069,7 @@ namespace Backtrace.Unity
             HandleUnityMessage(message, stackTrace, type);
         }
 
-#if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
         internal void HandleLowMemory()
         {
             if (!Enabled)
