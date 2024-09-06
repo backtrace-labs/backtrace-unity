@@ -121,6 +121,8 @@ namespace Backtrace.Unity.Model.Database
                     // Create a render texture to render into
                     RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
 
+                    RenderTexture previousActiveRT = RenderTexture.active;
+
                     if (SystemInfo.graphicsUVStartsAtTop)
                     {
                         Graphics.Blit(screenTexture, rt, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 1.0f));
@@ -130,7 +132,6 @@ namespace Backtrace.Unity.Model.Database
                         Graphics.Blit(screenTexture, rt);
                     }
 
-                    RenderTexture previousActiveRT = RenderTexture.active;
                     RenderTexture.active = rt;
 
                     // Create a texture & read data from the active RenderTexture
