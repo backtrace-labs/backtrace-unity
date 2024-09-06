@@ -13,6 +13,10 @@ namespace Backtrace.Unity.Model.Breadcrumbs
         private BacktraceBreadcrumbType _registeredLevel;
         private NetworkReachability _networkStatus = NetworkReachability.NotReachable;
         private Thread _thread;
+        private float _lastUpdateTime = 0;
+
+        // time in seconds between internet availability checks
+        private float INTERNET_AVAILABILITY_CHECK_INTERVAL_SEC = 30;
         public BacktraceBreadcrumbsEventHandler(BacktraceBreadcrumbs breadcrumbs)
         {
             _thread = Thread.CurrentThread;
@@ -151,8 +155,13 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             Log(string.Format("Network:{0}", status), LogType.Log, BreadcrumbLevel.System);
         }
 
-        internal void Update()
+        internal void Update(float time)
         {
+            if (time - _lastUpdateTime < INTERNET_AVAILABILITY_CHECK_INTERVAL_SEC && _lastUpdateTime != 0)
+            {
+                return;
+            }
+            _lastUpdateTime = time;
             if (_registeredLevel.HasFlag(BacktraceBreadcrumbType.System) && Application.internetReachability != _networkStatus)
             {
                 LogNewNetworkStatus(Application.internetReachability);
