@@ -191,9 +191,9 @@ namespace Backtrace.Unity.Model.Breadcrumbs
             return LogManager.BreadcrumbId();
         }
 
-        public void Update()
+        public void Update(float time)
         {
-            EventHandler.Update();
+            EventHandler.Update(time);
         }
 
         public static bool CanStoreBreadcrumbs(UnityEngineLogLevel logLevel, BacktraceBreadcrumbType backtraceBreadcrumbsLevel)

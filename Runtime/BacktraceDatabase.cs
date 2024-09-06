@@ -236,7 +236,7 @@ namespace Backtrace.Unity
             }
             if (_breadcrumbs != null)
             {
-                _breadcrumbs.Update();
+                _breadcrumbs.Update(Time.unscaledTime);
             }
             LastFrameTime = Time.unscaledTime;
             if (!DatabaseSettings.AutoSendMode)
