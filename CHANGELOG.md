@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.10.0
+
+Bugfixes
+- Fixed Unity console errors caused by corrupt meta (#224).
+- Fixed texture re-rendering during attachments generation (#228).
+
+Improvements
+- Mac native support (#225).
+- changed the frequency of the internet availability check to 30 seconds (#226).
+
 ## Version 3.9.1
 
 Bugfixes
