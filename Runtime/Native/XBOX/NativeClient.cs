@@ -1,4 +1,4 @@
-﻿#if UNITY_GAMECORE_XBOXSERIES
+﻿#if UNITY_GAMECORE_XBOXSERIES || UNITY_GAMECORE_XBOXONE
 using Backtrace.Unity.Interfaces;
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Breadcrumbs;
@@ -41,7 +41,7 @@ namespace Backtrace.Unity.Runtime.Native.XBOX
         /// Determine if the XBOX integration should be enabled
         /// </summary>
         private bool _enabled =
-#if UNITY_GAMECORE_XBOXSERIES && !UNITY_EDITOR
+#if !UNITY_EDITOR
             true;
 #else
             false;
