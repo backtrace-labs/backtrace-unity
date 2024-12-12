@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 3.11.0
+
+Improvements
+- Xbox One support (#230)
+
 ## Version 3.10.0
 
 Bugfixes
