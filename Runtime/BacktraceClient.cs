@@ -186,6 +186,11 @@ namespace Backtrace.Unity
             }
         }
 
+        public void SetAttribute(string key, string value)
+        {
+            this[key] = value;
+        }
+
         /// <summary>
         /// Number of client attributes
         /// </summary>
