@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model.Attributes;
+﻿using System;
+using Backtrace.Unity.Model.Attributes;
 using Backtrace.Unity.Model.Metrics;
 using System.Collections.Generic;
 
@@ -15,6 +16,8 @@ namespace Backtrace.Unity.Interfaces
         /// Please refer to the <see href="https://support.backtrace.io">online documentation</see>.
         /// </summary>
         //LinkedList<UniqueEvent> UniqueEvents { get; }
+
+        Guid SessionId { get; }
 
         /// <summary>
         /// Maximum number of summed events in store. If number of events in store hit the limit

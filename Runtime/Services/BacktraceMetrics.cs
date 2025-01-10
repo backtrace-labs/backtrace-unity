@@ -16,7 +16,7 @@ namespace Backtrace.Unity.Services
         /// <summary>
         /// Session Id
         /// </summary>
-        public readonly Guid SessionId = Guid.NewGuid();
+        public Guid SessionId { get; } = Guid.NewGuid();
 
         /// <summary>
         /// Default submission URL

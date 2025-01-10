@@ -50,7 +50,7 @@ namespace Backtrace.Unity
         /// <summary>
         /// Client attribute provider
         /// </summary>
-        internal AttributeProvider AttributeProvider
+        public AttributeProvider AttributeProvider
         {
             get
             {
