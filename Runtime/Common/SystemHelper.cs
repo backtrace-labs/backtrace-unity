@@ -83,6 +83,8 @@ namespace Backtrace.Unity.Common
                     return "ps3";
                 case RuntimePlatform.PS4:
                     return "ps4";
+                case RuntimePlatform.PS5:
+                    return "ps5";
                 case RuntimePlatform.TizenPlayer:
                 case RuntimePlatform.SamsungTVPlayer:
                     return "Samsung TV";
@@ -101,8 +103,12 @@ namespace Backtrace.Unity.Common
                 case RuntimePlatform.WSAPlayerX86:
                     return "Windows";
                 case RuntimePlatform.XBOX360:
+                    return "Xbox 360";
                 case RuntimePlatform.XboxOne:
-                    return "Xbox";
+                case RuntimePlatform.GameCoreXboxOne:
+                    return "Xbox One";
+                case RuntimePlatform.GameCoreXboxSeries:
+                    return "Xbox Series";
                 default:
                     return Application.platform.ToString();
             }
