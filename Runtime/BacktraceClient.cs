@@ -398,6 +398,13 @@ namespace Backtrace.Unity
         }
 
         /// <summary>
+        /// Count of errors sent so far by this client.
+        /// Added to reports as "error.number" attribute.
+        /// First report will be sent with error.number = 1 (as reports *without* an error.number will appear as the default 0, so we need a way to tell the difference).
+        /// </summary>
+        private int _errorNumber = 1;
+
+        /// <summary>
         /// Initialize new Backtrace integration
         /// </summary>
         /// <param name="configuration">Backtrace configuration scriptable object</param>
@@ -848,6 +855,10 @@ namespace Backtrace.Unity
                     yield break;
                 }
             }
+
+            // At this point we have committed to sending the report, so increment _errorNumber to make sure the next report gets its error.number incremented.
+            ++_errorNumber;
+
             BacktraceDatabaseRecord record = null;
 
             if (Database != null && Database.Enabled())
@@ -957,6 +968,8 @@ namespace Backtrace.Unity
             // for exceptions without stack trace.
             report.SetReportFingerprint(Configuration.UseNormalizedExceptionMessage);
             report.AttachmentPaths.AddRange(_clientReportAttachments);
+
+            report.Attributes[ "error.number" ] = _errorNumber.ToString();
 
             // pass copy of dictionary to prevent overriding client attributes
             var result = report.ToBacktraceData(null, GameObjectDepth);
