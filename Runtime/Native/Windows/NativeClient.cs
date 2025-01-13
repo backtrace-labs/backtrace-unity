@@ -201,7 +201,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
                                 NativeReport(AnrMessage, true);
                                 // update error.type attribute in case when crash happen
-                                AddNativeAttribute(ErrorTypeAttribute, HangType);
+                                AddNativeAttribute(ErrorTypeAttribute, CrashType);
                             }
                         }
                         else
