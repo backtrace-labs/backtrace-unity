@@ -1,5 +1,6 @@
 ﻿using Backtrace.Unity.Model.Attributes;
 using Backtrace.Unity.Model.Metrics;
+using System;
 using System.Collections.Generic;
 
 namespace Backtrace.Unity.Interfaces
@@ -21,6 +22,11 @@ namespace Backtrace.Unity.Interfaces
         /// BacktraceMetrics instance will send data to Backtrace.
         /// </summary>
         uint MaximumSummedEvents { get; set; }
+
+        /// <summary>
+        /// Current session Id
+        /// </summary>
+        Guid SessionId { get; }
 
         /// <summary>
         /// Maximum number of unique events in store. If number of events in store hit the limit
