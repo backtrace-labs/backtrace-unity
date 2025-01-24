@@ -136,11 +136,12 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                     databasePath,
                     crashpadHandlerPath,
                     attachments.ToArray(),
-                    attachments.Count() );
+                    attachments.Count());
             }
-            catch ( DllNotFoundException )
+            catch (DllNotFoundException)
             {
                 Debug.LogWarning("Backtrace native integration status: Can't load Backtrace DLL");
+                return;
             }
 
             if (!CaptureNativeCrashes)
@@ -269,7 +270,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), tempDirectory),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), tempDirectory)
             };
-              
+
             List<string> nativeCrashesDirs = new List<string>();
             foreach (string direcotry in crashDirectories)
             {
