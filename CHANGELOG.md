@@ -5,7 +5,7 @@
 Improvements
 - Exposed an option to get an application.session id via `BacktraceMetrics` (#238).
 - Backtrace client now allows to set a key-value pair via `SetAttribute` method (#240).
-- `SetAttributes` method now will set attributes in the managed C# layer and in the native layer (#240).
+- The `SetAttributes` method will now set attributes in the managed C# layer and the native layer (#240).
 
 Bugfixes
 - Correct links to the docs (#239).
