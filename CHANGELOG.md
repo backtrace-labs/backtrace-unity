@@ -1,5 +1,19 @@
 # Backtrace Unity Release Notes
 
+## Version 3.12.0
+
+Improvements
+- Exposed an option to get an application.session id via `BacktraceMetrics` (#238).
+- Backtrace client now allows to set a key-value pair via `SetAttribute` method (#240).
+- `SetAttributes` method now will set attributes in the managed C# layer and in the native layer (#240).
+
+Bugfixes
+- Correct links to the docs (#239).
+- Fixed a problem where the game on Windows will crash in the release mode, due to lack of Backtrace native libraries (#236).
+- Fixed an `error.type` attribute value during handling ANR on Windows (#237).
+- Set correct `uname.sysname` for PS5 and Xbox.
+
+
 ## Version 3.11.0
 
 Improvements
