@@ -68,6 +68,27 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator TesClientAttributeMethod_BacktraceDataShouldIncludeClientAttribute_ClientAttributeAreAvailableInDiagnosticData()
+        {
+            var key = "attribute-key";
+            var value = "attribute-value";
+            BacktraceClient.SetAttribute(key, value);
+
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new Exception("foo"));
+            yield return WaitForFrame.Wait();
+
+            Assert.IsNotNull(data);
+            Assert.AreEqual(data.Attributes.Attributes[key], value);
+            yield return null;
+        }
+
 
         [UnityTest]
         public IEnumerator TesClientAttributesMethod_BacktraceDataShouldIncludeClientAttributes_ClientAttributesAreAvailableInDiagnosticData()

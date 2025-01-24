@@ -142,11 +142,7 @@ namespace Backtrace.Unity
             }
             set
             {
-                AttributeProvider[index] = value;
-                if (_nativeClient != null)
-                {
-                    _nativeClient.SetAttribute(index, value);
-                }
+                SetAttribute(index, value);
             }
         }
 
@@ -171,6 +167,20 @@ namespace Backtrace.Unity
         }
 
         /// <summary>
+        /// Set a client attribute that will be included in every report
+        /// </summary>
+        /// <param name="key">Attribute name</param>
+        /// <param name="value">Attribute value</param>
+        public void SetAttribute(string key, string value) 
+        {
+            AttributeProvider[key] = value;
+            if (_nativeClient != null)
+            {
+                _nativeClient.SetAttribute(key, value);
+            }
+        }
+
+        /// <summary>
         /// Set client attributes that will be included in every report
         /// </summary>
         /// <param name="attributes">attributes dictionary</param>
@@ -182,7 +192,7 @@ namespace Backtrace.Unity
             }
             foreach (var attribute in attributes)
             {
-                this[attribute.Key] = attribute.Value;
+                SetAttribute(attribute.Key, attribute.Value);
             }
         }
 
