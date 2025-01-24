@@ -171,13 +171,20 @@ namespace Backtrace.Unity
         /// </summary>
         /// <param name="key">Attribute name</param>
         /// <param name="value">Attribute value</param>
-        public void SetAttribute(string key, string value) 
+        /// <returns>True, if the value was added. Otherwise false.</returns>
+        public bool SetAttribute(string key, string value) 
         {
+            if (string.IsNullOrEmpty(key)) 
+            {
+                return false;
+            }
+            
             AttributeProvider[key] = value;
             if (_nativeClient != null)
             {
                 _nativeClient.SetAttribute(key, value);
             }
+            return true;
         }
 
         /// <summary>

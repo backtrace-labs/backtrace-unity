@@ -89,6 +89,20 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator TesClientAttributeMethod_ShouldNotAcceptNullableKey_AttributeIsNotAvailable()
+        {
+            Assert.IsFalse(BacktraceClient.SetAttribute(null, "attribute-value"));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator TesClientAttributeMethod_ShouldNotAcceptEmptyStringKey_AttributeIsNotAvailable()
+        {
+            Assert.IsFalse(BacktraceClient.SetAttribute(string.Empty, "attribute-value"));
+            yield return null;
+        }
+
 
         [UnityTest]
         public IEnumerator TesClientAttributesMethod_BacktraceDataShouldIncludeClientAttributes_ClientAttributesAreAvailableInDiagnosticData()
