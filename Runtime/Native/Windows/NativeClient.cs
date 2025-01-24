@@ -108,6 +108,13 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 return;
             }
 
+            var backtraceCrashpadHandlerPath = GetDefaultPathToBacktraceCrashpadHandler(pluginDirectoryPath);
+            if (string.IsNullOrEmpty(backtraceCrashpadHandlerPath) || !File.Exists(backtraceCrashpadHandlerPath))
+            {
+                Debug.LogWarning("Backtrace native integration status: Cannot find path to Backtrace Crashpad handler.");
+                return;
+            }
+
             var databasePath = _configuration.CrashpadDatabasePath;
             if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(_configuration.GetFullDatabasePath()))
             {
@@ -122,12 +129,20 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 Directory.CreateDirectory(databasePath);
             }
 
-            CaptureNativeCrashes = Initialize(
-                minidumpUrl,
-                databasePath,
-                crashpadHandlerPath,
-                attachments.ToArray(),
-                attachments.Count());
+            try
+            {
+                CaptureNativeCrashes = Initialize(
+                    minidumpUrl,
+                    databasePath,
+                    crashpadHandlerPath,
+                    attachments.ToArray(),
+                    attachments.Count());
+            }
+            catch (DllNotFoundException)
+            {
+                Debug.LogWarning("Backtrace native integration status: Can't load Backtrace DLL");
+                return;
+            }
 
             if (!CaptureNativeCrashes)
             {
@@ -255,7 +270,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), tempDirectory),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), tempDirectory)
             };
-              
+
             List<string> nativeCrashesDirs = new List<string>();
             foreach (string direcotry in crashDirectories)
             {
@@ -328,8 +343,16 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             const string supportedArchitecture = "x86_64";
             var architectureDirectory = Path.Combine(pluginDirectoryPath, supportedArchitecture);
             return Path.Combine(architectureDirectory, crashpadHandlerName);
-
         }
+
+        private string GetDefaultPathToBacktraceCrashpadHandler(string pluginDirectoryPath)
+        {
+            const string crashpadHandlerName = "BacktraceCrashpadWindows.dll";
+            const string supportedArchitecture = "x86_64";
+            var architectureDirectory = Path.Combine(pluginDirectoryPath, supportedArchitecture);
+            return Path.Combine(architectureDirectory, crashpadHandlerName);
+        }
+
         /// <summary>
         /// Clean scoped attributes
         /// </summary>
