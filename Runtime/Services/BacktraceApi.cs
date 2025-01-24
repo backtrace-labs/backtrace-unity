@@ -259,7 +259,7 @@ namespace Backtrace.Unity.Services
             Debug.LogWarning(string.Format("{0}{1}", string.Format("[Backtrace]::Reponse code: {0}, Response text: {1}",
                     request.responseCode,
                     request.error),
-                "\n Please check provided url to Backtrace service or learn more from our integration guide: https://support.backtrace.io/hc/en-us/articles/360040515991-Unity-Integration-Guide"));
+                "\n Please check provided url to Backtrace service or learn more from our integration guide: https://docs.saucelabs.com/error-reporting/platform-integrations/unity/setup/"));
         }
 
         //private string GetParametrizedQuery(string serverUrl, IDictionary<string, string> queryAttributes)
