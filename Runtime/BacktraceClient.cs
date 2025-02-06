@@ -443,6 +443,7 @@ namespace Backtrace.Unity
             backtraceClient.Configuration = configuration;
             if (configuration.Enabled)
             {
+                Debug.LogWarning("Backtrace: Game object is enabled");
                 BacktraceDatabase backtraceDatabase = backtrackGameObject.GetComponent<BacktraceDatabase>();
                 backtraceDatabase.Configuration = configuration;
             }
@@ -524,11 +525,13 @@ namespace Backtrace.Unity
         {
             if (Configuration == null || !Configuration.IsValid())
             {
+                Debug.LogWarning("Backtrace: Configuration is invalid");
                 return;
             }
 
             if (Instance != null)
             {
+                Debug.LogWarning("Backtrace: Client instance is undefined");
                 return;
             }
 
@@ -538,6 +541,7 @@ namespace Backtrace.Unity
 #else
                 true;
 #endif
+            Debug.LogWarning($"Backtrace: Object state: ${Enabled}");
             _current = Thread.CurrentThread;
             CaptureUnityMessages();
             _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
@@ -844,6 +848,7 @@ namespace Backtrace.Unity
         /// <returns>IEnumerator</returns>
         private IEnumerator CollectDataAndSend(BacktraceReport report, Action<BacktraceResult> sendCallback)
         {
+            Debug.LogWarning("Backtrace: Collecting diagnostic info");
             var queryAttributes = new Dictionary<string, string>();
             var stopWatch = EnablePerformanceStatistics
                 ? System.Diagnostics.Stopwatch.StartNew()
@@ -857,6 +862,8 @@ namespace Backtrace.Unity
                 queryAttributes["performance.report"] = stopWatch.GetMicroseconds();
             }
 
+            Debug.LogWarning("Backtrace: data collected");
+
             if (BeforeSend != null)
             {
                 data = BeforeSend.Invoke(data);
@@ -865,11 +872,14 @@ namespace Backtrace.Unity
                     yield break;
                 }
             }
+
+            Debug.LogWarning("Backtrace: After before send");
             BacktraceDatabaseRecord record = null;
 
             if (Database != null && Database.Enabled())
             {
                 yield return WaitForFrame.Wait();
+                Debug.LogWarning("Backtrace: storing a record in the database.");
                 if (EnablePerformanceStatistics)
                 {
                     stopWatch.Restart();
@@ -878,6 +888,7 @@ namespace Backtrace.Unity
                 // handle situation when database refuse to store report.
                 if (record != null)
                 {
+                    Debug.LogWarning("Backtrace: the record is stored in the database.");
                     //Extend backtrace data with additional attachments from backtrace database
                     data = record.BacktraceData;
                     if (EnablePerformanceStatistics)
@@ -889,6 +900,7 @@ namespace Backtrace.Unity
 
                     if (record.Duplicated)
                     {
+                        Debug.LogWarning("Backtrace: duplicated report");
                         record.Unlock();
                         yield break;
                     }
@@ -909,6 +921,7 @@ namespace Backtrace.Unity
                 ? record.BacktraceDataJson()
                 : data.ToJson();
 
+            Debug.LogWarning("Backtrace: prepared a json object");
 
             if (EnablePerformanceStatistics)
             {
@@ -933,10 +946,12 @@ namespace Backtrace.Unity
                 queryAttributes["_mod_duplicate"] = data.Deduplication.ToString(CultureInfo.InvariantCulture);
             }
 
+            Debug.LogWarning("Backtrace: sending a report");
             StartCoroutine(BacktraceApi.Send(json, data.Attachments, queryAttributes, (BacktraceResult result) =>
             {
                 if (record != null)
                 {
+                    Debug.LogWarning("Backtrace: report should be available in Backtrace");
                     record.Unlock();
                     if (Database != null && result.Status != BacktraceResultStatus.ServerError && result.Status != BacktraceResultStatus.NetworkError)
                     {
@@ -1055,6 +1070,7 @@ namespace Backtrace.Unity
             _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
             if (Configuration.HandleUnhandledExceptions)
             {
+                Debug.LogWarning($"Backtrace: Handle unhandled exceptions is enabled");
                 Application.logMessageReceived += HandleUnityMessage;
                 Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
@@ -1126,6 +1142,7 @@ namespace Backtrace.Unity
             {
                 return;
             }
+            Debug.LogWarning($"Backtrace: Handling unhandled exception/error");
             BacktraceUnhandledException exception = null;
             var invokeSkipApi = true;
             // detect sampling flow for LogType.Error + filter LogType.Error if client prefer to ignore them.
@@ -1189,6 +1206,7 @@ namespace Backtrace.Unity
 
         private void SendUnhandledExceptionReport(BacktraceReport report, bool invokeSkipApi = true)
         {
+            Debug.LogWarning($"Backtrace: Sending unhandled exceptions");
             if (OnUnhandledApplicationException != null)
             {
                 OnUnhandledApplicationException.Invoke(report.Exception);
