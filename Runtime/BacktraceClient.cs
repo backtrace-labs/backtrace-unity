@@ -724,6 +724,7 @@ namespace Backtrace.Unity
 
         private void OnDestroy()
         {
+            Debug.LogWarning($"Backtrace: On Destroy");
             Enabled = false;
             if (_breadcrumbs != null)
             {
@@ -835,6 +836,7 @@ namespace Backtrace.Unity
             }
             if (!Enabled)
             {
+                Debug.LogWarning($"Backtrace: Cannot send report - Backtrace client is disabled.");
                 return;
             }
             StartCoroutine(CollectDataAndSend(report, sendCallback));
@@ -1129,6 +1131,7 @@ namespace Backtrace.Unity
         {
             if (!Enabled)
             {
+                Debug.LogWarning($"Backtrace: Backtrace integration is disabled");
                 return;
             }
             var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
@@ -1136,6 +1139,7 @@ namespace Backtrace.Unity
 
             if (!Configuration.HandleUnhandledExceptions)
             {
+                Debug.LogWarning($"Backtrace: HandleUnhandledExceptions is false");
                 return;
             }
             if (string.IsNullOrEmpty(message) || (type != LogType.Error && type != LogType.Exception))
