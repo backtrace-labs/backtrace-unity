@@ -3,6 +3,8 @@ using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -29,7 +31,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void Cleanup()
         {
             client.RequestHandler = null;
-            Annotations.VariablesLoaded = false;
+            Annotations.EnvironmentVariablesCache = null;
         }
 
         [UnityTest]
@@ -108,6 +110,9 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var environmentVariableKey = "foo";
             var expectedValue = "bar";
+            Annotations.EnvironmentVariablesCache = Environment.GetEnvironmentVariables()
+                .Cast<DictionaryEntry>()
+                .ToDictionary(entry => (string)entry.Key, entry => entry.Value as string);
             Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
 
             client.BeforeSend = (BacktraceData data) =>
