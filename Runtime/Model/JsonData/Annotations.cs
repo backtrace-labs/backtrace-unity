@@ -30,7 +30,7 @@ namespace Backtrace.Unity.Model.JsonData
             }
             set
             {
-                _environmentVariablesCache = SetEnvironmentVariables(_environmentVariablesCache);
+                _environmentVariablesCache = SetEnvironmentVariables(value);
             }
         }
 

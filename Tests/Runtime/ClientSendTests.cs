@@ -129,6 +129,25 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator PiiTests_ShouldNotIncludeEnvironmentVariable_IntegrationShouldSkipEnvironmentVariables()
+        {
+            var trigger = false;
+            var exception = new Exception("custom exception message");
+
+            client.BeforeSend = (BacktraceData data) =>
+            {
+                Assert.IsNull(data.Annotation.EnvironmentVariables);
+                trigger = true;
+                return data;
+            };
+            client.Send(exception);
+            yield return WaitForFrame.Wait();
+
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
+
 
         [UnityTest]
         public IEnumerator PiiTests_ShouldRemoveEnvironmentVariableValue_IntegrationShouldUseModifiedEnvironmentVariables()
