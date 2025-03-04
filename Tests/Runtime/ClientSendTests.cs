@@ -135,44 +135,13 @@ namespace Backtrace.Unity.Tests.Runtime
             var trigger = false;
             var exception = new Exception("custom exception message");
 
-            client.BeforeSend = (BacktraceData data) =>
+             client.RequestHandler = (string url, BacktraceData data) =>
             {
+                trigger = true;
                 Assert.IsNull(data.Annotation.EnvironmentVariables);
-                trigger = true;
-                return data;
+                return new BacktraceResult();
             };
-            client.Send(exception);
-            yield return WaitForFrame.Wait();
 
-            Assert.IsTrue(trigger);
-            yield return null;
-        }
-
-
-        [UnityTest]
-        public IEnumerator PiiTests_ShouldRemoveEnvironmentVariableValue_IntegrationShouldUseModifiedEnvironmentVariables()
-        {
-            var trigger = false;
-            var exception = new Exception("custom exception message");
-
-            var environmentVariableKey = "USERNAME";
-            var expectedValue = "%USERNAME%";
-            if (!Annotations.EnvironmentVariablesCache.ContainsKey(environmentVariableKey))
-            {
-                Annotations.EnvironmentVariablesCache[environmentVariableKey] = "fake user name";
-            }
-
-            var defaultUserName = Annotations.EnvironmentVariablesCache[environmentVariableKey];
-            Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
-
-            client.BeforeSend = (BacktraceData data) =>
-            {
-                var actualValue = data.Annotation.EnvironmentVariables[environmentVariableKey];
-                Assert.AreEqual(expectedValue, actualValue);
-                Assert.AreNotEqual(defaultUserName, actualValue);
-                trigger = true;
-                return data;
-            };
             client.Send(exception);
             yield return WaitForFrame.Wait();
 
@@ -197,6 +166,37 @@ namespace Backtrace.Unity.Tests.Runtime
                 trigger = true;
                 Assert.IsNull(data.Annotation.EnvironmentVariables);
                 return new BacktraceResult();
+            };
+            client.Send(exception);
+            yield return WaitForFrame.Wait();
+
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PiiTests_ShouldRemoveEnvironmentVariableValue_IntegrationShouldUseModifiedEnvironmentVariables()
+        {
+            var trigger = false;
+            var exception = new Exception("custom exception message");
+
+            var environmentVariableKey = "USERNAME";
+            var expectedValue = "%USERNAME%";
+            if (!Annotations.EnvironmentVariablesCache.ContainsKey(environmentVariableKey))
+            {
+                Annotations.EnvironmentVariablesCache[environmentVariableKey] = "fake user name";
+            }
+
+            var defaultUserName = Annotations.EnvironmentVariablesCache[environmentVariableKey];
+            Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
+
+            client.BeforeSend = (BacktraceData data) =>
+            {
+                var actualValue = data.Annotation.EnvironmentVariables[environmentVariableKey];
+                Assert.AreEqual(expectedValue, actualValue);
+                Assert.AreNotEqual(defaultUserName, actualValue);
+                trigger = true;
+                return data;
             };
             client.Send(exception);
             yield return WaitForFrame.Wait();
