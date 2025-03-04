@@ -3,6 +3,8 @@ using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -29,7 +31,7 @@ namespace Backtrace.Unity.Tests.Runtime
         public void Cleanup()
         {
             client.RequestHandler = null;
-            Annotations.VariablesLoaded = false;
+            Annotations.EnvironmentVariablesCache = null;
         }
 
         [UnityTest]
@@ -108,6 +110,9 @@ namespace Backtrace.Unity.Tests.Runtime
 
             var environmentVariableKey = "foo";
             var expectedValue = "bar";
+            Annotations.EnvironmentVariablesCache = Environment.GetEnvironmentVariables()
+                .Cast<DictionaryEntry>()
+                .ToDictionary(entry => (string)entry.Key, entry => entry.Value as string);
             Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
 
             client.BeforeSend = (BacktraceData data) =>
@@ -124,31 +129,19 @@ namespace Backtrace.Unity.Tests.Runtime
             yield return null;
         }
 
-
         [UnityTest]
-        public IEnumerator PiiTests_ShouldRemoveEnvironmentVariableValue_IntegrationShouldUseModifiedEnvironmentVariables()
+        public IEnumerator PiiTests_ShouldNotIncludeEnvironmentVariable_IntegrationShouldSkipEnvironmentVariables()
         {
             var trigger = false;
             var exception = new Exception("custom exception message");
 
-            var environmentVariableKey = "USERNAME";
-            var expectedValue = "%USERNAME%";
-            if (!Annotations.EnvironmentVariablesCache.ContainsKey(environmentVariableKey))
+             client.RequestHandler = (string url, BacktraceData data) =>
             {
-                Annotations.EnvironmentVariablesCache[environmentVariableKey] = "fake user name";
-            }
-
-            var defaultUserName = Annotations.EnvironmentVariablesCache[environmentVariableKey];
-            Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
-
-            client.BeforeSend = (BacktraceData data) =>
-            {
-                var actualValue = data.Annotation.EnvironmentVariables[environmentVariableKey];
-                Assert.AreEqual(expectedValue, actualValue);
-                Assert.AreNotEqual(defaultUserName, actualValue);
                 trigger = true;
-                return data;
+                Assert.IsNull(data.Annotation.EnvironmentVariables);
+                return new BacktraceResult();
             };
+
             client.Send(exception);
             yield return WaitForFrame.Wait();
 
@@ -173,6 +166,37 @@ namespace Backtrace.Unity.Tests.Runtime
                 trigger = true;
                 Assert.IsNull(data.Annotation.EnvironmentVariables);
                 return new BacktraceResult();
+            };
+            client.Send(exception);
+            yield return WaitForFrame.Wait();
+
+            Assert.IsTrue(trigger);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PiiTests_ShouldRemoveEnvironmentVariableValue_IntegrationShouldUseModifiedEnvironmentVariables()
+        {
+            var trigger = false;
+            var exception = new Exception("custom exception message");
+
+            var environmentVariableKey = "USERNAME";
+            var expectedValue = "%USERNAME%";
+            if (!Annotations.EnvironmentVariablesCache.ContainsKey(environmentVariableKey))
+            {
+                Annotations.EnvironmentVariablesCache[environmentVariableKey] = "fake user name";
+            }
+
+            var defaultUserName = Annotations.EnvironmentVariablesCache[environmentVariableKey];
+            Annotations.EnvironmentVariablesCache[environmentVariableKey] = expectedValue;
+
+            client.BeforeSend = (BacktraceData data) =>
+            {
+                var actualValue = data.Annotation.EnvironmentVariables[environmentVariableKey];
+                Assert.AreEqual(expectedValue, actualValue);
+                Assert.AreNotEqual(defaultUserName, actualValue);
+                trigger = true;
+                return data;
             };
             client.Send(exception);
             yield return WaitForFrame.Wait();

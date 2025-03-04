@@ -20,27 +20,17 @@ namespace Backtrace.Unity.Model.JsonData
         internal static Dictionary<string, string> _environmentVariablesCache;
 
         /// <summary>
-        /// Determinate if static helper should load environment variables or not.
-        /// </summary>
-        internal static bool VariablesLoaded;
-
-        /// <summary>
         /// Loaded environment variables
         /// </summary>
         public static Dictionary<string, string> EnvironmentVariablesCache
         {
             get
             {
-                if (VariablesLoaded == false)
-                {
-                    _environmentVariablesCache = SetEnvironmentVariables();
-                    VariablesLoaded = true;
-                }
                 return _environmentVariablesCache;
             }
             set
             {
-                _environmentVariablesCache = value;
+                _environmentVariablesCache = SetEnvironmentVariables(value);
             }
         }
 
@@ -78,10 +68,9 @@ namespace Backtrace.Unity.Model.JsonData
             Exception = exception;
         }
 
-        private static Dictionary<string, string> SetEnvironmentVariables()
+        private static Dictionary<string, string> SetEnvironmentVariables(IDictionary environmentVariables)
         {
             var result = new Dictionary<string, string>();
-            var environmentVariables = Environment.GetEnvironmentVariables();
             if (environmentVariables == null)
             {
                 return result;
@@ -104,7 +93,10 @@ namespace Backtrace.Unity.Model.JsonData
         public BacktraceJObject ToJson()
         {
             var annotations = new BacktraceJObject();
-            annotations.Add("Environment Variables", new BacktraceJObject(EnvironmentVariables));
+            if (EnvironmentVariables != null) 
+            {
+                annotations.Add("Environment Variables", new BacktraceJObject(EnvironmentVariables));
+            }
 
             if (Exception != null)
             {
