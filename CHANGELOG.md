@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 3.12.1
+
+Bugfixes
+- Environment Variables are now optional. The user can still add them by using `Annotations` class. By default they're disabled.
+
 ## Version 3.12.0
 
 Improvements
