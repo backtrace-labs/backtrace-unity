@@ -2,6 +2,8 @@
 using System;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
@@ -55,7 +57,15 @@ namespace Backtrace.Unity.Model
         /// <returns>machine identifier in the GUID string format</returns>
         private string FetchMachineIdFromStorage()
         {
-            return PlayerPrefs.GetString(MachineIdentifierKey);
+            var storedMachineId = PlayerPrefs.GetString(MachineIdentifierKey);
+            if (Guid.TryParse(storedMachineId, out Guid _))
+            {
+                return storedMachineId;
+            }
+
+            var machineId = ConvertStringToGuid(storedMachineId).ToString();
+            StoreMachineId(machineId);
+            return machineId;
         }
 
         /// <summary>
@@ -77,7 +87,13 @@ namespace Backtrace.Unity.Model
             {
                 return null;
             }
-            return SystemInfo.deviceUniqueIdentifier;
+
+            var unityDeviceIdentifier = SystemInfo.deviceUniqueIdentifier;
+            if (Guid.TryParse(unityDeviceIdentifier, out Guid unityUuidGuid))
+            {
+                return unityUuidGuid.ToString();
+            }
+            return ConvertStringToGuid(unityDeviceIdentifier).ToString();
         }
 
         /// <summary>
@@ -107,6 +123,13 @@ namespace Backtrace.Unity.Model
             }
 
             return null;
+        }
+
+        private Guid ConvertStringToGuid(string value)
+        {
+            MD5 md5 = new MD5CryptoServiceProvider();
+            return new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(value)));
+
         }
     }
 }
