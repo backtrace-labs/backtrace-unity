@@ -58,11 +58,13 @@ namespace Backtrace.Unity.Model
         private string FetchMachineIdFromStorage()
         {
             var storedMachineId = PlayerPrefs.GetString(MachineIdentifierKey);
+            // in the previous version of the SDK, the stored machine id could be invalid
+            // to fix the problem, we want to verify if the id is valid and if isn't, fix it.
             if (Guid.TryParse(storedMachineId, out Guid _))
             {
                 return storedMachineId;
             }
-
+            
             var machineId = ConvertStringToGuid(storedMachineId).ToString();
             StoreMachineId(machineId);
             return machineId;
@@ -124,9 +126,13 @@ namespace Backtrace.Unity.Model
 
             return null;
         }
-
+        /// <summary>
+        /// Converts a string with machine id into guid. 
+        /// </summary>
         private Guid ConvertStringToGuid(string value)
         {
+            // to make sure we're supporting old version of Unity that can use .NET 3.5 
+            // we're using an older API to generate a GUID.
             MD5 md5 = new MD5CryptoServiceProvider();
             return new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(value)));
 
