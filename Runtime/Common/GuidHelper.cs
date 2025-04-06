@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Backtrace.Unity.Extensions
 {
@@ -22,6 +24,21 @@ namespace Backtrace.Unity.Extensions
         {
             const string emptyGuid = "00000000-0000-0000-0000-000000000000";
             return string.IsNullOrEmpty(guid) || guid == emptyGuid;
+        }
+
+        /// <summary>
+        /// Converts a random string into a guid representation.
+        /// </summary>
+        public static Guid FromString(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return Guid.Empty;
+            }
+            // to make sure we're supporting old version of Unity that can use .NET 3.5 
+            // we're using an older API to generate a GUID.
+            MD5 md5 = new MD5CryptoServiceProvider();
+            return new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(value)));
         }
     }
 }

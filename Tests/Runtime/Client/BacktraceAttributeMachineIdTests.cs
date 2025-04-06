@@ -1,6 +1,6 @@
 ﻿using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
-using Backtrace.Unity.Tests.Runtime.Client.Mocks;
+using Backtrace.Unity.Model.DataProvider;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -17,7 +17,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldUseUnityIdentifier_ShouldReturnUnityIdentitfier()
         {
-            var machineIdStorage = new MachineIdStorageMock();
+            var machineIdStorage = new MachineIdStorage();
 
             var machineId = machineIdStorage.GenerateMachineId();
 
@@ -27,17 +27,19 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldUseMac_ShouldReturnNetowrkingIdentifier()
         {
-            var machineIdStorage = new MachineIdStorageMock(false);
+            var networkIdentifierDataProvider = new NetworkIdentifierDataProvider();
+            var expectedMachineId = networkIdentifierDataProvider.Get();
+            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierDataProvider[] { networkIdentifierDataProvider }, new SessionStorageDataProvider());
 
             var machineId = machineIdStorage.GenerateMachineId();
 
-            Assert.IsFalse(GuidHelper.IsNullOrEmpty(machineId));
+            Assert.IsFalse(GuidHelper.IsNullOrEmpty(expectedMachineId));
         }
 
         [Test]
         public void TestMachineAttributes_ShouldUseRandomMachineId_ShouldReturnRandomMachineId()
         {
-            var machineIdStorage = new MachineIdStorageMock(false, false);
+            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierDataProvider[0], new SessionStorageDataProvider());
 
             var machineId = machineIdStorage.GenerateMachineId();
 
@@ -45,28 +47,36 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         }
 
         [Test]
+        public void TestMachineAttributes_ShouldConvertInvalidIdIntoGuid_ValidIdIsAlwaysUsed()
+        {
+            var invalidValue = "randomValue";
+            PlayerPrefs.SetString(MachineIdStorage.MachineIdentifierKey, invalidValue);
+            var expectedGuid = GuidHelper.FromString(invalidValue).ToString();
+
+            var machineId = new MachineIdStorage().GenerateMachineId();
+
+            Assert.IsTrue(expectedGuid == machineId);
+        }
+
+        [Test]
+        public void TestMachineAttributes_ShouldRetrieveValueFromStorage_IdentifierIsStored()
+        {
+            // make sure it's always empty
+            PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);
+
+            var machineId = new MachineIdStorage().GenerateMachineId();
+
+            var storage = new SessionStorageDataProvider();
+            var storedMachineId = storage.GetString(MachineIdStorage.MachineIdentifierKey);
+
+            Assert.IsTrue(machineId == storedMachineId);
+        }
+
+        [Test]
         public void TestMachineAttributes_ShouldAlwaysReturnTheSameValueUnityId_IdentifierAreTheSame()
         {
-            var firstMachineIdStorage = new MachineIdStorageMock().GenerateMachineId();
-            var secGenerationOfMachineIdStorage = new MachineIdStorageMock().GenerateMachineId();
-
-            Assert.IsTrue(firstMachineIdStorage == secGenerationOfMachineIdStorage);
-        }
-
-        [Test]
-        public void TestMachineAttributes_ShouldAlwaysReturnTheSameValueMacId_IdentifierAreTheSame()
-        {
-            var firstMachineIdStorage = new MachineIdStorageMock(false).GenerateMachineId();
-            var secGenerationOfMachineIdStorage = new MachineIdStorageMock(false).GenerateMachineId();
-
-            Assert.IsTrue(firstMachineIdStorage == secGenerationOfMachineIdStorage);
-        }
-
-        [Test]
-        public void TestMachineAttributes_ShouldAlwaysReturnTheSameValueRandomId_IdentifierAreTheSame()
-        {
-            var firstMachineIdStorage = new MachineIdStorageMock(false, false).GenerateMachineId();
-            var secGenerationOfMachineIdStorage = new MachineIdStorageMock(false, false).GenerateMachineId();
+            var firstMachineIdStorage = new MachineIdStorage().GenerateMachineId();
+            var secGenerationOfMachineIdStorage = new MachineIdStorage().GenerateMachineId();
 
             Assert.IsTrue(firstMachineIdStorage == secGenerationOfMachineIdStorage);
         }
@@ -74,7 +84,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldAlwaysGenerateTheSameUntiyAttribute_ShouldReturnTheSameUnityIdentitfier()
         {
-            var machineIdStorage = new MachineIdStorageMock();
+            var machineIdStorage = new MachineIdStorage();
 
             var machineId = machineIdStorage.GenerateMachineId();
             PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);
@@ -86,7 +96,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldAlwaysGenerateTheSameMacAttribute_ShouldReturnTheSameMacIdentitfier()
         {
-            var machineIdStorage = new MachineIdStorageMock(false);
+            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierDataProvider[] { new NetworkIdentifierDataProvider() }, new SessionStorageDataProvider());
 
             var machineId = machineIdStorage.GenerateMachineId();
             PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);

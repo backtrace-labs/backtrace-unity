@@ -1,10 +1,6 @@
 ﻿using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Model.DataProvider;
 using System;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Security.Cryptography;
-using System.Text;
-using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Backtrace.Unity.Tests.Runtime")]
 namespace Backtrace.Unity.Model
@@ -19,6 +15,19 @@ namespace Backtrace.Unity.Model
         /// </summary>
         internal const string MachineIdentifierKey = "backtrace-machine-id";
 
+        private readonly ISessionStorageDataProvider _sessionStorageDataProvider;
+        private readonly IMachineIdentifierDataProvider[] _machineIdentifierDataProviders;
+
+        internal MachineIdStorage() : this(
+            new IMachineIdentifierDataProvider[] { new UnityMachineIdentifierProvider(), new NetworkIdentifierDataProvider() },
+            new SessionStorageDataProvider())
+        { }
+        internal MachineIdStorage(IMachineIdentifierDataProvider[] machineIdentifierDataProviders, ISessionStorageDataProvider sessionStorageDataProvider)
+        {
+            _machineIdentifierDataProviders = machineIdentifierDataProviders;
+            _sessionStorageDataProvider = sessionStorageDataProvider;
+        }
+
         /// <summary>
         /// Generate unique machine id. 
         /// </summary>
@@ -32,17 +41,14 @@ namespace Backtrace.Unity.Model
             }
 
 #if !UNITY_WEBGL && !UNITY_SWITCH
-            var unityIdentifier = UseUnityIdentifier();
-            if (!GuidHelper.IsNullOrEmpty(unityIdentifier))
+            foreach (var machineIdentifierProvider in _machineIdentifierDataProviders)
             {
-                StoreMachineId(unityIdentifier);
-                return unityIdentifier;
-            }
-            var networkIdentifier = UseNetworkingIdentifier();
-            if (!GuidHelper.IsNullOrEmpty(networkIdentifier))
-            {
-                StoreMachineId(networkIdentifier);
-                return networkIdentifier;
+                var identifier = machineIdentifierProvider.Get();
+                if (!GuidHelper.IsNullOrEmpty(identifier))
+                {
+                    StoreMachineId(identifier);
+                    return identifier;
+                }
             }
 #endif
             var backtraceRandomIdentifier = Guid.NewGuid().ToString();
@@ -57,15 +63,15 @@ namespace Backtrace.Unity.Model
         /// <returns>machine identifier in the GUID string format</returns>
         private string FetchMachineIdFromStorage()
         {
-            var storedMachineId = PlayerPrefs.GetString(MachineIdentifierKey);
+            var storedMachineId = _sessionStorageDataProvider.GetString(MachineIdentifierKey);
             // in the previous version of the SDK, the stored machine id could be invalid
             // to fix the problem, we want to verify if the id is valid and if isn't, fix it.
-            if (Guid.TryParse(storedMachineId, out Guid _))
+            if (string.IsNullOrEmpty(storedMachineId) || Guid.TryParse(storedMachineId, out Guid _))
             {
                 return storedMachineId;
             }
-            
-            var machineId = ConvertStringToGuid(storedMachineId).ToString();
+
+            var machineId = GuidHelper.FromString(storedMachineId).ToString();
             StoreMachineId(machineId);
             return machineId;
         }
@@ -76,66 +82,7 @@ namespace Backtrace.Unity.Model
         /// <param name="machineId">machine identifier</param>
         private void StoreMachineId(string machineId)
         {
-            PlayerPrefs.SetString(MachineIdentifierKey, machineId);
-        }
-
-        /// <summary>
-        /// Use Unity device identifier to generate machine identifier
-        /// </summary>
-        /// <returns>Unity machine identifier if the device identifier is supported. Otherwise null</returns>
-        protected virtual string UseUnityIdentifier()
-        {
-            if (SystemInfo.deviceUniqueIdentifier == SystemInfo.unsupportedIdentifier)
-            {
-                return null;
-            }
-
-            var unityDeviceIdentifier = SystemInfo.deviceUniqueIdentifier;
-            if (Guid.TryParse(unityDeviceIdentifier, out Guid unityUuidGuid))
-            {
-                return unityUuidGuid.ToString();
-            }
-            return ConvertStringToGuid(unityDeviceIdentifier).ToString();
-        }
-
-        /// <summary>
-        /// Use Networking interface to generate machine identifier - MAC number from the networking interface.
-        /// </summary>
-        /// <returns>Machine id - MAC in a GUID format. If the networking interface is not available then it returns null.</returns>
-        protected virtual string UseNetworkingIdentifier()
-        {
-            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
-                .Where(n => n.OperationalStatus == OperationalStatus.Up);
-
-            foreach (var @interface in interfaces)
-            {
-                var physicalAddress = @interface.GetPhysicalAddress();
-                if (physicalAddress == null)
-                {
-                    continue;
-                }
-                var macAddress = physicalAddress.ToString();
-                if (string.IsNullOrEmpty(macAddress))
-                {
-                    continue;
-                }
-                string hex = macAddress.Replace(":", string.Empty);
-                var value = Convert.ToInt64(hex, 16);
-                return GuidHelper.FromLong(value).ToString();
-            }
-
-            return null;
-        }
-        /// <summary>
-        /// Converts a string with machine id into guid. 
-        /// </summary>
-        private Guid ConvertStringToGuid(string value)
-        {
-            // to make sure we're supporting old version of Unity that can use .NET 3.5 
-            // we're using an older API to generate a GUID.
-            MD5 md5 = new MD5CryptoServiceProvider();
-            return new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(value)));
-
+            _sessionStorageDataProvider.SetString(MachineIdentifierKey, machineId);
         }
     }
 }
