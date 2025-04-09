@@ -16,13 +16,13 @@ namespace Backtrace.Unity.Model
         internal const string MachineIdentifierKey = "backtrace-machine-id";
 
         private readonly ISessionStorageDataProvider _sessionStorageDataProvider;
-        private readonly IMachineIdentifierDataProvider[] _machineIdentifierDataProviders;
+        private readonly IMachineIdentifierProvider[] _machineIdentifierDataProviders;
 
         internal MachineIdStorage() : this(
-            new IMachineIdentifierDataProvider[] { new UnityMachineIdentifierProvider(), new NetworkIdentifierDataProvider() },
+            new IMachineIdentifierProvider[] { new UnityMachineIdentifierProvider(), new NetworkIdentifierDataProvider() },
             new SessionStorageDataProvider())
         { }
-        internal MachineIdStorage(IMachineIdentifierDataProvider[] machineIdentifierDataProviders, ISessionStorageDataProvider sessionStorageDataProvider)
+        internal MachineIdStorage(IMachineIdentifierProvider[] machineIdentifierDataProviders, ISessionStorageDataProvider sessionStorageDataProvider)
         {
             _machineIdentifierDataProviders = machineIdentifierDataProviders;
             _sessionStorageDataProvider = sessionStorageDataProvider;

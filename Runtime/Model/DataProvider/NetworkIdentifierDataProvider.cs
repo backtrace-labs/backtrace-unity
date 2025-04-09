@@ -5,7 +5,7 @@ using System.Net.NetworkInformation;
 
 namespace Backtrace.Unity.Model.DataProvider
 {
-    internal class NetworkIdentifierDataProvider : IMachineIdentifierDataProvider
+    internal class NetworkIdentifierDataProvider : IMachineIdentifierProvider
     {
         public string Get()
         {

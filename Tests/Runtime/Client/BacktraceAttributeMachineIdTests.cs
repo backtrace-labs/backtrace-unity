@@ -29,7 +29,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         {
             var networkIdentifierDataProvider = new NetworkIdentifierDataProvider();
             var expectedMachineId = networkIdentifierDataProvider.Get();
-            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierDataProvider[] { networkIdentifierDataProvider }, new SessionStorageDataProvider());
+            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierProvider[] { networkIdentifierDataProvider }, new SessionStorageDataProvider());
 
             var machineId = machineIdStorage.GenerateMachineId();
 
@@ -39,7 +39,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldUseRandomMachineId_ShouldReturnRandomMachineId()
         {
-            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierDataProvider[0], new SessionStorageDataProvider());
+            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierProvider[0], new SessionStorageDataProvider());
 
             var machineId = machineIdStorage.GenerateMachineId();
 
@@ -96,7 +96,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldAlwaysGenerateTheSameMacAttribute_ShouldReturnTheSameMacIdentitfier()
         {
-            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierDataProvider[] { new NetworkIdentifierDataProvider() }, new SessionStorageDataProvider());
+            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierProvider[] { new NetworkIdentifierDataProvider() }, new SessionStorageDataProvider());
 
             var machineId = machineIdStorage.GenerateMachineId();
             PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);

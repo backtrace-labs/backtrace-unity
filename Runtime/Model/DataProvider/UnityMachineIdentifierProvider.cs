@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Backtrace.Unity.Model.DataProvider
 {
-    internal class UnityMachineIdentifierProvider : IMachineIdentifierDataProvider
+    internal class UnityMachineIdentifierProvider : IMachineIdentifierProvider
     {
         private readonly string _deviceUniqueIdentifier;
         internal UnityMachineIdentifierProvider() : this(SystemInfo.deviceUniqueIdentifier) { }
