@@ -19,7 +19,7 @@ namespace Backtrace.Unity.Model
         private readonly IMachineIdentifierProvider[] _machineIdentifierDataProviders;
 
         internal MachineIdStorage() : this(
-            new IMachineIdentifierProvider[] { new UnityMachineIdentifierProvider(), new NetworkIdentifierDataProvider() },
+            new IMachineIdentifierProvider[] { new UnityMachineIdentifierProvider(), new NetworkIdentifierProvider() },
             new SessionStorageDataProvider())
         { }
         internal MachineIdStorage(IMachineIdentifierProvider[] machineIdentifierDataProviders, ISessionStorageDataProvider sessionStorageDataProvider)

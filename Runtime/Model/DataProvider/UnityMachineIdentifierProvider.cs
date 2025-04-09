@@ -1,7 +1,5 @@
 ﻿using Backtrace.Unity.Extensions;
 using System;
-using System.Linq;
-using System.Net.NetworkInformation;
 using UnityEngine;
 
 namespace Backtrace.Unity.Model.DataProvider

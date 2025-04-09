@@ -27,7 +27,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldUseMac_ShouldReturnNetowrkingIdentifier()
         {
-            var networkIdentifierDataProvider = new NetworkIdentifierDataProvider();
+            var networkIdentifierDataProvider = new NetworkIdentifierProvider();
             var expectedMachineId = networkIdentifierDataProvider.Get();
             var machineIdStorage = new MachineIdStorage(new IMachineIdentifierProvider[] { networkIdentifierDataProvider }, new SessionStorageDataProvider());
 
@@ -96,7 +96,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestMachineAttributes_ShouldAlwaysGenerateTheSameMacAttribute_ShouldReturnTheSameMacIdentitfier()
         {
-            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierProvider[] { new NetworkIdentifierDataProvider() }, new SessionStorageDataProvider());
+            var machineIdStorage = new MachineIdStorage(new IMachineIdentifierProvider[] { new NetworkIdentifierProvider() }, new SessionStorageDataProvider());
 
             var machineId = machineIdStorage.GenerateMachineId();
             PlayerPrefs.DeleteKey(MachineIdStorage.MachineIdentifierKey);
