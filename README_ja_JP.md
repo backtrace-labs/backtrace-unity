@@ -230,7 +230,7 @@ Backtrace では、Unity エディターから Backtrace インスタンスに�
 
 Unity エディターの外部でビルドを行い、シンボルを Backtrace に手動でアップロードする必要がある場合は、Unity で生成されたシンボルの名前を、末尾が `.so` 拡張子で終わる形に変更する必要があります。デフォルトでは、.zip 内に含まれているシンボルファイルの末尾の拡張子は `.sym.so` か `.dbg.so` です。Backtrace は、もっぱら末尾の `.so` 拡張子に基づいてシンボルをファイルに一致させます。zip をアップロードする前に、すべてのファイルに単一の `.so` 拡張子が付いていることを確認してください。
 
-これらのシンボルファイルを Backtrace に送信する方法の詳細については、「Project Settings」/「Symbols」を参照してください。送信トークンを管理したり、UI を通じてアップロードしたりできるほか、接続する外部シンボルサーバーを設定して必要なシンボルを検出することができます。https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview でシンボルに関するその他のドキュメントをご覧ください。
+これらのシンボルファイルを Backtrace に送信する方法の詳細については、「Project Settings」/「Symbols」を参照してください。送信トークンを管理したり、UI を通じてアップロードしたりできるほか、接続する外部シンボルサーバーを設定して必要なシンボルを検出することができます。https://docs.saucelabs.com/error-reporting/project-setup/symbolication/ でシンボルに関するその他のドキュメントをご覧ください。
 
 # iOS 固有の情報
 
@@ -264,7 +264,7 @@ Xcode で iOS ゲームをビルドするとき、Backtrace でデバッグし�
 
 ![シンボルのパック](./Documentation~/images/dsym-files.png)
 
-これらのシンボルファイルを Backtrace に送信する方法の詳細については、「Project Settings」/「Symbols」を参照してください。送信トークンを管理したり、UI を通じてアップロードしたりできるほか、接続する外部シンボルサーバーを設定して必要なシンボルを検出することができます。https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview でシンボルに関するその他のドキュメントをご覧ください。
+これらのシンボルファイルを Backtrace に送信する方法の詳細については、「Project Settings」/「Symbols」を参照してください。送信トークンを管理したり、UI を通じてアップロードしたりできるほか、接続する外部シンボルサーバーを設定して必要なシンボルを検出することができます。https://docs.saucelabs.com/error-reporting/project-setup/symbolication/ でシンボルに関するその他のドキュメントをご覧ください。
 
 # データプライバシー
 
