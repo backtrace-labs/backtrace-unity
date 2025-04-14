@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.12.2
+
+Improvements
+- Fixed links to the docs in the jp version of the README file.
+
+Bugfixes
+- Fixed an invalid generation of the guid attribute on specific platforms. Now, our machine identifier will always generate a valid GUID (#245).
+
+
 ## Version 3.12.1
 
 Bugfixes
