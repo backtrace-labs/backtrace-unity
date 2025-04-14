@@ -163,7 +163,7 @@ namespace Backtrace.Unity.Model
             // allow to execute this code in the editor 
             // to validate parser via unit tests
 #if UNITY_ANDROID || UNITY_EDITOR
-            // verify if the stack trace is from Untiy by checking if the
+            // verify if the stack trace is from Unity by checking if the
             // by checking source code location
             const char argumentStartInitialChar = '(';
             var sourceCodeStartIndex = frameString.IndexOf(argumentStartInitialChar, methodNameEndIndex + 1);

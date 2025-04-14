@@ -157,7 +157,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
 
         /// <summary>
-        /// Setup communication between Untiy and Android to receive information about unhandled thread exceptions
+        /// Setup communication between Unity and Android to receive information about unhandled thread exceptions
         /// </summary>
         /// <param name="callbackName">Game object callback method name</param>
         private void HandleUnhandledExceptions()

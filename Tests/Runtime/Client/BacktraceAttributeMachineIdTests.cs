@@ -25,7 +25,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         }
 
         [Test]
-        public void TestMachineAttributes_ShouldUseMac_ShouldReturnNetowrkingIdentifier()
+        public void TestMachineAttributes_ShouldUseMac_ShouldReturnNetworkIdentifier()
         {
             var networkIdentifierDataProvider = new NetworkIdentifierProvider();
             var expectedMachineId = networkIdentifierDataProvider.Get();
@@ -73,7 +73,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         }
 
         [Test]
-        public void TestMachineAttributes_ShouldAlwaysReturnTheSameValueUnityId_IdentifierAreTheSame()
+        public void TestMachineAttributes_ShouldAlwaysReturnTheSameValueUnityId_IdentifiersAreTheSame()
         {
             var firstMachineIdStorage = new MachineIdStorage().GenerateMachineId();
             var secGenerationOfMachineIdStorage = new MachineIdStorage().GenerateMachineId();
@@ -82,7 +82,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         }
 
         [Test]
-        public void TestMachineAttributes_ShouldAlwaysGenerateTheSameUntiyAttribute_ShouldReturnTheSameUnityIdentitfier()
+        public void TestMachineAttributes_ShouldAlwaysGenerateTheSameUnityAttribute_ShouldReturnTheSameUnityIdentitfier()
         {
             var machineIdStorage = new MachineIdStorage();
 
