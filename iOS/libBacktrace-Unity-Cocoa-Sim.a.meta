@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 608fa6ed1ca8a4b8c9a1336ea238a7c2
+guid: fffaa17d7ff0f45f89032a5ba831fbc8
 PluginImporter:
   externalObjects: {}
   serializedVersion: 3
@@ -62,7 +62,7 @@ PluginImporter:
       enabled: 1
       settings:
         AddToEmbeddedBinaries: false
-        CPU: ARM64, ARMv7
+        CPU: ARM64Simulator, X64
         CompileFlags: 
         FrameworkDependencies: 
     tvOS:
