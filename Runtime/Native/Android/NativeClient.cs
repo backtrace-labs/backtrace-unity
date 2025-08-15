@@ -255,7 +255,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Directory.CreateDirectory(databasePath);
             }
 
-            if (!backtraceAttributes.TryGetValue("device.sdk", out var apiLevelString) || !int.TryParse(apiLevelString, out var apiLevel))
+            var apiLevelString = backtraceAttributes["device.sdk"];
+            int apiLevel;
+            if (apiLevelString == null || !int.TryParse(apiLevelString, out apiLevel))
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot determine Android API level");
                 return;
@@ -285,14 +287,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
 
-           if (!backtraceAttributes.TryGetValue("device.abi", out var deviceAbi))
-            {
-                Debug.LogWarning("Backtrace native integration status: Cannot determine device ABI");
-                return;
-            }
-
-            // Java Crash Handler
-            CaptureNativeCrashes = InitializeJavaCrashHandler(minidumpUrl, databasePath, deviceAbi, libDirectory, attachments);
+            CaptureNativeCrashes = InitializeJavaCrashHandler(minidumpUrl, databasePath, backtraceAttributes["device.abi"], libDirectory, attachments);
             
             if (!CaptureNativeCrashes)
             {
@@ -302,8 +297,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             foreach (var attribute in backtraceAttributes)
             {   
-                // Guard malformed attributes
-                if (attribute.Key == null || attribute.Value == null) continue;
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
 
@@ -333,24 +326,16 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // verify if the library is already extracted
             var backtraceNativeLibraryPath = Path.Combine(nativeDirectory, _nativeLibraryName);
             if (!File.Exists(backtraceNativeLibraryPath)) {
-                backtraceNativeLibraryPath = $"{Application.dataPath}!/lib/{deviceAbi}/{_nativeLibraryName}";
+                backtraceNativeLibraryPath = string.Format("{0}!/lib/{1}/{2}", Application.dataPath, deviceAbi, _nativeLibraryName);
             }
 
             // prepare native crash handler environment variables
-            var paths = new List<string>();
-            if (!string.IsNullOrEmpty(nativeDirectory)) paths.Add(nativeDirectory);
-            var parent = Directory.GetParent(nativeDirectory);
-            if (parent != null && Directory.Exists(parent.FullName)) paths.Add(parent.FullName);
-            var sysPath = GetLibrarySystemPath();
-            if (!string.IsNullOrEmpty(sysPath)) paths.Add(sysPath);
-            paths.Add("/data/local");
-
             List<String> environmentVariables = new List<string> () {
-                $"CLASSPATH={Application.dataPath}",
-                $"BACKTRACE_UNITY_CRASH_HANDLER={backtraceNativeLibraryPath}",
-                $"LD_LIBRARY_PATH={string.Join(":", paths.Where(p => !string.IsNullOrEmpty(p)))}",
+                string.Format("CLASSPATH={0}", Application.dataPath),
+                string.Format("BACKTRACE_UNITY_CRASH_HANDLER={0}", backtraceNativeLibraryPath),
+                string.Format("LD_LIBRARY_PATH={0}", string.Join(":", nativeDirectory, Directory.GetParent(nativeDirectory), GetLibrarySystemPath(), "/data/local")),
                 "ANDROID_DATA=/data"
-                };
+            };
 
             foreach (DictionaryEntry kvp in envVariableDictionary) {
                 environmentVariables.Add(string.Format("{0}={1}", kvp.Key, kvp.Value == null ? "NULL" : kvp.Value));
