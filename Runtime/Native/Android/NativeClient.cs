@@ -22,8 +22,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
     internal sealed class NativeClient : NativeClientBase, INativeClient
     {
         private const string CallbackMethodName = "OnAnrDetected";
-        [DllImport("backtrace-native")]
-        private static extern bool Initialize(IntPtr submissionUrl, IntPtr databasePath, IntPtr handlerPath, IntPtr keys, IntPtr values, IntPtr attachments, bool enableClientSideUnwinding, int unwindingMode);
 
         [DllImport("backtrace-native")]
         private static extern bool InitializeJavaCrashHandler(IntPtr submissionUrl, IntPtr databasePath, IntPtr classPath, IntPtr keys, IntPtr values, IntPtr attachments, IntPtr environmentVariables);
@@ -87,11 +85,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private const string _namespace = "backtraceio.unity";
 
         /// <summary>
-        /// unwinding mode
-        /// </summary>
-        private UnwindingMode UnwindingMode = UnwindingMode.LOCAL_DUMPWITHOUTCRASH;
-
-        /// <summary>
         /// Path to class responsible for detecting ANRs occurred by Java code.
         /// </summary>
         private readonly string _anrPath = string.Format("{0}.{1}", _namespace, "BacktraceANRWatchdog");
@@ -131,7 +124,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// </summary>
         private AndroidJavaObject _unhandledExceptionWatcher;
 
-        private readonly bool _enableClientSideUnwinding = false;
         public string GameObjectName { get; internal set; }
         public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments, string gameObjectName) : base(configuration, breadcrumbs)
         {
@@ -141,9 +133,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 return;
             }
-#if UNITY_2019_2_OR_NEWER
-            _enableClientSideUnwinding = _configuration.ClientSideUnwinding;
-#endif
+
             HandlerANR = _configuration.HandleANR;
             HandleNativeCrashes(clientAttributes, attachments);
             if (!configuration.ReportFilterType.HasFlag(Types.ReportFilterType.Hang))
@@ -246,8 +236,16 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 Debug.LogWarning("Backtrace native integration status: Disabled NDK integration");
                 return;
             }
+            
             var databasePath = _configuration.CrashpadDatabasePath;
-            if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(_configuration.GetFullDatabasePath()))
+            var fullDatabasePath = _configuration.GetFullDatabasePath();
+
+            if (string.IsNullOrEmpty(databasePath) || string.IsNullOrEmpty(fullDatabasePath))
+            {
+                Debug.LogWarning("Backtrace native integration status: database path undefined");
+                return;
+            }
+            if (!Directory.Exists(fullDatabasePath))
             {
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
                 return;
@@ -261,6 +259,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             int apiLevel;
             if (apiLevelString == null || !int.TryParse(apiLevelString, out apiLevel))
             {
+                Debug.LogWarning("Backtrace native integration status: Cannot determine Android API level");
                 return;
             }
 
@@ -275,25 +274,29 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
             
+            // Resolve native library directory
             var libDirectory = GetNativeDirectoryPath();
             if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
             {
                 libDirectory = GuessNativeDirectoryPath();
             }
-            const string crashpadHandlerName = "libcrashpad_handler.so";
-            var crashpadHandlerPath = Path.Combine(libDirectory, crashpadHandlerName);
 
-            CaptureNativeCrashes = CanInitializeExecutableCrashHandler(libDirectory, crashpadHandlerPath)
-                ? InitializeExecutableCrashHandler(minidumpUrl, databasePath, crashpadHandlerPath, attachments)
-                : InitializeJavaCrashHandler(minidumpUrl, databasePath, backtraceAttributes["device.abi"], libDirectory, attachments);
-
-            if (!CaptureNativeCrashes)
+            if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
             {
-                Debug.LogWarning("Backtrace native integration status: Cannot initialize Crashpad client");
+                Debug.LogWarning("Backtrace native integration status: Cannot resolve native library directory");
                 return;
             }
-            foreach (var attribute in backtraceAttributes)
+
+            CaptureNativeCrashes = InitializeJavaCrashHandler(minidumpUrl, databasePath, backtraceAttributes["device.abi"], libDirectory, attachments);
+            
+            if (!CaptureNativeCrashes)
             {
+                Debug.LogWarning("Backtrace native integration status: Cannot initialize Java crash handler");
+                return;
+            }
+
+            foreach (var attribute in backtraceAttributes)
+            {   
                 AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
             }
 
@@ -305,25 +308,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from 
             // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
             // attribute via attributes parameters.
-            AddAttribute(
-                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
-                        AndroidJNI.NewStringUTF(CrashType));
-        }
-
-        private bool CanInitializeExecutableCrashHandler(String nativeLibraryDirectory, String handlerPath) {
-            return Directory.Exists(nativeLibraryDirectory) && File.Exists(handlerPath);
-        }
-
-        private bool InitializeExecutableCrashHandler(String minidumpUrl, String databasePath, String crashpadHandlerPath, IEnumerable<String> attachments) {
-            return Initialize(
-                AndroidJNI.NewStringUTF(minidumpUrl),
-                AndroidJNI.NewStringUTF(databasePath),
-                AndroidJNI.NewStringUTF(crashpadHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
-                _enableClientSideUnwinding,
-                (int)UnwindingMode);
+            AddAttribute(AndroidJNI.NewStringUTF(ErrorTypeAttribute), AndroidJNI.NewStringUTF(CrashType));
         }
 
         private bool InitializeJavaCrashHandler(String minidumpUrl, String databasePath, String deviceAbi, String nativeDirectory, IEnumerable<String> attachments) {
