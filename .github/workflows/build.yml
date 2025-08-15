@@ -49,3 +49,4 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: ${{ matrix.projectPath }}/
           allowDirtyBuild: true
+          
