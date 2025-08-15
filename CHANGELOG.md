@@ -1,5 +1,12 @@
 # Backtrace Unity Release Notes
 
+## Version 3.13.0
+
+Improvements
+- Add 16KB page size support
+- Add simulator targets support
+- Update cocoa-lite library OOM handling
+
 ## Version 3.12.2
 
 Improvements
