@@ -1,52 +1,41 @@
-name: Build package
-
-on:
-  push:
-    branches: [master]
-  pull_request:
-
 jobs:
-  test:
-    name: Run Build for ${{ matrix.unityVersion }} ${{ matrix.unityVersion }}
-    runs-on: ubuntu-latest
+  build:
+    name: Build ${{ matrix.unityVersion }} • ${{ matrix.targetPlatform }}
     strategy:
       fail-fast: false
       matrix:
-        projectPath:
-          - test-package
-        unityVersion:
+        include:
           # LTS with 16 KB support
-          - 2022.3.56f1
-        targetPlatform:
-          - StandaloneOSX
-          - StandaloneWindows
-          - StandaloneWindows64
-          - StandaloneLinux64
-          - iOS
-          - Android
-          - WebGL
+          - { projectPath: test-package, unityVersion: 2022.3.56f1, targetPlatform: Android, os: ubuntu-latest }
+          - { projectPath: test-package, unityVersion: 2022.3.56f1, targetPlatform: WebGL, os: ubuntu-latest }
+          - { projectPath: test-package, unityVersion: 2022.3.56f1, targetPlatform: StandaloneLinux64, os: ubuntu-latest }
+          - { projectPath: test-package, unityVersion: 2022.3.56f1, targetPlatform: StandaloneWindows64, os: windows-latest }
+          - { projectPath: test-package, unityVersion: 2022.3.56f1, targetPlatform: StandaloneOSX, os: macos-14 }
+          - { projectPath: test-package, unityVersion: 2022.3.56f1, targetPlatform: iOS, os: macos-14 }
+
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          lfs: true
+      - uses: actions/checkout@v4
+        with: { lfs: true }
 
       - name: Setup Environment
         run: |
-          mkdir ${{ matrix.projectPath }}
+          mkdir -p ${{ matrix.projectPath }}
           mv Editor Runtime Tests Android iOS Windows package.json ${{ matrix.projectPath }}/
 
-      - if: matrix.targetPlatform == 'Android'
+      - name: Free disk for Android
+        if: matrix.targetPlatform == 'Android' && startsWith(matrix.os, 'ubuntu')
         uses: jlumbroso/free-disk-space@v1.3.1
 
-      - uses: game-ci/unity-builder@v4
-        name: Build game for platform ${{ matrix.targetPlatform }}
+      - name: Build
+        uses: game-ci/unity-builder@v4
         env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_EMAIL:    ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_SERIAL:   ${{ secrets.UNITY_SERIAL }}
         with:
-          unityVersion: ${{ matrix.unityVersion }}
+          unityVersion:   ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
-          projectPath: ${{ matrix.projectPath }}/
+          projectPath:    ${{ matrix.projectPath }}/
           allowDirtyBuild: true
