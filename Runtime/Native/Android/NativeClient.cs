@@ -346,9 +346,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 AndroidJNI.NewStringUTF(minidumpUrl),
                 AndroidJNI.NewStringUTF(databasePath),
                 AndroidJNI.NewStringUTF(_crashHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(Array.Empty<string>()),
-                AndroidJNIHelper.ConvertToJNIArray(Array.Empty<string>()),
-                AndroidJNIHelper.ConvertToJNIArray(attachments?.ToArray() ?? Array.Empty<string>()),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
+                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
                 AndroidJNIHelper.ConvertToJNIArray(environmentVariables.ToArray())
             );
         }
