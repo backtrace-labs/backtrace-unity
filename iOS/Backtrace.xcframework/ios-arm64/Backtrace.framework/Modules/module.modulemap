@@ -1,0 +1,11 @@
+framework module Backtrace {
+  umbrella header "Backtrace.h"
+  export *
+
+  module * { export * }
+}
+
+module Backtrace.Swift {
+  header "Backtrace-Swift.h"
+  requires objc
+}

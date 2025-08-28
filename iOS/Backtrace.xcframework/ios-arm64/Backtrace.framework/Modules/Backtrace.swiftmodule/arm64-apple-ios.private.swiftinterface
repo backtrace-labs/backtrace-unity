@@ -1,0 +1,384 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.10 (swiftlang-5.10.0.13 clang-1500.3.9.4)
+// swift-module-flags: -target arm64-apple-ios13.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-bare-slash-regex -module-name Backtrace
+@_exported import Backtrace
+import CallKit
+import CoreData
+import CrashReporter
+import Darwin
+import Foundation
+import MachO
+import MobileCoreServices
+import Swift
+import SystemConfiguration
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+@objc public protocol BacktraceClientDelegate {
+  @objc optional func willSend(_ report: Backtrace.BacktraceReport) -> Backtrace.BacktraceReport
+  @objc optional func willSendRequest(_ request: Foundation.URLRequest) -> Foundation.URLRequest
+  @available(*, renamed: "serverDidResponse")
+  @objc optional func serverDidRespond(_ result: Backtrace.BacktraceResult)
+  @objc optional func connectionDidFail(_ error: any Swift.Error)
+  @objc optional func didReachLimit(_ result: Backtrace.BacktraceResult)
+}
+@objc public enum BacktraceLogLevel : Swift.Int {
+  case debug
+  case warning
+  case info
+  case error
+  case none
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@_inheritsConvenienceInitializers @objc public class BacktraceLogger : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc open class BacktraceBaseDestination : ObjectiveC.NSObject {
+  @objc public init(level: Backtrace.BacktraceLogLevel)
+  @objc public func log(level: Backtrace.BacktraceLogLevel, msg: Swift.String, file: Swift.String = #file, function: Swift.String = #function, line: Swift.Int = #line)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc final public class BacktraceFancyConsoleDestination : Backtrace.BacktraceBaseDestination {
+  @objc public static var dateFormatter: Foundation.DateFormatter {
+    @objc get
+  }
+  @objc override final public func log(level: Backtrace.BacktraceLogLevel, msg: Swift.String, file: Swift.String = #file, function: Swift.String = #function, line: Swift.Int = #line)
+  @objc override public init(level: Backtrace.BacktraceLogLevel)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc final public class BacktraceConsoleDestination : Backtrace.BacktraceBaseDestination {
+  @objc override final public func log(level: Backtrace.BacktraceLogLevel, msg: Swift.String, file: Swift.String = #file, function: Swift.String = #function, line: Swift.Int = #line)
+  @objc override public init(level: Backtrace.BacktraceLogLevel)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class BacktraceDatabaseSettings : ObjectiveC.NSObject {
+  @objc public var maxRecordCount: Swift.Int
+  @objc public var maxDatabaseSize: Swift.Int
+  @objc public var retryInterval: Swift.Int
+  @objc public var retryLimit: Swift.Int
+  @objc public var retryBehaviour: Backtrace.RetryBehaviour
+  @objc public var retryOrder: Backtrace.RetryOrder
+  @objc public var reportHostName: Swift.Bool
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public enum RetryBehaviour : Swift.Int {
+  case none
+  case interval
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public enum RetryOrder : Swift.Int {
+  case queue
+  case stack
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@_inheritsConvenienceInitializers @objc public class BacktraceMetricsSettings : ObjectiveC.NSObject {
+  @objc public var maxEventsCount: Swift.Int
+  @objc public var timeInterval: Swift.Int
+  @objc public var retryInterval: Swift.Int
+  @objc public var retryLimit: Swift.Int
+  @objc public var customSubmissionUrl: Swift.String
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public enum BacktraceReportStatus : Swift.Int {
+  case serverError
+  case ok
+  case debuggerAttached
+  case unknownError
+  case limitReached
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+extension Backtrace.BacktraceReportStatus : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers @objc open class BacktraceResult : ObjectiveC.NSObject {
+  @objc public var message: Swift.String
+  @objc public var report: Backtrace.BacktraceReport?
+  @objc public var backtraceStatus: Backtrace.BacktraceReportStatus
+  @objc deinit
+}
+extension Backtrace.BacktraceResult {
+  @objc override dynamic open var description: Swift.String {
+    @objc get
+  }
+}
+@_hasMissingDesignatedInitializers @objc open class BacktraceClient : ObjectiveC.NSObject {
+  @objc public static var shared: (any Backtrace.BacktraceBreadcrumbProtocol & Backtrace.BacktraceClientCustomizing & Backtrace.BacktraceLogging & Backtrace.BacktraceMetricsProtocol & Backtrace.BacktraceReporting)?
+  @objc final public let configuration: Backtrace.BacktraceClientConfiguration
+  @objc convenience public init(credentials: Backtrace.BacktraceCredentials, crashReporter: Backtrace.BacktraceCrashReporter = BacktraceCrashReporter()) throws
+  @objc convenience public init(credentials: Backtrace.BacktraceCredentials) throws
+  @objc convenience public init(configuration: Backtrace.BacktraceClientConfiguration) throws
+  @objc convenience public init(configuration: Backtrace.BacktraceClientConfiguration, crashReporter: Backtrace.BacktraceCrashReporter) throws
+  @objc deinit
+}
+extension Backtrace.BacktraceClient : Backtrace.BacktraceClientCustomizing {
+  @objc dynamic public var delegate: (any Backtrace.BacktraceClientDelegate)? {
+    @objc get
+    @objc set
+  }
+  @objc dynamic public var attributes: Backtrace.Attributes {
+    @objc get
+    @objc set
+  }
+  @objc dynamic public var attachments: Backtrace.Attachments {
+    @objc get
+    @objc set
+  }
+}
+extension Backtrace.BacktraceClient : Backtrace.BacktraceReporting {
+  @objc dynamic public func send(error: any Swift.Error, attachmentPaths: [Swift.String] = [], completion: @escaping ((Backtrace.BacktraceResult) -> Swift.Void))
+  @objc dynamic public func send(message: Swift.String, attachmentPaths: [Swift.String] = [], completion: @escaping ((Backtrace.BacktraceResult) -> Swift.Void))
+  @objc dynamic public func send(exception: Foundation.NSException?, attachmentPaths: [Swift.String] = [], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+  @objc dynamic public func send(attachmentPaths: [Swift.String] = [], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+}
+extension Backtrace.BacktraceClient : Backtrace.BacktraceLogging {
+  @objc dynamic public var loggingDestinations: Swift.Set<Backtrace.BacktraceBaseDestination> {
+    @objc get
+    @objc set
+  }
+}
+extension Backtrace.BacktraceClient : Backtrace.BacktraceMetricsProtocol {
+  @objc dynamic public var metrics: Backtrace.BacktraceMetrics {
+    @objc get
+  }
+}
+extension Backtrace.BacktraceClient : Backtrace.BacktraceBreadcrumbProtocol {
+  @objc dynamic public var breadcrumbs: Backtrace.BacktraceBreadcrumbs {
+    @objc get
+  }
+  @objc dynamic public func enableBreadcrumbs()
+  @objc dynamic public func enableBreadcrumbs(_ breadcrumbSettings: Backtrace.BacktraceBreadcrumbSettings)
+  @objc dynamic public func addBreadcrumb(_ message: Swift.String, attributes: [Swift.String : Swift.String], type: Backtrace.BacktraceBreadcrumbType, level: Backtrace.BacktraceBreadcrumbLevel) -> Swift.Bool
+  @objc dynamic public func addBreadcrumb(_ message: Swift.String) -> Swift.Bool
+  @objc dynamic public func addBreadcrumb(_ message: Swift.String, attributes: [Swift.String : Swift.String]) -> Swift.Bool
+  @objc dynamic public func addBreadcrumb(_ message: Swift.String, type: Backtrace.BacktraceBreadcrumbType, level: Backtrace.BacktraceBreadcrumbLevel) -> Swift.Bool
+  @objc dynamic public func addBreadcrumb(_ message: Swift.String, level: Backtrace.BacktraceBreadcrumbLevel) -> Swift.Bool
+  @objc dynamic public func addBreadcrumb(_ message: Swift.String, type: Backtrace.BacktraceBreadcrumbType) -> Swift.Bool
+  @objc dynamic public func clearBreadcrumbs() -> Swift.Bool
+}
+@objc public class BacktraceCredentials : ObjectiveC.NSObject {
+  @objc public init(endpoint: Foundation.URL, token: Swift.String)
+  @objc public init(submissionUrl: Foundation.URL)
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc open class BacktraceMetrics : ObjectiveC.NSObject {
+  @objc public var count: Swift.Int {
+    @objc get
+  }
+  @objc public func enable(settings: Backtrace.BacktraceMetricsSettings)
+  @objc public func addUniqueEvent(name: Swift.String)
+  @objc public func addSummedEvent(name: Swift.String)
+  @objc public func clearSummedEvents()
+  @objc public func getSummedEvents() -> [Any]
+  @objc public func getUniqueEvents() -> [Any]
+  @objc deinit
+}
+@objc public class BacktraceCrashReporter : ObjectiveC.NSObject {
+  @objc convenience public init(config: CrashReporter.PLCrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all))
+  @objc public init(reporter: CrashReporter.PLCrashReporter)
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc final public class BacktraceReport : ObjectiveC.NSObject {
+  @objc final public let reportData: Foundation.Data
+  @objc final public var attachmentPaths: [Swift.String]
+  @objc final public var attributes: Backtrace.Attributes
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objcMembers public class Queue<T> : ObjectiveC.NSObject {
+  public func allElements() -> [T]
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public class BacktraceBreadcrumbSettings : ObjectiveC.NSObject {
+  public static let defaultMaxBreadcrumbFileSize: Swift.Int
+  @objc public var maxIndividualBreadcrumbSizeBytes: Swift.Int
+  @objc public var maxQueueFileSizeBytes: Swift.Int
+  @objc final public let breadcrumbLogFileName: Swift.String
+  @objc public var breadcrumbLevel: Backtrace.BacktraceBreadcrumbLevel
+  @objc public init(_ maxIndividualBreadcrumbSizeBytes: Swift.Int = 4096, maxQueueFileSizeBytes: Swift.Int = defaultMaxBreadcrumbFileSize, breadcrumbLogFileName: Swift.String = "bt-breadcrumbs-0", breadcrumbTypes: [Swift.Int], breadcrumbLevel: Swift.Int)
+  public init(_ maxIndividualBreadcrumbSizeBytes: Swift.Int = 4096, maxQueueFileSizeBytes: Swift.Int = defaultMaxBreadcrumbFileSize, breadcrumbLogFileName: Swift.String = "bt-breadcrumbs-0", breadcrumbTypes: [Backtrace.BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all, breadcrumbLevel: Backtrace.BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.debug)
+  @objc public func getBreadcrumbLogPath() throws -> Foundation.URL
+  @objc deinit
+}
+@objc public enum BacktraceBreadcrumbType : Swift.Int {
+  case manual = 1
+  case log = 2
+  case navigation = 3
+  case http = 4
+  case system = 5
+  case user = 6
+  case configuration = 7
+  public var description: Swift.String {
+    get
+  }
+  public static let all: [Backtrace.BacktraceBreadcrumbType]
+  public static let none: [Backtrace.BacktraceBreadcrumbType]
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public enum BacktraceBreadcrumbLevel : Swift.Int {
+  case debug = 1
+  case info = 2
+  case warning = 3
+  case error = 4
+  case fatal = 5
+  public var description: Swift.String {
+    get
+  }
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@_inheritsConvenienceInitializers @objc public class BacktraceBreadcrumbs : ObjectiveC.NSObject {
+  public func enableBreadcrumbs(_ breadcrumbSettings: Backtrace.BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings())
+  public func disableBreadcrumbs()
+  public func addBreadcrumb(_ message: Swift.String, attributes: [Swift.String : Swift.String]? = nil, type: Backtrace.BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual, level: Backtrace.BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Swift.Bool
+  public func clear() -> Swift.Bool
+  public var getCurrentBreadcrumbId: Swift.Int? {
+    get
+  }
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc(Crash) public class Crash : CoreData.NSManagedObject {
+  @objc override dynamic public init(entity: CoreData.NSEntityDescription, insertInto context: CoreData.NSManagedObjectContext?)
+  @objc deinit
+}
+extension Backtrace.Crash {
+  @nonobjc public class func fetchRequest() -> CoreData.NSFetchRequest<Backtrace.Crash>
+  @objc(attachmentPaths) @NSManaged dynamic public var attachmentPaths: [Swift.String]? {
+    @objc get
+    @objc set
+  }
+  @objc(dateAdded) @NSManaged dynamic public var dateAdded: Foundation.Date? {
+    @objc get
+    @objc set
+  }
+  @objc(hashProperty) @NSManaged dynamic public var hashProperty: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc(reportData) @NSManaged dynamic public var reportData: Foundation.Data? {
+    @objc get
+    @objc set
+  }
+  @objc(retryCount) @NSManaged dynamic public var retryCount: Swift.Int64 {
+    @objc get
+    @objc set
+  }
+}
+@objc public enum BacktraceOomMode : Swift.Int {
+  case none = 0
+  case light = 1
+  case full = 2
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public class BacktraceClientConfiguration : ObjectiveC.NSObject {
+  @objc final public let credentials: Backtrace.BacktraceCredentials
+  @objc public var dbSettings: Backtrace.BacktraceDatabaseSettings
+  @objc public var metricsSettings: Backtrace.BacktraceMetricsSettings
+  @objc public var breadcrumbSettings: Backtrace.BacktraceBreadcrumbSettings
+  @objc public var reportsPerMin: Swift.Int
+  @objc public var allowsAttachingDebugger: Swift.Bool
+  @objc public var oomMode: Backtrace.BacktraceOomMode
+  @available(*, deprecated, renamed: "oomMode")
+  @objc public var detectOom: Swift.Bool {
+    @objc get
+    @objc set
+  }
+  @objc public init(credentials: Backtrace.BacktraceCredentials)
+  @objc public init(credentials: Backtrace.BacktraceCredentials, dbSettings: Backtrace.BacktraceDatabaseSettings = BacktraceDatabaseSettings(), reportsPerMin: Swift.Int = 30, allowsAttachingDebugger: Swift.Bool = false, oomMode: Backtrace.BacktraceOomMode = .none)
+  @available(*, deprecated, message: "Use init(credentials:dbSettings:reportsPerMin:allowsAttachingDebugger:oomMode:) instead")
+  @objc convenience public init(credentials: Backtrace.BacktraceCredentials, dbSettings: Backtrace.BacktraceDatabaseSettings = .init(), reportsPerMin: Swift.Int = 30, allowsAttachingDebugger: Swift.Bool = false, detectOOM: Swift.Bool = false)
+  @objc deinit
+}
+public typealias BacktraceClientProtocol = Backtrace.BacktraceBreadcrumbProtocol & Backtrace.BacktraceClientCustomizing & Backtrace.BacktraceLogging & Backtrace.BacktraceMetricsProtocol & Backtrace.BacktraceReporting
+public typealias Attributes = [Swift.String : Any]
+public typealias DecodableAttributes = [Swift.String : Swift.String]
+public typealias Attachments = [Foundation.URL]
+public typealias Bookmarks = [Swift.String : Foundation.Data]
+@objc public protocol BacktraceClientCustomizing {
+  @objc var attributes: Backtrace.Attributes { get set }
+  @objc var attachments: Backtrace.Attachments { get set }
+  @objc var delegate: (any Backtrace.BacktraceClientDelegate)? { get set }
+}
+@objc public protocol BacktraceReporting {
+  @objc func send(error: any Swift.Error, attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+  @objc func send(message: Swift.String, attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+  @objc func send(attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+  @objc func send(exception: Foundation.NSException?, attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+}
+@objc public protocol BacktraceLogging {
+  @available(*, renamed: "destinations")
+  @objc var loggingDestinations: Swift.Set<Backtrace.BacktraceBaseDestination> { get set }
+}
+@objc public protocol BacktraceMetricsProtocol {
+  @objc var metrics: Backtrace.BacktraceMetrics { get }
+}
+public let applicationName: Swift.String?
+public let applicationVersion: Swift.String?
+public let buildVersion: Swift.String?
+public let defaultMetricsBaseUrlString: Swift.String
+@objc public protocol BacktraceBreadcrumbProtocol {
+  @objc var breadcrumbs: Backtrace.BacktraceBreadcrumbs { get }
+  @objc func enableBreadcrumbs()
+  @objc func enableBreadcrumbs(_ breadcrumbSettings: Backtrace.BacktraceBreadcrumbSettings)
+  @objc func addBreadcrumb(_ message: Swift.String, attributes: [Swift.String : Swift.String], type: Backtrace.BacktraceBreadcrumbType, level: Backtrace.BacktraceBreadcrumbLevel) -> Swift.Bool
+  @objc func addBreadcrumb(_ message: Swift.String) -> Swift.Bool
+  @objc func addBreadcrumb(_ message: Swift.String, attributes: [Swift.String : Swift.String]) -> Swift.Bool
+  @objc func addBreadcrumb(_ message: Swift.String, type: Backtrace.BacktraceBreadcrumbType, level: Backtrace.BacktraceBreadcrumbLevel) -> Swift.Bool
+  @objc func addBreadcrumb(_ message: Swift.String, level: Backtrace.BacktraceBreadcrumbLevel) -> Swift.Bool
+  @objc func addBreadcrumb(_ message: Swift.String, type: Backtrace.BacktraceBreadcrumbType) -> Swift.Bool
+  @objc func clearBreadcrumbs() -> Swift.Bool
+}
+extension Backtrace.BacktraceLogLevel : Swift.Equatable {}
+extension Backtrace.BacktraceLogLevel : Swift.Hashable {}
+extension Backtrace.BacktraceLogLevel : Swift.RawRepresentable {}
+extension Backtrace.RetryBehaviour : Swift.Equatable {}
+extension Backtrace.RetryBehaviour : Swift.Hashable {}
+extension Backtrace.RetryBehaviour : Swift.RawRepresentable {}
+extension Backtrace.RetryOrder : Swift.Equatable {}
+extension Backtrace.RetryOrder : Swift.Hashable {}
+extension Backtrace.RetryOrder : Swift.RawRepresentable {}
+extension Backtrace.BacktraceReportStatus : Swift.Equatable {}
+extension Backtrace.BacktraceReportStatus : Swift.Hashable {}
+extension Backtrace.BacktraceReportStatus : Swift.RawRepresentable {}
+extension Backtrace.BacktraceBreadcrumbType : Swift.Equatable {}
+extension Backtrace.BacktraceBreadcrumbType : Swift.Hashable {}
+extension Backtrace.BacktraceBreadcrumbType : Swift.RawRepresentable {}
+extension Backtrace.BacktraceBreadcrumbLevel : Swift.Equatable {}
+extension Backtrace.BacktraceBreadcrumbLevel : Swift.Hashable {}
+extension Backtrace.BacktraceBreadcrumbLevel : Swift.RawRepresentable {}
+extension Backtrace.BacktraceOomMode : Swift.Equatable {}
+extension Backtrace.BacktraceOomMode : Swift.Hashable {}
+extension Backtrace.BacktraceOomMode : Swift.RawRepresentable {}

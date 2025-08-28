@@ -30,7 +30,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
         [DllImport("__Internal", EntryPoint = "NativeReport")]
         private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread, bool ignoreIfDebugger);
 
-        [DllImport("__Internal", EntryPoint = "Crash")]
+        [DllImport("__Internal", EntryPoint = "BtCrash")]
         private static extern string Crash();
 
         [DllImport("__Internal", EntryPoint = "GetAttributes")]
