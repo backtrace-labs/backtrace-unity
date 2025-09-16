@@ -87,10 +87,8 @@ namespace Backtrace.Unity.Editor.iOS
             AddBuildPropertyUnique(project, appTargetGuid, "LD_RUNPATH_SEARCH_PATHS", "$(inherited)");
             AddBuildPropertyUnique(project, appTargetGuid, "LD_RUNPATH_SEARCH_PATHS", "@executable_path/Frameworks");
 
-            // iOS settings
+            // Swift std
             project.SetBuildProperty(appTargetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "YES");
-            project.SetBuildProperty(appTargetGuid, "IPHONEOS_DEPLOYMENT_TARGET", "13.0");
-            project.SetBuildProperty(unityFrameworkTargetGuid, "IPHONEOS_DEPLOYMENT_TARGET", "13.0");
 
             // Obj-C Linker Flag
             AddBuildPropertyUnique(project, unityFrameworkTargetGuid, "OTHER_LDFLAGS", "-ObjC");
