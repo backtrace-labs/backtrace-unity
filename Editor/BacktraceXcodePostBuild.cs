@@ -10,73 +10,109 @@ using UnityEngine;
 namespace Backtrace.Unity.Editor.iOS
 {
     /// <summary>
-    /// Links Backtrace.xcframework + CrashReporter.xcframework on UnityFramework,
-    /// embeds and signs Backtrace (dynamic) in the app target, and sets Swift/iOS settings.
+    /// Links Backtrace.xcframework and CrashReporter.xcframework
+    /// embeds, signs Backtrace and sets Swift/iOS settings.
     /// </summary>
     public static class BacktraceXcodePostBuild
     {
-        [PostProcessBuild(999)]
-        public static void OnPostProcessBuild(BuildTarget target, string buildPath)
-        {
-            if (target != BuildTarget.iOS) return;
+        // Runs late after post-processors
+        private const int PostBuildOrder = 500;
 
-            var projPath = PBXProject.GetPBXProjectPath(buildPath);
-            var proj = new PBXProject();
-            proj.ReadFromFile(projPath);
+        [PostProcessBuild(PostBuildOrder)]
+        public static void OnPostProcessBuild(BuildTarget buildTarget, string buildPath)
+        {
+            if (buildTarget != BuildTarget.iOS) {
+                 return;
+                 }
+
+            var projectPath = PBXProject.GetPBXProjectPath(buildPath);
+            var project = new PBXProject(); 
+            project.ReadFromFile(projectPath);
 
 #if UNITY_2019_3_OR_NEWER
-            string appTargetGuid = proj.GetUnityMainTargetGuid();
-            string ufTargetGuid  = proj.GetUnityFrameworkTargetGuid();
+            string appTargetGuid = project.GetUnityMainTargetGuid();
+            string unityFrameworkTargetGuid = project.GetUnityFrameworkTargetGuid();
 #else
-            string appTargetGuid = proj.TargetGuidByName("Unity-iPhone");
-            string ufTargetGuid  = appTargetGuid;
+            string appTargetGuid = project.TargetGuidByName("Unity-iPhone");
+            string unityFrameworkTargetGuid = appTargetGuid;
 #endif
-            // Find the xcframeworks that Unity copied into the export (regardless of folder)
-            string FindXCFramework(string name)
+            if (string.IsNullOrEmpty(appTargetGuid) || string.IsNullOrEmpty(unityFrameworkTargetGuid))
             {
-                var dirs = Directory.GetDirectories(buildPath, name, SearchOption.AllDirectories);
-                return dirs.FirstOrDefault();
-            }
-
-            var backtraceXC = FindXCFramework("Backtrace.xcframework");
-            var crashXC     = FindXCFramework("CrashReporter.xcframework");
-
-            if (string.IsNullOrEmpty(backtraceXC))
-            {
-                Debug.LogError("[Backtrace] Could not locate Backtrace.xcframework in the exported Xcode project.");
-                return;
-            }
-            if (string.IsNullOrEmpty(crashXC))
-            {
-                Debug.LogError("[Backtrace] Could not locate CrashReporter.xcframework in the exported Xcode project.");
+                Debug.LogError("[Backtrace] iOS post-build: could not resolve Xcode targets.");
                 return;
             }
 
-            // Add files to project with paths relative to project
-            string relBacktrace = backtraceXC.Replace(buildPath + "/", "");
-            string relCrash     = crashXC.Replace(buildPath + "/", "");
+            // Locate exported xcframeworks
+            string FindXCFramework(string folderName)
+            {
+                var matches = Directory.GetDirectories(buildPath, folderName, SearchOption.AllDirectories);
+                return matches.FirstOrDefault();
+            }
 
-            string btGuid  = proj.AddFile(relBacktrace, relBacktrace, PBXSourceTree.Source);
-            string crGuid  = proj.AddFile(relCrash,     relCrash,     PBXSourceTree.Source);
+            var backtraceXCPath = FindXCFramework("Backtrace.xcframework");
+            var crashReporterXCPath = FindXCFramework("CrashReporter.xcframework");
 
-            // Link both on UnityFramework
-            proj.AddFileToBuild(ufTargetGuid, btGuid);
-            proj.AddFileToBuild(ufTargetGuid, crGuid);
+            if (string.IsNullOrEmpty(backtraceXCPath))
+            {
+                Debug.LogError($"[Backtrace] Could not locate Backtrace.xcframework under: {buildPath}");
+                return;
+            }
+            if (string.IsNullOrEmpty(crashReporterXCPath))
+            {
+                Debug.LogError($"[Backtrace] Could not locate CrashReporter.xcframework under: {buildPath}");
+                return;
+            }
 
-            // Embed Backtrace (dynamic) on the app target
-            PBXProjectExtensions.AddFileToEmbedFrameworks(proj, appTargetGuid, btGuid);
-            proj.AddBuildProperty(appTargetGuid, "LD_RUNPATH_SEARCH_PATHS", "$(inherited) @executable_path/Frameworks");
+            // Project-relative paths
+            string relBacktraceXC = ToProjectRelative(buildPath, backtraceXCPath);
+            string relCrashReporterXC = ToProjectRelative(buildPath, crashReporterXCPath);
 
-            // Swift / platform settings (SDK requires iOS 13+)
-            proj.SetBuildProperty(appTargetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "YES");
-            proj.SetBuildProperty(appTargetGuid, "IPHONEOS_DEPLOYMENT_TARGET", "13.0");
-            proj.SetBuildProperty(ufTargetGuid,  "IPHONEOS_DEPLOYMENT_TARGET", "13.0");
+            // Add file references
+            string backtraceFileGuid = project.FindFileGuidByProjectPath(relBacktraceXC);
+            if (string.IsNullOrEmpty(backtraceFileGuid)) {
+                backtraceFileGuid = project.AddFile(relBacktraceXC, relBacktraceXC, PBXSourceTree.Source);
+                }
 
-            // Recommended & safe for Obj-C categories
-            proj.AddBuildProperty(ufTargetGuid, "OTHER_LDFLAGS", "-ObjC");
+            string crashReporterFileGuid = project.FindFileGuidByProjectPath(relCrashReporterXC);
+            if (string.IsNullOrEmpty(crashReporterFileGuid)) {
+                crashReporterFileGuid = project.AddFile(relCrashReporterXC, relCrashReporterXC, PBXSourceTree.Source);
+                }
 
-            proj.WriteToFile(projPath);
-            Debug.Log("[Backtrace] iOS post-build: frameworks linked/embedded; Swift stdlib enabled; iOS 13.0 set.");
+            // Linking
+            project.AddFileToBuild(unityFrameworkTargetGuid, backtraceFileGuid);
+            project.AddFileToBuild(unityFrameworkTargetGuid, crashReporterFileGuid);
+
+            // Embedding
+            PBXProjectExtensions.AddFileToEmbedFrameworks(project, appTargetGuid, backtraceFileGuid);
+            AddBuildPropertyUnique(project, appTargetGuid, "LD_RUNPATH_SEARCH_PATHS", "$(inherited)");
+            AddBuildPropertyUnique(project, appTargetGuid, "LD_RUNPATH_SEARCH_PATHS", "@executable_path/Frameworks");
+
+            // iOS settings
+            project.SetBuildProperty(appTargetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "YES");
+            project.SetBuildProperty(appTargetGuid, "IPHONEOS_DEPLOYMENT_TARGET", "13.0");
+            project.SetBuildProperty(unityFrameworkTargetGuid, "IPHONEOS_DEPLOYMENT_TARGET", "13.0");
+
+            // Obj-C Linker Flag
+            AddBuildPropertyUnique(project, unityFrameworkTargetGuid, "OTHER_LDFLAGS", "-ObjC");
+
+            project.WriteToFile(projectPath);
+            Debug.Log("[Backtrace] iOS post-build: frameworks linked/embedded. Swift stdlib enabled.");
+        }
+
+        private static string ToProjectRelative(string buildPath, string absolutePath)
+        {
+            var rel = absolutePath.Replace('\\', '/');
+            var root = (buildPath + "/").Replace('\\', '/');
+            return rel.StartsWith(root) ? rel.Substring(root.Length) : rel;
+        }
+
+        private static void AddBuildPropertyUnique(PBXProject proj, string targetGuid, string key, string value)
+        {
+            var current = proj.GetBuildPropertyForAnyConfig(targetGuid, key);
+            if (current == null || !current.Split(' ').Contains(value))
+            {
+                proj.AddBuildProperty(targetGuid, key, value);
+            }
         }
     }
 }
