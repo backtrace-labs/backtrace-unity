@@ -23,6 +23,7 @@ PluginImporter:
       enabled: 1
       settings:
         CPU: ARM64
+        Is16KbAligned: true
   - first:
       Editor: Editor
     second:

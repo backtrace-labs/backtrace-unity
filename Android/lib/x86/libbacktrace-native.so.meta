@@ -23,6 +23,7 @@ PluginImporter:
       enabled: 1
       settings:
         CPU: x86
+        Is16KbAligned: true
   - first:
       Editor: Editor
     second:
