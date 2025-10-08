@@ -48,5 +48,6 @@ jobs:
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: ${{ matrix.projectPath }}/
+	  allowDirtyBuild: true
           testMode: editmode
           
