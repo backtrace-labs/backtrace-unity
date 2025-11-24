@@ -1,5 +1,10 @@
 # Backtrace Unity Release Notes
 
+## Version 3.14.0
+
+Improvements
+- Add support for Android offline native crash replay
+
 ## Version 3.13.0
 
 Improvements
