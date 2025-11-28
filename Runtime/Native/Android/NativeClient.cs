@@ -219,6 +219,83 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
 
         /// <summary>
+        /// Resolve the path to the base APK that contains the Backtrace Java classes.
+        /// </summary>
+        private static string GetApkPathForCrashHandler()
+        {
+            String applicationDataPath = Application.dataPath;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                {
+                    if (unityPlayer == null)
+                    {
+                        return applicationDataPath;
+                    }
+
+                    using (AndroidJavaObject activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                    {
+                        if (activity == null)
+                        {
+                            return applicationDataPath;
+                        }
+
+                        using (AndroidJavaObject context = activity.Call<AndroidJavaObject>("getApplicationContext"))
+                        {
+                            if (context != null)
+                            {
+                                using (AndroidJavaObject applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
+                                {
+                                    if (applicationInfo != null)
+                                    {
+                                        String sourceDir = applicationInfo.Get<String>("sourceDir");
+                                        if (!String.IsNullOrEmpty(sourceDir))
+                                        {
+                                            return sourceDir;
+                                        }
+                                    }
+                                }
+
+                                using (AndroidJavaObject packageManager = context.Call<AndroidJavaObject>("getPackageManager"))
+                                {
+                                    if (packageManager != null)
+                                    {
+                                        String packageName = context.Call<String>("getPackageName");
+                                        if (!String.IsNullOrEmpty(packageName))
+                                        {
+                                            using (AndroidJavaObject pmApplicationInfo = packageManager.Call<AndroidJavaObject>("getApplicationInfo", packageName, 0))
+                                            {
+                                                if (pmApplicationInfo != null)
+                                                {
+                                                    String pmSourceDir = pmApplicationInfo.Get<String>("sourceDir");
+                                                    if (!String.IsNullOrEmpty(pmSourceDir))
+                                                    {
+                                                        return pmSourceDir;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(String.Format("Backtrace native crash handler: failed to resolve APK path, " + "falling back to Application.dataPath. Reason: {0}", e.Message));
+            }
+
+            return applicationDataPath;
+#else
+            // Editor/non‑Android
+            return applicationDataPath;
+#endif
+        }
+
+        /// <summary>
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
@@ -287,7 +364,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
 
-            CaptureNativeCrashes = InitializeJavaCrashHandler(minidumpUrl, databasePath, backtraceAttributes["device.abi"], libDirectory, attachments);
+            // Resolve the APK path
+            var apkPath = GetApkPathForCrashHandler();
+
+            CaptureNativeCrashes = InitializeJavaCrashHandler(minidumpUrl, databasePath, backtraceAttributes["device.abi"], libDirectory, apkPath, attachments);
             
             if (!CaptureNativeCrashes)
             {
@@ -311,7 +391,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             AddAttribute(AndroidJNI.NewStringUTF(ErrorTypeAttribute), AndroidJNI.NewStringUTF(CrashType));
         }
 
-        private bool InitializeJavaCrashHandler(String minidumpUrl, String databasePath, String deviceAbi, String nativeDirectory, IEnumerable<String> attachments) {
+        private bool InitializeJavaCrashHandler(String minidumpUrl, String databasePath, String deviceAbi, String nativeDirectory, String apkPath, IEnumerable<String> attachments) {
             if (String.IsNullOrEmpty(deviceAbi)) {
                 Debug.LogWarning("Cannot determine device ABI");
                 return false;
@@ -326,12 +406,12 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // verify if the library is already extracted
             var backtraceNativeLibraryPath = Path.Combine(nativeDirectory, _nativeLibraryName);
             if (!File.Exists(backtraceNativeLibraryPath)) {
-                backtraceNativeLibraryPath = string.Format("{0}!/lib/{1}/{2}", Application.dataPath, deviceAbi, _nativeLibraryName);
+                backtraceNativeLibraryPath = string.Format("{0}!/lib/{1}/{2}", apkPath, deviceAbi, _nativeLibraryName);
             }
 
             // prepare native crash handler environment variables
             List<String> environmentVariables = new List<string> () {
-                string.Format("CLASSPATH={0}", Application.dataPath),
+                string.Format("CLASSPATH={0}", apkPath),
                 string.Format("BACKTRACE_UNITY_CRASH_HANDLER={0}", backtraceNativeLibraryPath),
                 string.Format("LD_LIBRARY_PATH={0}", string.Join(":", nativeDirectory, Directory.GetParent(nativeDirectory), GetLibrarySystemPath(), "/data/local")),
                 "ANDROID_DATA=/data"
