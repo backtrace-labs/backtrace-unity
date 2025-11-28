@@ -10,13 +10,19 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
 {
     public sealed class ScopedNativeAttributesTests
     {
+        // PlayerPrefs key used by the Windows NativeClient to store the scoped list
+        private const string ScopedKeyList = "backtrace-scoped-attributes";
+        private const string ScopedValuePattern = "bt-{0}";
+
         [TearDown]
         public void Setup()
         {
             CleanLegacyAttributes();
             NativeClient.CleanScopedAttributes();
+            PlayerPrefs.DeleteAll();
         }
 
+        [Test]
         public void FreshStartup_ShouldntIncludeAnyAttributeFromPlayerPrefs_AttributesAreEmpty()
         {
             var attributes = NativeClient.GetScopedAttributes();
@@ -24,6 +30,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             Assert.IsEmpty(attributes);
         }
 
+        [Test]
         public void LegacyAttributesSupport_ShouldIncludeLegacyAttributesWhenScopedAttributesAreNotAvailable_AllLegacyAttributesArePresent()
         {
             string testVersion = "0.1.0";
@@ -82,7 +89,6 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
         [Test]
         public void NativeCrashUploadAttributes_ShouldSetScopedAttributeViaNativeClientApi_AttributePresentsInScopedAttributes()
         {
-
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.SendUnhandledGameCrashesOnGameStartup = true;
             const string testAttributeKey = "foo-key-bar-baz";
@@ -93,7 +99,6 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             var scopedAttributes = NativeClient.GetScopedAttributes();
 
             Assert.AreEqual(scopedAttributes[testAttributeKey], testAttributeValue);
-
         }
 
         [Test]
@@ -117,6 +122,63 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
 
             Assert.IsEmpty(attributesAfterCleanup);
             Assert.IsNotEmpty(attributesBeforeCleanup);
+        }
+
+        [Test]
+        public void ScopedAttributes_ShouldNotDuplicateKeys_OnRepeatedAdds()
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            configuration.SendUnhandledGameCrashesOnGameStartup = true;
+
+            const string k = "dup-key";
+            const string v = "v1";
+
+            var client = new NativeClient(configuration, null, new Dictionary<string, string>(), new List<string>());
+
+            // Add the same key/value multiple times
+            client.SetAttribute(k, v);
+            client.SetAttribute(k, v);
+            client.SetAttribute(k, v);
+
+            // Verify the stored list
+            var scoped = NativeClient.GetScopedAttributes();
+            Assert.IsTrue(scoped.ContainsKey(k));
+            Assert.AreEqual(v, scoped[k]);
+
+            // Inspect the JSON list to ensure one occurrence of the key
+            var json = PlayerPrefs.GetString(ScopedKeyList);
+            var occurrences = json.Split('"');
+            int count = 0;
+            foreach (var s in occurrences)
+            {
+                if (s == k) count++;
+            }
+            Assert.AreEqual(1, count, "Key should be stored once in the scoped key list.");
+        }
+
+        [Test]
+        public void ScopedAttributes_ShouldSkipWrites_WhenValueUnchanged()
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            configuration.SendUnhandledGameCrashesOnGameStartup = true;
+
+            const string k = "stable-key";
+            const string v = "same-value";
+
+            var client = new NativeClient(configuration, null, new Dictionary<string, string>(), new List<string>());
+
+            // First write
+            client.SetAttribute(k, v);
+            var json1 = PlayerPrefs.GetString(ScopedKeyList);
+            var val1 = PlayerPrefs.GetString(string.Format(ScopedValuePattern, k));
+
+            // Second write with same value should be a no-op
+            client.SetAttribute(k, v);
+            var json2 = PlayerPrefs.GetString(ScopedKeyList);
+            var val2 = PlayerPrefs.GetString(string.Format(ScopedValuePattern, k));
+
+            Assert.AreEqual(json1, json2, "Scoped key list JSON should not change when value is unchanged.");
+            Assert.AreEqual(val1, val2, "Stored value should remain the same.");
         }
 
         private void CleanLegacyAttributes()
