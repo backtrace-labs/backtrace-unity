@@ -136,13 +136,13 @@ namespace Backtrace.Unity.Model
 
                 }
 
-                //methodname index should be greater than 0 AND '(' should be before ')'
-                if (methodNameEndIndex < 1 && frameString[methodNameEndIndex - 1] != '(')
+                // we require a '(' that appears before this ')'
+                int openParenIndex = frameString.LastIndexOf('(', methodNameEndIndex);
+                if (openParenIndex == -1 || openParenIndex > methodNameEndIndex)
                 {
-                    result.Add(new BacktraceStackFrame()
-                    {
-                        FunctionName = frame
-                    });
+                    // invalid shape: no matching '(' before ')'
+                    result.Add(new BacktraceStackFrame { FunctionName = frame });
+                    continue;
                 }
 
                 result.Add(ConvertFrame(frameString, methodNameEndIndex));
@@ -271,63 +271,98 @@ namespace Backtrace.Unity.Model
         }
 
         /// <summary>
-        /// Try to convert native stack frame
+        /// Try to safely convert a native stack frame string into a Backtrace stack frame.
+        /// Handles frames with or without symbols (e.g. "0xADDR (Module)" or "0xADDR (Module) Symbol").
+        /// Prevents ArgumentOutOfRangeException by validating index ranges and allowing empty symbols.
         /// </summary>
-        /// <param name="frameString">Native stack frame</param>
-        /// <returns>Backtrace stack frame</returns>
+        /// <param name="frameString">Raw native stack frame line to parse.</param>
+        /// <returns>Parsed Backtrace stack frame containing address, library, function name, and optional line number.</returns>
         private BacktraceStackFrame SetNativeStackTraceInformation(string frameString)
         {
             var stackFrame = new BacktraceStackFrame
             {
-                StackFrameType = Types.BacktraceStackFrameType.Native
+                StackFrameType = Types.BacktraceStackFrameType.Native,
+                FunctionName = string.Empty,
+                Line = 0
             };
-            // parse address
-            var addressSubstringIndex = frameString.IndexOf(' ');
-            if (addressSubstringIndex == -1)
+
+            if (string.IsNullOrEmpty(frameString))
             {
-                stackFrame.FunctionName = frameString;
                 return stackFrame;
             }
-            stackFrame.Address = frameString.Substring(0, addressSubstringIndex);
-            var indexPointer = addressSubstringIndex + 1;
 
-            // parse library
-            if (frameString[indexPointer] == '(')
+            frameString = frameString.Trim();
+
+            // Address: starts with "0x" and ends at first space
+            int index = 0;
+            if (frameString.StartsWith("0x", StringComparison.Ordinal))
             {
-                indexPointer = indexPointer + 1;
-                var libraryNameSubstringIndex = frameString.IndexOf(')', indexPointer);
-                stackFrame.Library = frameString.Substring(indexPointer, libraryNameSubstringIndex - indexPointer);
-                indexPointer = libraryNameSubstringIndex + 2;
+                int space = frameString.IndexOf(' ');
+                if (space > 2)
+                {
+                    stackFrame.Address = frameString.Substring(0, space);
+                    index = space + 1;
+                }
+                else
+                {
+                    // if Unknown format keep raw text and return
+                    stackFrame.FunctionName = frameString;
+                    return stackFrame;
+                }
             }
 
-            stackFrame.FunctionName = frameString.Substring(indexPointer);
-            //cleanup function name
-            if (stackFrame.FunctionName.StartsWith("(wrapper managed-to-native)"))
+            // Library: Module
+            if (index < frameString.Length && frameString[index] == '(')
+            {
+                index++;
+                int close = frameString.IndexOf(')', index);
+                // if ')' missing leave Library null and continue
+                if (close > -1)
+                {
+                    stackFrame.Library = frameString.Substring(index, close - index);
+                    index = close + 1;
+                    if (index < frameString.Length && frameString[index] == ' ')
+                    {
+                        index++;
+                    }
+                }
+            }
+
+            // 3) symbol
+            stackFrame.FunctionName = (index < frameString.Length)
+                ? frameString.Substring(index).Trim()
+                : string.Empty;
+
+            // 4) Normalize known wrappers
+            if (stackFrame.FunctionName.StartsWith("(wrapper managed-to-native)", StringComparison.Ordinal))
             {
                 stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper managed-to-native)", string.Empty).Trim();
             }
 
-            if (stackFrame.FunctionName.StartsWith("(wrapper runtime-invoke)"))
+            if (stackFrame.FunctionName.StartsWith("(wrapper runtime-invoke)", StringComparison.Ordinal))
             {
                 stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper runtime-invoke)", string.Empty).Trim();
             }
 
-            // try to find source code information
-            int sourceCodeStartIndex = stackFrame.FunctionName.IndexOf('[');
-            int sourceCodeEndIndex = stackFrame.FunctionName.IndexOf(']');
-            if (sourceCodeStartIndex != -1 && sourceCodeEndIndex != -1)
+            // [file:line] suffix source code information
+            int srcStart = stackFrame.FunctionName.IndexOf('[');
+            int srcEnd = stackFrame.FunctionName.IndexOf(']');
+            if (srcStart != -1 && srcEnd != -1 && srcEnd > srcStart)
             {
-                sourceCodeStartIndex = sourceCodeStartIndex + 1;
-                var sourceCodeInformation = stackFrame.FunctionName.Substring(
-                    sourceCodeStartIndex,
-                    sourceCodeEndIndex - sourceCodeStartIndex);
-
-                var sourceCodeParts = sourceCodeInformation.Split(new char[] { ':' }, 2);
-                if (sourceCodeParts.Length == 2)
+                srcStart++;
+                var src = stackFrame.FunctionName.Substring(srcStart, srcEnd - srcStart);
+                var parts = src.Split(new char[] { ':' }, 2);
+                if (parts.Length == 2 && int.TryParse(parts[1], out var line))
                 {
-                    int.TryParse(sourceCodeParts[1], out stackFrame.Line);
-                    stackFrame.Library = sourceCodeParts[0];
-                    stackFrame.FunctionName = stackFrame.FunctionName.Substring(sourceCodeEndIndex + 2);
+                    stackFrame.Line = line;
+                    stackFrame.Library = parts[0];
+                    // after ']'
+                    int after = srcEnd + 1;
+                    if (after < stackFrame.FunctionName.Length && stackFrame.FunctionName[after] == ' ')
+                    { after++; }
+                    stackFrame.FunctionName = (after < stackFrame.FunctionName.Length)
+                        ? stackFrame.FunctionName.Substring(after)
+                        : string.Empty;
                 }
             }
 
