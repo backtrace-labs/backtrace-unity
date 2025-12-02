@@ -135,17 +135,14 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
 
             var client = new NativeClient(configuration, null, new Dictionary<string, string>(), new List<string>());
 
-            // Add the same key/value multiple times
             client.SetAttribute(k, v);
             client.SetAttribute(k, v);
             client.SetAttribute(k, v);
 
-            // Verify the stored list
             var scoped = NativeClient.GetScopedAttributes();
             Assert.IsTrue(scoped.ContainsKey(k));
             Assert.AreEqual(v, scoped[k]);
 
-            // Inspect the JSON list to ensure one occurrence of the key
             var json = PlayerPrefs.GetString(ScopedKeyList);
             var occurrences = json.Split('"');
             int count = 0;
@@ -153,6 +150,7 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
             {
                 if (s == k) count++;
             }
+
             Assert.AreEqual(1, count, "Key should be stored once in the scoped key list.");
         }
 
@@ -167,12 +165,10 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
 
             var client = new NativeClient(configuration, null, new Dictionary<string, string>(), new List<string>());
 
-            // First write
             client.SetAttribute(k, v);
             var json1 = PlayerPrefs.GetString(ScopedKeyList);
             var val1 = PlayerPrefs.GetString(string.Format(ScopedValuePattern, k));
 
-            // Second write with same value should be a no-op
             client.SetAttribute(k, v);
             var json2 = PlayerPrefs.GetString(ScopedKeyList);
             var val2 = PlayerPrefs.GetString(string.Format(ScopedValuePattern, k));

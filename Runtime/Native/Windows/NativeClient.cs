@@ -372,13 +372,10 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             try
             {
                 var attributes = JsonUtility.FromJson<ScopedAttributesContainer>(attributesJson);
-                if (attributes?.Keys != null)
-                {
                     foreach (var attributeKey in attributes.Keys)
                     {
                         PlayerPrefs.DeleteKey(string.Format(ScopedAttributesPattern, attributeKey));
                     }
-                }
             }
             catch (Exception e)
             {
@@ -467,14 +464,11 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 try
                 {
                     var container = JsonUtility.FromJson<ScopedAttributesContainer>(attributesJson);
-                    if (container?.Keys != null && container.Keys.Count > 0)
+                    foreach (var k in container.Keys)
                     {
-                        foreach (var k in container.Keys)
+                        if (!string.IsNullOrEmpty(k))
                         {
-                            if (!string.IsNullOrEmpty(k))
-                            {
-                                keys.Add(k);
-                            }
+                            keys.Add(k);
                         }
                     }
                 }
@@ -492,7 +486,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         {
             var container = new ScopedAttributesContainer
             {
-                Keys = keys.OrderBy(k => k, StringComparer.Ordinal).ToList()
+                Keys = keys.ToList()
             };
             PlayerPrefs.SetString(ScopedAttributeListKey, JsonUtility.ToJson(container));
             PlayerPrefs.Save();
