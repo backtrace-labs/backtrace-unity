@@ -24,23 +24,28 @@ namespace Backtrace.Unity.Runtime.Native.OSX
             public string Value;
         }
 
-        [DllImport("Backtrace-Unity-Mac-bundle", EntryPoint = "StartBacktraceIntegration")]
+        #if UNITY_STANDALONE_OSX
+
+        [DllImport("BacktraceMacUnity", EntryPoint = "StartBacktraceIntegration")]
         private static extern void Start(string plCrashReporterUrl, string[] attributeKeys, string[] attributeValues, int attributesSize, bool enableOomSupport, string[] attachments, int attachmentSize, bool enableClientSideUnwinding);
 
-        [DllImport("Backtrace-Unity-Mac-bundle", EntryPoint = "NativeReport")]
+        [DllImport("BacktraceMacUnity", EntryPoint = "NativeReport")]
         private static extern void NativeReport(string message, bool setMainThreadAsFaultingThread, bool ignoreIfDebugger);
 
-        [DllImport("Backtrace-Unity-Mac-bundle", EntryPoint = "Crash")]
+
+        [DllImport("BacktraceMacUnity", EntryPoint = "BtCrash")]
         private static extern string Crash();
 
-        [DllImport("Backtrace-Unity-Mac-bundle", EntryPoint = "GetAttributes")]
+        [DllImport("BacktraceMacUnity", EntryPoint = "GetAttributes")]
         private static extern void GetNativeAttributes(out IntPtr attributes, out int keysCount);
 
-        [DllImport("Backtrace-Unity-Mac-bundle", EntryPoint = "AddAttribute")]
+        [DllImport("BacktraceMacUnity", EntryPoint = "AddAttribute")]
         private static extern void AddAttribute(string key, string value);
 
-        [DllImport("Backtrace-Unity-Mac-bundle", EntryPoint = "Disable")]
+        [DllImport("BacktraceMacUnity", EntryPoint = "Disable")]
         private static extern void DisableNativeIntegration();
+
+        #endif
 
         private static bool INITIALIZED = false;
 
