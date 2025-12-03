@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.15.0
+
+Improvements
+- iOS/macOS: Update Unity native integration for Apple platforms.
+- Android: Fix native crash handler startup on split APK / OBB / Google Play Asset Delivery installs by resolving the correct APK path for the crash handler.
+- Android: Bump bundled Android binaries to the latest Backtrace Android SDK version.
+Bugfixes
+- Windows: Fix unbounded growth of stored scoped attributes.
+
 ## Version 3.14.0
 
 Improvements
