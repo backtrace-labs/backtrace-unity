@@ -22,7 +22,7 @@ namespace Backtrace.Unity.Model.Attributes
             attributes["scene.active"] = activeScene.name;
             attributes["scene.buildIndex"] = activeScene.buildIndex.ToString(CultureInfo.InvariantCulture);
 #if UNITY_2018_4_OR_NEWER
-            attributes["scene.handle"] = activeScene.handle.ToString(CultureInfo.InvariantCulture);
+            attributes["scene.handle"] = activeScene.handle.ToString(CultureInfo.InvariantCulture.ToString());
 #endif
             attributes["scene.isDirty"] = activeScene.isDirty.ToString(CultureInfo.InvariantCulture);
             attributes["scene.isLoaded"] = activeScene.isLoaded.ToString(CultureInfo.InvariantCulture);
@@ -31,3 +31,4 @@ namespace Backtrace.Unity.Model.Attributes
         }
     }
 }
+
