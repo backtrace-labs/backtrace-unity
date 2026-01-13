@@ -1,5 +1,13 @@
 # Backtrace Unity Release Notes
 
+## Version 3.15.1-rc1
+
+Improvements
+- WebGL: Add offline support.
+- macOS: Align Backtrace native plugin bundle with Unity & Apple requirements to prevent undefined behaviour during crash handling.
+Bugfixes
+- Update scene.handle attribute handling for Unity 6000.3 version compatibility.
+
 ## Version 3.15.0
 
 Improvements
