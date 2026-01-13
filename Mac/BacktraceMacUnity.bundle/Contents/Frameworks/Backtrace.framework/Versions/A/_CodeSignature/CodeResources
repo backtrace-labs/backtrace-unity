@@ -4,53 +4,17 @@
 <dict>
 	<key>files</key>
 	<dict>
-		<key>Resources/BacktraceResources.bundle/Contents/Info.plist</key>
-		<data>
-		/kQDn/qzuvjKQYgL3R8wcvd9V6I=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/Resources/Model.momd/Model.mom</key>
-		<data>
-		oY715RjH8RLsZ62wNkTu/4CAgzE=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/Resources/Model.momd/VersionInfo.plist</key>
-		<data>
-		VDsrXY+tpRztPEAvUKkp1SRzKWI=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
-		<data>
-		fZU0MKIt8Fnd2qnYWmCR+ZWPjK0=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeDirectory</key>
-		<data>
-		9c0VgwCVPPGHTobIfonvAkEuw5I=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeRequirements</key>
-		<data>
-		OnX22wWFKRSOFN1+obRynMCeyXM=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeRequirements-1</key>
-		<data>
-		g/5/m+vWvnHUTWnzUdeajKghIJQ=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeResources</key>
-		<data>
-		s0f3t0T8Cc/oeM3KDfK+usRRPS0=
-		</data>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeSignature</key>
-		<data>
-		2jmj7l5rSw0yVb/vlWAYkK/YBwk=
-		</data>
 		<key>Resources/Info.plist</key>
 		<data>
 		bYOr2hzR+wht85e6u7qyRsqxz8Q=
 		</data>
-		<key>Resources/PLCrashReporter.bundle/Contents/Info.plist</key>
+		<key>Resources/Model.momd/Model.mom</key>
 		<data>
-		a6bbgo+noxLDu7KcdBFMlX/rwuw=
+		oY715RjH8RLsZ62wNkTu/4CAgzE=
 		</data>
-		<key>Resources/PLCrashReporter.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<key>Resources/Model.momd/VersionInfo.plist</key>
 		<data>
-		O3Zhkkf3uaxqyTk0D3zchR8Gees=
+		VDsrXY+tpRztPEAvUKkp1SRzKWI=
 		</data>
 		<key>Resources/PrivacyInfo.xcprivacy</key>
 		<data>
@@ -59,69 +23,6 @@
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>Resources/BacktraceResources.bundle/Contents/Info.plist</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			Fbm2rQnN8tDRdYDUD5hADOMug0PqrPjA1en/p7Da6Lc=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/Resources/Model.momd/Model.mom</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			sl5S//BxBIQpdRCEXAyH5OINmZhBDvENxjX0kOJ6pj4=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/Resources/Model.momd/VersionInfo.plist</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			r43Lc4T3JNmt6+aF/bm0VbyDiy1gmLEa4tQkcGuIyTw=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			W4GYx3E/DJBKJ4aViszvqnv3rCzspeT5hG4vJvQa8hk=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeDirectory</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			DAB124T10tM//ku/mu6vWImW8mFZvTyuvAW/b6XqpDk=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeRequirements</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			mHkgkE6rZQ51eIwFSqCwUk5qgL/HGqMt+NI3phdD+YY=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeRequirements-1</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			3GUs+iaJUqKBSMp1sE7UwNo1B085n/cf2jdU1uN5NtE=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeResources</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			hWJ+wwpRM0s7KmSkeqr3ilmOXr2dJxFSUXzjOrlBDVU=
-			</data>
-		</dict>
-		<key>Resources/BacktraceResources.bundle/Contents/_CodeSignature/CodeSignature</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=
-			</data>
-		</dict>
 		<key>Resources/Info.plist</key>
 		<dict>
 			<key>hash2</key>
@@ -129,18 +30,18 @@
 			5e/kTZ7Hklr2O2Opvrc0FujhkCYcjjQg7kOKTYzOhy0=
 			</data>
 		</dict>
-		<key>Resources/PLCrashReporter.bundle/Contents/Info.plist</key>
+		<key>Resources/Model.momd/Model.mom</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			iFrlHh7fT/ivzWIfwoNMGpezCv66lPgF84bm5X6t6Gw=
+			sl5S//BxBIQpdRCEXAyH5OINmZhBDvENxjX0kOJ6pj4=
 			</data>
 		</dict>
-		<key>Resources/PLCrashReporter.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<key>Resources/Model.momd/VersionInfo.plist</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			WdWnMSNl52vRPwKNpI8BQV9PUBP0rC8ybQKoTQJKewI=
+			r43Lc4T3JNmt6+aF/bm0VbyDiy1gmLEa4tQkcGuIyTw=
 			</data>
 		</dict>
 		<key>Resources/PrivacyInfo.xcprivacy</key>
