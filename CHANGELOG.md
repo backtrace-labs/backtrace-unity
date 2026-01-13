@@ -3,10 +3,11 @@
 ## Version 3.15.1-rc1
 
 Improvements
-- WebGL: Add offline support.
-- macOS: Align Backtrace native plugin bundle with Unity & Apple requirements to prevent undefined behaviour during crash handling.
+- WebGL: Add support for offline reports storage and deferred submission.
+- macOS: Update Backtrace native plugin bundle layout to comply with Unity and Apple bundle requirements and prevent undefined behaviour during native crash handling
+
 Bugfixes
-- Update scene.handle attribute handling for Unity 6000.3 version compatibility.
+- Unity 6000.3: Update scene attribute handling to restore compatibility.
 
 ## Version 3.15.0
 
@@ -14,6 +15,7 @@ Improvements
 - iOS/macOS: Update Unity native integration for Apple platforms.
 - Android: Fix native crash handler startup on split APK / OBB / Google Play Asset Delivery installs by resolving the correct APK path for the crash handler.
 - Android: Bump bundled Android binaries to the latest Backtrace Android SDK version.
+
 Bugfixes
 - Windows: Fix unbounded growth of stored scoped attributes.
 
