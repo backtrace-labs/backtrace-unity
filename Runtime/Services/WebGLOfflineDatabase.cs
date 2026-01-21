@@ -185,6 +185,27 @@ namespace Backtrace.Unity.Services
         }
 
         /// <summary>
+        /// Check if the queue already contains a record with the given UUID.
+        /// </summary>
+        public bool Contains(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid) || _cache == null || _cache.items == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < _cache.items.Count; i++)
+            {
+                if (_cache.items[i] != null && _cache.items[i].uuid == uuid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Remove a record by UUID.
         /// </summary>
         public void Remove(string uuid)

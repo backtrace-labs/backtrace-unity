@@ -6,12 +6,14 @@ using Backtrace.Unity.Model.Breadcrumbs.Storage;
 using Backtrace.Unity.Model.Database;
 using Backtrace.Unity.Runtime.Native;
 using Backtrace.Unity.Services;
+using Backtrace.Unity.WebGL;
 using Backtrace.Unity.Types;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Collections;
 using UnityEngine;
 
 namespace Backtrace.Unity
@@ -23,6 +25,15 @@ namespace Backtrace.Unity
     public class BacktraceDatabase : MonoBehaviour, IBacktraceDatabase
     {
         private bool _timerBackgroundWork = false;
+
+#if UNITY_WEBGL
+        private WebGLOfflineDatabase _webglOfflineDatabase;
+        private Coroutine _webglOfflineReplayCoroutine;
+        private bool _webglOfflineReplayInProgress;
+        private float _webglLastReplayTime;
+        private const float WebGLInflightTimeoutSeconds = 30f;
+        private readonly Dictionary<string, float> _webglInflightUuids = new Dictionary<string, float>();
+#endif
 
         public BacktraceConfiguration Configuration;
 
@@ -167,26 +178,59 @@ namespace Backtrace.Unity
         public void Reload()
         {
             // validate configuration
-            if (Configuration == null)
+            if (_client == null)
             {
                 _client = GetComponent<BacktraceClient>();
+            }
+            if (Configuration == null && _client != null)
+            {
                 Configuration = _client.Configuration;
             }
-            if (Instance != null)
+
+            // Multi-scene support if another persistent instance already exists, we disable this instance.
+            if (Instance != null && Instance != this)
             {
+                Enable = false;
                 return;
             }
+
             if (Configuration == null || !Configuration.IsValid())
             {
                 Enable = false;
                 return;
             }
 
+            // We keep a report-limit watcher even if the on-disk database cannot be initialized.
+            var reportPerMin = Configuration.ReportPerMin < 0 ? 0 : Configuration.ReportPerMin;
+            if (_reportLimitWatcher == null)
+            {
+                _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(reportPerMin));
+            }
+            else
+            {
+                _reportLimitWatcher.SetClientReportLimit(Convert.ToUInt32(reportPerMin));
+            }
+
+#if UNITY_WEBGL
+            // Install browser lifecycle hooks to flush IDBFS.
+            BacktraceWebGLSync.TryInstallPageLifecycleHooks();
+
+            // Initialize the PlayerPrefs fallback queue.
+            EnsureWebGLOfflineDatabase();
+#endif
+
 #if UNITY_SWITCH
             Enable = false;
 #else
             Enable = Configuration.Enabled && InitializeDatabasePaths();
 #endif
+
+            // Multi-scene support follows the configuration scope whenever offline persistence is enabled.
+            if (Configuration.Enabled)
+            {
+                SetupMultisceneSupport();
+            }
+
             if (!Enable)
             {
                 if (Configuration.Enabled)
@@ -196,17 +240,17 @@ namespace Backtrace.Unity
                 return;
             }
 
-
             //setup database object
             DatabaseSettings = new BacktraceDatabaseSettings(DatabasePath, Configuration);
-            SetupMultisceneSupport();
             _lastConnection = Time.unscaledTime;
             LastFrameTime = Time.unscaledTime;
             //Setup database context
             BacktraceDatabaseContext = new BacktraceDatabaseContext(DatabaseSettings);
             BacktraceDatabaseFileContext = new BacktraceDatabaseFileContext(DatabaseSettings);
-            BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
-            _reportLimitWatcher = new ReportLimitWatcher(Convert.ToUInt32(Configuration.ReportPerMin));
+            if (BacktraceApi == null)
+            {
+                BacktraceApi = new BacktraceApi(Configuration.ToCredentials());
+            }
         }
 
         /// <summary>
@@ -215,6 +259,11 @@ namespace Backtrace.Unity
         public void OnDisable()
         {
             Enable = false;
+
+#if UNITY_WEBGL
+            StopWebGLOfflineReplay();
+            BacktraceWebGLSync.TrySyncFileSystem(true);
+#endif
         }
 
         /// <summary>
@@ -230,6 +279,10 @@ namespace Backtrace.Unity
         /// </summary>
         internal void Update()
         {
+#if UNITY_WEBGL
+            TickWebGLSupport();
+#endif
+
             if (!Enable)
             {
                 return;
@@ -260,6 +313,11 @@ namespace Backtrace.Unity
 
         private void Start()
         {
+#if UNITY_WEBGL
+            // Flush persisted WebGL offline reports as soon as the database component starts.
+            TickWebGLSupport(forceImmediate: true);
+#endif
+
             if (!Enable)
             {
                 return;
@@ -344,10 +402,14 @@ namespace Backtrace.Unity
                 BacktraceDatabaseContext.Clear();
             }
 
-            if (BacktraceDatabaseContext != null)
+            if (BacktraceDatabaseFileContext != null)
             {
                 BacktraceDatabaseFileContext.Clear();
             }
+
+#if UNITY_WEBGL
+            BacktraceWebGLSync.TrySyncFileSystem(true);
+#endif
         }
 
         /// <summary>
@@ -417,6 +479,10 @@ namespace Backtrace.Unity
                 record.Unlock();
             }
 
+#if UNITY_WEBGL
+            BacktraceWebGLSync.TrySyncFileSystem();
+#endif
+
             return record;
         }
 
@@ -461,6 +527,10 @@ namespace Backtrace.Unity
             {
                 BacktraceDatabaseFileContext.Delete(record);
             }
+
+#if UNITY_WEBGL
+            BacktraceWebGLSync.TrySyncFileSystem();
+#endif
         }
 
         /// <summary>
@@ -553,9 +623,17 @@ namespace Backtrace.Unity
                      BacktraceApi.Send(backtraceData, record.Attachments, queryAttributes, (BacktraceResult sendResult) =>
                      {
                          record.Unlock();
-                         if (sendResult.Status != BacktraceResultStatus.ServerError && sendResult.Status != BacktraceResultStatus.NetworkError)
+                         // Only delete the record when the send was successful.
+                         // For errors and rate limiting, we keep the record for retry.
+                         if (sendResult != null && (sendResult.Status == BacktraceResultStatus.Ok || sendResult.Status == BacktraceResultStatus.Empty))
                          {
                              Delete(record);
+                         }
+                         else if (sendResult != null && sendResult.Status == BacktraceResultStatus.LimitReached)
+                         {
+                             // Server rate-limited here, we keep the record and stop this cycle.
+                             // We do NOT count this against the retry limit.
+                             return;
                          }
                          else
                          {
@@ -757,6 +835,347 @@ namespace Backtrace.Unity
         {
             return BacktraceDatabaseContext.GetSize();
         }
+
+#if UNITY_WEBGL
+        /// <summary>
+        /// Persist the report to the WebGL PlayerPrefs-backed offline queue before sending.
+        /// This avoids data loss when the send callback never executes (tab close, background, hard crash).
+        /// </summary>
+        internal void WebGLPersistBeforeSend(BacktraceData data, string json)
+        {
+            if (data == null || string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            if (Configuration == null || !Configuration.Enabled)
+            {
+                return;
+            }
+
+            EnsureWebGLOfflineDatabase();
+
+            if (_webglOfflineDatabase == null)
+            {
+                return;
+            }
+
+            var uuid = data.Uuid.ToString();
+            MarkWebGLInflight(uuid);
+
+            // Avoid enqueueing the same UUID multiple times.
+            if (_webglOfflineDatabase.Contains(uuid))
+            {
+                return;
+            }
+
+            _webglOfflineDatabase.Enqueue(data.Uuid, json, data.Attachments, data.Deduplication);
+        }
+
+        /// <summary>
+        /// Update WebGL offline queue state after an immediate send attempt completes.
+        /// </summary>
+        internal void WebGLHandleSendResult(BacktraceData data, BacktraceResult result)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            var uuid = data.Uuid.ToString();
+            ClearWebGLInflight(uuid);
+
+            if (Configuration == null || !Configuration.Enabled)
+            {
+                return;
+            }
+
+            EnsureWebGLOfflineDatabase();
+
+            if (_webglOfflineDatabase == null)
+            {
+                return;
+            }
+
+            if (result != null && (result.Status == BacktraceResultStatus.Ok || result.Status == BacktraceResultStatus.Empty))
+            {
+                _webglOfflineDatabase.Remove(uuid);
+                return;
+            }
+
+            // If the server is rate limiting us, we keep the record but don't count this against retry limit.
+            if (result != null && result.Status == BacktraceResultStatus.LimitReached)
+            {
+                return;
+            }
+
+            // Count the attempt for other retryable failures.
+            _webglOfflineDatabase.IncrementAttempts(uuid);
+        }
+
+        private void EnsureWebGLOfflineDatabase()
+        {
+            if (Configuration == null || !Configuration.Enabled)
+            {
+                return;
+            }
+
+            if (_webglOfflineDatabase == null)
+            {
+                _webglOfflineDatabase = new WebGLOfflineDatabase(Configuration);
+            }
+
+            _webglOfflineDatabase.Compact();
+        }
+
+        private void TickWebGLSupport(bool forceImmediate = false)
+        {
+            if (Configuration == null || !Configuration.Enabled)
+            {
+                return;
+            }
+
+            // Browser lifecycle hooks to flush IDBFS.
+            BacktraceWebGLSync.TryInstallPageLifecycleHooks();
+
+            EnsureWebGLOfflineDatabase();
+            CleanupWebGLInflight();
+
+            if (_webglOfflineDatabase == null || _webglOfflineDatabase.IsEmpty)
+            {
+                return;
+            }
+
+            if (!Configuration.AutoSendMode)
+            {
+                return;
+            }
+
+            if (BacktraceApi == null)
+            {
+                return;
+            }
+
+            var retryInterval = Mathf.Max(1f, Configuration.RetryInterval);
+            var now = Time.unscaledTime;
+
+            if (forceImmediate)
+            {
+                _webglLastReplayTime = now - retryInterval;
+            }
+
+            if (_webglOfflineReplayInProgress)
+            {
+                return;
+            }
+
+            if (now - _webglLastReplayTime < retryInterval)
+            {
+                return;
+            }
+
+            _webglLastReplayTime = now;
+            _webglOfflineReplayCoroutine = StartCoroutine(WebGLOfflineReplay());
+        }
+
+        private IEnumerator WebGLOfflineReplay()
+        {
+            if (_webglOfflineReplayInProgress)
+            {
+                yield break;
+            }
+
+            _webglOfflineReplayInProgress = true;
+
+            try
+            {
+                if (_webglOfflineDatabase == null || BacktraceApi == null)
+                {
+                    yield break;
+                }
+
+                var retryLimit = Mathf.Max(1, Configuration.RetryLimit);
+                var retryOrder = Configuration.RetryOrder;
+
+                while (_webglOfflineDatabase.TryPeek(retryOrder, out var record))
+                {
+                    if (record == null)
+                    {
+                        _webglOfflineDatabase.Compact();
+                        yield break;
+                    }
+
+                    // Records that exceeded retry limit.
+                    if (record.attempts >= retryLimit)
+                    {
+                        _webglOfflineDatabase.Remove(record.uuid);
+                        yield return null;
+                        continue;
+                    }
+
+                    // Avoid sending the same report.
+                    if (IsWebGLInflight(record.uuid))
+                    {
+                        yield break;
+                    }
+
+                    // Client-side report rate limiting.
+                    if (_reportLimitWatcher != null && !_reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp(), displayMessageOnLimitHit: false))
+                    {
+                        yield break;
+                    }
+
+                    var queryAttributes = new Dictionary<string, string>();
+                    if (record.deduplication != 0)
+                    {
+                        queryAttributes["_mod_duplicate"] = record.deduplication.ToString(CultureInfo.InvariantCulture);
+                    }
+
+                    BacktraceResult sendResult = null;
+
+                    MarkWebGLInflight(record.uuid);
+                    yield return BacktraceApi.Send(
+                        record.json,
+                        record.attachments ?? Array.Empty<string>(),
+                        queryAttributes,
+                        result => sendResult = result);
+                    ClearWebGLInflight(record.uuid);
+
+                    if (sendResult != null && (sendResult.Status == BacktraceResultStatus.Ok || sendResult.Status == BacktraceResultStatus.Empty))
+                    {
+                        _webglOfflineDatabase.Remove(record.uuid);
+                        yield return null;
+                        continue;
+                    }
+
+                    // Rate limiting, we stop without consuming retry attempts.
+                    if (sendResult != null && sendResult.Status == BacktraceResultStatus.LimitReached)
+                    {
+                        yield break;
+                    }
+
+                    // Re-try other failed status attempts for WebGL offline replay.
+                    _webglOfflineDatabase.IncrementAttempts(record.uuid);
+                    yield break;
+                }
+            }
+            finally
+            {
+                _webglOfflineReplayInProgress = false;
+                _webglOfflineReplayCoroutine = null;
+            }
+        }
+
+        private void StopWebGLOfflineReplay()
+        {
+            if (_webglOfflineReplayCoroutine != null)
+            {
+                StopCoroutine(_webglOfflineReplayCoroutine);
+                _webglOfflineReplayCoroutine = null;
+            }
+
+            _webglOfflineReplayInProgress = false;
+            CleanupWebGLInflight(forceClearAll: true);
+        }
+
+        private void MarkWebGLInflight(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid))
+            {
+                return;
+            }
+
+            _webglInflightUuids[uuid] = Time.unscaledTime;
+        }
+
+        private void ClearWebGLInflight(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid))
+            {
+                return;
+            }
+
+            _webglInflightUuids.Remove(uuid);
+        }
+
+        private bool IsWebGLInflight(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid))
+            {
+                return false;
+            }
+
+            if (!_webglInflightUuids.TryGetValue(uuid, out var since))
+            {
+                return false;
+            }
+
+            if (Time.unscaledTime - since > WebGLInflightTimeoutSeconds)
+            {
+                _webglInflightUuids.Remove(uuid);
+                return false;
+            }
+
+            return true;
+        }
+
+        private void CleanupWebGLInflight(bool forceClearAll = false)
+        {
+            if (_webglInflightUuids.Count == 0)
+            {
+                return;
+            }
+
+            if (forceClearAll)
+            {
+                _webglInflightUuids.Clear();
+                return;
+            }
+
+            var now = Time.unscaledTime;
+            var stale = new List<string>();
+
+            foreach (var kv in _webglInflightUuids)
+            {
+                if (now - kv.Value > WebGLInflightTimeoutSeconds)
+                {
+                    stale.Add(kv.Key);
+                }
+            }
+
+            for (int i = 0; i < stale.Count; i++)
+            {
+                _webglInflightUuids.Remove(stale[i]);
+            }
+        }
+
+        private void OnApplicationPause(bool pause)
+        {
+            if (pause)
+            {
+                BacktraceWebGLSync.TrySyncFileSystem(true);
+            }
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+            {
+                BacktraceWebGLSync.TrySyncFileSystem(true);
+            }
+        }
+
+        private void OnApplicationQuit()
+        {
+            BacktraceWebGLSync.TrySyncFileSystem(true);
+        }
+
+        private void OnDestroy()
+        {
+            StopWebGLOfflineReplay();
+            BacktraceWebGLSync.TrySyncFileSystem(true);
+        }
+#endif
 
         private ReportLimitWatcher _reportLimitWatcher;
         public void SetReportWatcher(ReportLimitWatcher reportLimitWatcher)
