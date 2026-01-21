@@ -15,9 +15,10 @@ namespace Backtrace.Unity.WebGL
     {
         // Debounce to avoid spamming FS.syncfs on frequent events / frequent report writes.
         private const float MinSyncIntervalSeconds = 2f;
+        private const float MinHooksInstallRetrySeconds = 1f;
 
-        private static bool _hooksAttempted;
         private static bool _hooksInstalled;
+        private static float _lastHooksInstallAttemptTime;
         private static float _lastSyncTime;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -35,12 +36,18 @@ namespace Backtrace.Unity.WebGL
         public static void TryInstallPageLifecycleHooks()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
-            if (_hooksInstalled || _hooksAttempted)
+            if (_hooksInstalled)
             {
                 return;
             }
 
-            _hooksAttempted = true;
+            var now = Time.realtimeSinceStartup;
+            if (now - _lastHooksInstallAttemptTime < MinHooksInstallRetrySeconds)
+            {
+                return;
+            }
+            _lastHooksInstallAttemptTime = now;
+
             try
             {
                 _hooksInstalled = BT_InstallPageLifecycleHooks() != 0;
