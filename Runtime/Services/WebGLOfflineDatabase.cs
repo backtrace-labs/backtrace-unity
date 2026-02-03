@@ -262,7 +262,17 @@ namespace Backtrace.Unity.Services
 
         private WebGLOfflineQueue Load()
         {
-            var raw = PlayerPrefs.GetString(_storageKey, string.Empty);
+            string raw;
+            try
+            {
+                raw = PlayerPrefs.GetString(_storageKey, string.Empty);
+            }
+            catch
+            {
+                // Some browsers like Safari on iOS can throw on storage access.
+                // We treat this as empty storage to avoid crashing the game.
+                raw = string.Empty;
+            }
             if (string.IsNullOrEmpty(raw))
             {
                 return new WebGLOfflineQueue();

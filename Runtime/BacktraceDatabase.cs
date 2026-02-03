@@ -923,9 +923,9 @@ namespace Backtrace.Unity
             if (_webglOfflineDatabase == null)
             {
                 _webglOfflineDatabase = new WebGLOfflineDatabase(Configuration);
+                // Compact and enforce bounds once at initialization.
+                _webglOfflineDatabase.Compact();
             }
-
-            _webglOfflineDatabase.Compact();
         }
 
         private void TickWebGLSupport(bool forceImmediate = false)
