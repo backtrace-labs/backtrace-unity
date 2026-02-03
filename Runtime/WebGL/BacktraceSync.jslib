@@ -22,6 +22,7 @@ mergeInto(LibraryManager.library, {
           return;
         }
         // Debounce here, mobile browsers can fire multiple lifecycle events in quick succession.
+        // TODO: BT-6086
         if (now && state.last && (now - state.last) < 1000) {
           return;
         }
@@ -104,6 +105,8 @@ mergeInto(LibraryManager.library, {
       };
 
       // Page Lifecycle events hooks for flushing.
+      // We intentionally avoid `beforeunload`. It is unreliable on mobile & discouraged in modern browsers.
+      // See: https://developer.chrome.com/docs/web-platform/deprecating-unload/  
       window.addEventListener('pagehide', flush);
 
       document.addEventListener('visibilitychange', function () {
