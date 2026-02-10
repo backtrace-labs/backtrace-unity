@@ -18,7 +18,7 @@ jobs:
         projectPath:
           - test-package
         unityVersion:
-          - 2021.3.48f1
+          - 2021.3.56f2
           - 2022.3.56f1
           - 6000.3.0f1
     steps:
