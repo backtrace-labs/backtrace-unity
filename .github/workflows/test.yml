@@ -14,7 +14,7 @@ jobs:
       matrix:
         testMode:
           - playmode
-          # - editmode
+          - editmode
         projectPath:
           - test-package
         unityVersion:
@@ -33,7 +33,7 @@ jobs:
           mv Editor Runtime Tests Android iOS Windows package.json ${{ matrix.projectPath }}/
 
       - name: Run Tests
-        uses: game-ci/unity-test-runner@main
+        uses: game-ci/unity-test-runner@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
