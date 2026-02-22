@@ -14,7 +14,7 @@ jobs:
       matrix:
         testMode:
           - playmode
-          # - editmode
+          - editmode
         projectPath:
           - test-package
         unityVersion:
