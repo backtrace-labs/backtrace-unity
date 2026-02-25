@@ -1,5 +1,40 @@
 # Backtrace Unity Release Notes
 
+## Version 3.15.1
+
+Improvements
+- WebGL: 
+  - Add support for offline reports storage and deferred submission.
+  - Ensure offline crash persistence works when Backtrace is initialized while offline.
+  - Enable offline persistence by default for WebGL runtime builds initialized via BacktraceClient.Initialize(url).
+  - Move WebGL offline replay and filesystem flush logic from BacktraceClient into BacktraceDatabase to better align with SDK architecture.
+  - Add write-ahead persistence to the PlayerPrefs-backed fallback queue to prevent data loss when send callbacks do not execute due to browser lifecycle teardown.
+  - Improve rate-limit handling by preserving stored records and excluding HTTP 429 responses from retry attempts.
+  - Improve WebGL mobile browser stability (Android Chrome / iOS Safari):
+    - Avoid per-frame PlayerPrefs compaction to prevent excessive storage I/O, jank, and battery drain.
+    - Improve resilience of PlayerPrefs access under browser storage constraints (e.g. browsing-modes / quota limits).
+    - Harden IDBFS persistence by debouncing and guarding FS.syncfs calls.
+    - Rely on modern browser lifecycle signals (pagehide, visibilitychange, freeze, blur) instead of unreliable unload events.
+- macOS: Update Backtrace native plugin bundle layout to comply with Unity and Apple bundle requirements and prevent undefined behaviour during native crash handling
+
+Bugfixes
+- Unity 6000.3: Update scene attribute handling to restore compatibility.
+
+## Version 3.15.0
+
+Improvements
+- iOS/macOS: Update Unity native integration for Apple platforms.
+- Android: Fix native crash handler startup on split APK / OBB / Google Play Asset Delivery installs by resolving the correct APK path for the crash handler.
+- Android: Bump bundled Android binaries to the latest Backtrace Android SDK version.
+
+Bugfixes
+- Windows: Fix unbounded growth of stored scoped attributes.
+
+## Version 3.14.0
+
+Improvements
+- Add support for Android offline native crash replay
+
 ## Version 3.13.0
 
 Improvements

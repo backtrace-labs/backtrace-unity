@@ -24,7 +24,7 @@ namespace Backtrace.Unity
     /// </summary>
     public class BacktraceClient : MonoBehaviour, IBacktraceClient
     {
-        public const string VERSION = "3.13.0";
+        public const string VERSION = "3.15.1";
         internal const string DefaultBacktraceGameObjectName = "BacktraceClient";
         public BacktraceConfiguration Configuration;
 
@@ -130,6 +130,7 @@ namespace Backtrace.Unity
         /// Client report attachments
         /// </summary>
         private HashSet<string> _clientReportAttachments;
+
 
         /// <summary>
         /// Attribute object accessor
@@ -511,7 +512,13 @@ namespace Backtrace.Unity
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
             configuration.ServerUrl = url;
             configuration.AttachmentPaths = attachments;
+            // For WebGL builds, we enable offline storage by default.
+            // WebGL network conditions and browser lifecycle events can drop reports unless persistence is enabled.
+#if UNITY_WEBGL
+            configuration.Enabled = true;
+#else
             configuration.Enabled = false;
+#endif
             return Initialize(configuration, attributes, gameObjectName);
         }
 
@@ -553,6 +560,7 @@ namespace Backtrace.Unity
 #endif
                 );
             BacktraceApi.EnablePerformanceStatistics = Configuration.PerformanceStatistics;
+
 
             if (!Configuration.DestroyOnLoad)
             {
@@ -598,7 +606,6 @@ namespace Backtrace.Unity
                 AttributeProvider.AddDynamicAttributeProvider(_nativeClient);
             }
         }
-
         public bool EnableBreadcrumbsSupport()
         {
             if (Database == null)
@@ -867,7 +874,8 @@ namespace Backtrace.Unity
             }
             BacktraceDatabaseRecord record = null;
 
-            if (Database != null && Database.Enabled())
+            bool databaseEnabled = Database != null && Database.Enabled();
+            if (databaseEnabled)
             {
                 yield return WaitForFrame.Wait();
                 if (EnablePerformanceStatistics)
@@ -933,16 +941,41 @@ namespace Backtrace.Unity
                 queryAttributes["_mod_duplicate"] = data.Deduplication.ToString(CultureInfo.InvariantCulture);
             }
 
+#if UNITY_WEBGL
+            // When the on-disk BacktraceDatabase is unavailable/disabled on WebGL, we persist the report before sending. 
+            // This ensures that reports are not lost in cases where the browser is offline and the send callback never executes (tab close, crash, navigation).
+            if (!databaseEnabled &&
+                Configuration != null &&
+                Configuration.Enabled &&
+                RequestHandler == null &&
+                Database is BacktraceDatabase webglDatabase)
+            {
+                webglDatabase.WebGLPersistBeforeSend(data, json);
+            }
+#endif
+
             StartCoroutine(BacktraceApi.Send(json, data.Attachments, queryAttributes, (BacktraceResult result) =>
             {
                 if (record != null)
                 {
                     record.Unlock();
-                    if (Database != null && result.Status != BacktraceResultStatus.ServerError && result.Status != BacktraceResultStatus.NetworkError)
+                    if (databaseEnabled && (result.Status == BacktraceResultStatus.Ok || result.Status == BacktraceResultStatus.Empty))
                     {
                         Database.Delete(record);
                     }
                 }
+
+#if UNITY_WEBGL
+                if (!databaseEnabled &&
+                    Configuration != null &&
+                    Configuration.Enabled &&
+                    RequestHandler == null &&
+                    Database is BacktraceDatabase webglDatabase)
+                {
+                    webglDatabase.WebGLHandleSendResult(data, result);
+                }
+#endif
+
                 //check if there is more errors to send
                 //handle inner exception
                 HandleInnerException(report);

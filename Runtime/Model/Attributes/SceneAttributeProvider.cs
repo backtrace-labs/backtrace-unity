@@ -21,7 +21,9 @@ namespace Backtrace.Unity.Model.Attributes
             var activeScene = SceneManager.GetActiveScene();
             attributes["scene.active"] = activeScene.name;
             attributes["scene.buildIndex"] = activeScene.buildIndex.ToString(CultureInfo.InvariantCulture);
-#if UNITY_2018_4_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+            attributes["scene.handle"] = activeScene.handle.ToString();
+#elif UNITY_2018_4_OR_NEWER
             attributes["scene.handle"] = activeScene.handle.ToString(CultureInfo.InvariantCulture);
 #endif
             attributes["scene.isDirty"] = activeScene.isDirty.ToString(CultureInfo.InvariantCulture);
