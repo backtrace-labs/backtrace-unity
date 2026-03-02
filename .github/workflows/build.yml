@@ -15,7 +15,7 @@ jobs:
         projectPath:
           - test-package
         unityVersion:
-          - 2022.3.56f1
+          - 2019.4.40f1
         targetPlatform:
           - StandaloneOSX
           - StandaloneWindows
@@ -48,6 +48,5 @@ jobs:
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: ${{ matrix.projectPath }}/
-	  allowDirtyBuild: true
-          testMode: editmode
+	        allowDirtyBuild: true
           
