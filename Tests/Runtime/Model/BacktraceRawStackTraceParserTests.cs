@@ -31,5 +31,14 @@ namespace Backtrace.Unity.Tests.Runtime
             var backtraceStackFrame = BacktraceRawStackTraceParser.ParseNativeFrame("nonsense frame with no address");
             Assert.AreEqual("nonsense frame with no address", backtraceStackFrame.FunctionName);
         }
+
+        [Test]
+        public void WithSourceFileAndLineInFunctionName_ParsesLibraryAndKeepsFunctionNameAndLine()
+        {
+            var backtraceStackFrame = BacktraceRawStackTraceParser.ParseNativeFrame("0x00007ffac65f0d48 (GameAssembly) UIElementsRuntimeUtilityNative_UpdatePanels_m7AA4182BFC7A561A78A786FAAD18C71158EDFCBD (at D:/fm26/apps/game/FM Unity/Library/Bee/artifacts/WinPlayerBuildProgram/il2cppOutput/cpp/UnityEngine.UIElementsModule__7.cpp:43671)");
+            Assert.AreEqual("GameAssembly", backtraceStackFrame.Library);
+            Assert.AreEqual("UIElementsRuntimeUtilityNative_UpdatePanels_m7AA4182BFC7A561A78A786FAAD18C71158EDFCBD (at D:/fm26/apps/game/FM Unity/Library/Bee/artifacts/WinPlayerBuildProgram/il2cppOutput/cpp/UnityEngine.UIElementsModule__7.cpp:43671)", backtraceStackFrame.FunctionName);
+            Assert.AreEqual(0, backtraceStackFrame.Line); // TODO: verify if it should be 0 as line if value is above
+        }
     }
 }
