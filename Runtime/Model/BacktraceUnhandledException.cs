@@ -137,8 +137,8 @@ namespace Backtrace.Unity.Model
                 }
 
                 // we require a '(' that appears before this ')'
-                int openParenIndex = frameString.LastIndexOf('(', methodNameEndIndex);
-                if (openParenIndex == -1 || openParenIndex > methodNameEndIndex)
+                int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex);
+                if (openParentIndex == -1 || openParentIndex > methodNameEndIndex)
                 {
                     // invalid shape: no matching '(' before ')'
                     result.Add(new BacktraceStackFrame { FunctionName = frame });
@@ -282,8 +282,6 @@ namespace Backtrace.Unity.Model
             var stackFrame = new BacktraceStackFrame
             {
                 StackFrameType = Types.BacktraceStackFrameType.Native,
-                FunctionName = string.Empty,
-                Line = 0
             };
 
             if (string.IsNullOrEmpty(frameString))
