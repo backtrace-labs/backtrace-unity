@@ -14,13 +14,14 @@ jobs:
       matrix:
         testMode:
           - playmode
-          # - editmode
+          - editmode
         projectPath:
           - test-package
         unityVersion:
+          - 2019.4.40f1
           - 2021.3.56f2
           - 2022.3.56f1
-          - 6000.3.0f1
+          - 6000.3.7f1
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -33,7 +34,7 @@ jobs:
           mv Editor Runtime Tests Android iOS Windows package.json ${{ matrix.projectPath }}/
 
       - name: Run Tests
-        uses: game-ci/unity-test-runner@main
+        uses: game-ci/unity-test-runner@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
