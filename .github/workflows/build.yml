@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    name: Run Build for ${{ matrix.unityVersion }} ${{ matrix.unityVersion }}
+    name: Run Build for ${{ matrix.unityVersion }} ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -35,7 +35,8 @@ jobs:
           mkdir ${{ matrix.projectPath }}
           mv Editor Runtime Tests Android iOS Windows package.json ${{ matrix.projectPath }}/
 
-      - if: matrix.targetPlatform == 'Android'
+      - name: Free disk space (Android only)
+        if: matrix.targetPlatform == 'Android'
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - uses: game-ci/unity-builder@v4
