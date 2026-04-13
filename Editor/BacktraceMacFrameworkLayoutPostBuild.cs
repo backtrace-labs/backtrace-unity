@@ -13,13 +13,20 @@ using Debug = UnityEngine.Debug;
 namespace Backtrace.Unity.Editor.MacOS
 {
     /// <summary>
-    /// Restore the exported Backtrace.framework layout for macOS builds
-    /// when Unity import/export flows flatten the framework bundle's versioned symlinks before signing.
+    /// Restore exported Backtrace macOS native plugin layout after Unity build/export.
+    ///
+    /// Repair Backtrace.framework symlink layout when Unity flattens versioned framework aliases.
+    /// Normalize Xcode project references from "Plugins" to "PlugIns" when Unity emits incorrect casing.
+    ///
+    /// This runs only for macOS standalone exports.
     /// </summary>
     internal static class BacktraceMacFrameworkLayoutPostBuild
     {
         private const int PostBuildOrder = -1000;
         private const int CommandTimeoutMilliseconds = 30000;
+
+        private const string PlugInsDirectoryName = "PlugIns";
+        private const string LegacyPluginsDirectoryName = "Plugins";
 
         private const string PluginBundleName = "BacktraceMacUnity.bundle";
         private const string FrameworkExtension = ".framework";
@@ -28,6 +35,7 @@ namespace Backtrace.Unity.Editor.MacOS
         private const string CurrentVersionLinkName = "Current";
         private const string ResourcesDirectoryName = "Resources";
         private const string InfoPlistFileName = "Info.plist";
+        private const string XcodeProjectFileName = "project.pbxproj";
 
         [PostProcessBuild(PostBuildOrder)]
         public static void OnPostProcessBuild(BuildTarget buildTarget, string buildPath)
@@ -36,6 +44,13 @@ namespace Backtrace.Unity.Editor.MacOS
             {
                 return;
             }
+
+            if (string.IsNullOrEmpty(buildPath) || !Directory.Exists(buildPath))
+            {
+                return;
+            }
+
+            NormalizeXcodeProjectPluginPathCasing(buildPath);
 
             var frameworkPaths = FindFrameworkPaths(buildPath);
             if (frameworkPaths.Count == 0)
@@ -55,6 +70,122 @@ namespace Backtrace.Unity.Editor.MacOS
             {
                 RepairFrameworkLayout(frameworkPaths[i]);
             }
+        }
+
+        private static void NormalizeXcodeProjectPluginPathCasing(string buildPath)
+        {
+            string[] projectFiles;
+
+            try
+            {
+                projectFiles = Directory.GetFiles(buildPath, XcodeProjectFileName, SearchOption.AllDirectories);
+            }
+            catch (Exception ex)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Failed to search for Xcode project files under '{0}'. {1}",
+                        buildPath,
+                        ex.Message));
+            }
+
+            for (var i = 0; i < projectFiles.Length; i++)
+            {
+                NormalizeSingleXcodeProjectPluginPathCasing(projectFiles[i]);
+            }
+        }
+
+        private static void NormalizeSingleXcodeProjectPluginPathCasing(string projectFilePath)
+        {
+            var xcodeProjectDirectory = Path.GetDirectoryName(projectFilePath);
+            if (string.IsNullOrEmpty(xcodeProjectDirectory))
+            {
+                return;
+            }
+
+            var projectRootDirectory = Directory.GetParent(xcodeProjectDirectory);
+            if (projectRootDirectory == null)
+            {
+                return;
+            }
+
+            var projectRootPath = projectRootDirectory.FullName;
+
+            var correctPluginBundlePath = Path.Combine(projectRootPath, PlugInsDirectoryName, PluginBundleName);
+            var legacyPluginBundlePath = Path.Combine(projectRootPath, LegacyPluginsDirectoryName, PluginBundleName);
+
+            var hasCorrectPlugInsPath = Directory.Exists(correctPluginBundlePath);
+            var hasLegacyPluginsPath = Directory.Exists(legacyPluginBundlePath);
+
+            if (!hasCorrectPlugInsPath || hasLegacyPluginsPath)
+            {
+                return;
+            }
+
+            string contents;
+            try
+            {
+                contents = File.ReadAllText(projectFilePath);
+            }
+            catch (Exception ex)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Failed to read Xcode project file '{0}'. {1}",
+                        projectFilePath,
+                        ex.Message));
+            }
+
+            var originalContents = contents;
+
+            // Normalize only the plugin path casing relevant to the Backtrace macOS plugin.
+            contents = contents.Replace(
+                "/" + LegacyPluginsDirectoryName + "/" + PluginBundleName,
+                "/" + PlugInsDirectoryName + "/" + PluginBundleName);
+
+            contents = contents.Replace(
+                "=" + " " + LegacyPluginsDirectoryName + "/" + PluginBundleName + ";",
+                "= " + PlugInsDirectoryName + "/" + PluginBundleName + ";");
+
+            contents = contents.Replace(
+                "= " + LegacyPluginsDirectoryName + ";",
+                "= " + PlugInsDirectoryName + ";");
+
+            contents = contents.Replace(
+                "/BacktraceTestProject/" + LegacyPluginsDirectoryName + "/" + PluginBundleName,
+                "/BacktraceTestProject/" + PlugInsDirectoryName + "/" + PluginBundleName);
+
+            // Also cover quoted path strings that Xcode may emit.
+            contents = contents.Replace(
+                "\"" + LegacyPluginsDirectoryName + "/" + PluginBundleName + "\"",
+                "\"" + PlugInsDirectoryName + "/" + PluginBundleName + "\"");
+
+            contents = contents.Replace(
+                "\"BacktraceTestProject/" + LegacyPluginsDirectoryName + "/" + PluginBundleName + "\"",
+                "\"BacktraceTestProject/" + PlugInsDirectoryName + "/" + PluginBundleName + "\"");
+
+            if (string.Equals(contents, originalContents, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            try
+            {
+                File.WriteAllText(projectFilePath, contents);
+            }
+            catch (Exception ex)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Failed to update Xcode project file '{0}' with corrected PlugIns path casing. {1}",
+                        projectFilePath,
+                        ex.Message));
+            }
+
+            Debug.Log(
+                string.Format(
+                    "[Backtrace] Normalized Xcode project PlugIns path casing in '{0}'.",
+                    projectFilePath));
         }
 
         private static void RepairFrameworkLayout(string frameworkPath)
@@ -361,6 +492,11 @@ namespace Backtrace.Unity.Editor.MacOS
 
             for (var i = 0; i < bundlePaths.Length; i++)
             {
+                if (!IsUnderPlugInsDirectory(bundlePaths[i]))
+                {
+                    continue;
+                }
+
                 var frameworkPath = Path.Combine(bundlePaths[i], "Contents", "Frameworks", FrameworkName);
                 if (!Directory.Exists(frameworkPath))
                 {
@@ -376,6 +512,17 @@ namespace Backtrace.Unity.Editor.MacOS
             return frameworkPaths;
         }
 
+        private static bool IsUnderPlugInsDirectory(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return false;
+            }
+
+            var normalized = path.Replace('\\', '/');
+            return normalized.Contains("/" + PlugInsDirectoryName + "/");
+        }
+
         private static string GetFrameworkBinaryName(string frameworkPath)
         {
             var frameworkDirectoryName = Path.GetFileName(frameworkPath);
@@ -389,6 +536,15 @@ namespace Backtrace.Unity.Editor.MacOS
             }
 
             return frameworkDirectoryName.Substring(0, frameworkDirectoryName.Length - FrameworkExtension.Length);
+        }
+
+        private static bool IsMacStandaloneBuildTarget(BuildTarget buildTarget)
+        {
+            var name = buildTarget.ToString();
+            return string.Equals(name, "StandaloneOSX", StringComparison.Ordinal)
+                   || string.Equals(name, "StandaloneOSXIntel", StringComparison.Ordinal)
+                   || string.Equals(name, "StandaloneOSXIntel64", StringComparison.Ordinal)
+                   || string.Equals(name, "StandaloneOSXUniversal", StringComparison.Ordinal);
         }
 
         private static bool IsSymlinkWithTarget(string path, string expectedTarget)
@@ -521,21 +677,15 @@ namespace Backtrace.Unity.Editor.MacOS
 
         private static string Quote(string value)
         {
+            if (value == null)
+            {
+                value = string.Empty;
+            }
+
             return "\"" + value.Replace("\"", "\\\"") + "\"";
         }
 
-        // Use string comparisons instead of enum members so this code compiles against both legacy
-        // macOS build targets (StandaloneOSXIntel/Intel64/Universal) and newer StandaloneOSX.
-        private static bool IsMacStandaloneBuildTarget(BuildTarget buildTarget)
-        {
-            var buildTargetName = buildTarget.ToString();
-            return string.Equals(buildTargetName, "StandaloneOSX", StringComparison.Ordinal)
-                   || string.Equals(buildTargetName, "StandaloneOSXIntel", StringComparison.Ordinal)
-                   || string.Equals(buildTargetName, "StandaloneOSXIntel64", StringComparison.Ordinal)
-                   || string.Equals(buildTargetName, "StandaloneOSXUniversal", StringComparison.Ordinal);
-        }
-
-        private sealed class CommandResult
+        private struct CommandResult
         {
             public readonly int ExitCode;
             public readonly string StandardOutput;
@@ -545,8 +695,8 @@ namespace Backtrace.Unity.Editor.MacOS
             public CommandResult(int exitCode, string standardOutput, string standardError, bool timedOut)
             {
                 ExitCode = exitCode;
-                StandardOutput = standardOutput;
-                StandardError = standardError;
+                StandardOutput = standardOutput ?? string.Empty;
+                StandardError = standardError ?? string.Empty;
                 TimedOut = timedOut;
             }
         }
