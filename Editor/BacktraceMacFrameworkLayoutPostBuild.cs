@@ -1,5 +1,7 @@
 #if UNITY_EDITOR
+
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using UnityEditor;
@@ -11,109 +13,388 @@ using Debug = UnityEngine.Debug;
 namespace Backtrace.Unity.Editor.MacOS
 {
     /// <summary>
-    /// Repairs the exported Backtrace.framework symlink layout on macOS when a package
-    /// import/export flow has flattened the framework's versioned aliases before code signing.
+    /// Restore the exported Backtrace.framework layout for macOS builds
+    /// when Unity import/export flows flatten the framework bundle's versioned symlinks before signing.
     /// </summary>
     internal static class BacktraceMacFrameworkLayoutPostBuild
     {
         private const int PostBuildOrder = -1000;
+        private const int CommandTimeoutMilliseconds = 30000;
+
+        private const string PluginBundleName = "BacktraceMacUnity.bundle";
+        private const string FrameworkExtension = ".framework";
+        private const string FrameworkName = "Backtrace.framework";
+        private const string VersionsDirectoryName = "Versions";
+        private const string CurrentVersionLinkName = "Current";
+        private const string ResourcesDirectoryName = "Resources";
+        private const string InfoPlistFileName = "Info.plist";
 
         [PostProcessBuild(PostBuildOrder)]
         public static void OnPostProcessBuild(BuildTarget buildTarget, string buildPath)
         {
-            if (!buildTarget.ToString().StartsWith("StandaloneOSX", StringComparison.Ordinal))
+            if (!IsMacStandaloneBuildTarget(buildTarget))
+            {
+                return;
+            }
+
+            var frameworkPaths = FindFrameworkPaths(buildPath);
+            if (frameworkPaths.Count == 0)
             {
                 return;
             }
 
             if (Application.platform != RuntimePlatform.OSXEditor)
             {
-                Debug.LogWarning("[Backtrace] macOS framework layout check skipped because symlink repair is only supported when building from the macOS editor.");
-                return;
-            }
-
-            var frameworkPath = Path.Combine(
-                buildPath,
-                "Contents",
-                "PlugIns",
-                "BacktraceMacUnity.bundle",
-                "Contents",
-                "Frameworks",
-                "Backtrace.framework"
-            );
-
-            // Do not fail the whole build if the macOS bundle is not present in the exported player.
-            if (!Directory.Exists(frameworkPath))
-            {
-                return;
-            }
-
-            var versionsDir = Path.Combine(frameworkPath, "Versions");
-            var versionADir = Path.Combine(versionsDir, "A");
-            var versionBinary = Path.Combine(versionADir, "Backtrace");
-            var versionResourcesDir = Path.Combine(versionADir, "Resources");
-            var versionInfoPlist = Path.Combine(versionResourcesDir, "Info.plist");
-
-            // Only repair when the authoritative versioned payload exists.
-            if (!Directory.Exists(versionADir)
-                || !File.Exists(versionBinary)
-                || !Directory.Exists(versionResourcesDir)
-                || !File.Exists(versionInfoPlist))
-            {
                 throw new BuildFailedException(
-                    "[Backtrace] Exported Backtrace.framework is missing the expected versioned payload under Versions/A. " +
-                    "The SDK cannot safely repair this framework layout. Reinstall the package via OpenUPM or Git and rebuild."
-                );
+                    "[Backtrace] Detected the Backtrace macOS native plugin in the exported player, but framework verification and repair " +
+                    "requires building from the macOS editor so the SDK can create and validate the required POSIX symlinks. " +
+                    "Build the macOS player on a macOS machine, or disable the Backtrace macOS native plugin for this build.");
             }
 
-            if (HasCanonicalLayout(frameworkPath))
+            for (var i = 0; i < frameworkPaths.Count; i++)
             {
-                return;
+                RepairFrameworkLayout(frameworkPaths[i]);
             }
-
-            Debug.Log("[Backtrace] Repairing exported Backtrace.framework symlink layout before signing.");
-
-            RemoveIfPresent(Path.Combine(versionsDir, "Current"));
-            RemoveIfPresent(Path.Combine(frameworkPath, "Backtrace"));
-            RemoveIfPresent(Path.Combine(frameworkPath, "Resources"));
-            RemoveIfPresent(Path.Combine(frameworkPath, "A"));
-
-            CreateSymlink("A", Path.Combine(versionsDir, "Current"));
-            CreateSymlink("Versions/Current/Backtrace", Path.Combine(frameworkPath, "Backtrace"));
-            CreateSymlink("Versions/Current/Resources", Path.Combine(frameworkPath, "Resources"));
-
-            if (!HasCanonicalLayout(frameworkPath))
-            {
-                throw new BuildFailedException(
-                    "[Backtrace] Failed to repair exported Backtrace.framework to the canonical macOS layout."
-                );
-            }
-
-            Debug.Log("[Backtrace] Repaired exported Backtrace.framework symlink layout.");
         }
 
-        private static bool HasCanonicalLayout(string frameworkPath)
+        private static void RepairFrameworkLayout(string frameworkPath)
         {
-            var versionsDir = Path.Combine(frameworkPath, "Versions");
-            var versionADir = Path.Combine(versionsDir, "A");
-            var versionBinary = Path.Combine(versionADir, "Backtrace");
-            var versionInfoPlist = Path.Combine(versionADir, "Resources", "Info.plist");
+            var binaryName = GetFrameworkBinaryName(frameworkPath);
+            var versionsDirectory = Path.Combine(frameworkPath, VersionsDirectoryName);
+            var activeVersionName = ResolveActiveVersionName(frameworkPath, versionsDirectory, binaryName);
+            var issues = GetCanonicalLayoutIssues(frameworkPath, versionsDirectory, activeVersionName, binaryName);
 
-            if (!Directory.Exists(versionADir) || !File.Exists(versionBinary) || !File.Exists(versionInfoPlist))
+            if (issues.Count == 0)
+            {
+                return;
+            }
+
+            Debug.Log(
+                string.Format(
+                    "[Backtrace] Repairing exported framework layout at '{0}'. Detected issues: {1}",
+                    frameworkPath,
+                    string.Join("; ", issues.ToArray())));
+
+            RemoveIfPresent(Path.Combine(versionsDirectory, CurrentVersionLinkName));
+            RemoveIfPresent(Path.Combine(frameworkPath, binaryName));
+            RemoveIfPresent(Path.Combine(frameworkPath, ResourcesDirectoryName));
+            RemoveIfPresent(Path.Combine(frameworkPath, activeVersionName));
+
+            CreateSymlink(activeVersionName, Path.Combine(versionsDirectory, CurrentVersionLinkName));
+            CreateSymlink(
+                VersionsDirectoryName + "/" + CurrentVersionLinkName + "/" + binaryName,
+                Path.Combine(frameworkPath, binaryName));
+            CreateSymlink(
+                VersionsDirectoryName + "/" + CurrentVersionLinkName + "/" + ResourcesDirectoryName,
+                Path.Combine(frameworkPath, ResourcesDirectoryName));
+
+            var remainingIssues = GetCanonicalLayoutIssues(frameworkPath, versionsDirectory, activeVersionName, binaryName);
+            if (remainingIssues.Count != 0)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Failed to repair exported framework layout at '{0}'. Remaining issues: {1}",
+                        frameworkPath,
+                        string.Join("; ", remainingIssues.ToArray())));
+            }
+
+            Debug.Log(
+                string.Format(
+                    "[Backtrace] Repaired exported framework layout at '{0}' using version '{1}'.",
+                    frameworkPath,
+                    activeVersionName));
+        }
+
+        private static string ResolveActiveVersionName(string frameworkPath, string versionsDirectory, string binaryName)
+        {
+            if (!Directory.Exists(versionsDirectory))
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Exported framework at '{0}' is missing its '{1}' directory. The SDK cannot safely repair this layout. Reinstall the Backtrace package and rebuild.",
+                        frameworkPath,
+                        VersionsDirectoryName));
+            }
+
+            var currentPath = Path.Combine(versionsDirectory, CurrentVersionLinkName);
+
+            var versionFromCurrentSymlink = TryResolveVersionNameFromCurrentSymlink(currentPath, versionsDirectory, binaryName);
+            if (!string.IsNullOrEmpty(versionFromCurrentSymlink))
+            {
+                return versionFromCurrentSymlink;
+            }
+
+            var versionFromCurrentFile = TryResolveVersionNameFromCurrentFile(currentPath, versionsDirectory, binaryName);
+            if (!string.IsNullOrEmpty(versionFromCurrentFile))
+            {
+                return versionFromCurrentFile;
+            }
+
+            var validVersions = FindValidVersionDirectories(versionsDirectory, binaryName);
+            if (validVersions.Count == 1)
+            {
+                return validVersions[0];
+            }
+
+            if (validVersions.Count == 0)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Exported framework at '{0}' is missing a valid versioned payload under '{1}'. Expected a directory containing '{2}' and '{3}/{4}'. Reinstall the Backtrace package and rebuild.",
+                        frameworkPath,
+                        versionsDirectory,
+                        binaryName,
+                        ResourcesDirectoryName,
+                        InfoPlistFileName));
+            }
+
+            throw new BuildFailedException(
+                string.Format(
+                    "[Backtrace] Exported framework at '{0}' contains multiple valid versioned payloads ({1}) but the active version could not be resolved from '{2}'. The SDK cannot safely choose which version to activate. Reinstall the Backtrace package and rebuild.",
+                    frameworkPath,
+                    string.Join(", ", validVersions.ToArray()),
+                    currentPath));
+        }
+
+        private static string TryResolveVersionNameFromCurrentSymlink(string currentPath, string versionsDirectory, string binaryName)
+        {
+            if (!IsSymlink(currentPath))
+            {
+                return string.Empty;
+            }
+
+            var linkTarget = ReadLink(currentPath);
+            if (string.IsNullOrEmpty(linkTarget))
+            {
+                return string.Empty;
+            }
+
+            var candidateVersionName = ExtractTerminalPathComponent(linkTarget);
+            if (string.IsNullOrEmpty(candidateVersionName))
+            {
+                return string.Empty;
+            }
+
+            return HasValidVersionPayload(Path.Combine(versionsDirectory, candidateVersionName), binaryName)
+                ? candidateVersionName
+                : string.Empty;
+        }
+
+        private static string TryResolveVersionNameFromCurrentFile(string currentPath, string versionsDirectory, string binaryName)
+        {
+            if (!File.Exists(currentPath) || Directory.Exists(currentPath))
+            {
+                return string.Empty;
+            }
+
+            string fileContents;
+            try
+            {
+                fileContents = File.ReadAllText(currentPath).Trim();
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(fileContents))
+            {
+                return string.Empty;
+            }
+
+            var candidateVersionName = ExtractTerminalPathComponent(fileContents);
+            if (string.IsNullOrEmpty(candidateVersionName))
+            {
+                return string.Empty;
+            }
+
+            return HasValidVersionPayload(Path.Combine(versionsDirectory, candidateVersionName), binaryName)
+                ? candidateVersionName
+                : string.Empty;
+        }
+
+        private static string ExtractTerminalPathComponent(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return string.Empty;
+            }
+
+            var trimmed = path.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return Path.GetFileName(trimmed);
+        }
+
+        private static List<string> FindValidVersionDirectories(string versionsDirectory, string binaryName)
+        {
+            var validVersions = new List<string>();
+
+            string[] directories;
+            try
+            {
+                directories = Directory.GetDirectories(versionsDirectory);
+            }
+            catch (Exception ex)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Failed to enumerate framework versions under '{0}'. {1}",
+                        versionsDirectory,
+                        ex.Message));
+            }
+
+            for (var i = 0; i < directories.Length; i++)
+            {
+                var versionDirectory = directories[i];
+                var versionName = Path.GetFileName(versionDirectory);
+                if (string.Equals(versionName, CurrentVersionLinkName, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (HasValidVersionPayload(versionDirectory, binaryName))
+                {
+                    validVersions.Add(versionName);
+                }
+            }
+
+            return validVersions;
+        }
+
+        private static bool HasValidVersionPayload(string versionDirectory, string binaryName)
+        {
+            if (!Directory.Exists(versionDirectory))
             {
                 return false;
             }
 
-            return IsSymlinkWithTarget(Path.Combine(versionsDir, "Current"), "A")
-                && IsSymlinkWithTarget(Path.Combine(frameworkPath, "Backtrace"), "Versions/Current/Backtrace")
-                && IsSymlinkWithTarget(Path.Combine(frameworkPath, "Resources"), "Versions/Current/Resources")
-                && !PathExists(Path.Combine(frameworkPath, "A"));
+            var binaryPath = Path.Combine(versionDirectory, binaryName);
+            var resourcesDirectory = Path.Combine(versionDirectory, ResourcesDirectoryName);
+            var infoPlistPath = Path.Combine(resourcesDirectory, InfoPlistFileName);
+
+            return File.Exists(binaryPath)
+                   && Directory.Exists(resourcesDirectory)
+                   && File.Exists(infoPlistPath);
+        }
+
+        private static List<string> GetCanonicalLayoutIssues(string frameworkPath, string versionsDirectory, string activeVersionName, string binaryName)
+        {
+            var issues = new List<string>();
+            var activeVersionDirectory = Path.Combine(versionsDirectory, activeVersionName);
+
+            if (!HasValidVersionPayload(activeVersionDirectory, binaryName))
+            {
+                issues.Add(
+                    string.Format(
+                        "missing valid versioned payload under '{0}'",
+                        activeVersionDirectory));
+                return issues;
+            }
+
+            var currentPath = Path.Combine(versionsDirectory, CurrentVersionLinkName);
+            if (!IsSymlinkWithTarget(currentPath, activeVersionName))
+            {
+                issues.Add(
+                    string.Format(
+                        "'{0}/{1}' is not a symlink to '{2}'",
+                        VersionsDirectoryName,
+                        CurrentVersionLinkName,
+                        activeVersionName));
+            }
+
+            var rootBinaryPath = Path.Combine(frameworkPath, binaryName);
+            var expectedBinaryTarget = VersionsDirectoryName + "/" + CurrentVersionLinkName + "/" + binaryName;
+            if (!IsSymlinkWithTarget(rootBinaryPath, expectedBinaryTarget))
+            {
+                issues.Add(
+                    string.Format(
+                        "'{0}' is not a symlink to '{1}'",
+                        binaryName,
+                        expectedBinaryTarget));
+            }
+
+            var rootResourcesPath = Path.Combine(frameworkPath, ResourcesDirectoryName);
+            var expectedResourcesTarget = VersionsDirectoryName + "/" + CurrentVersionLinkName + "/" + ResourcesDirectoryName;
+            if (!IsSymlinkWithTarget(rootResourcesPath, expectedResourcesTarget))
+            {
+                issues.Add(
+                    string.Format(
+                        "'{0}' is not a symlink to '{1}'",
+                        ResourcesDirectoryName,
+                        expectedResourcesTarget));
+            }
+
+            var unexpectedRootVersionEntry = Path.Combine(frameworkPath, activeVersionName);
+            if (PathExists(unexpectedRootVersionEntry))
+            {
+                issues.Add(
+                    string.Format(
+                        "unexpected top-level '{0}' entry exists",
+                        activeVersionName));
+            }
+
+            return issues;
+        }
+
+        private static List<string> FindFrameworkPaths(string buildPath)
+        {
+            var frameworkPaths = new List<string>();
+
+            if (string.IsNullOrEmpty(buildPath) || !Directory.Exists(buildPath))
+            {
+                return frameworkPaths;
+            }
+
+            string[] bundlePaths;
+            try
+            {
+                bundlePaths = Directory.GetDirectories(buildPath, PluginBundleName, SearchOption.AllDirectories);
+            }
+            catch (Exception ex)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Failed to locate '{0}' in exported build output '{1}'. {2}",
+                        PluginBundleName,
+                        buildPath,
+                        ex.Message));
+            }
+
+            for (var i = 0; i < bundlePaths.Length; i++)
+            {
+                var frameworkPath = Path.Combine(bundlePaths[i], "Contents", "Frameworks", FrameworkName);
+                if (!Directory.Exists(frameworkPath))
+                {
+                    continue;
+                }
+
+                if (!frameworkPaths.Contains(frameworkPath))
+                {
+                    frameworkPaths.Add(frameworkPath);
+                }
+            }
+
+            return frameworkPaths;
+        }
+
+        private static string GetFrameworkBinaryName(string frameworkPath)
+        {
+            var frameworkDirectoryName = Path.GetFileName(frameworkPath);
+            if (string.IsNullOrEmpty(frameworkDirectoryName) || !frameworkDirectoryName.EndsWith(FrameworkExtension, StringComparison.Ordinal))
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Invalid framework path '{0}'. Expected a path ending with '{1}'.",
+                        frameworkPath,
+                        FrameworkExtension));
+            }
+
+            return frameworkDirectoryName.Substring(0, frameworkDirectoryName.Length - FrameworkExtension.Length);
         }
 
         private static bool IsSymlinkWithTarget(string path, string expectedTarget)
         {
             return IsSymlink(path)
-                && string.Equals(ReadLink(path), expectedTarget, StringComparison.Ordinal);
+                   && string.Equals(ReadLink(path), expectedTarget, StringComparison.Ordinal);
         }
 
         private static bool PathExists(string path)
@@ -150,6 +431,16 @@ namespace Backtrace.Unity.Editor.MacOS
         private static void EnsureSuccess(string fileName, string arguments)
         {
             var result = Execute(fileName, arguments);
+            if (result.TimedOut)
+            {
+                throw new BuildFailedException(
+                    string.Format(
+                        "[Backtrace] Command timed out after {0} ms: {1} {2}",
+                        CommandTimeoutMilliseconds,
+                        fileName,
+                        arguments));
+            }
+
             if (result.ExitCode == 0)
             {
                 return;
@@ -162,9 +453,7 @@ namespace Backtrace.Unity.Editor.MacOS
                     arguments,
                     result.ExitCode,
                     result.StandardOutput,
-                    result.StandardError
-                )
-            );
+                    result.StandardError));
         }
 
         private static CommandResult Execute(string fileName, string arguments)
@@ -182,14 +471,51 @@ namespace Backtrace.Unity.Editor.MacOS
             using (var process = new Process())
             {
                 process.StartInfo = startInfo;
-                process.Start();
 
-                var standardOutput = process.StandardOutput.ReadToEnd();
-                var standardError = process.StandardError.ReadToEnd();
+                try
+                {
+                    process.Start();
+                }
+                catch (Exception ex)
+                {
+                    throw new BuildFailedException(
+                        string.Format(
+                            "[Backtrace] Failed to start command '{0} {1}'. {2}",
+                            fileName,
+                            arguments,
+                            ex.Message));
+                }
 
-                process.WaitForExit();
+                if (!process.WaitForExit(CommandTimeoutMilliseconds))
+                {
+                    try
+                    {
+                        process.Kill();
+                    }
+                    catch (Exception)
+                    {
+                    }
 
-                return new CommandResult(process.ExitCode, standardOutput, standardError);
+                    return new CommandResult(-1, SafeReadToEnd(process.StandardOutput), SafeReadToEnd(process.StandardError), true);
+                }
+
+                return new CommandResult(
+                    process.ExitCode,
+                    SafeReadToEnd(process.StandardOutput),
+                    SafeReadToEnd(process.StandardError),
+                    false);
+            }
+        }
+
+        private static string SafeReadToEnd(StreamReader reader)
+        {
+            try
+            {
+                return reader.ReadToEnd();
+            }
+            catch (Exception)
+            {
+                return string.Empty;
             }
         }
 
@@ -198,19 +524,33 @@ namespace Backtrace.Unity.Editor.MacOS
             return "\"" + value.Replace("\"", "\\\"") + "\"";
         }
 
+        // Use string comparisons instead of enum members so this code compiles against both legacy
+        // macOS build targets (StandaloneOSXIntel/Intel64/Universal) and newer StandaloneOSX.
+        private static bool IsMacStandaloneBuildTarget(BuildTarget buildTarget)
+        {
+            var buildTargetName = buildTarget.ToString();
+            return string.Equals(buildTargetName, "StandaloneOSX", StringComparison.Ordinal)
+                   || string.Equals(buildTargetName, "StandaloneOSXIntel", StringComparison.Ordinal)
+                   || string.Equals(buildTargetName, "StandaloneOSXIntel64", StringComparison.Ordinal)
+                   || string.Equals(buildTargetName, "StandaloneOSXUniversal", StringComparison.Ordinal);
+        }
+
         private sealed class CommandResult
         {
             public readonly int ExitCode;
             public readonly string StandardOutput;
             public readonly string StandardError;
+            public readonly bool TimedOut;
 
-            public CommandResult(int exitCode, string standardOutput, string standardError)
+            public CommandResult(int exitCode, string standardOutput, string standardError, bool timedOut)
             {
                 ExitCode = exitCode;
                 StandardOutput = standardOutput;
                 StandardError = standardError;
+                TimedOut = timedOut;
             }
         }
     }
 }
+
 #endif
