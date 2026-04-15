@@ -14,31 +14,49 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual("0x00007ffad7723088", backtraceStackFrame.Address);
             Assert.AreEqual("UnityPlayer", backtraceStackFrame.Library);
             Assert.AreEqual(string.Empty, backtraceStackFrame.FunctionName);
+            Assert.AreEqual(0, backtraceStackFrame.Line);
+            Assert.AreEqual(null, backtraceStackFrame.SourceCode);
+            Assert.AreEqual(false, backtraceStackFrame.InvalidFrame);
+            Assert.AreEqual(Types.BacktraceStackFrameType.Native, backtraceStackFrame.StackFrameType);
+        }
+
+        [Test]
+        public void WithSourceFileAndLineInFunctionName_ParsesLibraryAndKeepsFunctionNameAndLine()
+        {
+            var backtraceStackFrame = BacktraceRawStackTraceParser.ParseNativeFrame("0x00007ffac58086f5 (GameAssembly) DebugLogHandler_Internal_Log_m20852F18A88BB18425BA07260545E3968F7EA76C (at D:/project/app/module/Library/Example/artifacts/build/il2cppOutput/cpp/UnityEngine.CoreModule.cpp:40786)");
+            Assert.AreEqual("0x00007ffac58086f5", backtraceStackFrame.Address);
+            Assert.AreEqual("GameAssembly", backtraceStackFrame.Library);
+            Assert.AreEqual("DebugLogHandler_Internal_Log_m20852F18A88BB18425BA07260545E3968F7EA76C", backtraceStackFrame.FunctionName);
+            Assert.AreEqual(40786, backtraceStackFrame.Line);
+            Assert.AreEqual("D:/project/app/module/Library/Example/artifacts/build/il2cppOutput/cpp/UnityEngine.CoreModule.cpp", backtraceStackFrame.SourceCode);
+            Assert.AreEqual(false, backtraceStackFrame.InvalidFrame);
             Assert.AreEqual(Types.BacktraceStackFrameType.Native, backtraceStackFrame.StackFrameType);
         }
 
         [Test]
         public void WithSymbol_ParsesMethod()
         {
-            var backtraceStackFrame = BacktraceRawStackTraceParser.ParseNativeFrame("0x00007ffad7ee3c7d (UnityPlayer) UnityMain");
-            Assert.AreEqual("UnityPlayer", backtraceStackFrame.Library);
-            Assert.AreEqual("UnityMain", backtraceStackFrame.FunctionName);
+            var backtraceStackFrame = BacktraceRawStackTraceParser.ParseNativeFrame("0x00007ffbede3e8d7 (KERNEL32) BaseThreadInitThunk");
+            Assert.AreEqual("0x00007ffbede3e8d7", backtraceStackFrame.Address);
+            Assert.AreEqual("KERNEL32", backtraceStackFrame.Library);
+            Assert.AreEqual("BaseThreadInitThunk", backtraceStackFrame.FunctionName);
+            Assert.AreEqual(0, backtraceStackFrame.Line);
+            Assert.AreEqual(null, backtraceStackFrame.SourceCode);
+            Assert.AreEqual(false, backtraceStackFrame.InvalidFrame);
+            Assert.AreEqual(Types.BacktraceStackFrameType.Native, backtraceStackFrame.StackFrameType);
         }
 
         [Test]
         public void UnknownShape_ReturnsRawInFunctionName()
         {
-            var backtraceStackFrame = BacktraceRawStackTraceParser.ParseNativeFrame("nonsense frame with no address");
+            var backtraceStackFrame = BacktraceNativeRawStacktraceParser.ParseFrameLine("nonsense frame with no address");
+            Assert.AreEqual(null, backtraceStackFrame.Address);
+            Assert.AreEqual(null, backtraceStackFrame.Library);
             Assert.AreEqual("nonsense frame with no address", backtraceStackFrame.FunctionName);
-        }
-
-        [Test]
-        public void WithSourceFileAndLineInFunctionName_ParsesLibraryAndKeepsFunctionNameAndLine()
-        {
-            var backtraceStackFrame = BacktraceRawStackTraceParser.ParseNativeFrame("0x00007ffac65f0d48 (GameAssembly) UIElementsRuntimeUtilityNative_UpdatePanels_m7AA4182BFC7A561A78A786FAAD18C71158EDFCBD (at D:/fm26/apps/game/FM Unity/Library/Bee/artifacts/WinPlayerBuildProgram/il2cppOutput/cpp/UnityEngine.UIElementsModule__7.cpp:43671)");
-            Assert.AreEqual("GameAssembly", backtraceStackFrame.Library);
-            Assert.AreEqual("UIElementsRuntimeUtilityNative_UpdatePanels_m7AA4182BFC7A561A78A786FAAD18C71158EDFCBD (at D:/fm26/apps/game/FM Unity/Library/Bee/artifacts/WinPlayerBuildProgram/il2cppOutput/cpp/UnityEngine.UIElementsModule__7.cpp:43671)", backtraceStackFrame.FunctionName);
-            Assert.AreEqual(0, backtraceStackFrame.Line); // TODO: verify if it should be 0 as line if value is above
+            Assert.AreEqual(0, backtraceStackFrame.Line);
+            Assert.AreEqual(null, backtraceStackFrame.SourceCode);
+            Assert.AreEqual(true, backtraceStackFrame.InvalidFrame);
+            Assert.AreEqual(Types.BacktraceStackFrameType.Unknown, backtraceStackFrame.StackFrameType);
         }
     }
 }
