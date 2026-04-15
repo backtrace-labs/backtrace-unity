@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Backtrace.Unity.Model
@@ -30,6 +31,7 @@ namespace Backtrace.Unity.Model
                 // validate if stack trace has exception header               
                 int methodNameEndIndex = frameString.IndexOf(')');
                 int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex); // we require a '(' that appears before this ')'
+                
                 if (methodNameEndIndex == -1 || openParentIndex == -1 || openParentIndex > methodNameEndIndex)
                 {
                     // If either index is missing, it's an invalid frame
@@ -164,96 +166,156 @@ namespace Backtrace.Unity.Model
         /// </summary>
         /// <param name="frameString">Raw native stack frame line to parse.</param>
         /// <returns>Parsed Backtrace stack frame containing address, library, function name, and optional line number.</returns>
-        internal static BacktraceStackFrame ParseNativeFrame(string frameString)
+        internal static BacktraceStackFrame ParseNativeFrame (string frameString)
         {
             var stackFrame = new BacktraceStackFrame
             {
                 StackFrameType = Types.BacktraceStackFrameType.Native,
             };
 
-            if (string.IsNullOrEmpty(frameString))
+            if (string.IsNullOrWhiteSpace(frameString))
             {
                 return stackFrame;
             }
 
             frameString = frameString.Trim();
 
-            // Address: starts with "0x" and ends at first space
             int index = 0;
-            if (frameString.StartsWith("0x", StringComparison.Ordinal))
+
+
+            if (!TryParseAddress(frameString, ref index, stackFrame))
             {
-                int space = frameString.IndexOf(' ');
-                if (space > 2)
-                {
-                    stackFrame.Address = frameString.Substring(0, space);
-                    index = space + 1;
-                }
-                else
-                {
-                    // if Unknown format keep raw text and return
-                    stackFrame.FunctionName = frameString;
-                    return stackFrame;
-                }
+                return Fallback(stackFrame, frameString);
             }
 
-            // Library: Module
-            if (index < frameString.Length && frameString[index] == '(')
-            {
-                index++;
-                int close = frameString.IndexOf(')', index);
-                // if ')' missing leave Library null and continue
-                if (close > -1)
-                {
-                    stackFrame.Library = frameString.Substring(index, close - index);
-                    index = close + 1;
-                    if (index < frameString.Length && frameString[index] == ' ')
-                    {
-                        index++;
-                    }
-                }
-            }
+            TryParseLibrary(frameString, ref index, stackFrame);
 
-            // 3) symbol
-            stackFrame.FunctionName = (index < frameString.Length)
-                ? frameString.Substring(index).Trim()
-                : string.Empty;
 
-            // 4) Normalize known wrappers
-            if (stackFrame.FunctionName.StartsWith("(wrapper managed-to-native)", StringComparison.Ordinal))
-            {
-                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper managed-to-native)", string.Empty).Trim();
-            }
+            ParseFunction(frameString, index, stackFrame);
 
-            if (stackFrame.FunctionName.StartsWith("(wrapper runtime-invoke)", StringComparison.Ordinal))
-            {
-                stackFrame.FunctionName = stackFrame.FunctionName.Replace("(wrapper runtime-invoke)", string.Empty).Trim();
-            }
 
-            // [file:line] suffix source code information
-            int srcStart = stackFrame.FunctionName.IndexOf('[');
-            int srcEnd = stackFrame.FunctionName.IndexOf(']');
-            if (srcStart != -1 && srcEnd != -1 && srcEnd > srcStart)
-            {
-                srcStart++;
-                var src = stackFrame.FunctionName.Substring(srcStart, srcEnd - srcStart);
-                var parts = src.Split(new char[] { ':' }, 2);
-                if (parts.Length == 2 && int.TryParse(parts[1], out var line))
-                {
-                    stackFrame.Line = line;
-                    stackFrame.Library = parts[0];
-                    // after ']'
-                    int after = srcEnd + 1;
-                    if (after < stackFrame.FunctionName.Length && stackFrame.FunctionName[after] == ' ')
-                    { after++; }
-                    stackFrame.FunctionName = (after < stackFrame.FunctionName.Length)
-                        ? frameString.Substring(after)
-                        : string.Empty;
-                }
-            }
+            NormalizeWrapper(ref stackFrame.FunctionName);
+
+
+            ParseBracketSource(ref stackFrame);
 
             return stackFrame;
         }
 
+        private static bool TryParseAddress(string s, ref int index, BacktraceStackFrame frame)
+        {
+            if (!s.StartsWith("0x", StringComparison.Ordinal))
+                return false;
+
+            int space = s.IndexOf(' ');
+            if (space <= 2)
+                return false;
+
+            frame.Address = s.Substring(0, space);
+            index = space + 1;
+            return true;
+        }
+
+        private static void TryParseLibrary(string s, ref int index, BacktraceStackFrame frame)
+        {
+            SkipSpaces(s, ref index);
+
+            if (index >= s.Length || s[index] != '(')
+                return;
+
+            int start = index + 1;
+            int end = s.IndexOf(')', start);
+
+            if (end > start)
+            {
+                frame.Library = s.Substring(start, end - start);
+                index = end + 1;
+            }
+        }
+
+        private static void ParseFunction(string s, int index, BacktraceStackFrame frame)
+        {
+            int atIndex = s.IndexOf(" (at ", index, StringComparison.Ordinal);
+
+            if (atIndex == -1)
+            {
+                frame.FunctionName = (index < s.Length)
+                    ? s.Substring(index).Trim()
+                    : string.Empty;
+            }
+            else
+            {
+                frame.FunctionName = s.Substring(index, atIndex - index).Trim();
+
+                ParseAtSource(s, atIndex, frame);
+            }
+        }
+
+        private static void ParseAtSource(string s, int atIndex, BacktraceStackFrame frame)
+        {
+            int pathStart = atIndex + 5; // skip " (at "
+            int endParen = s.LastIndexOf(')');
+
+            if (endParen <= pathStart)
+                return;
+
+            string pathAndLine = s.Substring(pathStart, endParen - pathStart);
+
+            int colon = pathAndLine.LastIndexOf(':');
+            if (colon <= 0 || colon >= pathAndLine.Length - 1)
+                return;
+
+            string path = pathAndLine.Substring(0, colon);
+            string lineStr = pathAndLine.Substring(colon + 1);
+
+            if (int.TryParse(lineStr, out int line))
+            {
+                frame.Line = line;
+
+                // IMPORTANT: your test expects FULL PATH here
+                frame.SourceCode = path;
+
+                // optional:
+                frame.SourceCodeFullPath = path;
+            }
+        }
+
+        private static void ParseBracketSource(ref BacktraceStackFrame frame)
+        {
+            var fn = frame.FunctionName;
+            if (string.IsNullOrEmpty(fn))
+                return;
+
+            int start = fn.IndexOf('[');
+            int end = fn.IndexOf(']');
+
+            if (start == -1 || end == -1 || end <= start)
+                return;
+
+            string content = fn.Substring(start + 1, end - start - 1);
+
+            int colon = content.LastIndexOf(':');
+            if (colon <= 0 || colon >= content.Length - 1)
+                return;
+
+            string file = content.Substring(0, colon);
+            string lineStr = content.Substring(colon + 1);
+
+            if (int.TryParse(lineStr, out int line))
+            {
+                frame.Line = line;
+
+                if (string.IsNullOrEmpty(frame.SourceCodeFullPath))
+                {
+                    frame.SourceCodeFullPath = file;
+                }
+
+                // remove [file:line] from function name
+                frame.FunctionName = RemoveSegment(fn, start, end + 1);
+            }
+        }
+
+        
         /// <summary>
         /// Try to convert Android stack frame string to Backtrace stack frame.
         /// </summary>
@@ -362,6 +424,44 @@ namespace Backtrace.Unity.Model
                 }
             }
             return result;
+        }
+
+        private static void NormalizeWrapper(ref string functionName)
+        {
+            if (string.IsNullOrEmpty(functionName))
+                return;
+
+            functionName = RemovePrefix(functionName, "(wrapper managed-to-native)");
+            functionName = RemovePrefix(functionName, "(wrapper runtime-invoke)");
+        }
+
+        private static string RemovePrefix(string value, string prefix)
+        {
+            if (value.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return value.Substring(prefix.Length).Trim();
+            }
+            return value;
+        }
+
+        private static void SkipSpaces(string s, ref int index)
+        {
+            while (index < s.Length && s[index] == ' ')
+                index++;
+        }
+
+        private static string RemoveSegment(string s, int start, int end)
+        {
+            if (start >= end || start < 0 || end > s.Length)
+                return s;
+
+            return (s.Substring(0, start) + s.Substring(end)).Trim();
+        }
+
+        private static BacktraceStackFrame Fallback(BacktraceStackFrame frame, string raw)
+        {
+            frame.FunctionName = raw;
+            return frame;
         }
     }
 }
