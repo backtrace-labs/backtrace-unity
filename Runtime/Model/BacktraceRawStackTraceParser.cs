@@ -18,9 +18,8 @@ namespace Backtrace.Unity.Model
         {
             var result = new List<BacktraceStackFrame>();
 
-            for (int frameIndex = 0; frameIndex < frames.Count(); frameIndex++)
+            foreach (var frame in frames)
             {
-                var frame = frames.ElementAt(frameIndex);
                 if (string.IsNullOrEmpty(frame))
                 {
                     continue;
@@ -28,21 +27,12 @@ namespace Backtrace.Unity.Model
 
                 string frameString = frame.Trim();
 
-                // validate if stack trace has exception header 
+                // validate if stack trace has exception header               
                 int methodNameEndIndex = frameString.IndexOf(')');
-                if (methodNameEndIndex == -1)
+                int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex); // we require a '(' that appears before this ')'
+                if (methodNameEndIndex == -1 || openParentIndex == -1 || openParentIndex > methodNameEndIndex)
                 {
-                    //invalid stack frame
-                    result.Add(new BacktraceStackFrame() { FunctionName = frame });
-                    continue;
-
-                }
-
-                // we require a '(' that appears before this ')'
-                int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex);
-                if (openParentIndex == -1 || openParentIndex > methodNameEndIndex)
-                {
-                    // invalid shape: no matching '(' before ')'
+                    // If either index is missing, it's an invalid frame
                     result.Add(new BacktraceStackFrame { FunctionName = frame });
                     continue;
                 }
