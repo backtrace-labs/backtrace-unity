@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static UnityEngine.Networking.UnityWebRequest;
 
 namespace Backtrace.Unity.Model
 {
@@ -26,137 +27,48 @@ namespace Backtrace.Unity.Model
                     continue;
                 }
 
+                BacktraceStackFrame convertedFrame = TryParseFrameOrFallback(frame);
+                if (convertedFrame != null)
+                {
+                    result.Add(convertedFrame);
+                }
+            }
+            return result;
+        }
+
+        private BacktraceStackFrame TryParseFrameOrFallback(string frame)
+        {
+            try
+            {
                 string frameString = frame.Trim();
 
                 // validate if stack trace has exception header               
                 int methodNameEndIndex = frameString.IndexOf(')');
                 int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex); // we require a '(' that appears before this ')'
-                
+
                 if (methodNameEndIndex == -1 || openParentIndex == -1 || openParentIndex > methodNameEndIndex)
                 {
                     // If either index is missing, it's an invalid frame
-                    result.Add(new BacktraceStackFrame { FunctionName = frame });
-                    continue;
+                    Debug.LogWarning($"Invalid stack frame format: '{frameString}'.");
+                    return new BacktraceStackFrame { FunctionName = frame };
                 }
 
-                result.Add(ConvertFrame(frameString, methodNameEndIndex));
+                return ParseStacktraceFrame(frameString);
             }
-            return result;
+            catch (Exception e)
+            {
+                Debug.LogError($"Exception while parsing stack frame: '{frame}'. Exception: {e}");
+                return null;
+            }
         }
 
-        private BacktraceStackFrame ConvertFrame(string frameString, int methodNameEndIndex)
+        private BacktraceStackFrame ParseStacktraceFrame(string frameString)
         {
             if (frameString.StartsWith("0x", StringComparison.Ordinal))
             {
                 return ParseNativeFrame(frameString);
             }
-            else if (frameString.StartsWith("#", StringComparison.Ordinal))
-            {
-                return SetJITStackTraceInformation(frameString);
-            }
-#if UNITY_ANDROID || UNITY_EDITOR
-            // verify if the stack trace is from Unity by checking if the
-            // by checking source code location
-            const char argumentStartInitialChar = '(';
-            var sourceCodeStartIndex = frameString.IndexOf(argumentStartInitialChar, methodNameEndIndex + 1);
-            if (sourceCodeStartIndex > -1)
-            {
-                return SetDefaultStackTraceInformation(frameString, methodNameEndIndex);
-            }
-            // verify if frame has parameters that contain source code information
-            var methodStartIndex = frameString.IndexOf(argumentStartInitialChar);
-            if (methodStartIndex == -1)
-            {
-                return new BacktraceStackFrame()
-                {
-                    FunctionName = frameString
-                };
-            }
-
-            NativeStackTrace = true;
-            // add length of the '('
-            methodStartIndex += 1;
-            var methodArguments = frameString.Substring(methodStartIndex, methodNameEndIndex - methodStartIndex);
-            if (methodArguments.IndexOf(':') != -1 || methodArguments == "Unknown Source")
-            {
-                return SetAndroidStackTraceInformation(frameString, methodStartIndex, methodNameEndIndex);
-            }
-            // check if popular extensions are available in the frame to determine if 
-            // the frame has any reference to java.
-            for (int i = 0; i < _javaExtensions.Length; i++)
-            {
-                if (frameString.IndexOf(_javaExtensions[i], StringComparison.Ordinal) != -1)
-                {
-                    return SetAndroidStackTraceInformation(frameString, methodStartIndex, methodNameEndIndex);
-                }
-            }
-#endif
-            return SetDefaultStackTraceInformation(frameString, methodNameEndIndex);
-        }
-
-        /// <summary>
-        /// Try to convert JIT stack trace.
-        /// </summary>
-        /// <param name="frameString">JIT stack frame.</param>
-        /// <returns>Backtrace stack frame.</returns>
-        private BacktraceStackFrame SetJITStackTraceInformation(string frameString)
-        {
-            var stackFrame = new BacktraceStackFrame
-            {
-                StackFrameType = Types.BacktraceStackFrameType.Native
-            };
-            if (!frameString.StartsWith("#", StringComparison.Ordinal))
-            {
-                //handle situation when we detected jit stack trace
-                // but jit stack trace doesn't start with #
-                stackFrame.FunctionName = frameString;
-                return stackFrame;
-            }
-
-            frameString = frameString.Substring(frameString.IndexOf(' ')).Trim();
-            const string monoJitPrefix = "(Mono JIT Code)";
-            var monoPrefixIndex = frameString.IndexOf(monoJitPrefix, StringComparison.Ordinal);
-            if (monoPrefixIndex != -1)
-            {
-                frameString = frameString.Substring(monoPrefixIndex + monoJitPrefix.Length).Trim();
-            }
-
-            const string managedWraperPrefix = "(wrapper managed-to-native)";
-            var managedWraperIndex = frameString.IndexOf(managedWraperPrefix, StringComparison.Ordinal);
-            if (managedWraperIndex != -1)
-            {
-                frameString = frameString.Substring(managedWraperIndex + managedWraperPrefix.Length).Trim();
-            }
-
-            // right now we outfiltered all known prefixes 
-            // we should have only function name with parameters
-
-            // filter parameters, if we can't use full frameString as function name
-            var parametersStart = frameString.IndexOf('(');
-            var parametersEnd = frameString.IndexOf(')');
-            if (parametersStart != -1 && parametersEnd != -1 && parametersEnd > parametersStart)
-            {
-                stackFrame.FunctionName = frameString.Substring(0, parametersStart).Trim();
-            }
-            else
-            {
-                stackFrame.FunctionName = frameString;
-            }
-
-            if (!string.IsNullOrEmpty(stackFrame.FunctionName))
-            {
-                var libraryNameSeparator = stackFrame.FunctionName.IndexOf(':');
-                if (libraryNameSeparator != -1)
-                {
-                    stackFrame.Library = stackFrame.FunctionName.Substring(0, libraryNameSeparator).Trim();
-                    stackFrame.FunctionName = stackFrame.FunctionName.Substring(++libraryNameSeparator).Trim();
-                }
-                else
-                {
-                    stackFrame.Library = "native";
-                }
-            }
-            return stackFrame;
+            return null;
         }
 
         /// <summary>
@@ -166,7 +78,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         /// <param name="frameString">Raw native stack frame line to parse.</param>
         /// <returns>Parsed Backtrace stack frame containing address, library, function name, and optional line number.</returns>
-        internal static BacktraceStackFrame ParseNativeFrame (string frameString)
+        internal static BacktraceStackFrame ParseNativeFrame(string frameString)
         {
             var stackFrame = new BacktraceStackFrame
             {
@@ -271,12 +183,7 @@ namespace Backtrace.Unity.Model
             if (int.TryParse(lineStr, out int line))
             {
                 frame.Line = line;
-
-                // IMPORTANT: your test expects FULL PATH here
                 frame.SourceCode = path;
-
-                // optional:
-                frame.SourceCodeFullPath = path;
             }
         }
 
@@ -313,117 +220,6 @@ namespace Backtrace.Unity.Model
                 // remove [file:line] from function name
                 frame.FunctionName = RemoveSegment(fn, start, end + 1);
             }
-        }
-
-        
-        /// <summary>
-        /// Try to convert Android stack frame string to Backtrace stack frame.
-        /// </summary>
-        /// <param name="frameString">Android stack frame.</param>
-        /// <param name="parameterStart">Index of parameters start character '('.</param>
-        /// <param name="parameterEnd">Index of parameters end character ')'.</param>
-        /// <returns>Backtrace stack frame.</returns>
-        private BacktraceStackFrame SetAndroidStackTraceInformation(string frameString, int parameterStart, int parameterEnd)
-        {
-            var stackFrame = new BacktraceStackFrame
-            {
-                FunctionName = frameString.Substring(0, parameterStart - 1),
-                StackFrameType = Types.BacktraceStackFrameType.Android
-            };
-            var possibleSourceCodeInformation = frameString.Substring(parameterStart, parameterEnd - parameterStart);
-
-            var sourceCodeInformation = possibleSourceCodeInformation.Split(':');
-            if (sourceCodeInformation.Length == 2)
-            {
-                stackFrame.Library = sourceCodeInformation[0];
-                int.TryParse(sourceCodeInformation[1], out stackFrame.Line);
-            }
-            else if (frameString.StartsWith("java.lang", StringComparison.Ordinal) || possibleSourceCodeInformation == "Unknown Source")
-            {
-                stackFrame.Library = possibleSourceCodeInformation;
-            }
-
-            return stackFrame;
-        }
-
-        /// <summary>
-        /// Try to convert default Unity stack frame to Backtrace stack frame.
-        /// </summary>
-        /// <param name="frameString">Unity stack frame.</param>
-        /// <param name="methodNameEndIndex">Index of method name end character ')'.</param>
-        /// <returns>Backtrace stack frame.</returns>
-        private BacktraceStackFrame SetDefaultStackTraceInformation(string frameString, int methodNameEndIndex)
-        {
-            const string wrapperPrefix = "(wrapper remoting-invoke-with-check)";
-            if (frameString.StartsWith(wrapperPrefix, StringComparison.Ordinal))
-            {
-                frameString = frameString.Replace(wrapperPrefix, string.Empty);
-            }
-            // detect source code information - format : 'at (...)'
-
-            // find source code start based on method parameter start index
-            int sourceInformationStartIndex = frameString.IndexOf('(', methodNameEndIndex + 1);
-            if (sourceInformationStartIndex == -1)
-            {
-                return new BacktraceStackFrame()
-                {
-                    FunctionName = frameString,
-                    StackFrameType = Types.BacktraceStackFrameType.Dotnet
-                };
-            }
-
-            // get source code information substring
-            int sourceStringLength = frameString.Length - sourceInformationStartIndex;
-            string sourceString = frameString.Trim()
-                    .Substring(sourceInformationStartIndex, sourceStringLength);
-
-            int lineNumberSeparator = sourceString.LastIndexOf(':') + 1;
-            int endLineNumberSeparator = sourceString.LastIndexOf(')') - lineNumberSeparator;
-
-            var result = new BacktraceStackFrame()
-            {
-                FunctionName = frameString.Substring(0, methodNameEndIndex + 1).Trim(),
-                StackFrameType = Types.BacktraceStackFrameType.Dotnet
-            };
-
-            if (endLineNumberSeparator > 0 && lineNumberSeparator > 0)
-            {
-                string lineNumberString = sourceString.Substring(lineNumberSeparator, endLineNumberSeparator);
-                int.TryParse(lineNumberString, out result.Line);
-            }
-
-            if (sourceString[0] == '(' && lineNumberSeparator != -1)
-            {
-                //avoid "at" or '('
-                int atSeparator = sourceString.StartsWith("(at", StringComparison.Ordinal)
-                    ? 3
-                    : 1;
-                int endLine = lineNumberSeparator == 0
-                    ? sourceString.LastIndexOf(')') - atSeparator
-                    : lineNumberSeparator - 1 - atSeparator;
-                if (endLine < 0)
-                {
-                    return result;
-                }
-                var substring = sourceString.Substring(atSeparator, endLine);
-
-                result.Library = (substring == null ? string.Empty : substring.Trim());
-
-                if (!string.IsNullOrEmpty(result.Library))
-                {
-                    var testString = string.Copy(result.Library);
-                    testString = testString.Replace("0", string.Empty);
-                    if (testString.Length <= 2)
-                    {
-                        result.Library = null;
-                    }
-                }
-                if (string.IsNullOrEmpty(result.Library))
-                {
-                    result.Library = result.FunctionName.Substring(0, result.FunctionName.LastIndexOf(".", result.FunctionName.IndexOf("(", StringComparison.Ordinal), StringComparison.Ordinal));
-                }
-            }
-            return result;
         }
 
         private static void NormalizeWrapper(ref string functionName)
