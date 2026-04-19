@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using UnityEngine;
 using static UnityEngine.Networking.UnityWebRequest;
 
 namespace Backtrace.Unity.Model
