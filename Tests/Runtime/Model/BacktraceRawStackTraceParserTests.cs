@@ -1,10 +1,6 @@
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Types;
 using NUnit.Framework;
-using System.Globalization;
-using System.Net;
-using System.Reflection;
-using UnityEditor.iOS;
 
 namespace Backtrace.Unity.Tests.Runtime
 {
