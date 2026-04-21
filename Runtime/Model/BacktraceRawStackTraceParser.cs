@@ -92,9 +92,7 @@ namespace Backtrace.Unity.Model
             }
 
             frameString = frameString.Trim();
-
             int index = 0;
-
 
             if (!TryParseAddress(frameString, ref index, stackFrame))
             {
@@ -102,14 +100,8 @@ namespace Backtrace.Unity.Model
             }
 
             TryParseLibrary(frameString, ref index, stackFrame);
-
-
             ParseFunction(frameString, index, stackFrame);
-
-
             NormalizeWrapper(ref stackFrame.FunctionName);
-
-
             ParseBracketSource(ref stackFrame);
 
             return stackFrame;
