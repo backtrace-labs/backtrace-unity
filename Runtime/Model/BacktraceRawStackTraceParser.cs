@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using UnityEngine;
 
 namespace Backtrace.Unity.Model
 {
@@ -26,25 +25,42 @@ namespace Backtrace.Unity.Model
                     continue;
                 }
 
+                BacktraceStackFrame convertedFrame = TryParseFrameOrFallback(frame);
+                if (convertedFrame != null)
+                {
+                    result.Add(convertedFrame);
+                }
+            }
+            return result;
+        }
+
+        private BacktraceStackFrame TryParseFrameOrFallback(string frame)
+        {
+            try
+            {
                 string frameString = frame.Trim();
 
                 // validate if stack trace has exception header               
                 int methodNameEndIndex = frameString.IndexOf(')');
                 int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex); // we require a '(' that appears before this ')'
-                
+
                 if (methodNameEndIndex == -1 || openParentIndex == -1 || openParentIndex > methodNameEndIndex)
                 {
                     // If either index is missing, it's an invalid frame
-                    result.Add(new BacktraceStackFrame { FunctionName = frame });
-                    continue;
+                    Debug.LogWarning($"Invalid stack frame format: '{frameString}'.");
+                    return new BacktraceStackFrame { FunctionName = frame };
                 }
 
-                result.Add(ConvertFrame(frameString, methodNameEndIndex));
+                return ParseStacktraceFrame(frameString, methodNameEndIndex);
             }
-            return result;
+            catch (Exception e)
+            {
+                Debug.LogError($"Exception while parsing stack frame: '{frame}'. Exception: {e}");
+                return null;
+            }
         }
 
-        private BacktraceStackFrame ConvertFrame(string frameString, int methodNameEndIndex)
+        private BacktraceStackFrame ParseStacktraceFrame(string frameString, int methodNameEndIndex)
         {
             if (frameString.StartsWith("0x", StringComparison.Ordinal))
             {
@@ -166,7 +182,7 @@ namespace Backtrace.Unity.Model
         /// </summary>
         /// <param name="frameString">Raw native stack frame line to parse.</param>
         /// <returns>Parsed Backtrace stack frame containing address, library, function name, and optional line number.</returns>
-        internal static BacktraceStackFrame ParseNativeFrame (string frameString)
+        internal static BacktraceStackFrame ParseNativeFrame(string frameString)
         {
             var stackFrame = new BacktraceStackFrame
             {
@@ -189,16 +205,9 @@ namespace Backtrace.Unity.Model
             }
 
             TryParseLibrary(frameString, ref index, stackFrame);
-
-
             ParseFunction(frameString, index, stackFrame);
-
-
             NormalizeWrapper(ref stackFrame.FunctionName);
-
-
             ParseBracketSource(ref stackFrame);
-
             return stackFrame;
         }
 
@@ -315,7 +324,7 @@ namespace Backtrace.Unity.Model
             }
         }
 
-        
+
         /// <summary>
         /// Try to convert Android stack frame string to Backtrace stack frame.
         /// </summary>
