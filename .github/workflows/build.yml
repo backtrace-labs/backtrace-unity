@@ -84,7 +84,7 @@ jobs:
         projectPath:
           - test-package
         unityVersion:
-          - 2019.4.40f1
+          - 2021.3.56f2
         targetPlatform:
           - StandaloneOSX
           - StandaloneWindows
