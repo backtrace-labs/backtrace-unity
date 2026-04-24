@@ -6,7 +6,76 @@ on:
   pull_request:
 
 jobs:
+  validate-macos-framework-layout:
+    name: Validate macOS framework layout
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Validate Backtrace.framework layout in repo
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          FRAMEWORK="Mac/BacktraceMacUnity.bundle/Contents/Frameworks/Backtrace.framework"
+
+          test -d "$FRAMEWORK"
+          test -d "$FRAMEWORK/Versions/A"
+          test -f "$FRAMEWORK/Versions/A/Backtrace"
+          test -f "$FRAMEWORK/Versions/A/Resources/Info.plist"
+
+          test -L "$FRAMEWORK/Versions/Current"
+          test "$(readlink "$FRAMEWORK/Versions/Current")" = "A"
+
+          test -L "$FRAMEWORK/Backtrace"
+          test "$(readlink "$FRAMEWORK/Backtrace")" = "Versions/Current/Backtrace"
+
+          test -L "$FRAMEWORK/Resources"
+          test "$(readlink "$FRAMEWORK/Resources")" = "Versions/Current/Resources"
+
+          test ! -e "$FRAMEWORK/A"
+
+      - name: Validate packaged macOS framework layout
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          WORKDIR="$(mktemp -d)"
+          PACKAGE_ROOT="$WORKDIR/package-root"
+          mkdir -p "$PACKAGE_ROOT"
+
+          cp -R Editor Runtime Tests Android iOS Mac Windows package.json "$PACKAGE_ROOT/"
+
+          tar -czf "$WORKDIR/io.backtrace.unity.tgz" -C "$PACKAGE_ROOT" .
+
+          EXTRACT_DIR="$WORKDIR/extracted"
+          mkdir -p "$EXTRACT_DIR"
+          tar -xzf "$WORKDIR/io.backtrace.unity.tgz" -C "$EXTRACT_DIR"
+
+          FRAMEWORK="$EXTRACT_DIR/Mac/BacktraceMacUnity.bundle/Contents/Frameworks/Backtrace.framework"
+
+          test -d "$FRAMEWORK"
+          test -d "$FRAMEWORK/Versions/A"
+          test -f "$FRAMEWORK/Versions/A/Backtrace"
+          test -f "$FRAMEWORK/Versions/A/Resources/Info.plist"
+
+          test -L "$FRAMEWORK/Versions/Current"
+          test "$(readlink "$FRAMEWORK/Versions/Current")" = "A"
+
+          test -L "$FRAMEWORK/Backtrace"
+          test "$(readlink "$FRAMEWORK/Backtrace")" = "Versions/Current/Backtrace"
+
+          test -L "$FRAMEWORK/Resources"
+          test "$(readlink "$FRAMEWORK/Resources")" = "Versions/Current/Resources"
+
+          test ! -e "$FRAMEWORK/A"
+
   test:
+    needs: validate-macos-framework-layout
     name: Run Build for ${{ matrix.unityVersion }} ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
@@ -24,6 +93,7 @@ jobs:
           - iOS
           - Android
           - WebGL
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -33,7 +103,7 @@ jobs:
       - name: Setup Environment
         run: |
           mkdir ${{ matrix.projectPath }}
-          mv Editor Runtime Tests Android iOS Windows package.json ${{ matrix.projectPath }}/
+          mv Editor Runtime Tests Android iOS Mac Windows package.json ${{ matrix.projectPath }}/
 
       - if: matrix.targetPlatform == 'Android'
         uses: jlumbroso/free-disk-space@v1.3.1
