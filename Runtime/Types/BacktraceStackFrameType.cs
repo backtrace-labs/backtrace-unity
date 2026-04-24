@@ -1,6 +1,6 @@
 ﻿namespace Backtrace.Unity.Types
 {
-    enum BacktraceStackFrameType
+    public enum BacktraceStackFrameType
     {
         Unknown,
         Dotnet,
