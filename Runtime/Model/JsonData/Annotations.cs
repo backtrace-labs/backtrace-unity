@@ -76,8 +76,9 @@ namespace Backtrace.Unity.Model.JsonData
             Exception exception,
             int gameObjectDepth,
             IDictionary<string, Dictionary<string, string>> customAnnotations)
-            : this(exception, gameObjectDepth)
         {
+            _gameObjectDepth = gameObjectDepth;
+            Exception = exception;
             _customAnnotations = customAnnotations;
         }
 
