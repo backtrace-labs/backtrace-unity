@@ -9,17 +9,28 @@ namespace Backtrace.Unity.Model
     internal static class BacktraceUnityLogCapture
     {
         internal const string UnityLogCaptureAnnotationName = "Unity log capture";
-        internal const string UnityLogHandlerExceptionAnnotationName = "Unity log handler exception";
+        internal const string UnityLogHandlerExceptionAnnotationName =
+            "Unity log handler exception";
         internal const string CapturePathUnityLogMessageReceived =
             "Application.logMessageReceived";
         internal const string CapturePathUnityLogMessageReceivedThreaded =
             "Application.logMessageReceivedThreaded";
-        internal const string CapturePathUnityLogHandlerLogException =
-            "Debug.unityLogger.logHandler.LogException";
+        internal const string CapturePathUnityLogHandlerAndCallback =
+            "Debug.unityLogger.logHandler.LogException+Application.logMessageReceived";
         internal const string StacklessReasonUnityLogCallback =
             "unity_log_callback_empty_stacktrace";
+        internal const string StacklessReasonUnityCallbackUnparsed =
+            "unity_log_callback_stacktrace_unparsed";
         internal const string StacklessReasonOriginalException =
             "original_exception_without_managed_stacktrace";
+        internal const string StacklessReasonOriginalExceptionUnparsed =
+            "original_exception_stacktrace_unparsed";
+        internal const string StackSourceOriginalException =
+            "original_exception_stacktrace";
+        internal const string StackSourceUnityCallback =
+            "unity_log_callback_stacktrace";
+        internal const string StackSourceUnavailable =
+            "unavailable";
 
         private const int MaxAnnotationValueLength = 16 * 1024;
 
@@ -98,7 +109,7 @@ namespace Backtrace.Unity.Model
             };
         }
 
-        internal static Dictionary<string, string> CreateLogHandlerExceptionAttributes(
+        internal static Dictionary<string, string> CreateOriginalExceptionAttributes(
             Exception exception,
             string contextName,
             bool isMainThread)
@@ -107,36 +118,22 @@ namespace Backtrace.Unity.Model
             var stackPresent = exception != null && !string.IsNullOrEmpty(exception.StackTrace);
             var attributes = new Dictionary<string, string>
             {
-                { "backtrace.unity.capture_path", CapturePathUnityLogHandlerLogException },
-                { "backtrace.unity.log.type", LogType.Exception.ToString() },
                 { "backtrace.unity.original_exception.source", "Debug.unityLogger.logHandler" },
                 { "backtrace.unity.original_exception.type", exceptionType },
                 { "backtrace.unity.original_exception.stack_present", ToInvariantString(stackPresent) },
                 { "backtrace.unity.original_exception.context_name", contextName ?? string.Empty },
-                { "backtrace.unity.log.thread.id", Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture) },
-                { "backtrace.unity.log.thread.is_main", ToInvariantString(isMainThread) },
-                { "backtrace.unity.stacktrace_log_type.error", GetStackTraceLogType(LogType.Error, isMainThread) },
-                { "backtrace.unity.stacktrace_log_type.exception", GetStackTraceLogType(LogType.Exception, isMainThread) },
+                { "backtrace.unity.original_exception.thread.id", Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture) },
+                { "backtrace.unity.original_exception.thread.is_main", ToInvariantString(isMainThread) }
             };
-#if UNITY_WEBGL
-            attributes["backtrace.unity.platform.webgl"] = "true";
-#else
-            attributes["backtrace.unity.platform.webgl"] = "false";
-#endif
-#if ENABLE_IL2CPP
-            attributes["backtrace.unity.scripting_backend"] = "IL2CPP";
-#else
-            attributes["backtrace.unity.scripting_backend"] = "Mono";
-#endif
             if (!stackPresent)
             {
-                attributes["backtrace.unity.stackless.reason"] =
+                attributes["backtrace.unity.original_exception.stackless_reason"] =
                     StacklessReasonOriginalException;
             }
             return attributes;
         }
 
-        internal static Dictionary<string, string> CreateLogHandlerExceptionAnnotation(
+        internal static Dictionary<string, string> CreateOriginalExceptionAnnotation(
             Exception exception,
             string contextName)
         {
@@ -150,8 +147,7 @@ namespace Backtrace.Unity.Model
                 { "contextName", contextName ?? string.Empty },
                 {
                     "note",
-                    "Backtrace captured the original Exception object before Unity converted it into a log callback. " +
-                    "If this exception has a stackTrace, it is the best available managed stack for this report."
+                    "Backtrace observed this Exception object through Debug.unityLogger.logHandler before Unity emitted the log callback."
                 }
             };
         }
@@ -189,6 +185,20 @@ namespace Backtrace.Unity.Model
         internal static string ToInvariantString(bool value)
         {
             return value.ToString(CultureInfo.InvariantCulture).ToLowerInvariant();
+        }
+
+        internal static void MergeAttributes(
+            IDictionary<string, string> target,
+            IDictionary<string, string> source)
+        {
+            if (target == null || source == null)
+            {
+                return;
+            }
+            foreach (var item in source)
+            {
+                target[item.Key] = item.Value ?? string.Empty;
+            }
         }
 
         private static void AddPrefix(
