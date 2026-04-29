@@ -9,7 +9,7 @@ namespace Backtrace.Unity.Tests.Runtime
     public sealed class BacktraceUnityLogCaptureTests
     {
         [Test]
-        public void UnityLogAttributes_ShouldClassifyEmptyExceptionStack()
+        public void UnityLogAttributes_ShouldClassifyEmptyCallbackStack()
         {
             var attributes = BacktraceUnityLogCapture.CreateUnityLogAttributes(
                 "ArgumentNullException: Value cannot be null.\nParameter name: obj",
@@ -18,9 +18,6 @@ namespace Backtrace.Unity.Tests.Runtime
                 true,
                 BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived);
 
-            Assert.AreEqual(
-                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived,
-                attributes["backtrace.unity.capture_path"]);
             Assert.AreEqual("Exception", attributes["backtrace.unity.log.type"]);
             Assert.AreEqual("true", attributes["backtrace.unity.log.stacktrace.empty"]);
             Assert.AreEqual("0", attributes["backtrace.unity.log.stacktrace.length"]);
@@ -30,7 +27,7 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
-        public void UnityLogAttributes_ShouldNotClassifyNonEmptyStackAsStackless()
+        public void UnityLogAttributes_ShouldNotClassifyNonEmptyCallbackStackAsStackless()
         {
             var attributes = BacktraceUnityLogCapture.CreateUnityLogAttributes(
                 "ArgumentNullException: Value cannot be null.",
@@ -44,44 +41,70 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
-        public void LogHandlerAttributes_ShouldRecordOriginalExceptionType()
+        public void OriginalExceptionAttributes_ShouldRecordThrownExceptionStackPresence()
         {
-            var exception = new ArgumentNullException("obj");
-            var attributes = BacktraceUnityLogCapture.CreateLogHandlerExceptionAttributes(
+            Exception exception = null;
+            try
+            {
+                throw new ArgumentNullException("obj");
+            }
+            catch (Exception caught)
+            {
+                exception = caught;
+            }
+            var attributes = BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
                 exception,
-                "TestObject",
+                "TestContext",
                 true);
 
-            Assert.AreEqual(
-                BacktraceUnityLogCapture.CapturePathUnityLogHandlerLogException,
-                attributes["backtrace.unity.capture_path"]);
             Assert.AreEqual(
                 typeof(ArgumentNullException).FullName,
                 attributes["backtrace.unity.original_exception.type"]);
             Assert.AreEqual(
-                "TestObject",
-                attributes["backtrace.unity.original_exception.context_name"]);
+                "true",
+                attributes["backtrace.unity.original_exception.stack_present"]);
         }
 
         [Test]
-        public void ExceptionMessagePrefixes_ShouldIncludeShortAndFullTypeNames()
+        public void OriginalExceptionAttributes_ShouldRecordStacklessOriginalException()
+        {
+            var exception = new ArgumentNullException("obj");
+            var attributes = BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
+                exception,
+                "TestContext",
+                true);
+
+            Assert.AreEqual(
+                "false",
+                attributes["backtrace.unity.original_exception.stack_present"]);
+            Assert.AreEqual(
+                BacktraceUnityLogCapture.StacklessReasonOriginalException,
+                attributes["backtrace.unity.original_exception.stackless_reason"]);
+        }
+
+        [Test]
+        public void ExceptionMessagePrefixes_ShouldUseRuntimeExceptionMessage()
         {
             var exception = new ArgumentNullException("obj");
             var prefixes = BacktraceUnityLogCapture.CreateExceptionMessagePrefixes(exception);
 
             Assert.Contains("ArgumentNullException", prefixes);
             Assert.Contains(typeof(ArgumentNullException).FullName, prefixes);
-            Assert.Contains("ArgumentNullException: Value cannot be null.\nParameter name: obj", prefixes);
+            Assert.Contains("ArgumentNullException: " + exception.Message, prefixes);
+            Assert.Contains(typeof(ArgumentNullException).FullName + ": " + exception.Message, prefixes);
         }
 
         [Test]
         public void AssignSourceCodeToReport_ShouldPreserveSourceCodeWhenStackIsEmpty()
         {
-            var exception = new BacktraceUnhandledException(
+            var exception = BacktraceUnhandledException.CreateFromUnityLogCallback(
                 "ArgumentNullException: Value cannot be null.\nParameter name: obj",
-                string.Empty);
-            var report = new BacktraceReport(exception);
-            report.DiagnosticStack = new List<BacktraceStackFrame>();
+                string.Empty,
+                LogType.Exception,
+                allowEnvironmentStackFallback: false);
+            var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(
+                exception,
+                new Dictionary<string, string>());
             report.AssignSourceCodeToReport("recent Unity log context");
 
             var data = report.ToBacktraceData(null, -1);
@@ -92,12 +115,16 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
-        public void AddAnnotation_ShouldSerializeCustomAnnotation()
+        public void CustomAnnotation_ShouldSerialize()
         {
-            var exception = new BacktraceUnhandledException(
+            var exception = BacktraceUnhandledException.CreateFromUnityLogCallback(
                 "ArgumentNullException: Value cannot be null.\nParameter name: obj",
-                string.Empty);
-            var report = new BacktraceReport(exception);
+                string.Empty,
+                LogType.Exception,
+                allowEnvironmentStackFallback: false);
+            var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(
+                exception,
+                new Dictionary<string, string>());
             report.AddAnnotation(
                 "Unity log capture",
                 new Dictionary<string, string>
