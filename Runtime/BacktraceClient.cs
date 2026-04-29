@@ -129,18 +129,10 @@ namespace Backtrace.Unity
 
         private readonly object _backgroundExceptionsLock = new object();
         private readonly object _backtraceLogManagerLock = new object();
-        private readonly object _unityLogSuppressionLock = new object();
-        private readonly Queue<UnityLogSuppression> _unityLogSuppressions =
-            new Queue<UnityLogSuppression>();
         private BacktraceUnityLogHandler _unityLogHandler;
         private ILogHandler _previousUnityLogHandler;
-
-        private sealed class UnityLogSuppression
-        {
-            public List<string> MessagePrefixes;
-            public LogType Type;
-            public double ExpiresAtMs;
-        }
+        private BacktraceUnityLogExceptionCandidateStore _unityLogExceptionCandidateStore;
+        private BacktraceUnityLogReportFactory _unityLogReportFactory;
 
         /// <summary>
         /// Client report attachments
@@ -758,6 +750,10 @@ namespace Backtrace.Unity
             }
             _instance = null;
             RestoreUnityLogHandlerExceptionCapture();
+            if (_unityLogExceptionCandidateStore != null)
+            {
+                _unityLogExceptionCandidateStore.Clear();
+            }
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
@@ -1167,38 +1163,23 @@ namespace Backtrace.Unity
             _previousUnityLogHandler = null;
         }
 
-        internal bool TryCaptureUnityLogHandlerException(
+        internal bool RecordUnityLogHandlerException(
             Exception exception,
             UnityEngine.Object context)
         {
             if (!Enabled ||
                 exception == null ||
                 !Configuration.HandleUnhandledExceptions ||
-                !ShouldUseUnityLogHandlerExceptionCapture())
-            {
-                return false;
-            }
-            if (BacktraceApi == null || _reportLimitWatcher == null)
+                !ShouldUseUnityLogHandlerExceptionCapture() ||
+                _unityLogExceptionCandidateStore == null)
             {
                 return false;
             }
             var isMainThread = IsCurrentThreadMainThread();
-            var contextName = GetUnityContextName(context, isMainThread);
-            var attributes = BacktraceUnityLogCapture.CreateLogHandlerExceptionAttributes(
+            return _unityLogExceptionCandidateStore.Record(
                 exception,
-                contextName,
+                GetUnityContextName(context, isMainThread),
                 isMainThread);
-            var report = new BacktraceReport(exception, attributes);
-            report.Attributes["error.type"] = BacktraceDefaultClassifierTypes.UnhandledExceptionType;
-            report.Attributes["error.message"] =
-                BacktraceUnityLogCapture.NormalizeUnityExceptionMessage(exception);
-            report.AddAnnotation(
-                BacktraceUnityLogCapture.UnityLogHandlerExceptionAnnotationName,
-                BacktraceUnityLogCapture.CreateLogHandlerExceptionAnnotation(
-                    exception,
-                    contextName));
-            SendUnhandledExceptionReport(report);
-            return true;
         }
 
         private string GetUnityContextName(UnityEngine.Object context, bool isMainThread)
@@ -1215,81 +1196,6 @@ namespace Backtrace.Unity
             {
                 return string.Empty;
             }
-        }
-
-        internal void SuppressNextUnityLogReport(
-            Exception exception,
-            LogType type,
-            int ttlMilliseconds = 1000)
-        {
-            var prefixes = BacktraceUnityLogCapture.CreateExceptionMessagePrefixes(exception);
-            if (prefixes == null || prefixes.Count == 0)
-            {
-                return;
-            }
-            lock (_unityLogSuppressionLock)
-            {
-                _unityLogSuppressions.Enqueue(new UnityLogSuppression
-                {
-                    MessagePrefixes = prefixes,
-                    Type = type,
-                    ExpiresAtMs = DateTimeHelper.TimestampMs() + Math.Max(ttlMilliseconds, 1)
-                });
-            }
-        }
-
-        private bool ShouldSuppressUnityLogReport(string message, LogType type)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                return false;
-            }
-            lock (_unityLogSuppressionLock)
-            {
-                if (_unityLogSuppressions.Count == 0)
-                {
-                    return false;
-                }
-                var now = DateTimeHelper.TimestampMs();
-                while (_unityLogSuppressions.Count > 0 &&
-                       _unityLogSuppressions.Peek().ExpiresAtMs < now)
-                {
-                    _unityLogSuppressions.Dequeue();
-                }
-                var matched = false;
-                var remaining = _unityLogSuppressions.Count;
-                for (var i = 0; i < remaining; i++)
-                {
-                    var suppression = _unityLogSuppressions.Dequeue();
-                    if (!matched &&
-                        suppression.Type == type &&
-                        MatchesAnyPrefix(message, suppression.MessagePrefixes))
-                    {
-                        matched = true;
-                        continue;
-                    }
-                    _unityLogSuppressions.Enqueue(suppression);
-                }
-                return matched;
-            }
-        }
-
-        private static bool MatchesAnyPrefix(string message, IList<string> prefixes)
-        {
-            if (string.IsNullOrEmpty(message) || prefixes == null)
-            {
-                return false;
-            }
-            for (var i = 0; i < prefixes.Count; i++)
-            {
-                var prefix = prefixes[i];
-                if (!string.IsNullOrEmpty(prefix) &&
-                    message.StartsWith(prefix, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private void EnqueueBacktraceLog(BacktraceReport report)
@@ -1325,69 +1231,6 @@ namespace Backtrace.Unity
                     : _backtraceLogManager.ToSourceCode();
             }
         }
-
-        private BacktraceReport CreateUnityLogBacktraceReport(
-            BacktraceUnhandledException exception,
-            string message,
-            string stackTrace,
-            LogType type,
-            bool isMainThread,
-            string capturePath)
-        {
-            var attributes = BacktraceUnityLogCapture.CreateUnityLogAttributes(
-                message,
-                stackTrace,
-                type,
-                isMainThread,
-                capturePath);
-            var report = new BacktraceReport(exception, attributes);
-            report.Attributes["error.message"] = message;
-            report.AddAnnotation(
-                BacktraceUnityLogCapture.UnityLogCaptureAnnotationName,
-                BacktraceUnityLogCapture.CreateUnityLogAnnotation(
-                    message,
-                    stackTrace,
-                    type,
-                    isMainThread,
-                    capturePath));
-#if UNITY_WEBGL
-            AttachWebGLJavaScriptStackIfNeeded(report, stackTrace, type);
-#endif
-            return report;
-        }
-
-#if UNITY_WEBGL
-        private void AttachWebGLJavaScriptStackIfNeeded(
-            BacktraceReport report,
-            string unityStackTrace,
-            LogType type)
-        {
-            if (report == null ||
-                Configuration == null ||
-                Configuration.WebGLJavaScriptStackFallback ==
-                    BacktraceWebGLJavaScriptStackFallbackMode.Disabled)
-            {
-                return;
-            }
-            if (!BacktraceUnityLogCapture.IsStacklessUnityLogReport(unityStackTrace, type))
-            {
-                return;
-            }
-            var javascriptStack = BacktraceWebGLJavaScriptStack.Capture();
-            var hasJavaScriptStack = !string.IsNullOrEmpty(javascriptStack);
-            report.Attributes["backtrace.webgl.javascript_stack.present"] =
-                BacktraceUnityLogCapture.ToInvariantString(hasJavaScriptStack);
-            report.Attributes["backtrace.webgl.javascript_stack.kind"] =
-                "javascript_stack_at_backtrace_capture_time";
-            if (!hasJavaScriptStack)
-            {
-                return;
-            }
-            report.AddAnnotation(
-                BacktraceWebGLJavaScriptStack.AnnotationName,
-                BacktraceWebGLJavaScriptStack.CreateAnnotation(javascriptStack));
-        }
-#endif
 
         private bool ShouldSendUnhandledReport(
             BacktraceReport report,
@@ -1440,7 +1283,7 @@ namespace Backtrace.Unity
             string capturePath;
             if (report.Attributes != null &&
                 report.Attributes.TryGetValue("backtrace.unity.capture_path", out capturePath) &&
-                capturePath == BacktraceUnityLogCapture.CapturePathUnityLogHandlerLogException)
+                capturePath == BacktraceUnityLogCapture.CapturePathUnityLogHandlerAndCallback)
             {
                 return ReportFilterType.UnhandledException;
             }
@@ -1457,6 +1300,8 @@ namespace Backtrace.Unity
         private void CaptureUnityMessages()
         {
             _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
+            _unityLogExceptionCandidateStore = new BacktraceUnityLogExceptionCandidateStore();
+            _unityLogReportFactory = new BacktraceUnityLogReportFactory(Configuration);
             if (Configuration.HandleUnhandledExceptions)
             {
                 InstallUnityLogHandlerExceptionCapture();
@@ -1538,23 +1383,18 @@ namespace Backtrace.Unity
             {
                 return;
             }
-            var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
-            EnqueueBacktraceLog(unityMessage);
+            EnqueueBacktraceLog(new BacktraceUnityMessage(message, stackTrace, type));
 
             if (!Configuration.HandleUnhandledExceptions)
             {
                 return;
             }
             if (string.IsNullOrEmpty(message) ||
-                (type != LogType.Error && type != LogType.Exception))
+                !BacktraceUnityLogCapture.IsReportableUnityLogType(type))
             {
                 return;
             }
-            if (ShouldSuppressUnityLogReport(message, type))
-            {
-                return;
-            }
-            BacktraceUnhandledException exception = null;
+
             var invokeSkipApi = true;
             if (type == LogType.Error)
             {
@@ -1566,11 +1406,13 @@ namespace Backtrace.Unity
                 {
                     if (SkipReport != null)
                     {
-                        exception = new BacktraceUnhandledException(message, stackTrace)
-                        {
-                            Type = type
-                        };
-                        if (ShouldSkipReport(ReportFilterType.Error, exception, string.Empty))
+                        var errorException =
+                            BacktraceUnhandledException.CreateFromUnityLogCallback(
+                                message,
+                                stackTrace,
+                                type,
+                                allowEnvironmentStackFallback: false);
+                        if (ShouldSkipReport(ReportFilterType.Error, errorException, string.Empty))
                         {
                             return;
                         }
@@ -1583,22 +1425,23 @@ namespace Backtrace.Unity
                 }
             }
 
-            if (exception == null)
+            BacktraceUnityLogExceptionCandidate candidate = null;
+            if (type == LogType.Exception &&
+                _unityLogExceptionCandidateStore != null)
             {
-                exception = new BacktraceUnhandledException(message, stackTrace)
-                {
-                    Type = type
-                };
+                _unityLogExceptionCandidateStore.TryConsume(message, out candidate);
             }
-            var report = CreateUnityLogBacktraceReport(
-                exception,
+
+            var report = _unityLogReportFactory.CreateReport(
                 message,
                 stackTrace,
                 type,
                 isMainThread,
-                capturePath);
+                capturePath,
+                candidate);
 #if UNITY_ANDROID
-            if (exception.NativeStackTrace && _useProguard)
+            var unhandledException = report.Exception as BacktraceUnhandledException;
+            if (unhandledException != null && unhandledException.NativeStackTrace && _useProguard)
             {
                 report.UseSymbolication("proguard");
             }
