@@ -89,7 +89,8 @@ namespace Backtrace.Unity.Model
                     message,
                     stackTrace,
                     type,
-                    isMainThread);
+                    isMainThread,
+                    capturePath);
                 if (HasFrames(originalReport))
                 {
                     AddCandidateAnnotations(
@@ -114,7 +115,8 @@ namespace Backtrace.Unity.Model
                         message,
                         stackTrace,
                         type,
-                        isMainThread);
+                        isMainThread,
+                        capturePath);
                 AddCandidateAnnotations(
                     callbackReport,
                     candidate,
@@ -133,7 +135,8 @@ namespace Backtrace.Unity.Model
                 message,
                 stackTrace,
                 type,
-                isMainThread);
+                isMainThread,
+                capturePath);
             AddCandidateAnnotations(
                 stacklessReport,
                 candidate,
@@ -152,14 +155,15 @@ namespace Backtrace.Unity.Model
             string message,
             string stackTrace,
             LogType type,
-            bool isMainThread)
+            bool isMainThread,
+            string capturePath)
         {
             var attributes = BacktraceUnityLogCapture.CreateUnityLogAttributes(
                 message,
                 stackTrace,
                 type,
                 isMainThread,
-                BacktraceUnityLogCapture.CapturePathUnityLogHandlerAndCallback);
+                BacktraceUnityLogCapture.CreateLogHandlerAndCallbackCapturePath(capturePath));
             BacktraceUnityLogCapture.MergeAttributes(
                 attributes,
                 BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
@@ -182,7 +186,8 @@ namespace Backtrace.Unity.Model
             string message,
             string stackTrace,
             LogType type,
-            bool isMainThread)
+            bool isMainThread,
+            string capturePath)
         {
             var exception = BacktraceUnhandledException.CreateFromUnityLogCallback(
                 message,
@@ -194,7 +199,7 @@ namespace Backtrace.Unity.Model
                 stackTrace,
                 type,
                 isMainThread,
-                BacktraceUnityLogCapture.CapturePathUnityLogHandlerAndCallback);
+                BacktraceUnityLogCapture.CreateLogHandlerAndCallbackCapturePath(capturePath));
             BacktraceUnityLogCapture.MergeAttributes(
                 attributes,
                 BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
@@ -215,14 +220,15 @@ namespace Backtrace.Unity.Model
             string message,
             string stackTrace,
             LogType type,
-            bool isMainThread)
+            bool isMainThread,
+            string capturePath)
         {
             var attributes = BacktraceUnityLogCapture.CreateUnityLogAttributes(
                 message,
                 stackTrace,
                 type,
                 isMainThread,
-                BacktraceUnityLogCapture.CapturePathUnityLogHandlerAndCallback);
+                BacktraceUnityLogCapture.CreateLogHandlerAndCallbackCapturePath(capturePath));
             BacktraceUnityLogCapture.MergeAttributes(
                 attributes,
                 BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
