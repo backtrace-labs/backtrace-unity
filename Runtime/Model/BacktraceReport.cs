@@ -82,6 +82,17 @@ namespace Backtrace.Unity.Model
         public BacktraceSourceCode SourceCode = null;
 
         /// <summary>
+        /// Custom report annotations serialized under the top-level annotations object.
+        /// </summary>
+        private readonly Dictionary<string, Dictionary<string, string>> _customAnnotations =
+            new Dictionary<string, Dictionary<string, string>>();
+
+        internal IDictionary<string, Dictionary<string, string>> CustomAnnotations
+        {
+            get { return _customAnnotations; }
+        }
+
+        /// <summary>
         /// Create new instance of Backtrace report to sending a report with custom client message
         /// </summary>
         /// <param name="message">Custom client message</param>
@@ -149,7 +160,7 @@ namespace Backtrace.Unity.Model
         /// <param name="text"></param>
         internal void AssignSourceCodeToReport(string text)
         {
-            if (DiagnosticStack == null || DiagnosticStack.Count == 0)
+            if (string.IsNullOrEmpty(text))
             {
                 return;
             }
@@ -158,7 +169,11 @@ namespace Backtrace.Unity.Model
             {
                 Text = text
             };
-            // assign log information to first stack frame
+
+            if (DiagnosticStack == null || DiagnosticStack.Count == 0)
+            {
+                return;
+            }
             foreach (var diagnosticStack in DiagnosticStack)
             {
                 diagnosticStack.SourceCode = BacktraceSourceCode.SOURCE_CODE_PROPERTY;
@@ -235,6 +250,33 @@ namespace Backtrace.Unity.Model
             {
                 Attributes[modFingerprintAttributeName] = Fingerprint;
             }
+        }
+
+        /// <summary>
+        /// Adds a custom annotation block to the Backtrace report.
+        /// </summary>
+        /// <param name="name">Annotation name shown in the report.</param>
+        /// <param name="values">String key/value annotation values.</param>
+        public void AddAnnotation(string name, IDictionary<string, string> values)
+        {
+            if (string.IsNullOrEmpty(name) || values == null || values.Count == 0)
+            {
+                return;
+            }
+            var annotation = new Dictionary<string, string>();
+            foreach (var value in values)
+            {
+                if (string.IsNullOrEmpty(value.Key))
+                {
+                    continue;
+                }
+                annotation[value.Key] = value.Value ?? string.Empty;
+            }
+            if (annotation.Count == 0)
+            {
+                return;
+            }
+            _customAnnotations[name] = annotation;
         }
 
         internal BacktraceData ToBacktraceData(Dictionary<string, string> clientAttributes, int gameObjectDepth)
