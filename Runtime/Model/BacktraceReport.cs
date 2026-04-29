@@ -102,11 +102,12 @@ namespace Backtrace.Unity.Model
             string message,
             Dictionary<string, string> attributes = null,
             List<string> attachmentPaths = null)
-            : this(null as Exception, attributes, attachmentPaths)
         {
+            Attributes = attributes ?? new Dictionary<string, string>();
+            AttachmentPaths = attachmentPaths ?? new List<string>();
+            Exception = null;
+            ExceptionTypeReport = false;
             Message = message;
-            // analyse stack trace information in both constructor 
-            // to include error message in both source code properties.
             SetStacktraceInformation();
             SetDefaultAttributes();
         }
@@ -133,6 +134,44 @@ namespace Backtrace.Unity.Model
                 SetStacktraceInformation();
             }
             SetDefaultAttributes();
+        }
+
+        private BacktraceReport(
+            Exception exception,
+            Dictionary<string, string> attributes,
+            List<string> attachmentPaths,
+            bool allowEnvironmentStackFallback)
+        {
+            Attributes = attributes ?? new Dictionary<string, string>();
+            AttachmentPaths = attachmentPaths ?? new List<string>();
+            Exception = exception;
+            ExceptionTypeReport = exception != null;
+            if (ExceptionTypeReport)
+            {
+                Message = exception.Message;
+                SetClassifierInfo();
+                if (allowEnvironmentStackFallback)
+                {
+                    SetStacktraceInformation();
+                }
+                else
+                {
+                    SetStacktraceInformationWithoutEnvironmentFallback();
+                }
+            }
+            SetDefaultAttributes();
+        }
+
+        internal static BacktraceReport CreateWithoutEnvironmentStackFallback(
+            Exception exception,
+            Dictionary<string, string> attributes = null,
+            List<string> attachmentPaths = null)
+        {
+            return new BacktraceReport(
+                exception,
+                attributes,
+                attachmentPaths,
+                allowEnvironmentStackFallback: false);
         }
 
         
@@ -252,12 +291,9 @@ namespace Backtrace.Unity.Model
             }
         }
 
-        /// <summary>
-        /// Adds a custom annotation block to the Backtrace report.
-        /// </summary>
-        /// <param name="name">Annotation name shown in the report.</param>
-        /// <param name="values">String key/value annotation values.</param>
-        public void AddAnnotation(string name, IDictionary<string, string> values)
+        internal void AddAnnotation(
+            string name,
+            IDictionary<string, string> values)
         {
             if (string.IsNullOrEmpty(name) || values == null || values.Count == 0)
             {
@@ -288,6 +324,13 @@ namespace Backtrace.Unity.Model
         internal void SetStacktraceInformation()
         {
             var stacktrace = new BacktraceStackTrace(Exception);
+            DiagnosticStack = stacktrace.StackFrames;
+        }
+
+        private void SetStacktraceInformationWithoutEnvironmentFallback()
+        {
+            var stacktrace =
+                BacktraceStackTrace.CreateWithoutEnvironmentFallback(Exception);
             DiagnosticStack = stacktrace.StackFrames;
         }
         /// <summary>
