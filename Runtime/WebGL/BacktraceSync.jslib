@@ -126,4 +126,29 @@ mergeInto(LibraryManager.library, {
       return 0;
     }
   }
+  ,
+  BT_CaptureJavaScriptStack: function () {
+    try {
+      var stack = "";
+      if (typeof Error !== "undefined") {
+        var error = new Error("Backtrace JavaScript stack at Unity capture time");
+        stack = error && error.stack ? String(error.stack) : "";
+      }
+      if (!stack) {
+        stack = "JavaScript stack unavailable";
+      }
+      if (stack.length > 32768) {
+        stack = stack.substring(0, 32768) + "\n...[truncated]";
+      }
+      var length = lengthBytesUTF8(stack) + 1;
+      var buffer = _malloc(length);
+      if (!buffer) {
+        return 0;
+      }
+      stringToUTF8(stack, buffer, length);
+      return buffer;
+    } catch (e) {
+      return 0;
+    }
+  }
 });
