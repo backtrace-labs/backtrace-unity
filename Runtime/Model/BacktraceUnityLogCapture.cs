@@ -15,8 +15,31 @@ namespace Backtrace.Unity.Model
             "Application.logMessageReceived";
         internal const string CapturePathUnityLogMessageReceivedThreaded =
             "Application.logMessageReceivedThreaded";
+        internal const string CapturePathUnityLogHandler =
+            "Debug.unityLogger.logHandler.LogException";
+
         internal const string CapturePathUnityLogHandlerAndCallback =
             "Debug.unityLogger.logHandler.LogException+Application.logMessageReceived";
+
+        internal static string CreateLogHandlerAndCallbackCapturePath(
+            string callbackCapturePath)
+        {
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}+{1}",
+                CapturePathUnityLogHandler,
+                string.IsNullOrEmpty(callbackCapturePath)
+                    ? CapturePathUnityLogMessageReceived
+                    : callbackCapturePath);
+        }
+
+        internal static bool IsLogHandlerAndCallbackCapturePath(string capturePath)
+        {
+            return !string.IsNullOrEmpty(capturePath) &&
+                capturePath.StartsWith(
+                    CapturePathUnityLogHandler + "+",
+                    StringComparison.Ordinal);
+        }
         internal const string StacklessReasonUnityLogCallback =
             "unity_log_callback_empty_stacktrace";
         internal const string StacklessReasonUnityCallbackUnparsed =
