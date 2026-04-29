@@ -23,32 +23,16 @@ namespace Backtrace.Unity
 
         public void LogException(Exception exception, UnityEngine.Object context)
         {
-            var capturedByBacktrace = false;
             try
             {
                 if (_client != null)
                 {
-                    capturedByBacktrace = _client.TryCaptureUnityLogHandlerException(
-                        exception,
-                        context);
+                    _client.RecordUnityLogHandlerException(exception, context);
                 }
             }
             catch
             {
-                capturedByBacktrace = false;
-            }
-
-            if (capturedByBacktrace && _client != null)
-            {
-                try
-                {
-                    _client.SuppressNextUnityLogReport(exception, LogType.Exception);
-                }
-                catch
-                {
-                    // Do not allow the Backtrace duplicate-suppression path to interfere
-                    // with Unity's own logging.
-                }
+                // Never allow Backtrace instrumentation to interfere with Unity logging.
             }
 
             if (_innerLogHandler != null)
