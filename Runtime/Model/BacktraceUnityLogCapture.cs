@@ -184,8 +184,14 @@ namespace Backtrace.Unity.Model
             }
             var type = exception.GetType();
             var message = exception.Message ?? string.Empty;
-            AddPrefix(result, type.Name, message);
-            AddPrefix(result, type.FullName, message);
+            if (!string.IsNullOrEmpty(message))
+            {
+                AddMessagePrefix(result, type.Name, message);
+                AddMessagePrefix(result, type.FullName, message);
+                return result;
+            }
+            AddTypeOnlyPrefix(result, type.Name);
+            AddTypeOnlyPrefix(result, type.FullName);
             return result;
         }
 
@@ -224,24 +230,31 @@ namespace Backtrace.Unity.Model
             }
         }
 
-        private static void AddPrefix(
+        private static void AddMessagePrefix(
             ICollection<string> result,
             string typeName,
             string message)
+        {
+            if (string.IsNullOrEmpty(typeName) || string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+            result.Add(string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}: {1}",
+                typeName,
+                message));
+        }
+
+        private static void AddTypeOnlyPrefix(
+            ICollection<string> result,
+            string typeName)
         {
             if (string.IsNullOrEmpty(typeName))
             {
                 return;
             }
             result.Add(typeName);
-            if (!string.IsNullOrEmpty(message))
-            {
-                result.Add(string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}: {1}",
-                    typeName,
-                    message));
-            }
         }
 
         private static string GetStackTraceLogType(LogType logType, bool canCallUnityApi)
