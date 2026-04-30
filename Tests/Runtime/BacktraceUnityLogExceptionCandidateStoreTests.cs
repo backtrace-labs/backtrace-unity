@@ -39,5 +39,20 @@ namespace Backtrace.Unity.Tests.Runtime
                 out candidate));
             Assert.Null(candidate);
         }
+
+        [Test]
+        public void CandidateStore_ShouldNotMatchSameExceptionTypeWithDifferentMessage()
+        {
+            var store = new BacktraceUnityLogExceptionCandidateStore();
+            var first = new ArgumentNullException("obj");
+            var second = new ArgumentNullException("key");
+            Assert.True(store.Record(first, "FirstContext", true));
+
+            BacktraceUnityLogExceptionCandidate candidate;
+            Assert.False(store.TryConsume(
+                "ArgumentNullException: " + second.Message,
+                out candidate));
+            Assert.Null(candidate);
+        }
     }
 }
