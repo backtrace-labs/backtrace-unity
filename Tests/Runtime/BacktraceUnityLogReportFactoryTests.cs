@@ -83,6 +83,14 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(
                 "true",
                 report.Attributes["backtrace.unity.original_exception.stack_present"]);
+            Assert.AreEqual(
+                "true",
+                report.Attributes["backtrace.unity.log.stacktrace.empty"]);
+            Assert.AreEqual(
+                "false",
+                report.Attributes["backtrace.unity.report.frames.empty"]);
+            Assert.False(
+                report.Attributes.ContainsKey("backtrace.unity.stackless.reason"));
         }
 
         [Test]

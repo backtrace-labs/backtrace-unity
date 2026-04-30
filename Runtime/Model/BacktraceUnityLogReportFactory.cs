@@ -306,6 +306,11 @@ namespace Backtrace.Unity.Model
                 BacktraceUnityLogCapture.ToInvariantString(!hasFrames);
             if (hasFrames)
             {
+                // The Unity callback may have supplied an empty stackTrace, but the
+                // report is not stackless if frames were recovered from another
+                // source, such as the original Exception object observed through
+                // Debug.unityLogger.logHandler.
+                report.Attributes.Remove("backtrace.unity.stackless.reason");
                 return;
             }
             string stackSource;
