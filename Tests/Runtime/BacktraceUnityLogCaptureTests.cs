@@ -52,10 +52,12 @@ namespace Backtrace.Unity.Tests.Runtime
             {
                 exception = caught;
             }
+            var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
             var attributes = BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
                 exception,
                 "TestContext",
-                true);
+                true,
+                threadId);
 
             Assert.AreEqual(
                 typeof(ArgumentNullException).FullName,
@@ -63,16 +65,21 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(
                 "true",
                 attributes["backtrace.unity.original_exception.stack_present"]);
+            Assert.AreEqual(
+                threadId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                attributes["backtrace.unity.original_exception.thread.id"]);
         }
 
         [Test]
         public void OriginalExceptionAttributes_ShouldRecordStacklessOriginalException()
         {
             var exception = new ArgumentNullException("obj");
+            var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
             var attributes = BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
                 exception,
                 "TestContext",
-                true);
+                true,
+                threadId);
 
             Assert.AreEqual(
                 "false",
