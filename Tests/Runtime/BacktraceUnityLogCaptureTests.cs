@@ -88,10 +88,28 @@ namespace Backtrace.Unity.Tests.Runtime
             var exception = new ArgumentNullException("obj");
             var prefixes = BacktraceUnityLogCapture.CreateExceptionMessagePrefixes(exception);
 
-            Assert.Contains("ArgumentNullException", prefixes);
-            Assert.Contains(typeof(ArgumentNullException).FullName, prefixes);
             Assert.Contains("ArgumentNullException: " + exception.Message, prefixes);
             Assert.Contains(typeof(ArgumentNullException).FullName + ": " + exception.Message, prefixes);
+            Assert.False(prefixes.Contains("ArgumentNullException"));
+            Assert.False(prefixes.Contains(typeof(ArgumentNullException).FullName));
+        }
+
+        [Test]
+        public void ExceptionMessagePrefixes_ShouldUseTypeOnlyWhenMessageIsEmpty()
+        {
+            var exception = new EmptyMessageException();
+            var prefixes = BacktraceUnityLogCapture.CreateExceptionMessagePrefixes(exception);
+
+            Assert.Contains(nameof(EmptyMessageException), prefixes);
+            Assert.Contains(typeof(EmptyMessageException).FullName, prefixes);
+        }
+
+        private sealed class EmptyMessageException : Exception
+        {
+            public override string Message
+            {
+                get { return string.Empty; }
+            }
         }
 
         [Test]
