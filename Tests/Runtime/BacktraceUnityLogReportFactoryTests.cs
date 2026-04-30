@@ -137,6 +137,28 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(
                 "true",
                 report.Attributes["backtrace.unity.report.frames.empty"]);
+            Assert.AreEqual(
+                BacktraceUnityLogCapture.StackSourceUnavailable,
+                report.Attributes["backtrace.unity.stack_source"]);
+        }
+
+        [Test]
+        public void UnityCallbackOnlyWithStack_ShouldRecordUnityCallbackStackSource()
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            var factory = new BacktraceUnityLogReportFactory(configuration);
+
+            var report = factory.CreateReport(
+                "ArgumentNullException: Value cannot be null.",
+                "ExampleClass.DoWork() (at Assets/ExampleClass.cs:42)",
+                LogType.Exception,
+                true,
+                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived,
+                null);
+
+            Assert.AreEqual(
+                BacktraceUnityLogCapture.StackSourceUnityCallback,
+                report.Attributes["backtrace.unity.stack_source"]);
         }
 
         [Test]
