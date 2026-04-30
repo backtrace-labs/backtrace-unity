@@ -174,7 +174,8 @@ namespace Backtrace.Unity.Model
                 BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
                     candidate.Exception,
                     candidate.ContextName,
-                    candidate.IsMainThread));
+                    candidate.IsMainThread,
+                    candidate.ThreadId));
             attributes["backtrace.unity.stack_source"] =
                 BacktraceUnityLogCapture.StackSourceOriginalException;
             var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(
@@ -210,7 +211,8 @@ namespace Backtrace.Unity.Model
                 BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
                     candidate.Exception,
                     candidate.ContextName,
-                    candidate.IsMainThread));
+                    candidate.IsMainThread,
+                    candidate.ThreadId));
             attributes["backtrace.unity.stack_source"] =
                 BacktraceUnityLogCapture.StackSourceUnityCallback;
             var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(
@@ -239,7 +241,8 @@ namespace Backtrace.Unity.Model
                 BacktraceUnityLogCapture.CreateOriginalExceptionAttributes(
                     candidate.Exception,
                     candidate.ContextName,
-                    candidate.IsMainThread));
+                    candidate.IsMainThread,
+                    candidate.ThreadId));
             attributes["backtrace.unity.stack_source"] =
                 BacktraceUnityLogCapture.StackSourceUnavailable;
             var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(
