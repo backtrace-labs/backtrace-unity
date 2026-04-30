@@ -179,6 +179,44 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
+        public void CandidateReport_ShouldUseCandidateThreadIdForOriginalExceptionAttributes()
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            var factory = new BacktraceUnityLogReportFactory(configuration);
+            Exception exception = null;
+            try
+            {
+                throw new ArgumentNullException("obj");
+            }
+            catch (Exception caught)
+            {
+                exception = caught;
+            }
+            var candidate = new BacktraceUnityLogExceptionCandidate
+            {
+                Exception = exception,
+                ContextName = "TestContext",
+                IsMainThread = false,
+                ThreadId = 12345
+            };
+
+            var report = factory.CreateReport(
+                "ArgumentNullException: " + exception.Message,
+                string.Empty,
+                LogType.Exception,
+                true,
+                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived,
+                candidate);
+
+            Assert.AreEqual(
+                "12345",
+                report.Attributes["backtrace.unity.original_exception.thread.id"]);
+            Assert.AreEqual(
+                "false",
+                report.Attributes["backtrace.unity.original_exception.thread.is_main"]);
+        }
+
+        [Test]
         public void OriginalExceptionWithUnparsedStackAndEmptyUnityCallback_ShouldReportOriginalExceptionUnparsedReason()
         {
             var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
