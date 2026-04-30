@@ -57,6 +57,10 @@ namespace Backtrace.Unity.Model
                 type,
                 isMainThread,
                 capturePath);
+            attributes["backtrace.unity.stack_source"] =
+                string.IsNullOrEmpty(stackTrace)
+                    ? BacktraceUnityLogCapture.StackSourceUnavailable
+                    : BacktraceUnityLogCapture.StackSourceUnityCallback;
             var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(
                 exception,
                 attributes);
