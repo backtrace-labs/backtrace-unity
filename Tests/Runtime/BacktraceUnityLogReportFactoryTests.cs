@@ -177,5 +177,56 @@ namespace Backtrace.Unity.Tests.Runtime
                 BacktraceWebGLJavaScriptStackFallbackMode.Disabled,
                 configuration.WebGLJavaScriptStackFallback);
         }
+
+        [Test]
+        public void OriginalExceptionWithUnparsedStackAndEmptyUnityCallback_ShouldReportOriginalExceptionUnparsedReason()
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            var factory = new BacktraceUnityLogReportFactory(configuration);
+            var exception = new ExceptionWithUnparsedStackTrace();
+            var candidate = new BacktraceUnityLogExceptionCandidate
+            {
+                Exception = exception,
+                ContextName = "TestContext",
+                IsMainThread = true,
+                ThreadId = 1
+            };
+
+            var report = factory.CreateReport(
+                "ExceptionWithUnparsedStackTrace: " + exception.Message,
+                string.Empty,
+                LogType.Exception,
+                true,
+                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived,
+                candidate);
+
+            Assert.NotNull(report.DiagnosticStack);
+            Assert.AreEqual(0, report.DiagnosticStack.Count);
+            Assert.AreEqual(
+                BacktraceUnityLogCapture.StackSourceOriginalException,
+                report.Attributes["backtrace.unity.stack_source"]);
+            Assert.AreEqual(
+                "true",
+                report.Attributes["backtrace.unity.original_exception.stack_present"]);
+            Assert.AreEqual(
+                "true",
+                report.Attributes["backtrace.unity.report.frames.empty"]);
+            Assert.AreEqual(
+                BacktraceUnityLogCapture.StacklessReasonOriginalExceptionUnparsed,
+                report.Attributes["backtrace.unity.stackless.reason"]);
+        }
+
+        private sealed class ExceptionWithUnparsedStackTrace : Exception
+        {
+            public ExceptionWithUnparsedStackTrace()
+                : base("Synthetic exception with an unparsed stack trace")
+            {
+            }
+
+            public override string StackTrace
+            {
+                get { return "not-a-runtime-stack-frame"; }
+            }
+        }
     }
 }

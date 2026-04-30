@@ -85,17 +85,18 @@ namespace Backtrace.Unity.Model
             bool isMainThread,
             string capturePath)
         {
+            BacktraceReport originalReport = null;
             if (candidate.Exception != null &&
                 !string.IsNullOrEmpty(candidate.Exception.StackTrace))
             {
-                var originalReport = CreateFromOriginalExceptionStack(
+                originalReport = CreateFromOriginalExceptionStack(
                     candidate,
                     message,
                     stackTrace,
                     type,
                     isMainThread,
                     capturePath);
-                if (HasFrames(originalReport))
+                if (HasFrames(originalReport) || string.IsNullOrEmpty(stackTrace))
                 {
                     AddCandidateAnnotations(
                         originalReport,
@@ -134,7 +135,7 @@ namespace Backtrace.Unity.Model
                 return callbackReport;
             }
 
-            var stacklessReport = CreateStacklessCandidateReport(
+            var stacklessReport = originalReport ?? CreateStacklessCandidateReport(
                 candidate,
                 message,
                 stackTrace,
@@ -307,9 +308,9 @@ namespace Backtrace.Unity.Model
             if (hasFrames)
             {
                 // The Unity callback may have supplied an empty stackTrace, but the
-                // report is not stackless if frames were recovered from another
-                // source, such as the original Exception object observed through
-                // Debug.unityLogger.logHandler.
+                // final Backtrace report is not stackless if frames were recovered
+                // from another source, such as the original Exception object observed
+                // through Debug.unityLogger.logHandler.
                 report.Attributes.Remove("backtrace.unity.stackless.reason");
                 return;
             }
