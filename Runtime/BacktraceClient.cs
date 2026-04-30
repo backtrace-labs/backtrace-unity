@@ -8,7 +8,6 @@ using Backtrace.Unity.Model.JsonData;
 using Backtrace.Unity.Runtime.Native;
 using Backtrace.Unity.Services;
 using Backtrace.Unity.Types;
-using Backtrace.Unity.WebGL;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -733,8 +732,7 @@ namespace Backtrace.Unity
                 }
                 if (report != null)
                 {
-                    // Use SendReport instead of Send because skip/rate-limit rules
-                    // were already applied before the report entered the background queue.
+                    // Reports queued from background threads bypass Send and go directly to SendReport.
                     SendReport(report);
                 }
             }
@@ -1280,13 +1278,24 @@ namespace Backtrace.Unity
                         ? ReportFilterType.UnhandledException
                         : ReportFilterType.Error;
             }
+
             string capturePath;
             if (report.Attributes != null &&
                 report.Attributes.TryGetValue("backtrace.unity.capture_path", out capturePath) &&
-                capturePath == BacktraceUnityLogCapture.CapturePathUnityLogHandlerAndCallback)
+                BacktraceUnityLogCapture.IsLogHandlerAndCallbackCapturePath(capturePath))
             {
                 return ReportFilterType.UnhandledException;
             }
+
+            string unityLogType;
+            if (report.Attributes != null &&
+                report.Attributes.TryGetValue("backtrace.unity.log.type", out unityLogType))
+            {
+                return unityLogType == LogType.Exception.ToString()
+                    ? ReportFilterType.UnhandledException
+                    : ReportFilterType.Error;
+            }
+
             return report.ExceptionTypeReport
                 ? ReportFilterType.Exception
                 : ReportFilterType.Message;
