@@ -135,17 +135,21 @@ namespace Backtrace.Unity.Model
         internal static Dictionary<string, string> CreateOriginalExceptionAttributes(
             Exception exception,
             string contextName,
-            bool isMainThread)
+            bool isMainThread,
+            int threadId)
         {
             var exceptionType = exception == null ? string.Empty : exception.GetType().FullName;
             var stackPresent = exception != null && !string.IsNullOrEmpty(exception.StackTrace);
+            var effectiveThreadId = threadId > 0
+                ? threadId
+                : Thread.CurrentThread.ManagedThreadId;
             var attributes = new Dictionary<string, string>
             {
                 { "backtrace.unity.original_exception.source", "Debug.unityLogger.logHandler" },
                 { "backtrace.unity.original_exception.type", exceptionType },
                 { "backtrace.unity.original_exception.stack_present", ToInvariantString(stackPresent) },
                 { "backtrace.unity.original_exception.context_name", contextName ?? string.Empty },
-                { "backtrace.unity.original_exception.thread.id", Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture) },
+                { "backtrace.unity.original_exception.thread.id", effectiveThreadId.ToString(CultureInfo.InvariantCulture) },
                 { "backtrace.unity.original_exception.thread.is_main", ToInvariantString(isMainThread) }
             };
             if (!stackPresent)
