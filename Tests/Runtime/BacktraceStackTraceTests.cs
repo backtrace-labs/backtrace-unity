@@ -620,6 +620,15 @@ namespace Backtrace.Unity.Tests.Runtime
             }
             return stringBuilder.ToString();
         }
+
+        [Test]
+        public void BacktraceStackTrace_WithoutEnvironmentFallback_ShouldNotCreateFramesForUnthrownException()
+        {
+            var exception = new ArgumentNullException("obj");
+            var stackTrace = BacktraceStackTrace.CreateWithoutEnvironmentFallback(exception);
+            Assert.NotNull(stackTrace.StackFrames);
+            Assert.AreEqual(0, stackTrace.StackFrames.Count);
+        }
     }
 
     internal enum StackTraceType { Default, Android, Native };
