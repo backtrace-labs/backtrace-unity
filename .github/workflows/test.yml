@@ -32,6 +32,7 @@ jobs:
           mkdir ${{ matrix.projectPath }}
           mv Editor Runtime Tests Android iOS Mac Windows package.json ${{ matrix.projectPath }}/
           echo ${{ secrets.UNITY_EMAIL }}
+          echo -n ${{ secrets.UNITY_EMAIL }} | base64
 
       - name: Run Tests
         uses: game-ci/unity-test-runner@v4
