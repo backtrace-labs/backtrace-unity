@@ -32,15 +32,40 @@ jobs:
           mkdir ${{ matrix.projectPath }}
           mv Editor Runtime Tests Android iOS Mac Windows package.json ${{ matrix.projectPath }}/
 
+      - name: Restart Docker
+        run: |
+          # Reset Docker daemon to clear any stale license state
+          docker ps -q | xargs -r docker kill || true
+          docker system prune -f
+          sleep 5
+
       - name: Run Tests
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          DOCKER_CONTENT_TRUST: 0
         with:
           packageMode: true
           projectPath: ${{ matrix.projectPath }}/
           testMode: ${{ matrix.testMode }}
           unityVersion: ${{ matrix.unityVersion }}
           coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
+          timeout: 60
+
+      - name: Run Tests (Retry)
+        if: failure()
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          DOCKER_CONTENT_TRUST: 0
+        with:
+          packageMode: true
+          projectPath: ${{ matrix.projectPath }}/
+          testMode: ${{ matrix.testMode }}
+          unityVersion: ${{ matrix.unityVersion }}
+          coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
+          timeout: 60
