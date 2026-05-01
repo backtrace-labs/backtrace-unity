@@ -33,5 +33,6 @@ catch(Exception exception)
 }
 ```
 
+
 ## Documentation
 For more information about the Unity integration, including installation, usage, and configuration options, see the [Unity Integration guide](https://docs.saucelabs.com/error-reporting/platform-integrations/unity/setup/) in the Sauce Labs documentation.
