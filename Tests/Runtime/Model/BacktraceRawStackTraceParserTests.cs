@@ -10,7 +10,7 @@ namespace Backtrace.Unity.Tests.Runtime
         [TestCase("0x00007ffac58086f5 (GameAssembly) DebugLogHandler_Internal_Log_m20852F18A88BB18425BA07260545E3968F7EA76C (at D:/project/app/module/Library/Example/artifacts/build/il2cppOutput/cpp/UnityEngine.CoreModule.cpp:40786)",
             "0x00007ffac58086f5", "GameAssembly", "DebugLogHandler_Internal_Log_m20852F18A88BB18425BA07260545E3968F7EA76C", 40786, "D:/project/app/module/Library/Example/artifacts/build/il2cppOutput/cpp/UnityEngine.CoreModule.cpp", false, BacktraceStackFrameType.Native)]
         [TestCase("0x00007ffbede3e8d7 (KERNEL32) BaseThreadInitThunk", "0x00007ffbede3e8d7", "KERNEL32", "BaseThreadInitThunk", 0, null, false, BacktraceStackFrameType.Native)]
-        [TestCase("nonsense frame with no address", null, null, "nonsense frame with no address", 0, null, false, BacktraceStackFrameType.Unknown)] //TODO: what about InvalidFrame in this case?
+        [TestCase("nonsense frame with no address", null, null, "nonsense frame with no address", 0, null, false, BacktraceStackFrameType.Native)]
         public void ParseNativeFrame_WithVariousInputs_ReturnsExpectedStackFrame(
             string input,
             string expectedAddress,

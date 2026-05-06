@@ -261,8 +261,8 @@ namespace Backtrace.Unity.Tests.Runtime
                 Type = StackTraceType.Native,
                 StackFrame = "0x00000266BD67295B (Mono JIT Code) [firstSceneButtons.cs:41] firstSceneButtons:Start ()",
                 Line = 41,
+                Library = "Mono JIT Code",
                 FileName = "firstSceneButtons.cs",
-                Library = "firstSceneButtons.cs",
                 Address = "0x00000266BD67295B",
                 FunctionName = "firstSceneButtons:Start ()"
             },
