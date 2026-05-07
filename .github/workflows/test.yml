@@ -44,4 +44,3 @@ jobs:
           testMode: ${{ matrix.testMode }}
           unityVersion: ${{ matrix.unityVersion }}
           coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
-          timeout: 60
