@@ -312,6 +312,12 @@ namespace Backtrace.Unity.Model
                 if (string.IsNullOrEmpty(frame.SourceCodeFullPath))
                 {
                     frame.SourceCodeFullPath = file;
+                    
+                }
+
+                if (string.IsNullOrEmpty(frame.SourceCode))
+                {
+                    frame.SourceCode = file;
                 }
 
                 // remove [file:line] from function name

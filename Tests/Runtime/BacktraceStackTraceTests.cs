@@ -281,7 +281,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 StackFrame = "0x00007FFFEEB8CBB0 (mono-2.0-bdwgc) [mini-runtime.c:2809] mono_jit_runtime_invoke",
                 Line = 2809,
                 FileName = "mini-runtime.c",
-                Library = "mini-runtime.c",
+                Library = "mono-2.0-bdwgc",
                 Address = "0x00007FFFEEB8CBB0",
                 FunctionName = "mono_jit_runtime_invoke"
             },
