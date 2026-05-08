@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -14,64 +14,89 @@ namespace Backtrace.Unity.Model
         /// </summary>
         public readonly List<BacktraceStackFrame> StackFrames = new List<BacktraceStackFrame>();
 
-
-        /// <summary>
-        /// Current exception
-        /// </summary>
         private readonly Exception _exception;
+        private readonly bool _allowEnvironmentStackFallback;
 
         public BacktraceStackTrace(Exception exception)
         {
             _exception = exception;
+            _allowEnvironmentStackFallback = true;
             Initialize();
+        }
+
+        private BacktraceStackTrace(
+            Exception exception,
+            bool allowEnvironmentStackFallback)
+        {
+            _exception = exception;
+            _allowEnvironmentStackFallback = allowEnvironmentStackFallback;
+            Initialize();
+        }
+
+        internal static BacktraceStackTrace CreateWithoutEnvironmentFallback(
+            Exception exception)
+        {
+            return new BacktraceStackTrace(
+                exception,
+                allowEnvironmentStackFallback: false);
         }
 
         private void Initialize()
         {
-            bool generateExceptionInformation = _exception != null;
+            var generateExceptionInformation = _exception != null;
             if (_exception != null)
             {
-                if (_exception is BacktraceUnhandledException)
+                var unhandledException = _exception as BacktraceUnhandledException;
+                if (unhandledException != null)
                 {
-                    var current = _exception as BacktraceUnhandledException;
-                    StackFrames.InsertRange(0, current.StackFrames);
+                    StackFrames.InsertRange(0, unhandledException.StackFrames);
+                    return;
                 }
-                else
+
+                var exceptionStackTrace = new StackTrace(_exception, true);
+                var exceptionFrames = exceptionStackTrace.GetFrames();
+                if (exceptionFrames == null || exceptionFrames.Length == 0)
                 {
-                    var exceptionStackTrace = new StackTrace(_exception, true);
-                    var exceptionFrames = exceptionStackTrace.GetFrames();
-                    if (exceptionFrames == null || exceptionFrames.Length == 0)
+                    if (!_allowEnvironmentStackFallback)
                     {
-                        exceptionFrames = new StackTrace(true).GetFrames();
+                        return;
                     }
-                    SetStacktraceInformation(exceptionFrames, true);
+                    exceptionFrames = new StackTrace(true).GetFrames();
                 }
+                SetStacktraceInformation(exceptionFrames, true);
+                return;
             }
-            else
+
+            if (!_allowEnvironmentStackFallback)
             {
-                //initialize environment stack trace
-                var stackTrace = new StackTrace(true);
-                //reverse frame order
-                var frames = stackTrace.GetFrames();
-                SetStacktraceInformation(frames, generateExceptionInformation);
+                return;
             }
+
+            var stackTrace = new StackTrace(true);
+            var frames = stackTrace.GetFrames();
+            SetStacktraceInformation(frames, generateExceptionInformation);
         }
 
-        private void SetStacktraceInformation(StackFrame[] frames, bool generatedByException = false)
+        private void SetStacktraceInformation(
+            StackFrame[] frames,
+            bool generatedByException = false)
         {
             if (frames == null || frames.Length == 0)
             {
                 return;
             }
-            int startingIndex = 0;
+            var startingIndex = 0;
             foreach (var frame in frames)
             {
-                var backtraceFrame = new BacktraceStackFrame(frame, generatedByException);
+                var backtraceFrame = new BacktraceStackFrame(
+                    frame,
+                    generatedByException);
                 if (backtraceFrame.InvalidFrame)
                 {
                     continue;
                 }
-                backtraceFrame.StackFrameType = Types.BacktraceStackFrameType.Dotnet;
+                backtraceFrame.StackFrameType =
+                    Types.BacktraceStackFrameType.Dotnet;
                 StackFrames.Insert(startingIndex, backtraceFrame);
                 startingIndex++;
             }

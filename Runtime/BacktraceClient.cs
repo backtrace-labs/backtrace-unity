@@ -126,6 +126,13 @@ namespace Backtrace.Unity
 
         internal Stack<BacktraceReport> BackgroundExceptions = new Stack<BacktraceReport>();
 
+        private readonly object _backgroundExceptionsLock = new object();
+        private readonly object _backtraceLogManagerLock = new object();
+        private BacktraceUnityLogHandler _unityLogHandler;
+        private ILogHandler _previousUnityLogHandler;
+        private BacktraceUnityLogExceptionCandidateStore _unityLogExceptionCandidateStore;
+        private BacktraceUnityLogReportFactory _unityLogReportFactory;
+
         /// <summary>
         /// Client report attachments
         /// </summary>
@@ -712,16 +719,22 @@ namespace Backtrace.Unity
             }
 #endif
 
-            if (BackgroundExceptions.Count == 0)
+            while (true)
             {
-                return;
-            }
-            while (BackgroundExceptions.Count > 0)
-            {
-                // use SendReport method isntead of Send method
-                // because we already applied all watchdog/skipReport rules
-                // so we don't need to apply them once again
-                SendReport(BackgroundExceptions.Pop());
+                BacktraceReport report = null;
+                lock (_backgroundExceptionsLock)
+                {
+                    if (BackgroundExceptions.Count == 0)
+                    {
+                        break;
+                    }
+                    report = BackgroundExceptions.Pop();
+                }
+                if (report != null)
+                {
+                    // Reports queued from background threads bypass Send and go directly to SendReport.
+                    SendReport(report);
+                }
             }
         }
 
@@ -734,6 +747,11 @@ namespace Backtrace.Unity
                 _breadcrumbs.UnregisterEvents();
             }
             _instance = null;
+            RestoreUnityLogHandlerExceptionCapture();
+            if (_unityLogExceptionCandidateStore != null)
+            {
+                _unityLogExceptionCandidateStore.Clear();
+            }
             Application.logMessageReceived -= HandleUnityMessage;
             Application.logMessageReceivedThreaded -= HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
@@ -779,7 +797,7 @@ namespace Backtrace.Unity
             {
                 _breadcrumbs.FromBacktrace(report);
             }
-            _backtraceLogManager.Enqueue(report);
+            EnqueueBacktraceLog(report);
             SendReport(report);
         }
 
@@ -801,7 +819,7 @@ namespace Backtrace.Unity
             {
                 _breadcrumbs.FromBacktrace(report);
             }
-            _backtraceLogManager.Enqueue(report);
+            EnqueueBacktraceLog(report);
             SendReport(report);
         }
 
@@ -820,7 +838,7 @@ namespace Backtrace.Unity
             {
                 _breadcrumbs.FromBacktrace(report);
             }
-            _backtraceLogManager.Enqueue(report);
+            EnqueueBacktraceLog(report);
             SendReport(report, sendCallback);
         }
 
@@ -997,9 +1015,7 @@ namespace Backtrace.Unity
         {
 
             // add environment information to backtrace report
-            var sourceCode = _backtraceLogManager.Disabled
-                ? new BacktraceUnityMessage(report).ToString()
-                : _backtraceLogManager.ToSourceCode();
+            var sourceCode = GetBacktraceSourceCode(report);
 
             report.AssignSourceCodeToReport(sourceCode);
             // apply _mod fingerprint attribute when client should use
@@ -1078,6 +1094,213 @@ namespace Backtrace.Unity
         }
 #endif
 
+        private bool IsCurrentThreadMainThread()
+        {
+            return _current == null ||
+                Thread.CurrentThread.ManagedThreadId == _current.ManagedThreadId;
+        }
+
+        private bool ShouldUseUnityLogHandlerExceptionCapture()
+        {
+            if (Configuration == null)
+            {
+                return false;
+            }
+            if (Configuration.UnityLogHandlerExceptionCapture ==
+                BacktraceUnityLogHandlerExceptionCaptureMode.Disabled)
+            {
+                return false;
+            }
+            if (Configuration.UnityLogHandlerExceptionCapture ==
+                BacktraceUnityLogHandlerExceptionCaptureMode.Enabled)
+            {
+                return true;
+            }
+#if UNITY_WEBGL
+            return true;
+#else
+            return false;
+#endif
+        }
+
+        private void InstallUnityLogHandlerExceptionCapture()
+        {
+            if (!ShouldUseUnityLogHandlerExceptionCapture())
+            {
+                return;
+            }
+            var currentLogHandler = Debug.unityLogger.logHandler;
+            if (currentLogHandler == null)
+            {
+                return;
+            }
+            var existingBacktraceHandler = currentLogHandler as BacktraceUnityLogHandler;
+            if (existingBacktraceHandler != null)
+            {
+                _unityLogHandler = existingBacktraceHandler;
+                _previousUnityLogHandler = existingBacktraceHandler.InnerLogHandler;
+                return;
+            }
+            _previousUnityLogHandler = currentLogHandler;
+            _unityLogHandler = new BacktraceUnityLogHandler(this, currentLogHandler);
+            Debug.unityLogger.logHandler = _unityLogHandler;
+        }
+
+        private void RestoreUnityLogHandlerExceptionCapture()
+        {
+            if (_unityLogHandler == null)
+            {
+                return;
+            }
+            if (Debug.unityLogger.logHandler == _unityLogHandler &&
+                _previousUnityLogHandler != null)
+            {
+                Debug.unityLogger.logHandler = _previousUnityLogHandler;
+            }
+            _unityLogHandler = null;
+            _previousUnityLogHandler = null;
+        }
+
+        internal bool RecordUnityLogHandlerException(
+            Exception exception,
+            UnityEngine.Object context)
+        {
+            if (!Enabled ||
+                exception == null ||
+                !Configuration.HandleUnhandledExceptions ||
+                !ShouldUseUnityLogHandlerExceptionCapture() ||
+                _unityLogExceptionCandidateStore == null)
+            {
+                return false;
+            }
+            var isMainThread = IsCurrentThreadMainThread();
+            return _unityLogExceptionCandidateStore.Record(
+                exception,
+                GetUnityContextName(context, isMainThread),
+                isMainThread);
+        }
+
+        private string GetUnityContextName(UnityEngine.Object context, bool isMainThread)
+        {
+            if (!isMainThread || context == null)
+            {
+                return string.Empty;
+            }
+            try
+            {
+                return context.name ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private void EnqueueBacktraceLog(BacktraceReport report)
+        {
+            if (report == null || _backtraceLogManager == null)
+            {
+                return;
+            }
+            lock (_backtraceLogManagerLock)
+            {
+                _backtraceLogManager.Enqueue(report);
+            }
+        }
+
+        private void EnqueueBacktraceLog(BacktraceUnityMessage unityMessage)
+        {
+            if (unityMessage == null || _backtraceLogManager == null)
+            {
+                return;
+            }
+            lock (_backtraceLogManagerLock)
+            {
+                _backtraceLogManager.Enqueue(unityMessage);
+            }
+        }
+
+        private string GetBacktraceSourceCode(BacktraceReport report)
+        {
+            lock (_backtraceLogManagerLock)
+            {
+                return _backtraceLogManager.Disabled
+                    ? new BacktraceUnityMessage(report).ToString()
+                    : _backtraceLogManager.ToSourceCode();
+            }
+        }
+
+        private bool ShouldSendUnhandledReport(
+            BacktraceReport report,
+            bool invokeSkipApi = true)
+        {
+            if (report == null)
+            {
+                return false;
+            }
+            var filterType = GetFilterTypeForUnhandledReport(report);
+            if (invokeSkipApi &&
+                ShouldSkipReport(filterType, report.Exception, string.Empty))
+            {
+                return false;
+            }
+            var shouldProcess = _reportLimitWatcher.WatchReport(DateTimeHelper.Timestamp());
+            if (shouldProcess)
+            {
+                if (!IsCurrentThreadMainThread())
+                {
+                    report.Attributes["exception.thread"] =
+                        Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
+                    lock (_backgroundExceptionsLock)
+                    {
+                        BackgroundExceptions.Push(report);
+                    }
+                    return false;
+                }
+                return true;
+            }
+            if (OnClientReportLimitReached != null)
+            {
+                _onClientReportLimitReached.Invoke(report);
+            }
+            return false;
+        }
+
+        private static ReportFilterType GetFilterTypeForUnhandledReport(
+            BacktraceReport report)
+        {
+            var unhandledException = report.Exception as BacktraceUnhandledException;
+            if (unhandledException != null)
+            {
+                return unhandledException.Classifier == "ANRException"
+                    ? ReportFilterType.Hang
+                    : unhandledException.Type == LogType.Exception
+                        ? ReportFilterType.UnhandledException
+                        : ReportFilterType.Error;
+            }
+
+            string capturePath;
+            if (report.Attributes != null &&
+                report.Attributes.TryGetValue("backtrace.unity.capture_path", out capturePath) &&
+                BacktraceUnityLogCapture.IsLogHandlerAndCallbackCapturePath(capturePath))
+            {
+                return ReportFilterType.UnhandledException;
+            }
+
+            string unityLogType;
+            if (report.Attributes != null &&
+                report.Attributes.TryGetValue("backtrace.unity.log.type", out unityLogType))
+            {
+                return unityLogType == LogType.Exception.ToString()
+                    ? ReportFilterType.UnhandledException
+                    : ReportFilterType.Error;
+            }
+
+            return report.ExceptionTypeReport
+                ? ReportFilterType.Exception
+                : ReportFilterType.Message;
+        }
+
         private Thread _current;
 
         /// <summary>
@@ -1086,8 +1309,11 @@ namespace Backtrace.Unity
         private void CaptureUnityMessages()
         {
             _backtraceLogManager = new BacktraceLogManager(Configuration.NumberOfLogs);
+            _unityLogExceptionCandidateStore = new BacktraceUnityLogExceptionCandidateStore();
+            _unityLogReportFactory = new BacktraceUnityLogReportFactory(Configuration);
             if (Configuration.HandleUnhandledExceptions)
             {
+                InstallUnityLogHandlerExceptionCapture();
                 Application.logMessageReceived += HandleUnityMessage;
                 Application.logMessageReceivedThreaded += HandleUnityBackgroundException;
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
@@ -1110,13 +1336,16 @@ namespace Backtrace.Unity
 
         internal void HandleUnityBackgroundException(string message, string stackTrace, LogType type)
         {
-            // validate if a message is from main thread
-            // and skip messages from main thread
             if (Thread.CurrentThread == _current)
             {
                 return;
             }
-            HandleUnityMessage(message, stackTrace, type);
+            HandleUnityMessage(
+                message,
+                stackTrace,
+                type,
+                false,
+                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceivedThreaded);
         }
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
@@ -1144,24 +1373,38 @@ namespace Backtrace.Unity
         /// <param name="type">log type</param>
         internal void HandleUnityMessage(string message, string stackTrace, LogType type)
         {
+            HandleUnityMessage(
+                message,
+                stackTrace,
+                type,
+                IsCurrentThreadMainThread(),
+                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived);
+        }
+
+        private void HandleUnityMessage(
+            string message,
+            string stackTrace,
+            LogType type,
+            bool isMainThread,
+            string capturePath)
+        {
             if (!Enabled)
             {
                 return;
             }
-            var unityMessage = new BacktraceUnityMessage(message, stackTrace, type);
-            _backtraceLogManager.Enqueue(unityMessage);
+            EnqueueBacktraceLog(new BacktraceUnityMessage(message, stackTrace, type));
 
             if (!Configuration.HandleUnhandledExceptions)
             {
                 return;
             }
-            if (string.IsNullOrEmpty(message) || (type != LogType.Error && type != LogType.Exception))
+            if (string.IsNullOrEmpty(message) ||
+                !BacktraceUnityLogCapture.IsReportableUnityLogType(type))
             {
                 return;
             }
-            BacktraceUnhandledException exception = null;
+
             var invokeSkipApi = true;
-            // detect sampling flow for LogType.Error + filter LogType.Error if client prefer to ignore them.
             if (type == LogType.Error)
             {
                 if (Configuration.ReportFilterType.HasFlag(ReportFilterType.Error))
@@ -1172,11 +1415,13 @@ namespace Backtrace.Unity
                 {
                     if (SkipReport != null)
                     {
-                        exception = new BacktraceUnhandledException(message, stackTrace)
-                        {
-                            Type = type
-                        };
-                        if (ShouldSkipReport(ReportFilterType.Error, exception, string.Empty))
+                        var errorException =
+                            BacktraceUnhandledException.CreateFromUnityLogCallback(
+                                message,
+                                stackTrace,
+                                type,
+                                allowEnvironmentStackFallback: false);
+                        if (ShouldSkipReport(ReportFilterType.Error, errorException, string.Empty))
                         {
                             return;
                         }
@@ -1189,16 +1434,24 @@ namespace Backtrace.Unity
                 }
             }
 
-            if (exception == null)
+            BacktraceUnityLogExceptionCandidate candidate = null;
+            if (type == LogType.Exception &&
+                _unityLogExceptionCandidateStore != null)
             {
-                exception = new BacktraceUnhandledException(message, stackTrace)
-                {
-                    Type = type
-                };
+                _unityLogExceptionCandidateStore.TryConsume(message, out candidate);
             }
-            var report = new BacktraceReport(exception);
+
+            var report = _unityLogReportFactory.CreateReport(
+                message,
+                stackTrace,
+                type,
+                isMainThread,
+                capturePath,
+                candidate);
 #if UNITY_ANDROID
-            if(exception.NativeStackTrace && _useProguard) {
+            var unhandledException = report.Exception as BacktraceUnhandledException;
+            if (unhandledException != null && unhandledException.NativeStackTrace && _useProguard)
+            {
                 report.UseSymbolication("proguard");
             }
 #endif
@@ -1222,11 +1475,15 @@ namespace Backtrace.Unity
 
         private void SendUnhandledExceptionReport(BacktraceReport report, bool invokeSkipApi = true)
         {
-            if (OnUnhandledApplicationException != null)
+            if (report == null)
+            {
+                return;
+            }
+            if (OnUnhandledApplicationException != null && report.Exception != null)
             {
                 OnUnhandledApplicationException.Invoke(report.Exception);
             }
-            if (ShouldSendReport(report.Exception, null, null, invokeSkipApi))
+            if (ShouldSendUnhandledReport(report, invokeSkipApi))
             {
                 SendReport(report);
             }
@@ -1261,7 +1518,10 @@ namespace Backtrace.Unity
                 {
                     var report = new BacktraceReport(exception, attributes, attachmentPaths);
                     report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
-                    BackgroundExceptions.Push(report);
+                    lock (_backgroundExceptionsLock)
+                    {
+                        BackgroundExceptions.Push(report);
+                    }
                     return false;
                 }
                 return true;
@@ -1296,7 +1556,10 @@ namespace Backtrace.Unity
                 {
                     var report = new BacktraceReport(message, attributes, attachmentPaths);
                     report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
-                    BackgroundExceptions.Push(report);
+                    lock (_backgroundExceptionsLock)
+                    {
+                        BackgroundExceptions.Push(report);
+                    }
                     return false;
                 }
                 return true;
@@ -1334,7 +1597,10 @@ namespace Backtrace.Unity
                 if (Thread.CurrentThread.ManagedThreadId != _current.ManagedThreadId)
                 {
                     report.Attributes["exception.thread"] = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
-                    BackgroundExceptions.Push(report);
+                    lock (_backgroundExceptionsLock)
+                    {
+                        BackgroundExceptions.Push(report);
+                    }
                     return false;
                 }
                 return true;

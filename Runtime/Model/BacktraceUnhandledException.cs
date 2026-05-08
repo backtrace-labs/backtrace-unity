@@ -57,36 +57,97 @@ namespace Backtrace.Unity.Model
             private set;
         }
 
-        public BacktraceUnhandledException(string message, string stacktrace) : base(message)
+        private struct ParsedUnityStackTrace
+        {
+            internal string Message;
+            internal bool Header;
+            internal List<BacktraceStackFrame> StackFrames;
+        }
+
+        public BacktraceUnhandledException(string message, string stacktrace)
+            : base(message)
         {
             Type = LogType.Exception;
-            _message = message;
             _stacktrace = stacktrace;
+            var parsedStackTrace = BuildUnityStackTrace(
+                message,
+                stacktrace,
+                allowEnvironmentStackFallback: true);
+            _message = parsedStackTrace.Message;
+            _header = parsedStackTrace.Header;
+            StackFrames = parsedStackTrace.StackFrames;
+            TrySetClassifier();
+        }
+
+        internal static BacktraceUnhandledException CreateFromUnityLogCallback(
+            string message,
+            string stacktrace,
+            LogType type,
+            bool allowEnvironmentStackFallback)
+        {
+            return new BacktraceUnhandledException(
+                message,
+                stacktrace,
+                type,
+                allowEnvironmentStackFallback);
+        }
+
+        private BacktraceUnhandledException(
+            string message,
+            string stacktrace,
+            LogType type,
+            bool allowEnvironmentStackFallback)
+            : base(message)
+        {
+            Type = type;
+            _stacktrace = stacktrace;
+            var parsedStackTrace = BuildUnityStackTrace(
+                message,
+                stacktrace,
+                allowEnvironmentStackFallback);
+            _message = parsedStackTrace.Message;
+            _header = parsedStackTrace.Header;
+            StackFrames = parsedStackTrace.StackFrames;
+            TrySetClassifier();
+        }
+
+        private ParsedUnityStackTrace BuildUnityStackTrace(
+            string message,
+            string stacktrace,
+            bool allowEnvironmentStackFallback)
+        {
+            var result = new ParsedUnityStackTrace
+            {
+                Message = message,
+                Header = false,
+                StackFrames = null
+            };
+
             if (!string.IsNullOrEmpty(stacktrace))
             {
-                IEnumerable<string> frames = _stacktrace.Split('\n');
+                IEnumerable<string> frames = stacktrace.Split('\n');
                 var stackFrameHeader = frames.ElementAt(0);
                 var stackTraceMessage = GetStackTraceErrorMessage(stackFrameHeader);
                 if (!string.IsNullOrEmpty(stackTraceMessage))
                 {
-                    _message = stackTraceMessage;
-                    _header = true;
+                    result.Message = stackTraceMessage;
+                    result.Header = true;
                     frames = frames.Skip(1);
                 }
-
-                StackFrames = ConvertStackFrames(frames);
+                result.StackFrames = ConvertStackFrames(frames);
             }
 
-            if (string.IsNullOrEmpty(stacktrace) || StackFrames.Count == 0)
+            if (string.IsNullOrEmpty(stacktrace) ||
+                result.StackFrames == null ||
+                result.StackFrames.Count == 0)
             {
-                // make sure that for this kind of exception, this exception message will be always the same
-                // error message might be overriden by ConvertStackFrames method.
-                _message = message;
-                var backtraceStackTrace = new BacktraceStackTrace(null);
-                StackFrames = backtraceStackTrace.StackFrames;
+                result.Message = message;
+                result.StackFrames = allowEnvironmentStackFallback
+                    ? new BacktraceStackTrace(null).StackFrames
+                    : new List<BacktraceStackFrame>();
             }
-            TrySetClassifier();
 
+            return result;
         }
 
         private string GetStackTraceErrorMessage(string beginningOfTheFrame)
