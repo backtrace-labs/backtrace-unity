@@ -314,6 +314,8 @@ namespace Backtrace.Unity.Model
                     frame.SourceCodeFullPath = file;   
                 }
 
+                frame.Library = file; // Backtrace API is not handling frame.FileName so we put file name in library field to be able to display it in the UI.
+
                 // remove [file:line] from function name
                 frame.FunctionName = RemoveSegment(fn, start, end + 1);
             }
