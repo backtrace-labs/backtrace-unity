@@ -261,7 +261,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 Type = StackTraceType.Native,
                 StackFrame = "0x00000266BD67295B (Mono JIT Code) [firstSceneButtons.cs:41] firstSceneButtons:Start ()",
                 Line = 41,
-                Library = "Mono JIT Code",
+                Library = "firstSceneButtons.cs",
                 FileName = "firstSceneButtons.cs",
                 Address = "0x00000266BD67295B",
                 FunctionName = "firstSceneButtons:Start ()"
@@ -281,7 +281,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 StackFrame = "0x00007FFFEEB8CBB0 (mono-2.0-bdwgc) [mini-runtime.c:2809] mono_jit_runtime_invoke",
                 Line = 2809,
                 FileName = "mini-runtime.c",
-                Library = "mono-2.0-bdwgc",
+                Library = "mini-runtime.c",
                 Address = "0x00007FFFEEB8CBB0",
                 FunctionName = "mono_jit_runtime_invoke"
             },

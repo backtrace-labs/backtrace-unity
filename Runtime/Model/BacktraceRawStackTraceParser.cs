@@ -314,11 +314,6 @@ namespace Backtrace.Unity.Model
                     frame.SourceCodeFullPath = file;   
                 }
 
-                if (string.IsNullOrEmpty(frame.SourceCode))
-                {
-                    frame.SourceCode = file;
-                }
-
                 // remove [file:line] from function name
                 frame.FunctionName = RemoveSegment(fn, start, end + 1);
             }

@@ -28,17 +28,11 @@ namespace Backtrace.Unity.Model
         {
             get
             {
-                if (!string.IsNullOrEmpty(SourceCode)) {
-                    return SourceCode;
-                }
-
-                if (string.IsNullOrEmpty(Library)) {
-                    return GetFileNameFromFunctionName();
-                }
-                
-                return Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
-                            ? GetFileNameFromLibraryName()
-                            : GetFileNameFromFunctionName();
+                return string.IsNullOrEmpty(Library)
+                        ? GetFileNameFromFunctionName()
+                        : Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
+                                ? GetFileNameFromLibraryName()
+                                : GetFileNameFromFunctionName();
             }
         }
 
