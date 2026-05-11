@@ -175,8 +175,14 @@ namespace Backtrace.Unity.Model
         /// </summary>
         private void SetThreadInformations()
         {
-            var faultingThread = !(Report.Exception is BacktraceUnhandledException
-                && string.IsNullOrEmpty(Report.Exception.StackTrace));
+            var hasManagedFrames = Report.DiagnosticStack != null && Report.DiagnosticStack.Count != 0;
+            var faultingThread = hasManagedFrames;
+            if (faultingThread &&
+                Report.Exception is BacktraceUnhandledException &&
+                string.IsNullOrEmpty(Report.Exception.StackTrace))
+            {
+                faultingThread = false;
+            }
 
             ThreadData = new ThreadData(Report.DiagnosticStack, faultingThread);
             ThreadInformations = ThreadData.ThreadInformations;
@@ -191,7 +197,10 @@ namespace Backtrace.Unity.Model
         private void SetAttributes(Dictionary<string, string> clientAttributes, int gameObjectDepth)
         {
             Attributes = new BacktraceAttributes(Report, clientAttributes);
-            Annotation = new Annotations(Report.ExceptionTypeReport ? Report.Exception : null, gameObjectDepth);
+            Annotation = new Annotations(
+                Report.ExceptionTypeReport ? Report.Exception : null,
+                gameObjectDepth,
+                Report.CustomAnnotations);
         }
     }
 }

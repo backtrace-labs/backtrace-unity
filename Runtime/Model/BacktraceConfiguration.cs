@@ -233,6 +233,24 @@ namespace Backtrace.Unity.Model
         public bool UseNormalizedExceptionMessage = false;
 
         /// <summary>
+        /// Controls whether the SDK wraps Debug.unityLogger.logHandler to capture
+        /// original Exception objects before Unity reduces them to log-callback messages.
+        /// Automatic enables this on WebGL builds and disables it elsewhere.
+        /// </summary>
+        [Tooltip("Controls whether Backtrace wraps Debug.unityLogger.logHandler to capture original Exception objects passed through Debug.LogException. Automatic enables this on WebGL and disables it elsewhere.")]
+        public BacktraceUnityLogHandlerExceptionCaptureMode UnityLogHandlerExceptionCapture =
+            BacktraceUnityLogHandlerExceptionCaptureMode.Automatic;
+
+        /// <summary>
+        /// WebGL only. Attach a best-effort browser JavaScript stack-at-capture annotation
+        /// for stackless Unity Error/Exception log callbacks. Disabled by default because
+        /// this is supplemental context, not the original managed C# throw-site stack.
+        /// </summary>
+        [Tooltip("WebGL only. Attach a best-effort browser JavaScript stack-at-capture annotation for stackless Unity Error/Exception log callbacks. Disabled by default.")]
+        public BacktraceWebGLJavaScriptStackFallbackMode WebGLJavaScriptStackFallback =
+            BacktraceWebGLJavaScriptStackFallbackMode.Disabled;
+
+        /// <summary>
         /// Determine minidump type support - minidump generation is supported on Windows.
         /// </summary>
         [Tooltip("Type of minidump that will be attached to Backtrace report in the report generated on Windows machine.")]

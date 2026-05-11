@@ -53,6 +53,10 @@ namespace Backtrace.Unity.Model.JsonData
         /// </summary>
         private readonly int _gameObjectDepth;
         /// <summary>
+        /// Custom annotations supplied by BacktraceReport.
+        /// </summary>
+        private readonly IDictionary<string, Dictionary<string, string>> _customAnnotations;
+        /// <summary>
         /// Exception object
         /// </summary>
         public Exception Exception { get; set; }
@@ -66,6 +70,16 @@ namespace Backtrace.Unity.Model.JsonData
         {
             _gameObjectDepth = gameObjectDepth;
             Exception = exception;
+        }
+
+        internal Annotations(
+            Exception exception,
+            int gameObjectDepth,
+            IDictionary<string, Dictionary<string, string>> customAnnotations)
+        {
+            _gameObjectDepth = gameObjectDepth;
+            Exception = exception;
+            _customAnnotations = customAnnotations;
         }
 
         private static Dictionary<string, string> SetEnvironmentVariables(IDictionary environmentVariables)
@@ -120,8 +134,34 @@ namespace Backtrace.Unity.Model.JsonData
                 }
                 annotations.Add("Game objects", gameObjects);
             }
+            AddCustomAnnotations(annotations);
             return annotations;
         }
+
+        private void AddCustomAnnotations(BacktraceJObject annotations)
+        {
+            if (_customAnnotations == null || _customAnnotations.Count == 0)
+            {
+                return;
+            }
+            foreach (var annotation in _customAnnotations)
+            {
+                if (string.IsNullOrEmpty(annotation.Key) ||
+                    annotation.Value == null ||
+                    annotation.Value.Count == 0)
+                {
+                    continue;
+                }
+                if (annotations.PrimitiveValues.ContainsKey(annotation.Key) ||
+                    annotations.InnerObjects.ContainsKey(annotation.Key) ||
+                    annotations.ComplexObjects.ContainsKey(annotation.Key))
+                {
+                    continue;
+                }
+                annotations.Add(annotation.Key, new BacktraceJObject(annotation.Value));
+            }
+        }
+
         private BacktraceJObject ConvertGameObject(GameObject gameObject, int depth = 0)
         {
             if (gameObject == null)
