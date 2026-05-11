@@ -31,8 +31,8 @@ namespace Backtrace.Unity.Model
                 return string.IsNullOrEmpty(Library)
                         ? GetFileNameFromFunctionName()
                         : Library.IndexOfAny(Path.GetInvalidPathChars()) == -1 && Path.HasExtension(Path.GetFileName(Library))
-                                ? GetFileNameFromLibraryName()
-                                : GetFileNameFromFunctionName();
+                            ? GetFileNameFromLibraryName()
+                            : GetFileNameFromFunctionName();
             }
         }
 
