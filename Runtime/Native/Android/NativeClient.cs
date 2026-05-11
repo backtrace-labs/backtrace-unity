@@ -376,8 +376,18 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
             foreach (var attribute in backtraceAttributes)
-            {   
-                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
+            {
+                var keyPtr = AndroidJNI.NewStringUTF(attribute.Key);
+                var valuePtr = AndroidJNI.NewStringUTF(attribute.Value);
+                try
+                {
+                    AddAttribute(keyPtr, valuePtr);
+                }
+                finally
+                {
+                    AndroidJNI.DeleteLocalRef(keyPtr);
+                    AndroidJNI.DeleteLocalRef(valuePtr);
+                }
             }
 
             // add exception type to crashes handled by crashpad - all exception handled by crashpad 
@@ -388,7 +398,17 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from 
             // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
             // attribute via attributes parameters.
-            AddAttribute(AndroidJNI.NewStringUTF(ErrorTypeAttribute), AndroidJNI.NewStringUTF(CrashType));
+            var errorTypeKeyPtr = AndroidJNI.NewStringUTF(ErrorTypeAttribute);
+            var crashTypeValuePtr = AndroidJNI.NewStringUTF(CrashType);
+            try
+            {
+                AddAttribute(errorTypeKeyPtr, crashTypeValuePtr);
+            }
+            finally
+            {
+                AndroidJNI.DeleteLocalRef(errorTypeKeyPtr);
+                AndroidJNI.DeleteLocalRef(crashTypeValuePtr);
+            }
         }
 
         private bool InitializeJavaCrashHandler(String minidumpUrl, String databasePath, String deviceAbi, String nativeDirectory, String apkPath, IEnumerable<String> attachments) {
@@ -421,16 +441,36 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 environmentVariables.Add(string.Format("{0}={1}", kvp.Key, kvp.Value == null ? "NULL" : kvp.Value));
             }
             
+            var minidumpUrlPtr = AndroidJNI.NewStringUTF(minidumpUrl);
+            var databasePathPtr = AndroidJNI.NewStringUTF(databasePath);
+            var crashHandlerPathPtr = AndroidJNI.NewStringUTF(_crashHandlerPath);
+            var emptyArray1Ptr = AndroidJNIHelper.ConvertToJNIArray(new string[0]);
+            var emptyArray2Ptr = AndroidJNIHelper.ConvertToJNIArray(new string[0]);
+            var attachmentsPtr = AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray());
+            var environmentVariablesPtr = AndroidJNIHelper.ConvertToJNIArray(environmentVariables.ToArray());
 
-            return InitializeJavaCrashHandler(
-                AndroidJNI.NewStringUTF(minidumpUrl),
-                AndroidJNI.NewStringUTF(databasePath),
-                AndroidJNI.NewStringUTF(_crashHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(environmentVariables.ToArray())
-            );
+            try
+            {
+                return InitializeJavaCrashHandler(
+                    minidumpUrlPtr,
+                    databasePathPtr,
+                    crashHandlerPathPtr,
+                    emptyArray1Ptr,
+                    emptyArray2Ptr,
+                    attachmentsPtr,
+                    environmentVariablesPtr
+                );
+            }
+            finally
+            {
+                AndroidJNI.DeleteLocalRef(minidumpUrlPtr);
+                AndroidJNI.DeleteLocalRef(databasePathPtr);
+                AndroidJNI.DeleteLocalRef(crashHandlerPathPtr);
+                AndroidJNI.DeleteLocalRef(emptyArray1Ptr);
+                AndroidJNI.DeleteLocalRef(emptyArray2Ptr);
+                AndroidJNI.DeleteLocalRef(attachmentsPtr);
+                AndroidJNI.DeleteLocalRef(environmentVariablesPtr);
+            }
         }
 
         private string GetLibrarySystemPath() {
@@ -535,16 +575,32 @@ namespace Backtrace.Unity.Runtime.Native.Android
                                 reported = true;
                                 if (AndroidJNI.AttachCurrentThread() == 0)
                                 {
-                                    // set temporary attribute to "Hang"
-                                    AddAttribute(
-                                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
-                                        AndroidJNI.NewStringUTF(HangType));
-
-                                    NativeReport(AndroidJNI.NewStringUTF(AnrMessage), true);
-                                    // update error.type attribute in case when crash happen 
-                                    AddAttribute(
-                                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
-                                        AndroidJNI.NewStringUTF(CrashType));
+                                    try
+                                    {
+                                        // set temporary attribute to "Hang"
+                                        var errorTypeKeyPtr = AndroidJNI.NewStringUTF(ErrorTypeAttribute);
+                                        var hangTypeValuePtr = AndroidJNI.NewStringUTF(HangType);
+                                        var anrMessagePtr = AndroidJNI.NewStringUTF(AnrMessage);
+                                        var crashTypeValuePtr = AndroidJNI.NewStringUTF(CrashType);
+                                        try
+                                        {
+                                            AddAttribute(errorTypeKeyPtr, hangTypeValuePtr);
+                                            NativeReport(anrMessagePtr, true);
+                                            // update error.type attribute in case when crash happen 
+                                            AddAttribute(errorTypeKeyPtr, crashTypeValuePtr);
+                                        }
+                                        finally
+                                        {
+                                            AndroidJNI.DeleteLocalRef(errorTypeKeyPtr);
+                                            AndroidJNI.DeleteLocalRef(hangTypeValuePtr);
+                                            AndroidJNI.DeleteLocalRef(anrMessagePtr);
+                                            AndroidJNI.DeleteLocalRef(crashTypeValuePtr);
+                                        }
+                                    }
+                                    finally
+                                    {
+                                        AndroidJNI.DetachCurrentThread();
+                                    }
                                 }
                             }
                         }
@@ -585,9 +641,17 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 value = string.Empty;
             }
 
-            AddAttribute(
-                AndroidJNI.NewStringUTF(key),
-                AndroidJNI.NewStringUTF(value));
+            var keyPtr = AndroidJNI.NewStringUTF(key);
+            var valuePtr = AndroidJNI.NewStringUTF(value);
+            try
+            {
+                AddAttribute(keyPtr, valuePtr);
+            }
+            finally
+            {
+                AndroidJNI.DeleteLocalRef(keyPtr);
+                AndroidJNI.DeleteLocalRef(valuePtr);
+            }
         }
 
         /// <summary>
