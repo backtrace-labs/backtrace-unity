@@ -1,5 +1,27 @@
 # Backtrace Unity Release Notes
 
+## Version 3.16.0
+Improvements
+- WebGL:
+  - Added diagnostics for Unity log-callback exception reports where Unity supplies an exception message but an empty `stackTrace` string.
+  - Added WebGL-default observation of original exceptions passed through `Debug.LogException(exception)` by wrapping `Debug.unityLogger.logHandler`.
+  - Added stack-source classification for Unity log-callback reports:
+    - `original_exception_stacktrace`
+    - `unity_log_callback_stacktrace`
+    - `unavailable`
+  - Added optional browser JavaScript stack-at-capture annotation for stackless Unity log-callback reports. This is disabled by default and is supplemental context only.
+  
+- Unity: 
+  - Preserved Unity log/source context even when a report has no stack frames.
+  - Preserved enriched report attributes and annotations through background-thread queueing.
+  - Improved thread safety for background log handling and log-manager access.
+
+```
+Release notes:
+
+- This release does not synthesize managed C# frames when Unity provides neither a callback stack nor an original exception object with a usable stack. In that case, the report is explicitly classified as stackless and preserves the best available diagnostic context.
+```
+
 ## Version 3.15.1
 
 Improvements
