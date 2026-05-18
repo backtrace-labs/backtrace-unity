@@ -46,8 +46,6 @@ namespace Backtrace.Unity.Model
 
                 if (methodNameEndIndex == -1 || openParentIndex == -1 || openParentIndex > methodNameEndIndex)
                 {
-                    // If either index is missing, it's an invalid frame
-                    Debug.LogWarning($"Invalid stack frame format: '{frameString}'.");
                     return new BacktraceStackFrame { FunctionName = frame };
                 }
 
@@ -55,8 +53,7 @@ namespace Backtrace.Unity.Model
             }
             catch (Exception e)
             {
-                Debug.LogError($"Exception while parsing stack frame: '{frame}'. Exception: {e}");
-                return null;
+                return new BacktraceStackFrame { FunctionName = frame };
             }
         }
 
