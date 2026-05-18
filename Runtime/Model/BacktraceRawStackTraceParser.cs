@@ -124,7 +124,7 @@ namespace Backtrace.Unity.Model
             {
                 StackFrameType = Types.BacktraceStackFrameType.Native
             };
-            if (!frameString.StartsWith("#", StringComparison.Ordinal))
+            if (!frameString.StartsWith("#"))
             {
                 //handle situation when we detected jit stack trace
                 // but jit stack trace doesn't start with #
@@ -134,14 +134,14 @@ namespace Backtrace.Unity.Model
 
             frameString = frameString.Substring(frameString.IndexOf(' ')).Trim();
             const string monoJitPrefix = "(Mono JIT Code)";
-            var monoPrefixIndex = frameString.IndexOf(monoJitPrefix, StringComparison.Ordinal);
+            var monoPrefixIndex = frameString.IndexOf(monoJitPrefix);
             if (monoPrefixIndex != -1)
             {
                 frameString = frameString.Substring(monoPrefixIndex + monoJitPrefix.Length).Trim();
             }
 
             const string managedWraperPrefix = "(wrapper managed-to-native)";
-            var managedWraperIndex = frameString.IndexOf(managedWraperPrefix, StringComparison.Ordinal);
+            var managedWraperIndex = frameString.IndexOf(managedWraperPrefix);
             if (managedWraperIndex != -1)
             {
                 frameString = frameString.Substring(managedWraperIndex + managedWraperPrefix.Length).Trim();
