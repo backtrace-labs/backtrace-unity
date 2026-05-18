@@ -131,8 +131,15 @@ namespace Backtrace.Unity.Model
                 stackFrame.FunctionName = frameString;
                 return stackFrame;
             }
+            int firstSpace = frameString.IndexOf(' ');
 
-            frameString = frameString.Substring(frameString.IndexOf(' ')).Trim();
+            if (firstSpace == -1 || firstSpace == frameString.Length - 1)
+            {
+                stackFrame.FunctionName = frameString;
+                return stackFrame;
+            }
+
+            frameString = frameString.Substring(firstSpace + 1).Trim();
             const string monoJitPrefix = "(Mono JIT Code)";
             var monoPrefixIndex = frameString.IndexOf(monoJitPrefix);
             if (monoPrefixIndex != -1)
