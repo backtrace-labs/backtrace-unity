@@ -42,9 +42,15 @@ namespace Backtrace.Unity.Model
 
                 // validate if stack trace has exception header               
                 int methodNameEndIndex = frameString.IndexOf(')');
+
+                if (methodNameEndIndex == -1)
+                {
+                    return new BacktraceStackFrame { FunctionName = frame, InvalidFrame = true };
+                }
+
                 int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex); // we require a '(' that appears before this ')'
 
-                if (methodNameEndIndex == -1 || openParentIndex == -1 || openParentIndex > methodNameEndIndex)
+                if (openParentIndex == -1 || openParentIndex > methodNameEndIndex)
                 {   
                     return new BacktraceStackFrame { FunctionName = frame, InvalidFrame = true };
                 }
