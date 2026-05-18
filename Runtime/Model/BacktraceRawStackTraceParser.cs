@@ -45,15 +45,15 @@ namespace Backtrace.Unity.Model
                 int openParentIndex = frameString.LastIndexOf('(', methodNameEndIndex); // we require a '(' that appears before this ')'
 
                 if (methodNameEndIndex == -1 || openParentIndex == -1 || openParentIndex > methodNameEndIndex)
-                {
-                    return new BacktraceStackFrame { FunctionName = frame };
+                {   
+                    return new BacktraceStackFrame { FunctionName = frame, InvalidFrame = true };
                 }
 
                 return ParseStacktraceFrame(frameString, methodNameEndIndex);
-            }
+            }   
             catch (Exception e)
             {
-                return new BacktraceStackFrame { FunctionName = frame };
+                return new BacktraceStackFrame { FunctionName = frame, InvalidFrame = true };
             }
         }
 
@@ -82,7 +82,7 @@ namespace Backtrace.Unity.Model
             {
                 return new BacktraceStackFrame()
                 {
-                    FunctionName = frameString
+                    FunctionName = frameString,
                 };
             }
 
