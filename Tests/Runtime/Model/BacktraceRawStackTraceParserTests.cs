@@ -31,5 +31,21 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(expectedInvalidFrame, backtraceStackFrame.InvalidFrame, "InvalidFrame flag mismatch");
             Assert.AreEqual(expectedStackFrameType, backtraceStackFrame.StackFrameType.ToString(), "StackFrameType mismatch");
         }
+
+        [Test]
+        public void ConvertStackFrames_MalformedFrame_PreservesRawFrame()
+        {
+            var parser = new BacktraceRawStackTraceParser();
+
+            var frames = parser.ConvertStackFrames(new[] { "malformed frame without closing parenthesis" });
+            var firstFrame = frames[0];
+
+            Assert.AreEqual(1, frames.Count);
+            Assert.AreEqual("malformed frame without closing parenthesis", firstFrame.FunctionName);
+            Assert.AreEqual("Unknown", firstFrame.StackFrameType.ToString());
+            Assert.Null(firstFrame.Library);
+            Assert.Zero(firstFrame.Line);
+            Assert.True(firstFrame.InvalidFrame);
+        }
     }
 }

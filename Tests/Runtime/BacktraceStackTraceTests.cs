@@ -611,6 +611,40 @@ namespace Backtrace.Unity.Tests.Runtime
 
         }
 
+        [Test]
+        public void BacktraceUnhandledException_NativeFrameWithoutSymbol_DoesNotDropFrame()
+        {
+            var exception = new BacktraceUnhandledException("NativeCrash", "0x00007ffad7723088 (UnityPlayer)");
+
+            Assert.AreEqual(1, exception.StackFrames.Count);
+            Assert.AreEqual("0x00007ffad7723088", exception.StackFrames[0].Address);
+            Assert.AreEqual("UnityPlayer", exception.StackFrames[0].Library);
+            Assert.AreEqual(string.Empty, exception.StackFrames[0].FunctionName);
+            Assert.AreEqual("Native", exception.StackFrames[0].StackFrameType.ToString());
+            Assert.False(exception.StackFrames[0].InvalidFrame);
+            
+        }
+
+        [Test]
+        public void NativeFrameWithoutSymbol_SerializesReportWithoutThrowing()
+        {
+            var exception = new BacktraceUnhandledException("NativeCrash", "0x00007ffad7723088 (UnityPlayer)");
+
+            var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(exception, new Dictionary<string, string>());
+
+            var data = report.ToBacktraceData(null, -1);
+            var json = data.ToJson();
+
+            Assert.AreEqual(1, data.Report.DiagnosticStack.Count);
+            Assert.AreEqual("UnityPlayer", data.Report.DiagnosticStack[0].Library);
+            Assert.AreEqual("0x00007ffad7723088", data.Report.DiagnosticStack[0].Address);
+            Assert.AreEqual("0x00007ffad7723088", data.Report.DiagnosticStack[0].StackFrameType.ToString());
+            Assert.False(data.Report.DiagnosticStack[0].InvalidFrame);
+
+            Assert.That(json, Does.Contain("UnityPlayer"));
+            Assert.That(json, Does.Not.Contain("Exception while parsing stack frame"));
+        }
+
         internal string ConvertStackTraceToString(List<SampleStackFrame> data)
         {
             var stringBuilder = new StringBuilder();
