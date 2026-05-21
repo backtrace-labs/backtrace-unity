@@ -638,7 +638,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(1, data.Report.DiagnosticStack.Count);
             Assert.AreEqual("UnityPlayer", data.Report.DiagnosticStack[0].Library);
             Assert.AreEqual("0x00007ffad7723088", data.Report.DiagnosticStack[0].Address);
-            Assert.AreEqual("0x00007ffad7723088", data.Report.DiagnosticStack[0].StackFrameType.ToString());
+            Assert.AreEqual("Native", data.Report.DiagnosticStack[0].StackFrameType.ToString());
             Assert.False(data.Report.DiagnosticStack[0].InvalidFrame);
 
             Assert.That(json, Does.Contain("UnityPlayer"));
