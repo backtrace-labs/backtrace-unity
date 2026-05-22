@@ -106,39 +106,57 @@ namespace Backtrace.Unity.Runtime.Native.OSX
         }
 
         /// <summary>
-        /// Retrieve Backtrace Attributes from the Android native code.
+        /// Retrieve Backtrace Attributes from the macOS native code.
         /// </summary>
-        /// <returns>Backtrace Attributes from the Android build</returns>
+        /// <returns>Backtrace Attributes from the macOS build</returns>
         public void GetAttributes(IDictionary<string, string> result)
         {
-            if (!_enabled)
+            if (!_enabled || result == null)
             {
                 return;
             }
             IntPtr pUnmanagedArray;
             int keysCount;
             GetNativeAttributes(out pUnmanagedArray, out keysCount);
-
-            // calculate struct size for current OS.
-            // We multiply by 2 because Entry struct has two pointers
-            var structSize = IntPtr.Size * 2;
-            const int x86StructSize = 4;
-            for (int i = 0; i < keysCount; i++)
+            if (pUnmanagedArray == IntPtr.Zero || keysCount <= 0)
             {
-                IntPtr address;
-                if (structSize == x86StructSize)
-                {
-                    address = new IntPtr(pUnmanagedArray.ToInt32() + i * structSize);
-                }
-                else
-                {
-                    address = new IntPtr(pUnmanagedArray.ToInt64() + i * structSize);
-                }
-                Entry entry = (Entry)Marshal.PtrToStructure(address, typeof(Entry));
-                result[entry.Key] = entry.Value;
+                return;
             }
-
-            Marshal.FreeHGlobal(pUnmanagedArray);
+            try
+            {
+                // calculate struct size for current OS.
+                // We multiply by 2 because Entry struct has two pointers
+                var structSize = IntPtr.Size * 2;
+                const int x86StructSize = 4;
+                for (int i = 0; i < keysCount; i++)
+                {
+                    IntPtr address;
+                    if (structSize == x86StructSize)
+                    {
+                        address = new IntPtr(pUnmanagedArray.ToInt32() + i * structSize);
+                    }
+                    else
+                    {
+                        address = new IntPtr(pUnmanagedArray.ToInt64() + i * structSize);
+                    }
+                    Entry entry = (Entry)Marshal.PtrToStructure(address, typeof(Entry));
+                    // The native macOS client keeps error.type=Crash so PLCrashReporter
+                    // crash and OOM payloads are classified correctly. That value is
+                    // not a process/client attribute and must not be copied back into
+                    // managed C# reports, otherwise Unity handled exceptions are
+                    // mislabeled as crashes.
+                    if (string.IsNullOrEmpty(entry.Key) ||
+                        string.Equals(entry.Key, ErrorTypeAttribute, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+                    result[entry.Key] = entry.Value;
+                }
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(pUnmanagedArray);
+            }
         }
 
         /// <summary>

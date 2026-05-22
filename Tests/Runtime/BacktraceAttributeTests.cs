@@ -1,4 +1,5 @@
 ﻿using Backtrace.Unity.Model;
+using Backtrace.Unity.Model.Attributes;
 using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
 using System;
@@ -194,6 +195,88 @@ namespace Backtrace.Unity.Tests.Runtime
             var testAttributes = new BacktraceAttributes(report, null);
 
             Assert.AreEqual("Hang", testAttributes.Attributes["error.type"]);
+        }
+
+        [UnityTest]
+        public IEnumerator TestReportAttributes_ShouldOverrideDynamicClientAttributes_ErrorTypeIsReportScoped()
+        {
+            BacktraceClient.AttributeProvider.AddDynamicAttributeProvider(
+                new TestDynamicAttributeProvider(new Dictionary<string, string>
+                {
+                    { "error.type", "Crash" },
+                    { "native.attribute", "native-value" }
+                }));
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new BacktraceUnhandledException(
+                "NullReferenceException: Object reference not set to an instance of an object.",
+                "Example.Thrower () (at Assets/Example.cs:12)"));
+            yield return WaitForFrame.Wait();
+            Assert.IsNotNull(data);
+            Assert.AreEqual("Unhandled exception", data.Attributes.Attributes["error.type"]);
+            Assert.AreEqual("native-value", data.Attributes.Attributes["native.attribute"]);
+        }
+
+        [UnityTest]
+        public IEnumerator TestReportAttributes_ShouldPreserveHangClassification_WhenDynamicClientErrorTypeIsCrash()
+        {
+            BacktraceClient.AttributeProvider.AddDynamicAttributeProvider(
+                new TestDynamicAttributeProvider(new Dictionary<string, string>
+                {
+                    { "error.type", "Crash" }
+                }));
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new BacktraceUnhandledException(
+                "ANRException: Blocked thread detected.",
+                "Example.BlockedMainThread () (at Assets/Example.cs:24)"));
+            yield return WaitForFrame.Wait();
+            Assert.IsNotNull(data);
+            Assert.AreEqual("Hang", data.Attributes.Attributes["error.type"]);
+        }
+
+        [UnityTest]
+        public IEnumerator TestReportAttributes_ShouldPreserveExceptionClassification_WhenDynamicClientErrorTypeIsCrash()
+        {
+            BacktraceClient.AttributeProvider.AddDynamicAttributeProvider(
+                new TestDynamicAttributeProvider(new Dictionary<string, string>
+                {
+                    { "error.type", "Crash" }
+                }));
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new FileNotFoundException("Missing asset"));
+            yield return WaitForFrame.Wait();
+            Assert.IsNotNull(data);
+            Assert.AreEqual("Exception", data.Attributes.Attributes["error.type"]);
+        }
+
+        private sealed class TestDynamicAttributeProvider : IDynamicAttributeProvider
+        {
+            private readonly IDictionary<string, string> _attributes;
+            internal TestDynamicAttributeProvider(IDictionary<string, string> attributes)
+            {
+                _attributes = attributes;
+            }
+            public void GetAttributes(IDictionary<string, string> attributes)
+            {
+                foreach (var attribute in _attributes)
+                {
+                    attributes[attribute.Key] = attribute.Value;
+                }
+            }
         }
     }
 }
