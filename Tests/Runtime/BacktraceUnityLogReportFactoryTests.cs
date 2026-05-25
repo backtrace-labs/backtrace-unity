@@ -43,6 +43,7 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(
                 "true",
                 report.Attributes["backtrace.unity.report.frames.empty"]);
+            Assert.AreEqual("Unhandled exception", report.Attributes["error.type"]);
         }
 
         [Test]
@@ -91,6 +92,7 @@ namespace Backtrace.Unity.Tests.Runtime
                 report.Attributes["backtrace.unity.report.frames.empty"]);
             Assert.False(
                 report.Attributes.ContainsKey("backtrace.unity.stackless.reason"));
+            Assert.AreEqual("Unhandled exception", report.Attributes["error.type"]);
         }
 
         [Test]
@@ -121,6 +123,66 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual(
                 "false",
                 report.Attributes["backtrace.unity.original_exception.stack_present"]);
+            Assert.AreEqual("Unhandled exception", report.Attributes["error.type"]);
+        }
+
+        [Test]
+        public void UnityCallbackOnlyWithStack_ShouldRemainUnhandledException()
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            var factory = new BacktraceUnityLogReportFactory(configuration);
+            var report = factory.CreateReport(
+                "NullReferenceException: Object reference not set to an instance of an object.",
+                "ExampleClass.DoWork() (at Assets/ExampleClass.cs:42)",
+                LogType.Exception,
+                true,
+                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived,
+                null);
+            Assert.AreEqual("Unhandled exception", report.Attributes["error.type"]);
+        }
+
+        [Test]
+        public void CandidateReport_ShouldRemainUnhandledExceptionBecauseLogHandlerIsMetadataOnly()
+        {
+            var configuration = ScriptableObject.CreateInstance<BacktraceConfiguration>();
+            var factory = new BacktraceUnityLogReportFactory(configuration);
+
+            Exception exception = null;
+            try
+            {
+                throw new NullReferenceException(
+                    "Object reference not set to an instance of an object.");
+            }
+            catch (Exception caught)
+            {
+                exception = caught;
+            }
+
+            var candidate = new BacktraceUnityLogExceptionCandidate
+            {
+                Exception = exception,
+                ContextName = "TestContext",
+                IsMainThread = true,
+                ThreadId = 1
+            };
+
+            var report = factory.CreateReport(
+                "NullReferenceException: Object reference not set to an instance of an object.",
+                "ExampleClass.DoWork() (at Assets/ExampleClass.cs:42)",
+                LogType.Exception,
+                true,
+                BacktraceUnityLogCapture.CapturePathUnityLogMessageReceived,
+                candidate);
+
+            Assert.AreEqual(
+                "Unhandled exception",
+                report.Attributes["error.type"]);
+            Assert.AreEqual(
+                BacktraceUnityLogCapture.StackSourceOriginalException,
+                report.Attributes["backtrace.unity.stack_source"]);
+            Assert.AreEqual(
+                "System.NullReferenceException",
+                report.Attributes["backtrace.unity.original_exception.type"]);
         }
 
         [Test]

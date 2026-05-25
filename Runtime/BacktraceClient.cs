@@ -1291,14 +1291,6 @@ namespace Backtrace.Unity
                         : ReportFilterType.Error;
             }
 
-            string capturePath;
-            if (report.Attributes != null &&
-                report.Attributes.TryGetValue("backtrace.unity.capture_path", out capturePath) &&
-                BacktraceUnityLogCapture.IsLogHandlerAndCallbackCapturePath(capturePath))
-            {
-                return ReportFilterType.UnhandledException;
-            }
-
             string unityLogType;
             if (report.Attributes != null &&
                 report.Attributes.TryGetValue("backtrace.unity.log.type", out unityLogType))

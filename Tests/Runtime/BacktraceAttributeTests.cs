@@ -263,6 +263,29 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual("Exception", data.Attributes.Attributes["error.type"]);
         }
 
+        [UnityTest]
+        public IEnumerator TestExplicitSendException_ShouldRemainHandledException_WhenDynamicErrorTypeIsCrash()
+        {
+            BacktraceClient.AttributeProvider.AddDynamicAttributeProvider(
+                new TestDynamicAttributeProvider(new Dictionary<string, string>
+                {
+                    { "error.type", "Crash" },
+                    { "native.attribute", "native-value" }
+                }));
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new InvalidOperationException("Handled exception"));
+            yield return WaitForFrame.Wait();
+            Assert.IsNotNull(data);
+            Assert.AreEqual("Exception", data.Attributes.Attributes["error.type"]);
+            Assert.AreEqual("native-value", data.Attributes.Attributes["native.attribute"]);
+            Assert.IsFalse(data.Attributes.Attributes.ContainsKey("backtrace.unity.capture_path"));
+        }
+
         private sealed class TestDynamicAttributeProvider : IDynamicAttributeProvider
         {
             private readonly IDictionary<string, string> _attributes;

@@ -218,6 +218,8 @@ namespace Backtrace.Unity.Model
             var report = BacktraceReport.CreateWithoutEnvironmentStackFallback(
                 exception,
                 attributes);
+            report.Attributes["error.type"] =
+                BacktraceDefaultClassifierTypes.UnhandledExceptionType;
             report.Attributes["error.message"] = message;
             return report;
         }
