@@ -18,9 +18,13 @@ namespace Backtrace.Unity.Runtime.Native.OSX
     internal class NativeClient : NativeClientBase, INativeClient
     {
         // NSDictinary entry used only for OSX native integration
+        [StructLayout(LayoutKind.Sequential)]
         internal struct Entry
         {
+            [MarshalAs(UnmanagedType.LPStr)]
             public string Key;
+
+            [MarshalAs(UnmanagedType.LPStr)]
             public string Value;
         }
 
@@ -141,10 +145,9 @@ namespace Backtrace.Unity.Runtime.Native.OSX
                     }
                     Entry entry = (Entry)Marshal.PtrToStructure(address, typeof(Entry));
                     // The native macOS client keeps error.type=Crash so PLCrashReporter
-                    // crash and OOM payloads are classified correctly. That value is
-                    // not a process/client attribute and must not be copied back into
-                    // managed C# reports, otherwise Unity handled exceptions are
-                    // mislabeled as crashes.
+                    // crash payloads are classified correctly. That value is not a
+                    // process/client attribute and must not be copied back into
+                    // managed C# reports.
                     if (string.IsNullOrEmpty(entry.Key) ||
                         string.Equals(entry.Key, ErrorTypeAttribute, StringComparison.Ordinal))
                     {

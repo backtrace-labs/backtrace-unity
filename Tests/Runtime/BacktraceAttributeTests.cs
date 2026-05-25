@@ -1,4 +1,5 @@
-﻿using Backtrace.Unity.Model;
+﻿using Backtrace.Unity.Extensions;
+using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Attributes;
 using Backtrace.Unity.Model.JsonData;
 using NUnit.Framework;
@@ -198,27 +199,77 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [UnityTest]
-        public IEnumerator TestReportAttributes_ShouldOverrideDynamicClientAttributes_ErrorTypeIsReportScoped()
+        public IEnumerator TestReportAttributes_ShouldOverrideDynamicClientAttributes_ReportScopedAttributesWin()
         {
+            const string message =
+                "NullReferenceException: Object reference not set to an instance of an object.";
+
             BacktraceClient.AttributeProvider.AddDynamicAttributeProvider(
                 new TestDynamicAttributeProvider(new Dictionary<string, string>
                 {
                     { "error.type", "Crash" },
+                    { "error.message", "native-message" },
                     { "native.attribute", "native-value" }
                 }));
+
             BacktraceData data = null;
             BacktraceClient.BeforeSend = (BacktraceData reportData) =>
             {
                 data = reportData;
                 return null;
             };
+
             BacktraceClient.Send(new BacktraceUnhandledException(
-                "NullReferenceException: Object reference not set to an instance of an object.",
+                message,
                 "Example.Thrower () (at Assets/Example.cs:12)"));
+
             yield return WaitForFrame.Wait();
+
             Assert.IsNotNull(data);
-            Assert.AreEqual("Unhandled exception", data.Attributes.Attributes["error.type"]);
-            Assert.AreEqual("native-value", data.Attributes.Attributes["native.attribute"]);
+            Assert.AreEqual(
+                "Unhandled exception",
+                data.Attributes.Attributes["error.type"]);
+            Assert.AreEqual(
+                message,
+                data.Attributes.Attributes["error.message"]);
+            Assert.AreEqual(
+                "native-value",
+                data.Attributes.Attributes["native.attribute"]);
+        }
+
+        [UnityTest]
+        public IEnumerator TestReportAttributes_ShouldOverrideDynamicClientAttributes_ModFingerprintIsReportScoped()
+        {
+            const string message = "Unhandledexception";
+
+            BacktraceClient.Configuration.UseNormalizedExceptionMessage = true;
+            BacktraceClient.AttributeProvider.AddDynamicAttributeProvider(
+                new TestDynamicAttributeProvider(new Dictionary<string, string>
+                {
+                    { "_mod_fingerprint", "native-fingerprint" }
+                }));
+
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+
+            BacktraceClient.Send(new BacktraceUnhandledException(
+                message,
+                string.Empty));
+
+            yield return WaitForFrame.Wait();
+
+            Assert.IsNotNull(data);
+            Assert.IsTrue(data.Attributes.Attributes.ContainsKey("_mod_fingerprint"));
+            Assert.AreEqual(
+                message.GetSha(),
+                data.Attributes.Attributes["_mod_fingerprint"]);
+            Assert.AreNotEqual(
+                "native-fingerprint",
+                data.Attributes.Attributes["_mod_fingerprint"]);
         }
 
         [UnityTest]

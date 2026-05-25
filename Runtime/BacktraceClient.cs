@@ -1030,12 +1030,11 @@ namespace Backtrace.Unity
         /// <summary>
         /// Create report data with client/native attributes applied as defaults.
         /// Report-specific attributes must win over client-scoped and dynamic
-        /// attributes because values such as error.type and error.message are
-        /// properties of the report, not of the process.
+        /// attributes because values such as error.type, error.message, and
+        /// _mod_fingerprint are properties of the report, not of the process.
         ///
         /// This prevents native Apple crash attributes such as error.type=Crash from
-        /// overriding managed Unity exception reports that should be classified as
-        /// error.type=Unhandled exception.
+        /// overriding managed Unity report classification.
         /// </summary>
         private BacktraceData CreateBacktraceDataWithClientAttributes(BacktraceReport report)
         {

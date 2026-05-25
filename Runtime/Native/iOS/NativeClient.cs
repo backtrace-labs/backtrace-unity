@@ -18,9 +18,13 @@ namespace Backtrace.Unity.Runtime.Native.iOS
     internal class NativeClient : NativeClientBase, INativeClient
     {
         // NSDictinary entry used only for iOS native integration
+        [StructLayout(LayoutKind.Sequential)]
         internal struct Entry
         {
+            [MarshalAs(UnmanagedType.LPStr)]
             public string Key;
+
+            [MarshalAs(UnmanagedType.LPStr)]
             public string Value;
         }
 
@@ -35,6 +39,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
 
         [DllImport("__Internal", EntryPoint = "GetAttributes")]
         private static extern void GetNativeAttributes(out IntPtr attributes, out int keysCount);
+
+        [DllImport("__Internal", EntryPoint = "FreeAttributes")]
+        private static extern void FreeNativeAttributes(IntPtr attributes, int keysCount);
 
         [DllImport("__Internal", EntryPoint = "AddAttribute")]
         private static extern void AddAttribute(string key, string value);
@@ -136,10 +143,9 @@ namespace Backtrace.Unity.Runtime.Native.iOS
                     }
                     Entry entry = (Entry)Marshal.PtrToStructure(address, typeof(Entry));
                     // The native iOS client keeps error.type=Crash so PLCrashReporter
-                    // crash and OOM payloads are classified correctly. That value is
-                    // not a process/client attribute and must not be copied back into
-                    // managed C# reports, otherwise Unity handled exceptions are
-                    // mislabeled as crashes.
+                    // crash payloads are classified correctly. That value is not a
+                    // process/client attribute and must not be copied back into
+                    // managed C# reports.
                     if (string.IsNullOrEmpty(entry.Key) ||
                         string.Equals(entry.Key, ErrorTypeAttribute, StringComparison.Ordinal))
                     {
@@ -150,7 +156,7 @@ namespace Backtrace.Unity.Runtime.Native.iOS
             }
             finally
             {
-                Marshal.FreeHGlobal(pUnmanagedArray);
+                FreeNativeAttributes(pUnmanagedArray, keysCount);
             }
         }
 
