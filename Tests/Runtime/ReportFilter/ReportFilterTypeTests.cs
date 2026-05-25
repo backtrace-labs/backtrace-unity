@@ -325,16 +325,69 @@ namespace Backtrace.Unity.Tests.Runtime.ReportFilter
                 return type != ReportFilterType.UnhandledException;
             };
 
-            // in this situation to learn if we were able to continue processing report 
+            // in this situation to learn if we were able to continue processing report
             // we should check if before send event or reportFilter event was called
             BacktraceClient.Configuration.ReportFilterType = ReportFilterType.Exception;
             BacktraceClient.Send(new BacktraceUnhandledException(string.Empty, string.Empty));
 
-            
+
             Assert.IsTrue(reportFilterCalled);
             Assert.IsTrue(eventCalled);
 
             yield return null;
+        }
+
+        [Test]
+        public void TestUnityLogHandlerException_ShouldUseUnhandledExceptionFilterType()
+        {
+            var reportFilterType = ReportFilterType.None;
+            BacktraceClient.Configuration.UnityLogHandlerExceptionCapture =
+                BacktraceUnityLogHandlerExceptionCaptureMode.Enabled;
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+            {
+                reportFilterType = type;
+                return true;
+            };
+            var exception = new InvalidOperationException("Validation exception");
+            Assert.IsTrue(
+                BacktraceClient.RecordUnityLogHandlerException(exception, null));
+            BacktraceClient.HandleUnityMessage(
+                "InvalidOperationException: Validation exception",
+                "ExampleClass.HandleException() (at Assets/ExampleClass.cs:42)",
+                LogType.Exception);
+            Assert.AreEqual(ReportFilterType.UnhandledException, reportFilterType);
+        }
+
+        [Test]
+        public void TestUnityCallbackExceptionWithoutLogHandler_ShouldUseUnhandledExceptionFilterType()
+        {
+            var reportFilterType = ReportFilterType.None;
+            BacktraceClient.SkipReport = (ReportFilterType type, Exception e, string msg) =>
+            {
+                reportFilterType = type;
+                return true;
+            };
+            BacktraceClient.HandleUnityMessage(
+                "NullReferenceException: Object reference not set to an instance of an object.",
+                "ExampleClass.Update() (at Assets/ExampleClass.cs:42)",
+                LogType.Exception);
+            Assert.AreEqual(ReportFilterType.UnhandledException, reportFilterType);
+        }
+
+        [UnityTest]
+        public IEnumerator TestExplicitSendException_ShouldRemainHandledException()
+        {
+            BacktraceData data = null;
+            BacktraceClient.BeforeSend = (BacktraceData reportData) =>
+            {
+                data = reportData;
+                return null;
+            };
+            BacktraceClient.Send(new InvalidOperationException("Handled exception"));
+            yield return WaitForFrame.Wait();
+            Assert.IsNotNull(data);
+            Assert.AreEqual("Exception", data.Attributes.Attributes["error.type"]);
+            Assert.IsFalse(data.Attributes.Attributes.ContainsKey("backtrace.unity.capture_path"));
         }
     }
 }

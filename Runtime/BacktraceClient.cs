@@ -1024,11 +1024,23 @@ namespace Backtrace.Unity
             report.SetReportFingerprint(Configuration.UseNormalizedExceptionMessage);
             report.AttachmentPaths.AddRange(_clientReportAttachments);
 
-            // pass copy of dictionary to prevent overriding client attributes
-            var result = report.ToBacktraceData(null, GameObjectDepth);
-            AttributeProvider.AddAttributes(result.Attributes.Attributes);
+            return CreateBacktraceDataWithClientAttributes(report);
+        }
 
-            return result;
+        /// <summary>
+        /// Create report data with client/native attributes applied as defaults.
+        /// Report-specific attributes must win over client-scoped and dynamic
+        /// attributes because values such as error.type, error.message, and
+        /// _mod_fingerprint are properties of the report, not of the process.
+        ///
+        /// This prevents native Apple crash attributes such as error.type=Crash from
+        /// overriding managed Unity report classification.
+        /// </summary>
+        private BacktraceData CreateBacktraceDataWithClientAttributes(BacktraceReport report)
+        {
+            var clientAttributes = new Dictionary<string, string>(
+                AttributeProvider.GenerateAttributes());
+            return report.ToBacktraceData(clientAttributes, GameObjectDepth);
         }
 
 #if UNITY_ANDROID
@@ -1078,8 +1090,7 @@ namespace Backtrace.Unity
             
             if (Database != null)
             {
-                var backtraceData = report.ToBacktraceData(null, GameObjectDepth);
-                AttributeProvider.AddAttributes(backtraceData.Attributes.Attributes);
+                var backtraceData = CreateBacktraceDataWithClientAttributes(report);
                 Database.Add(backtraceData);
             }
             else
@@ -1277,14 +1288,6 @@ namespace Backtrace.Unity
                     : unhandledException.Type == LogType.Exception
                         ? ReportFilterType.UnhandledException
                         : ReportFilterType.Error;
-            }
-
-            string capturePath;
-            if (report.Attributes != null &&
-                report.Attributes.TryGetValue("backtrace.unity.capture_path", out capturePath) &&
-                BacktraceUnityLogCapture.IsLogHandlerAndCallbackCapturePath(capturePath))
-            {
-                return ReportFilterType.UnhandledException;
             }
 
             string unityLogType;
