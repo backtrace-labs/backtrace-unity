@@ -17,7 +17,7 @@ namespace Backtrace.Unity.Runtime.Native.OSX
     /// </summary>
     internal class NativeClient : NativeClientBase, INativeClient
     {
-        // NSDictinary entry used only for OSX native integration
+        // NSDictionary entry used only for OSX native integration
         [StructLayout(LayoutKind.Sequential)]
         internal struct Entry
         {
