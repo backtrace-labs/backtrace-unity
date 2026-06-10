@@ -1,6 +1,13 @@
 # Backtrace Unity Release Notes
 
+## Version 3.16.1
+
+Bugfixes
+- iOS/macOS: Preserved report `error.type` classification when native Apple crash capture is enabled. Client/native dynamic attributes are now applied as defaults before report data is constructed, so report-scoped attributes (`error.type`, `error.message`, `_mod_fingerprint`) are no longer overwritten by native values. Managed exception reports keep their `Exception`/`Unhandled exception` classification, while native crash reports remain `error.type=Crash` (#290).
+- Fixed parsing issue with native stack frames without symbol information. Frame parsing is now extracted into a dedicated `BacktraceRawStackTraceParser` with defensive bounds checks and additional unit-test coverage (#278).
+
 ## Version 3.16.0
+
 Improvements
 - WebGL:
   - Added diagnostics for Unity log-callback exception reports where Unity supplies an exception message but an empty `stackTrace` string.
