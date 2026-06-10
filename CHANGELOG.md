@@ -1,6 +1,7 @@
 # Backtrace Unity Release Notes
 
 ## Version 3.16.0
+
 Improvements
 - WebGL:
   - Added diagnostics for Unity log-callback exception reports where Unity supplies an exception message but an empty `stackTrace` string.
