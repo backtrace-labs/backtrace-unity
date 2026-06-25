@@ -390,34 +390,30 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
         internal static IDictionary<string, string> GetScopedAttributes()
         {
-            var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
-            if (!HasScopedAttributesEmpty(attributesJson))
-            {
-                return new Dictionary<string, string>();
-            }
-
             var result = new Dictionary<string, string>(StringComparer.Ordinal);
-            ScopedAttributesContainer attributes = null;
+            var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
+            if (HasScopedAttributesEmpty(attributesJson))
+            {
+                ScopedAttributesContainer attributes;
 
-            try
-            {
-                attributes = JsonUtility.FromJson<ScopedAttributesContainer>(attributesJson);
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"Backtrace Failed to parse scoped attributes at read: {e.Message}");
-                return result;
-            }
+                try
+                {
+                    attributes = JsonUtility.FromJson<ScopedAttributesContainer>(attributesJson);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Backtrace Failed to parse scoped attributes at read: {e.Message}");
+                    return result;
+                }
 
-            if (attributes?.Keys == null)
-            {
-                return result;
-            }
-
-            foreach (var attributeKey in attributes.Keys)
-            {
-                var value = PlayerPrefs.GetString(string.Format(ScopedAttributesPattern, attributeKey), string.Empty);
-                result[attributeKey] = value;
+                if (attributes?.Keys != null)
+                {
+                    foreach (var attributeKey in attributes.Keys)
+                    {
+                        var value = PlayerPrefs.GetString(string.Format(ScopedAttributesPattern, attributeKey), string.Empty);
+                        result[attributeKey] = value;
+                    }
+                }
             }
 
             // extend scoped attributes with legacy attributes stored by Backtrace-Unity library in previous versions
