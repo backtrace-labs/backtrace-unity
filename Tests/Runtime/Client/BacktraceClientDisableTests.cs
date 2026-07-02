@@ -18,9 +18,19 @@ namespace Backtrace.Unity.Tests.Runtime.Client
             AfterSetup(false);
         }
 
+        // Skip in a Player build: DisableInEditor only disables the client in the Editor
+        private static void SkipWhenNotInEditor()
+        {
+            if (!Application.isEditor)
+            {
+                Assert.Ignore("DisableInEditor only applies in the Editor.");
+            }
+        }
+
         [Test]
         public void TestEditorDisabling_ShouldntSendData_ShouldntSendExceptionViaSendAPI()
         {
+            SkipWhenNotInEditor();
             var clientConfiguration = GetValidClientConfiguration();
             BacktraceClient.Configuration = clientConfiguration;
             BacktraceClient.Configuration.DisableInEditor = true;
@@ -42,6 +52,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestEditorDisabling_ShouldntSendData_ShouldntSendReportViaSendAPI()
         {
+            SkipWhenNotInEditor();
             var clientConfiguration = GetValidClientConfiguration();
             BacktraceClient.Configuration = clientConfiguration;
             BacktraceClient.Configuration.DisableInEditor = true;
@@ -63,6 +74,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestEditorDisabling_ShouldntSendData_ShouldntSendMessageViaSendAPI()
         {
+            SkipWhenNotInEditor();
             var clientConfiguration = GetValidClientConfiguration();
             BacktraceClient.Configuration = clientConfiguration;
             BacktraceClient.Configuration.DisableInEditor = true;
@@ -84,6 +96,7 @@ namespace Backtrace.Unity.Tests.Runtime.Client
         [Test]
         public void TestEditorDisabling_ShouldntSendData_ShouldntSendUnhandledException()
         {
+            SkipWhenNotInEditor();
             var clientConfiguration = GetValidClientConfiguration();
             BacktraceClient.Configuration = clientConfiguration;
             BacktraceClient.Configuration.DisableInEditor = true;
