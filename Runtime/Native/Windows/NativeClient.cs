@@ -364,7 +364,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             // the reason behind this decision is to make sure user change in the configuration
             // won't leave any useless data
             var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
-            if (!HasScopedAttributesEmpty(attributesJson))
+            if (!HasScopedAttributes(attributesJson))
             {
                 return;
             }
@@ -392,7 +392,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         {
             var result = new Dictionary<string, string>(StringComparer.Ordinal);
             var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
-            if (HasScopedAttributesEmpty(attributesJson))
+            if (HasScopedAttributes(attributesJson))
             {
                 ScopedAttributesContainer attributes;
 
@@ -455,7 +455,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         {
             var keys = new HashSet<string>(StringComparer.Ordinal);
             var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
-            if (HasScopedAttributesEmpty(attributesJson))
+            if (HasScopedAttributes(attributesJson))
             {
                 try
                 {
@@ -582,7 +582,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             PlayerPrefs.Save();
         }
 
-        private static bool HasScopedAttributesEmpty(string attributesJson)
+        private static bool HasScopedAttributes(string attributesJson)
         {
             return !(string.IsNullOrEmpty(attributesJson) || attributesJson == "{}");
         }
