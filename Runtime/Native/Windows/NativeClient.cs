@@ -424,6 +424,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                         { SessionKey, BacktraceMetrics.ApplicationSessionKey }
                     };
 
+            bool removedLegacy = false;
             foreach (var legacyAttribute in legacyAttributes)
             {
                 string legacyAttributeValue = PlayerPrefs.GetString(legacyAttribute.Key, string.Empty);
@@ -431,7 +432,13 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 {
                     PlayerPrefs.DeleteKey(legacyAttribute.Key);
                     result[legacyAttribute.Value] = legacyAttributeValue;
+                    removedLegacy = true;
                 }
+            }
+
+            if (removedLegacy)
+            {
+                PlayerPrefs.Save();
             }
             return result;
         }
