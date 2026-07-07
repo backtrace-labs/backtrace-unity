@@ -177,10 +177,14 @@ namespace Backtrace.Unity
         /// <summary>
         /// Set a client attribute that will be included in every report
         /// </summary>
+        /// <remarks>
+        /// Native crash reports omit attributes with an empty-string value;
+        /// standard (managed) reports are unaffected.
+        /// </remarks>
         /// <param name="key">Attribute name</param>
         /// <param name="value">Attribute value</param>
         /// <returns>True, if the value was added. Otherwise false.</returns>
-        public bool SetAttribute(string key, string value) 
+        public bool SetAttribute(string key, string value)
         {
             if (string.IsNullOrEmpty(key)) 
             {
