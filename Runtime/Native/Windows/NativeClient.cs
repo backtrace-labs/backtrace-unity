@@ -364,7 +364,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             // the reason behind this decision is to make sure user change in the configuration
             // won't leave any useless data
             var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
-            if (!HasScopedAttributesEmpty(attributesJson))
+            if (!HasScopedAttributes(attributesJson))
             {
                 return;
             }
@@ -390,34 +390,30 @@ namespace Backtrace.Unity.Runtime.Native.Windows
 
         internal static IDictionary<string, string> GetScopedAttributes()
         {
-            var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
-            if (!HasScopedAttributesEmpty(attributesJson))
-            {
-                return new Dictionary<string, string>();
-            }
-
             var result = new Dictionary<string, string>(StringComparer.Ordinal);
-            ScopedAttributesContainer attributes = null;
+            var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
+            if (HasScopedAttributes(attributesJson))
+            {
+                ScopedAttributesContainer attributes;
 
-            try
-            {
-                attributes = JsonUtility.FromJson<ScopedAttributesContainer>(attributesJson);
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"Backtrace Failed to parse scoped attributes at read: {e.Message}");
-                return result;
-            }
+                try
+                {
+                    attributes = JsonUtility.FromJson<ScopedAttributesContainer>(attributesJson);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Backtrace Failed to parse scoped attributes at read: {e.Message}");
+                    return result;
+                }
 
-            if (attributes?.Keys == null)
-            {
-                return result;
-            }
-
-            foreach (var attributeKey in attributes.Keys)
-            {
-                var value = PlayerPrefs.GetString(string.Format(ScopedAttributesPattern, attributeKey), string.Empty);
-                result[attributeKey] = value;
+                if (attributes?.Keys != null)
+                {
+                    foreach (var attributeKey in attributes.Keys)
+                    {
+                        var value = PlayerPrefs.GetString(string.Format(ScopedAttributesPattern, attributeKey), string.Empty);
+                        result[attributeKey] = value;
+                    }
+                }
             }
 
             // extend scoped attributes with legacy attributes stored by Backtrace-Unity library in previous versions
@@ -428,6 +424,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                         { SessionKey, BacktraceMetrics.ApplicationSessionKey }
                     };
 
+            bool removedLegacy = false;
             foreach (var legacyAttribute in legacyAttributes)
             {
                 string legacyAttributeValue = PlayerPrefs.GetString(legacyAttribute.Key, string.Empty);
@@ -435,7 +432,13 @@ namespace Backtrace.Unity.Runtime.Native.Windows
                 {
                     PlayerPrefs.DeleteKey(legacyAttribute.Key);
                     result[legacyAttribute.Value] = legacyAttributeValue;
+                    removedLegacy = true;
                 }
+            }
+
+            if (removedLegacy)
+            {
+                PlayerPrefs.Save();
             }
             return result;
         }
@@ -459,7 +462,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
         {
             var keys = new HashSet<string>(StringComparer.Ordinal);
             var attributesJson = PlayerPrefs.GetString(ScopedAttributeListKey);
-            if (HasScopedAttributesEmpty(attributesJson))
+            if (HasScopedAttributes(attributesJson))
             {
                 try
                 {
@@ -586,7 +589,7 @@ namespace Backtrace.Unity.Runtime.Native.Windows
             PlayerPrefs.Save();
         }
 
-        private static bool HasScopedAttributesEmpty(string attributesJson)
+        private static bool HasScopedAttributes(string attributesJson)
         {
             return !(string.IsNullOrEmpty(attributesJson) || attributesJson == "{}");
         }

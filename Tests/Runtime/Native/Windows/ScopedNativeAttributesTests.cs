@@ -14,8 +14,20 @@ namespace Backtrace.Unity.Tests.Runtime.Native.Windows
         private const string ScopedKeyList = "backtrace-scoped-attributes";
         private const string ScopedValuePattern = "bt-{0}";
 
-        [TearDown]
+        // PlayerPrefs persist between runs in a Player build, so clean before and after each test
+        [SetUp]
         public void Setup()
+        {
+            CleanState();
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            CleanState();
+        }
+
+        private void CleanState()
         {
             CleanLegacyAttributes();
             NativeClient.CleanScopedAttributes();

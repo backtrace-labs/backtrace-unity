@@ -331,6 +331,9 @@ namespace Backtrace.Unity.Tests.Runtime
         [Test]
         public void TestStackTraceCreation_AndroidException_ValidStackTraceObject()
         {
+#if !UNITY_ANDROID && !UNITY_EDITOR
+            Assert.Ignore("Android stack trace parsing is only compiled for Android and the Editor.");
+#endif
             var stackTrace = ConvertStackTraceToString(_anrStackTrace);
             var exception = new BacktraceUnhandledException(string.Empty, stackTrace);
             var backtraceStackTrace = new BacktraceStackTrace(exception);
@@ -348,6 +351,9 @@ namespace Backtrace.Unity.Tests.Runtime
         [Test]
         public void TestNativeStackTraceDetection_AndroidExceptionShouldSetFlag_NativeStackTraceIsSet()
         {
+#if !UNITY_ANDROID && !UNITY_EDITOR
+            Assert.Ignore("Android stack trace parsing is only compiled for Android and the Editor.");
+#endif
             var stackTrace = ConvertStackTraceToString(_anrStackTrace);
             var exception = new BacktraceUnhandledException(string.Empty, stackTrace);
             Assert.IsTrue(exception.NativeStackTrace);
@@ -366,6 +372,9 @@ namespace Backtrace.Unity.Tests.Runtime
         [Test]
         public void TestStackTraceCreation_AndroidMixModeCallStack_ValidStackTraceObject()
         {
+#if !UNITY_ANDROID && !UNITY_EDITOR
+            Assert.Ignore("Android stack trace parsing is only compiled for Android and the Editor.");
+#endif
             var stackTrace = ConvertStackTraceToString(_mixModeCallStack);
             var exception = new BacktraceUnhandledException(string.Empty, stackTrace);
             var backtraceStackTrace = new BacktraceStackTrace(exception);
