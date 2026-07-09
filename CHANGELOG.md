@@ -1,5 +1,14 @@
 # Backtrace Unity Release Notes
 
+## Version 3.16.2
+
+Improvements
+- Android/Windows: Native crash reports are no longer limited to 64 attributes. Previously, only the first 64 attributes were included in a native crash report and any additional attributes were discarded. (#293)
+- Android/Windows: Attributes with an empty-string value are no longer included in native crash reports. Managed reports are unchanged. (#293)
+
+Bugfixes
+- Windows: Fixed an issue where a few internal attributes carried over from versions older than 3.6.0 could be missing from native crash reports. (#294)
+
 ## Version 3.16.1
 
 Bugfixes
