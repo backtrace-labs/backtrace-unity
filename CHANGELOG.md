@@ -4,11 +4,12 @@
 
 Improvements
 - Android/Windows:
-  - Remove the 64-attribute limit from native crash report attributes. Crashpad now enforces its internal annotation limit. (#293)
-  - Omit attributes with empty-string values from native crash reports. Managed reports are unchanged. (#293)
+  - Removed the 64-attribute limit from native crash report attributes. Crashpad now enforces its internal annotation limit. (#293)
+  - Omitted attributes with empty-string values from native crash reports. Managed reports are unchanged. (#293)
 
 Bugfixes
-- Windows: Fix migration of legacy scoped attributes so native crash reports preserve attributes saved by SDK versions before 3.6.0. (#294)
+- Fixed a potential thread-safety issue in `BacktraceLogManager` that could corrupt log data under concurrent access. (#296)
+- Windows: Fixed migration of legacy scoped attributes so native crash reports preserve attributes saved by SDK versions before 3.6.0. (#294)
 
 
 ## Version 3.16.1
