@@ -101,9 +101,13 @@ namespace Backtrace.Unity.Model
         /// <returns>Source code</returns>
         public string ToSourceCode()
         {
-            var stringBuilder = new StringBuilder();
+            string[] logs;
+            lock (lockObject)
+            {
+                logs = LogQueue.ToArray();
+            }
 
-            var logs = LogQueue.ToArray();
+            var stringBuilder = new StringBuilder();
             foreach (var log in logs)
             {
                 stringBuilder.AppendLine(log);
