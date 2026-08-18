@@ -23,27 +23,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
     {
         private const string CallbackMethodName = "OnAnrDetected";
 
-        [DllImport("backtrace-native", EntryPoint = "InitializeJavaCrashHandler", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool InitializeJavaCrashHandlerNative(
-            IntPtr submissionUrl,
-            IntPtr databasePath,
-            IntPtr classPath,
-            IntPtr keys,
-            IntPtr values,
-            IntPtr attachments,
-            IntPtr environmentVariables);
-
-        [DllImport("backtrace-native", EntryPoint = "AddAttribute", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void AddAttributeNative(IntPtr key, IntPtr value);
-
-        [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DumpWithoutCrashNative(
-            IntPtr message,
-            [MarshalAs(UnmanagedType.I1)] bool setMainThreadAsFaultingThread);
-
-        [DllImport("backtrace-native", EntryPoint = "Disable", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DisableNativeIntegrationNative();
+        // The P/Invoke declarations live in AndroidNativeInterop, which also compiles in the Editor and the EditMode signature tests can pin the corrected return types.
 
         /// <summary>
         /// Attribute maps - list of attribute maps that allows Backtrace-Unity to rename attributes 
@@ -171,24 +151,21 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <summary>
         /// Guess native directory path based on the data path directory.
         /// The application-info snapshot can miss nativeLibraryDir when the activity is not available.
+        /// Filesystem enumeration order is not a valid ABI-selection policy,
+        /// the process ABI picks the directory;
+        /// an ambiguous layout returns no guess and resolution continues with split/base-APK metadata.
         /// </summary>
         /// <returns>Guessed path to lib directory</returns>
-        private string GuessNativeDirectoryPath()
+        private string GuessNativeDirectoryPath(string processAbi)
         {
             var sourceDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
             if (!Directory.Exists(sourceDirectory))
             {
                 return string.Empty;
             }
-            var libDirectory = Directory.GetDirectories(sourceDirectory);
-            if (libDirectory.Length == 0)
-            {
-                return string.Empty;
-            }
-            else
-            {
-                return libDirectory[0];
-            }
+            var libDirectories = Directory.GetDirectories(sourceDirectory);
+            return AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(libDirectories, processAbi)
+                ?? string.Empty;
         }
 
         /// <summary>
@@ -302,7 +279,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 keyReference = AndroidJNI.NewStringUTF(key);
                 valueReference = AndroidJNI.NewStringUTF(value ?? string.Empty);
-                AddAttributeNative(keyReference, valueReference);
+                AndroidNativeInterop.AddAttribute(keyReference, valueReference);
             }
             finally
             {
@@ -321,7 +298,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             try
             {
                 messageReference = AndroidJNI.NewStringUTF(message ?? string.Empty);
-                DumpWithoutCrashNative(messageReference, setMainThreadAsFaultingThread);
+                AndroidNativeInterop.DumpWithoutCrash(messageReference, setMainThreadAsFaultingThread);
             }
             finally
             {
@@ -354,7 +331,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 valuesRef = AndroidJNIHelper.ConvertToJNIArray(attributeValues ?? new string[0]);
                 attachmentsRef = AndroidJNIHelper.ConvertToJNIArray(attachments ?? new string[0]);
                 environmentRef = AndroidJNIHelper.ConvertToJNIArray(environmentVariables ?? new string[0]);
-                return InitializeJavaCrashHandlerNative(
+                return AndroidNativeInterop.InitializeJavaCrashHandler(
                     urlRef,
                     databaseRef,
                     classRef,
@@ -448,6 +425,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
 
+            // The authoritative linker answer is queried FIRST:
+            // it must remain usable even when process-ABI detection or application metadata is unavailable,
+            // and both of those lookups are fully fail-safe (they return null/empty instead of throwing).
+            var loadedLibraryPath = AndroidLoadedLibraryPath.TryGet();
+
             // The ABI of THIS PROCESS (not the device-preferred ABI: a 32-bit process on a 64-bit device differs).
             // It is required only for the x86 policy and the split/base-APK path fallback,
             // an undetermined ABI must not disable capture when the linker path or an extracted library resolves, so the resolver receives null and decides.
@@ -466,11 +448,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 // Legacy discovery for hosts without a Unity activity.
                 // An empty native-library directory no longer disables capture:
                 // the linker-reported path or split metadata can still resolve the handler.
-                applicationInfo.NativeLibraryDir = GuessNativeDirectoryPath();
+                applicationInfo.NativeLibraryDir = GuessNativeDirectoryPath(processAbi);
             }
 
             // Resolution order: linker-reported path, extracted library, installed ABI split, base APK without opening an APK archive.
-            var loadedLibraryPath = AndroidLoadedLibraryPath.TryGet();
             var handlerPath = AndroidNativeLibraryPathResolver.Resolve(
                 applicationInfo,
                 loadedLibraryPath,
@@ -648,19 +629,46 @@ namespace Backtrace.Unity.Runtime.Native.Android
                                 if (!reported)
                                 {
                                     OnAnrDetection();
-                                    reported = true;
                                     if (!attached)
                                     {
-                                        // A transient early attach failure (JVM resource pressure) must not permanently disable hang dumps.
+                                        // A transient early attach failure (JVM resource pressure) must not permanently disable hang dumps;
+                                        // reported stays false so the next iteration retries this hang.
                                         attached = AndroidJNI.AttachCurrentThread() == 0;
                                     }
                                     if (attached)
                                     {
-                                        // set temporary attribute to "Hang"
-                                        SetNativeAttribute(ErrorTypeAttribute, HangType);
-                                        SendNativeDump(AnrMessage, true);
-                                        // update error.type attribute in case when crash happen
-                                        SetNativeAttribute(ErrorTypeAttribute, CrashType);
+                                        reported = true;
+                                        // The temporary Hang classification must be restored to Crash even when the dump fails,
+                                        // or a later native crash would be misclassified as a hang.
+                                        bool hangTypeApplied = false;
+                                        try
+                                        {
+                                            SetNativeAttribute(ErrorTypeAttribute, HangType);
+                                            hangTypeApplied = true;
+                                            SendNativeDump(AnrMessage, true);
+                                        }
+                                        catch (Exception exception)
+                                        {
+                                            Debug.LogWarning(
+                                                "BT_UNITY_ANDROID_NATIVE_DUMP_FAILURE: Failure type: "
+                                                    + FailureType(exception));
+                                        }
+                                        finally
+                                        {
+                                            if (hangTypeApplied)
+                                            {
+                                                try
+                                                {
+                                                    SetNativeAttribute(ErrorTypeAttribute, CrashType);
+                                                }
+                                                catch (Exception exception)
+                                                {
+                                                    Debug.LogWarning(
+                                                        "BT_UNITY_ANDROID_NATIVE_ATTRIBUTE_FAILURE: Failure type: "
+                                                            + FailureType(exception));
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -727,7 +735,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 if (CaptureNativeCrashes)
                 {
-                    DisableNativeIntegrationNative();
+                    AndroidNativeInterop.Disable();
                 }
             }
             catch (Exception exception)
