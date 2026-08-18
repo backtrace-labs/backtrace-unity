@@ -82,6 +82,69 @@ namespace Backtrace.Unity.Runtime.Native.Android
             return baseApk + ApkLibrarySeparator + entry;
         }
 
+        /// <summary> 
+        /// Selects the native-library directory for the CURRENT PROCESS from extracted-library candidates (for example the directories under an APK-adjacent "lib" directory).
+        /// Enumeration order is never a selection policy: an exact ABI-mapped directory name wins
+        /// (arm64-v8a maps to "arm64" or "arm64-v8a", armeabi-v7a to "arm", "armeabi-v7a", or "armeabi", x86_64 and x86 exactly, x86 can never select x86_64);
+        /// without an exact match a single remaining candidate is a compatibility fallback, and anything ambiguous returns null so split/base-APK resolution decides instead.
+        /// </summary>
+        internal static string SelectNativeLibraryDirectory(string[] candidateDirectories, string processAbi)
+        {
+            if (candidateDirectories == null || candidateDirectories.Length == 0)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(processAbi))
+            {
+                string[] acceptedNames = GetAbiDirectoryNames(processAbi);
+                foreach (string candidate in candidateDirectories)
+                {
+                    if (string.IsNullOrEmpty(candidate))
+                    {
+                        continue;
+                    }
+                    string name = NormalizeAbiToken(GetFileName(candidate.TrimEnd('/')));
+                    for (int index = 0; index < acceptedNames.Length; index++)
+                    {
+                        if (acceptedNames[index].Equals(name, StringComparison.Ordinal))
+                        {
+                            return candidate;
+                        }
+                    }
+                }
+            }
+
+            string single = null;
+            foreach (string candidate in candidateDirectories)
+            {
+                if (string.IsNullOrEmpty(candidate))
+                {
+                    continue;
+                }
+                if (single != null)
+                {
+                    return null;
+                }
+                single = candidate;
+            }
+            return single;
+        }
+
+        private static string[] GetAbiDirectoryNames(string processAbi)
+        {
+            string normalized = NormalizeAbiToken(processAbi);
+            if (normalized.Equals("arm64_v8a", StringComparison.Ordinal))
+            {
+                return new[] { "arm64", "arm64_v8a" };
+            }
+            if (normalized.Equals("armeabi_v7a", StringComparison.Ordinal))
+            {
+                return new[] { "arm", "armeabi_v7a", "armeabi" };
+            }
+            return new[] { normalized };
+        }
+
         /// <summary>
         /// Structural validation only. The path is deliberately NOT compared against an ABI inferred in C#:
         /// Android has already resolved which module this process loaded,

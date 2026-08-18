@@ -270,6 +270,58 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
+        public void DirectoryGuessSelectsArm64DirectoryForArm64Process()
+        {
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { "/data/app/example/lib/arm", "/data/app/example/lib/arm64" }, "arm64-v8a");
+
+            Assert.AreEqual("/data/app/example/lib/arm64", selected);
+        }
+
+        [Test]
+        public void DirectoryGuessSelectsArmDirectoryForArmV7Process()
+        {
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { "/data/app/example/lib/arm64", "/data/app/example/lib/arm" }, "armeabi-v7a");
+
+            Assert.AreEqual("/data/app/example/lib/arm", selected);
+        }
+
+        [Test]
+        public void DirectoryGuessNeverSelectsX8664ForX86Process()
+        {
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { "/data/app/example/lib/x86_64", "/data/app/example/lib/other" }, "x86");
+
+            // No exact match and more than one candidate: no guess, resolution continues.
+            Assert.IsNull(selected);
+        }
+
+        [Test]
+        public void DirectoryGuessAmbiguousWithoutExactMatchReturnsNoGuess()
+        {
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { "/data/app/example/lib/a", "/data/app/example/lib/b" }, "arm64-v8a");
+
+            Assert.IsNull(selected);
+        }
+
+        [Test]
+        public void DirectoryGuessSingleCandidateRemainsACompatibilityFallback()
+        {
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { "/data/app/example/lib/somedir" }, "arm64-v8a");
+
+            Assert.AreEqual("/data/app/example/lib/somedir", selected);
+
+            // Even with an undetermined ABI, one unique directory is still usable.
+            Assert.AreEqual(
+                "/data/app/example/lib/somedir",
+                AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                    new[] { "/data/app/example/lib/somedir" }, null));
+        }
+
+        [Test]
         public void MissingAbiFailsOnlyWhenTheFallbackNeedsIt()
         {
             var loaded = "/data/app/example/lib/arm64/" + Library;
