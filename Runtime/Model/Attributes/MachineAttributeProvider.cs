@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
+#if UNITY_ANDROID && !UNITY_EDITOR
+using Backtrace.Unity.Runtime.Native.Android;
+#endif
 
 namespace Backtrace.Unity.Model.Attributes
 {
@@ -63,17 +66,22 @@ namespace Backtrace.Unity.Model.Attributes
 
                     var deviceSdkVersion = version.GetStatic<int>("SDK_INT");
                     attributes["device.sdk"] = deviceSdkVersion.ToString();
-                    if(deviceSdkVersion >= 21) 
-                    {
-                        string[] supportedAbis = build.GetStatic<string[]>("SUPPORTED_ABIS");
-                        
-                        if (supportedAbis != null && supportedAbis.Length > 0)
-                        {
-                            attributes["device.abi"] =  supportedAbis[0];
-                        }
-                        
-                    }
                 }
+            }
+            // device.abi must be the ABI of THIS PROCESS, not the device-preferred SUPPORTED_ABIS[0]:
+            // a 32-bit Unity process on a 64-bit-capable device would otherwise report arm64-v8a while the native handler runs armeabi-v7a.
+            // The same helper drives native-library resolution, the report metadata and the resolved handler path always agree.
+            try
+            {
+                string processAbi = AndroidProcessAbi.Capture();
+                if (!string.IsNullOrEmpty(processAbi))
+                {
+                    attributes["device.abi"] = processAbi;
+                }
+            }
+            catch (Exception)
+            {
+                // ABI is optional report metadata; native setup performs its own contained resolution.
             }
             attributes["uname.fullname"] = Environment.OSVersion.Version.ToString();
 #else
