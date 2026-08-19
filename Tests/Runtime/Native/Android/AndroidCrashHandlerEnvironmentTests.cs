@@ -115,6 +115,19 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.DoesNotThrow(
                 () => AndroidCrashHandlerEnvironment.BuildEnvironment(null, ClassPath, HandlerPath, null));
         }
+
+        [Test]
+        public void OptionalSearchPathFailuresKeepUsableFallbacks()
+        {
+            var searchPaths = AndroidCrashHandlerEnvironment.BuildLibrarySearchPaths(
+                "/data/app/example/lib/arm64",
+                path => { throw new InvalidOperationException("parent lookup failed"); },
+                () => { throw new InvalidOperationException("java.library.path lookup failed"); });
+
+            CollectionAssert.AreEqual(
+                new[] { "/data/app/example/lib/arm64", "/data/local" },
+                searchPaths);
+        }
     }
 }
 #endif

@@ -29,6 +29,39 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
+        public void LegacyNativeDirectoryGuessUsesProcessAbi()
+        {
+            var armDirectory = "/data/app/example/lib/arm";
+            var arm64Directory = "/data/app/example/lib/arm64";
+
+            var resolved = AndroidNativeLibraryPathResolver.TryGuessNativeLibraryDirectory(
+                BaseApk,
+                "arm64-v8a",
+                path => path == "/data/app/example/lib",
+                path => new[] { armDirectory, arm64Directory });
+
+            Assert.AreEqual(arm64Directory, resolved);
+        }
+
+        [Test]
+        public void LegacyNativeDirectoryGuessContainsFilesystemFailures()
+        {
+            string existsFailure = AndroidNativeLibraryPathResolver.TryGuessNativeLibraryDirectory(
+                BaseApk,
+                "arm64-v8a",
+                path => { throw new InvalidOperationException("exists failed"); },
+                path => new string[0]);
+            string enumerationFailure = AndroidNativeLibraryPathResolver.TryGuessNativeLibraryDirectory(
+                BaseApk,
+                "arm64-v8a",
+                path => true,
+                path => { throw new InvalidOperationException("enumeration failed"); });
+
+            Assert.IsNull(existsFailure);
+            Assert.IsNull(enumerationFailure);
+        }
+
+        [Test]
         public void AbsoluteLoadedLibraryPathIsAuthoritative()
         {
             var loaded = "/data/app/example/lib/arm64/" + Library;
@@ -278,6 +311,33 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.AreEqual("/data/app/example/lib/arm64", selected);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void DirectoryGuessRejectsMultipleExactArm64AliasesRegardlessOfOrder(bool reverseOrder)
+        {
+            var arm64 = "/data/app/example/lib/arm64";
+            var arm64V8a = "/data/app/example/lib/arm64-v8a";
+            string[] candidates = reverseOrder
+                ? new[] { arm64V8a, arm64 }
+                : new[] { arm64, arm64V8a };
+
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                candidates, "arm64-v8a");
+
+            Assert.IsNull(selected);
+        }
+
+        [Test]
+        public void DirectoryGuessDeduplicatesRepeatedExactCandidate()
+        {
+            var arm64 = "/data/app/example/lib/arm64";
+
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { arm64, arm64 }, "arm64-v8a");
+
+            Assert.AreEqual(arm64, selected);
+        }
+
         [Test]
         public void DirectoryGuessSelectsArmDirectoryForArmV7Process()
         {
@@ -307,18 +367,30 @@ namespace Backtrace.Unity.Tests.Runtime
         }
 
         [Test]
-        public void DirectoryGuessSingleCandidateRemainsACompatibilityFallback()
+        public void DirectoryGuessKnownAbiRejectsSingleMismatchedCandidate()
         {
             var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
                 new[] { "/data/app/example/lib/somedir" }, "arm64-v8a");
 
-            Assert.AreEqual("/data/app/example/lib/somedir", selected);
+            Assert.IsNull(selected);
+        }
 
-            // Even with an undetermined ABI, one unique directory is still usable.
-            Assert.AreEqual(
-                "/data/app/example/lib/somedir",
-                AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
-                    new[] { "/data/app/example/lib/somedir" }, null));
+        [Test]
+        public void DirectoryGuessUnknownAbiUsesSingleCandidateAsCompatibilityFallback()
+        {
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { "/data/app/example/lib/somedir" }, null);
+
+            Assert.AreEqual("/data/app/example/lib/somedir", selected);
+        }
+
+        [Test]
+        public void DirectoryGuessUnknownAbiRejectsAmbiguousCandidates()
+        {
+            var selected = AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(
+                new[] { "/data/app/example/lib/arm", "/data/app/example/lib/arm64" }, null);
+
+            Assert.IsNull(selected);
         }
 
         [Test]

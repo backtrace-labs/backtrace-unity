@@ -82,11 +82,50 @@ namespace Backtrace.Unity.Runtime.Native.Android
             return baseApk + ApkLibrarySeparator + entry;
         }
 
+        /// <summary>
+        /// Best-effort compatibility lookup for hosts where ApplicationInfo.nativeLibraryDir is unavailable.
+        /// Directory discovery is optional enrichment:
+        /// filesystem or path failures return null so a linker-reported path or APK metadata can still resolve.
+        /// </summary>
+        internal static string TryGuessNativeLibraryDirectory(
+            string applicationDataPath,
+            string processAbi,
+            Func<string, bool> directoryExists,
+            Func<string, string[]> getDirectories)
+        {
+            try
+            {
+                if (directoryExists == null || getDirectories == null)
+                {
+                    return null;
+                }
+
+                string applicationDirectory = Path.GetDirectoryName(applicationDataPath);
+                if (string.IsNullOrEmpty(applicationDirectory))
+                {
+                    return null;
+                }
+
+                string sourceDirectory = Path.Combine(applicationDirectory, "lib");
+                if (!directoryExists(sourceDirectory))
+                {
+                    return null;
+                }
+
+                return SelectNativeLibraryDirectory(getDirectories(sourceDirectory), processAbi);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         /// <summary> 
         /// Selects the native-library directory for the CURRENT PROCESS from extracted-library candidates (for example the directories under an APK-adjacent "lib" directory).
-        /// Enumeration order is never a selection policy: an exact ABI-mapped directory name wins
-        /// (arm64-v8a maps to "arm64" or "arm64-v8a", armeabi-v7a to "arm", "armeabi-v7a", or "armeabi", x86_64 and x86 exactly, x86 can never select x86_64);
-        /// without an exact match a single remaining candidate is a compatibility fallback, and anything ambiguous returns null so split/base-APK resolution decides instead.
+        /// Enumeration order is never a selection policy: when the process ABI is known, only an exact ABI-mapped directory name is accepted
+        /// (arm64-v8a maps to "arm64" or "arm64-v8a", armeabi-v7a to "arm", "armeabi-v7a", or "armeabi", x86_64 and x86 exactly, x86 can never select x86_64).
+        /// Multiple distinct exact matches are ambiguous and return null instead of selecting whichever directory was enumerated first.
+        /// A single remaining candidate is a compatibility fallback only when the process ABI is unknown; anything else returns null so split/base-APK resolution decides instead.
         /// </summary>
         internal static string SelectNativeLibraryDirectory(string[] candidateDirectories, string processAbi)
         {
@@ -98,6 +137,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (!string.IsNullOrEmpty(processAbi))
             {
                 string[] acceptedNames = GetAbiDirectoryNames(processAbi);
+                string exactMatch = null;
                 foreach (string candidate in candidateDirectories)
                 {
                     if (string.IsNullOrEmpty(candidate))
@@ -109,10 +149,19 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     {
                         if (acceptedNames[index].Equals(name, StringComparison.Ordinal))
                         {
-                            return candidate;
+                            if (exactMatch != null
+                                && !exactMatch.Equals(candidate, StringComparison.Ordinal))
+                            {
+                                return null;
+                            }
+
+                            exactMatch = candidate;
+                            break;
                         }
                     }
                 }
+
+                return exactMatch;
             }
 
             string single = null;

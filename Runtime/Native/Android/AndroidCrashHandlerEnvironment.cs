@@ -18,6 +18,48 @@ namespace Backtrace.Unity.Runtime.Native.Android
         internal const string CrashHandlerVariable = "BACKTRACE_UNITY_CRASH_HANDLER";
 
         /// <summary>
+        /// Builds optional native-library search hints without allowing path or JNI failures to block startup.
+        /// BACKTRACE_UNITY_CRASH_HANDLER carries the resolved handler path;
+        /// these entries only enrich the child process environment.
+        /// </summary>
+        internal static string[] BuildLibrarySearchPaths(
+            string nativeLibraryDir,
+            Func<string, string> getParentDirectory,
+            Func<string> getSystemLibraryPath)
+        {
+            var searchPaths = new List<string>();
+            if (!string.IsNullOrEmpty(nativeLibraryDir))
+            {
+                searchPaths.Add(nativeLibraryDir);
+                TryAddSearchPath(
+                    searchPaths,
+                    () => getParentDirectory == null ? null : getParentDirectory(nativeLibraryDir));
+            }
+
+            TryAddSearchPath(
+                searchPaths,
+                () => getSystemLibraryPath == null ? null : getSystemLibraryPath());
+            searchPaths.Add("/data/local");
+            return searchPaths.ToArray();
+        }
+
+        private static void TryAddSearchPath(List<string> searchPaths, Func<string> getPath)
+        {
+            try
+            {
+                string path = getPath();
+                if (!string.IsNullOrEmpty(path))
+                {
+                    searchPaths.Add(path);
+                }
+            }
+            catch (Exception)
+            {
+                // Optional enrichment only. The resolved handler path remains authoritative.
+            }
+        }
+
+        /// <summary>
         /// CLASSPATH must remain the base APK containing the Java crash-handler classes;
         /// the native handler path may point at an ABI split.
         /// </summary>
