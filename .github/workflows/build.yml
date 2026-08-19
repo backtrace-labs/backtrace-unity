@@ -76,7 +76,7 @@ jobs:
 
   test:
     needs: validate-macos-framework-layout
-    name: Run Build for ${{ matrix.unityVersion }} ${{ matrix.unityVersion }}
+    name: Run Build for ${{ matrix.targetPlatform }} on Unity ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -102,6 +102,8 @@ jobs:
           - projectPath: test-package
             unityVersion: 6000.3.7f1
             targetPlatform: Android
+            androidExportType: androidAppBundle
+            configureIl2Cpp: true
 
     steps:
       - name: Checkout Repo
@@ -113,6 +115,18 @@ jobs:
         run: |
           mkdir ${{ matrix.projectPath }}
           mv Editor Runtime Tests Android iOS Mac Windows package.json ${{ matrix.projectPath }}/
+
+      # Install only the SDK sources and plugins required by Android so the player build
+      # compiles the SDK with UNITY_ANDROID and packages its native libraries.
+      - name: Install SDK in Android project
+        if: matrix.targetPlatform == 'Android'
+        run: |
+          mkdir -p ${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
+          mv \
+            ${{ matrix.projectPath }}/Editor \
+            ${{ matrix.projectPath }}/Runtime \
+            ${{ matrix.projectPath }}/Android \
+            ${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity/
 
       # The synthetic project has no saved scene, and game-ci then builds the untitled scene.
       # Unity 2019.4 tolerates that but 2022.3+ fails with "Cannot build untitled scene", this gives the build a registered empty scene.
@@ -143,6 +157,28 @@ jobs:
             m_configObjects: {}
           EOF
 
+      # Exercise the Android bridge in the modern packaging configuration without
+      # requiring a release keystore or a device-side deployment.
+      - name: Configure Android IL2CPP App Bundle build
+        if: matrix.configureIl2Cpp == true
+        run: |
+          mkdir -p ${{ matrix.projectPath }}/Assets/Editor
+          cat > ${{ matrix.projectPath }}/Assets/Editor/BacktraceCiAndroidSettings.cs <<'EOF'
+          using UnityEditor;
+
+          [InitializeOnLoad]
+          internal static class BacktraceCiAndroidSettings
+          {
+              static BacktraceCiAndroidSettings()
+              {
+                  PlayerSettings.SetScriptingBackend(
+                      BuildTargetGroup.Android,
+                      ScriptingImplementation.IL2CPP);
+                  PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+              }
+          }
+          EOF
+
       - if: matrix.targetPlatform == 'Android'
         uses: jlumbroso/free-disk-space@v1.3.1
 
@@ -156,5 +192,19 @@ jobs:
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: ${{ matrix.projectPath }}/
+          androidExportType: ${{ matrix.androidExportType || 'androidPackage' }}
           allowDirtyBuild: true
-          
+
+      - name: Validate Android IL2CPP App Bundle contents
+        if: matrix.configureIl2Cpp == true
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -d '' app_bundles < <(find build -type f -name '*.aab' -print0)
+          test "${#app_bundles[@]}" -eq 1
+
+          entries="$RUNNER_TEMP/backtrace-aab-entries.txt"
+          unzip -Z1 "${app_bundles[0]}" > "$entries"
+          grep -Eq '(^|/)lib/arm64-v8a/libil2cpp\.so$' "$entries"
+          grep -Eq '(^|/)lib/arm64-v8a/libbacktrace-native\.so$' "$entries"
