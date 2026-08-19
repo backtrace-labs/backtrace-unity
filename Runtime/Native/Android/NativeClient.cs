@@ -22,6 +22,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
     internal sealed class NativeClient : NativeClientBase, INativeClient
     {
         private const string CallbackMethodName = "OnAnrDetected";
+        private const string NativeAttributeFailureCode = "BT_UNITY_ANDROID_NATIVE_ATTRIBUTE_FAILURE";
 
         // The P/Invoke declarations live in AndroidNativeInterop, which also compiles in the Editor and the EditMode signature tests can pin the corrected return types.
 
@@ -688,7 +689,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
             // avoid null reference in crashpad source code
-            SetNativeAttribute(key, value ?? string.Empty);
+            NativeAttributeLifecycle.TrySetAttribute(
+                () => SetNativeAttribute(key, value ?? string.Empty),
+                NativeAttributeFailureCode,
+                warning => Debug.LogWarning(warning));
         }
 
         /// <summary>
