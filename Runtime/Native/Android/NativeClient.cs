@@ -158,14 +158,19 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// <returns>Guessed path to lib directory</returns>
         private string GuessNativeDirectoryPath(string processAbi)
         {
-            var sourceDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
-            if (!Directory.Exists(sourceDirectory))
+            try
             {
+                return AndroidNativeLibraryPathResolver.TryGuessNativeLibraryDirectory(
+                    Application.dataPath,
+                    processAbi,
+                    Directory.Exists,
+                    Directory.GetDirectories) ?? string.Empty;
+            }
+            catch (Exception)
+            {
+                // This legacy directory hint is optional. It must never prevent the authoritative linker path or installed-package metadata from resolving.
                 return string.Empty;
             }
-            var libDirectories = Directory.GetDirectories(sourceDirectory);
-            return AndroidNativeLibraryPathResolver.SelectNativeLibraryDirectory(libDirectories, processAbi)
-                ?? string.Empty;
         }
 
         /// <summary>
@@ -258,14 +263,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
             return exception == null ? "unknown" : exception.GetType().FullName;
         }
 
-        private static void DeleteLocalReference(IntPtr reference)
-        {
-            if (reference != IntPtr.Zero)
-            {
-                AndroidJNI.DeleteLocalRef(reference);
-            }
-        }
-
         /// <summary>
         /// Sets one native crash attribute with deterministic JNI local-reference cleanup.
         /// native attribute write goes through this helper:
@@ -283,8 +280,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             finally
             {
-                DeleteLocalReference(valueReference);
-                DeleteLocalReference(keyReference);
+                AndroidNativeInitialization.DeleteLocalReferences(
+                    AndroidJNI.DeleteLocalRef,
+                    valueReference,
+                    keyReference);
             }
         }
 
@@ -302,7 +301,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             finally
             {
-                DeleteLocalReference(messageReference);
+                AndroidNativeInitialization.DeleteLocalReferences(
+                    AndroidJNI.DeleteLocalRef,
+                    messageReference);
             }
         }
 
@@ -313,7 +314,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
             string[] attributeKeys,
             string[] attributeValues,
             string[] attachments,
-            string[] environmentVariables)
+            string[] environmentVariables,
+            Action markNativeBackendActive)
         {
             IntPtr urlRef = IntPtr.Zero;
             IntPtr databaseRef = IntPtr.Zero;
@@ -331,7 +333,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 valuesRef = AndroidJNIHelper.ConvertToJNIArray(attributeValues ?? new string[0]);
                 attachmentsRef = AndroidJNIHelper.ConvertToJNIArray(attachments ?? new string[0]);
                 environmentRef = AndroidJNIHelper.ConvertToJNIArray(environmentVariables ?? new string[0]);
-                return AndroidNativeInterop.InitializeJavaCrashHandler(
+                bool initialized = AndroidNativeInterop.InitializeJavaCrashHandler(
                     urlRef,
                     databaseRef,
                     classRef,
@@ -339,16 +341,25 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     valuesRef,
                     attachmentsRef,
                     environmentRef);
+                if (initialized)
+                {
+                    // Record activation before local-reference cleanup.
+                    // If that cleanup throws, the caller must still disable the already-active backend.
+                    markNativeBackendActive();
+                }
+                return initialized;
             }
             finally
             {
-                DeleteLocalReference(environmentRef);
-                DeleteLocalReference(attachmentsRef);
-                DeleteLocalReference(valuesRef);
-                DeleteLocalReference(keysRef);
-                DeleteLocalReference(classRef);
-                DeleteLocalReference(databaseRef);
-                DeleteLocalReference(urlRef);
+                AndroidNativeInitialization.DeleteLocalReferences(
+                    AndroidJNI.DeleteLocalRef,
+                    environmentRef,
+                    attachmentsRef,
+                    valuesRef,
+                    keysRef,
+                    classRef,
+                    databaseRef,
+                    urlRef);
             }
         }
 
@@ -466,33 +477,36 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 handlerPath,
                 BuildLibrarySearchPaths(applicationInfo.NativeLibraryDir));
 
-            var initialized = InvokeInitialize(
-                minidumpUrl,
-                databasePath,
-                _crashHandlerPath,
-                new string[0],
-                new string[0],
-                attachments == null ? new string[0] : attachments.ToArray(),
-                environmentVariables);
+            var initialized = AndroidNativeInitialization.Execute(
+                markNativeBackendActive => InvokeInitialize(
+                    minidumpUrl,
+                    databasePath,
+                    _crashHandlerPath,
+                    new string[0],
+                    new string[0],
+                    attachments == null ? new string[0] : attachments.ToArray(),
+                    environmentVariables,
+                    markNativeBackendActive),
+                () =>
+                {
+                    foreach (var attribute in backtraceAttributes)
+                    {
+                        SetNativeAttribute(attribute.Key, attribute.Value);
+                    }
+
+                    // Add exception type to crashes handled by crashpad.
+                    // ANR and OOM reporting override this value temporarily at runtime.
+                    SetNativeAttribute(ErrorTypeAttribute, CrashType);
+                },
+                AndroidNativeInterop.Disable,
+                rollbackFailure => Debug.LogWarning(
+                    "BT_UNITY_ANDROID_NATIVE_ROLLBACK_FAILURE: Native initialization rollback failed. "
+                        + "Failure type: " + FailureType(rollbackFailure)));
             if (!initialized)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Java crash handler");
                 return false;
             }
-
-            foreach (var attribute in backtraceAttributes)
-            {
-                SetNativeAttribute(attribute.Key, attribute.Value);
-            }
-
-            // add exception type to crashes handled by crashpad - all exception handled by crashpad
-            // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
-            // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
-
-            // warning
-            // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from overriding them on game runtime.
-            // ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type attribute via attributes parameters.
-            SetNativeAttribute(ErrorTypeAttribute, CrashType);
             return true;
         }
 
@@ -510,19 +524,14 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
         private List<string> BuildLibrarySearchPaths(string nativeLibraryDir)
         {
-            var searchPaths = new List<string>();
-            if (!string.IsNullOrEmpty(nativeLibraryDir))
-            {
-                searchPaths.Add(nativeLibraryDir);
-                var parent = Directory.GetParent(nativeLibraryDir);
-                if (parent != null)
+            return AndroidCrashHandlerEnvironment.BuildLibrarySearchPaths(
+                nativeLibraryDir,
+                path =>
                 {
-                    searchPaths.Add(parent.ToString());
-                }
-            }
-            searchPaths.Add(GetLibrarySystemPath());
-            searchPaths.Add("/data/local");
-            return searchPaths;
+                    var parent = Directory.GetParent(path);
+                    return parent == null ? null : parent.ToString();
+                },
+                GetLibrarySystemPath).ToList();
         }
 
         private string GetLibrarySystemPath() {
@@ -609,91 +618,59 @@ namespace Backtrace.Unity.Runtime.Native.Android
             bool reported = false;
             AnrThread = new Thread(() =>
             {
-                // Attach the Unity-created watchdog thread to the JVM exactly once and detach it when the loop ends;
-                // attaching per report leaked the attachment for the thread's lifetime.
-                // The Unity main thread is never detached here, this is the watchdog thread only.
-                bool attached = AndroidJNI.AttachCurrentThread() == 0;
-                try
-                {
-                    float lastUpdatedCache = 0;
-                    while (AnrThread.IsAlive && StopAnr == false)
+                AndroidAnrThreadLifecycle.Run(
+                    AndroidJNI.AttachCurrentThread,
+                    tryAttach =>
                     {
-                        if (!PreventAnr)
+                        // Attach the Unity-created watchdog thread to the JVM exactly once and detach it when the loop ends;
+                        // attaching per report leaked the attachment for the thread's lifetime.
+                        // The Unity main thread is never detached here, this is the watchdog thread only.
+                        float lastUpdatedCache = 0;
+                        while (AnrThread.IsAlive && StopAnr == false)
                         {
-                            if (lastUpdatedCache == 0)
+                            if (!PreventAnr)
                             {
-                                lastUpdatedCache = LastUpdateTime;
-                            }
-                            else if (lastUpdatedCache == LastUpdateTime)
-                            {
-                                if (!reported)
+                                if (lastUpdatedCache == 0)
                                 {
-                                    OnAnrDetection();
-                                    if (!attached)
+                                    lastUpdatedCache = LastUpdateTime;
+                                }
+                                else if (lastUpdatedCache == LastUpdateTime)
+                                {
+                                    if (!reported)
                                     {
+                                        OnAnrDetection();
                                         // A transient early attach failure (JVM resource pressure) must not permanently disable hang dumps;
                                         // reported stays false so the next iteration retries this hang.
-                                        attached = AndroidJNI.AttachCurrentThread() == 0;
-                                    }
-                                    if (attached)
-                                    {
-                                        reported = true;
-                                        // The temporary Hang classification must be restored to Crash even when the dump fails,
-                                        // or a later native crash would be misclassified as a hang.
-                                        bool hangTypeApplied = false;
-                                        try
+                                        if (tryAttach())
                                         {
-                                            SetNativeAttribute(ErrorTypeAttribute, HangType);
-                                            hangTypeApplied = true;
-                                            SendNativeDump(AnrMessage, true);
-                                        }
-                                        catch (Exception exception)
-                                        {
-                                            Debug.LogWarning(
-                                                "BT_UNITY_ANDROID_NATIVE_DUMP_FAILURE: Failure type: "
-                                                    + FailureType(exception));
-                                        }
-                                        finally
-                                        {
-                                            if (hangTypeApplied)
-                                            {
-                                                try
-                                                {
-                                                    SetNativeAttribute(ErrorTypeAttribute, CrashType);
-                                                }
-                                                catch (Exception exception)
-                                                {
-                                                    Debug.LogWarning(
-                                                        "BT_UNITY_ANDROID_NATIVE_ATTRIBUTE_FAILURE: Failure type: "
-                                                            + FailureType(exception));
-                                                }
-                                            }
+                                            reported = true;
+                                            // The temporary Hang classification must be restored to Crash even when the dump fails,
+                                            // or a later native crash would be misclassified as a hang.
+                                            AndroidAnrThreadLifecycle.CaptureNativeDump(
+                                                () => SetNativeAttribute(ErrorTypeAttribute, HangType),
+                                                () => SendNativeDump(AnrMessage, true),
+                                                () => SetNativeAttribute(ErrorTypeAttribute, CrashType),
+                                                warning => Debug.LogWarning(warning));
                                         }
                                     }
                                 }
-                            }
-                            else
-                            {
-                                reported = false;
-                            }
+                                else
+                                {
+                                    reported = false;
+                                }
 
-                            lastUpdatedCache = LastUpdateTime;
+                                lastUpdatedCache = LastUpdateTime;
+                            }
+                            else if (lastUpdatedCache != 0)
+                            {
+                                // make sure when ANR happened just after going to foreground we won't false positive ANR report
+                                lastUpdatedCache = 0;
+                            }
+                            Thread.Sleep(AnrWatchdogTimeout);
                         }
-                        else if (lastUpdatedCache != 0)
-                        {
-                            // make sure when ANR happened just after going to foreground we won't false positive ANR report
-                            lastUpdatedCache = 0;
-                        }
-                        Thread.Sleep(AnrWatchdogTimeout);
-                    }
-                }
-                finally
-                {
-                    if (attached)
-                    {
-                        AndroidJNI.DetachCurrentThread();
-                    }
-                }
+                    },
+                    () => { AndroidJNI.DetachCurrentThread(); },
+                    warning => Debug.LogWarning(warning));
             });
             AnrThread.IsBackground = true;
             AnrThread.Start();
@@ -730,36 +707,26 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// </summary>
         public override void Disable()
         {
-            // Disabling is contained like setup: a native failure must not leave the component half-disabled or crash the caller, and it logs the failure class only.
-            try
-            {
-                if (CaptureNativeCrashes)
-                {
-                    AndroidNativeInterop.Disable();
-                }
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning(
-                    "BT_UNITY_ANDROID_NATIVE_DISABLE_FAILURE: Failure type: " + FailureType(exception));
-            }
-            finally
-            {
-                CaptureNativeCrashes = false;
-            }
-            if (_anrWatcher != null)
-            {
-                _anrWatcher.Call("stopMonitoring");
-                _anrWatcher.Dispose();
-                _anrWatcher = null;
-            }
-            if (_unhandledExceptionWatcher != null)
-            {
-                _unhandledExceptionWatcher.Call("stopMonitoring");
-                _unhandledExceptionWatcher.Dispose();
-                _unhandledExceptionWatcher = null;
-            }
-            base.Disable();
+            bool disableNativeIntegration = CaptureNativeCrashes;
+            CaptureNativeCrashes = false;
+
+            // Clear the shared references before any JNI cleanup.
+            // Even when a stop or dispose call fails, later Disable calls cannot reuse a partially disposed watcher.
+            var anrWatcher = _anrWatcher;
+            _anrWatcher = null;
+            var unhandledExceptionWatcher = _unhandledExceptionWatcher;
+            _unhandledExceptionWatcher = null;
+
+            AndroidNativeDisableLifecycle.Run(
+                () => base.Disable(),
+                disableNativeIntegration ? new Action(AndroidNativeInterop.Disable) : null,
+                anrWatcher == null ? null : new Action(() => anrWatcher.Call("stopMonitoring")),
+                anrWatcher == null ? null : new Action(anrWatcher.Dispose),
+                unhandledExceptionWatcher == null
+                    ? null
+                    : new Action(() => unhandledExceptionWatcher.Call("stopMonitoring")),
+                unhandledExceptionWatcher == null ? null : new Action(unhandledExceptionWatcher.Dispose),
+                warning => Debug.LogWarning(warning));
         }
     }
 }
