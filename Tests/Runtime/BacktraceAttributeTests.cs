@@ -2,6 +2,7 @@
 using Backtrace.Unity.Model;
 using Backtrace.Unity.Model.Attributes;
 using Backtrace.Unity.Model.JsonData;
+using Backtrace.Unity.Runtime.Native;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -16,6 +17,41 @@ namespace Backtrace.Unity.Tests.Runtime
     public class BacktraceAttributeTests : BacktraceBaseTest
     {
         private const int CLIENT_RATE_LIMIT = 3;
+
+        private sealed class FirstAttributeThrowingNativeClient : INativeClient
+        {
+            internal int SetAttributeCalls { get; private set; }
+
+            public void Disable()
+            { }
+
+            public void GetAttributes(IDictionary<string, string> attributes)
+            { }
+
+            public void HandleAnr()
+            { }
+
+            public bool OnOOM()
+            {
+                return false;
+            }
+
+            public void PauseAnrThread(bool state)
+            { }
+
+            public void SetAttribute(string key, string value)
+            {
+                SetAttributeCalls++;
+                if (SetAttributeCalls == 1)
+                {
+                    throw new InvalidOperationException(
+                        "native attribute failed for secret-key=secret-value at /private/data/backtrace https://submit.example.test/token");
+                }
+            }
+
+            public void Update(float time)
+            { }
+        }
 
         [SetUp]
         public void Setup()
@@ -127,6 +163,36 @@ namespace Backtrace.Unity.Tests.Runtime
             Assert.IsNotNull(data);
             Assert.AreEqual(data.Attributes.Attributes[key], value);
             yield return null;
+        }
+
+        [Test]
+        public void SetAttributes_NativeClientFailure_DoesNotInterruptManagedAttributes()
+        {
+            var nativeClient = new FirstAttributeThrowingNativeClient();
+            BacktraceClient.NativeClient = nativeClient;
+            var attributes = new Dictionary<string, string>
+            {
+                { "first-managed-attribute", "first-value" },
+                { "second-managed-attribute", "second-value" }
+            };
+
+            Debug.unityLogger.logEnabled = true;
+            try
+            {
+                LogAssert.Expect(
+                    LogType.Warning,
+                    "BT_UNITY_NATIVE_ATTRIBUTE_FAILURE: Failure type: System.InvalidOperationException");
+                Assert.DoesNotThrow(() => BacktraceClient.SetAttributes(attributes));
+            }
+            finally
+            {
+                Debug.unityLogger.logEnabled = false;
+            }
+
+            Assert.AreEqual(2, nativeClient.SetAttributeCalls);
+            var managedAttributes = BacktraceClient.AttributeProvider.GenerateAttributes(false);
+            Assert.AreEqual("first-value", managedAttributes["first-managed-attribute"]);
+            Assert.AreEqual("second-value", managedAttributes["second-managed-attribute"]);
         }
 
 

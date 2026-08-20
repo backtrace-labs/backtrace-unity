@@ -1,6 +1,8 @@
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_EDITOR
 using System;
+#if UNITY_ANDROID
 using System.Runtime.InteropServices;
+#endif
 
 namespace Backtrace.Unity.Runtime.Native.Android
 {
@@ -13,6 +15,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
     /// </summary>
     internal static class AndroidLoadedLibraryPath
     {
+#if UNITY_ANDROID
         // RTLD_LAZY has the same value on 32- and 64-bit bionic.
         // RTLD_NOW (2 on LP64) must NOT be used here: on LP32 bionic the value 2 means RTLD_GLOBAL,
         // which would irreversibly promote every exported symbol of the already-loaded library into the global group and let later dlopen'ed libraries bind against them.
@@ -50,44 +53,51 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// </summary>
         internal static string TryGet()
         {
+            return TryGet(GetLoadedLibraryPath);
+        }
+
+        private static string GetLoadedLibraryPath()
+        {
+            lock (HandleLock)
+            {
+                if (_libraryHandle == IntPtr.Zero)
+                {
+                    _libraryHandle = DlOpen(NativeLibraryName, RtldLazy);
+                }
+                if (_libraryHandle == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                IntPtr anchor = DlSym(_libraryHandle, AnchorSymbol);
+                if (anchor == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                DlInfo information;
+                if (DlAddr(anchor, out information) == 0 || information.FileName == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                return Marshal.PtrToStringAnsi(information.FileName);
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Returns a non-empty path supplied by the provider, or null when the provider cannot produce one.
+        /// The provider boundary is deliberately broad because linker metadata is optional and fallback resolution must continue after any managed failure.
+        /// </summary>
+        internal static string TryGet(Func<string> pathProvider)
+        {
             try
             {
-                lock (HandleLock)
-                {
-                    if (_libraryHandle == IntPtr.Zero)
-                    {
-                        _libraryHandle = DlOpen(NativeLibraryName, RtldLazy);
-                    }
-                    if (_libraryHandle == IntPtr.Zero)
-                    {
-                        return null;
-                    }
-
-                    IntPtr anchor = DlSym(_libraryHandle, AnchorSymbol);
-                    if (anchor == IntPtr.Zero)
-                    {
-                        return null;
-                    }
-
-                    DlInfo information;
-                    if (DlAddr(anchor, out information) == 0 || information.FileName == IntPtr.Zero)
-                    {
-                        return null;
-                    }
-
-                    string path = Marshal.PtrToStringAnsi(information.FileName);
-                    return string.IsNullOrEmpty(path) ? null : path;
-                }
+                string path = pathProvider();
+                return string.IsNullOrEmpty(path) ? null : path;
             }
-            catch (DllNotFoundException)
-            {
-                return null;
-            }
-            catch (EntryPointNotFoundException)
-            {
-                return null;
-            }
-            catch (SEHException)
+            catch (Exception)
             {
                 return null;
             }

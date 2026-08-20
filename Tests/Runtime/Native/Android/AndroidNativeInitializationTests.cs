@@ -9,20 +9,63 @@ namespace Backtrace.Unity.Tests.Runtime
     public class AndroidNativeInitializationTests
     {
         [Test]
-        public void RejectedInitializationDoesNotCompleteOrRollback()
+        public void RejectedBeforeNativeBridgeDoesNotRollback()
+        {
+            int rollbackCount = 0;
+
+            bool initialized = AndroidNativeInitialization.Execute(
+                markCompleted => false,
+                () => Assert.Fail("Completion must not run"),
+                () => rollbackCount++,
+                null);
+
+            Assert.IsFalse(initialized);
+            Assert.AreEqual(0, rollbackCount);
+        }
+
+        [Test]
+        public void NativeBridgeFalseResultRollsBackPartialState()
         {
             int completionCount = 0;
             int rollbackCount = 0;
 
             bool initialized = AndroidNativeInitialization.Execute(
-                markActive => false,
+                markCompleted =>
+                {
+                    markCompleted();
+                    return false;
+                },
                 () => completionCount++,
                 () => rollbackCount++,
                 null);
 
             Assert.IsFalse(initialized);
             Assert.AreEqual(0, completionCount);
-            Assert.AreEqual(0, rollbackCount);
+            Assert.AreEqual(1, rollbackCount);
+        }
+
+        [Test]
+        public void NativeBridgeFalseResultRollbackFailureIsContained()
+        {
+            var rollbackFailure = new InvalidOperationException("sensitive rollback detail");
+            Exception reported = null;
+
+            Assert.DoesNotThrow(() =>
+            {
+                bool initialized = AndroidNativeInitialization.Execute(
+                    markCompleted =>
+                    {
+                        markCompleted();
+                        return false;
+                    },
+                    () => Assert.Fail("Completion must not run"),
+                    () => { throw rollbackFailure; },
+                    failure => reported = failure);
+
+                Assert.IsFalse(initialized);
+            });
+
+            Assert.AreSame(rollbackFailure, reported);
         }
 
         [Test]

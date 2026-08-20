@@ -208,3 +208,40 @@ jobs:
           unzip -Z1 "${app_bundles[0]}" > "$entries"
           grep -Eq '(^|/)lib/arm64-v8a/libil2cpp\.so$' "$entries"
           grep -Eq '(^|/)lib/arm64-v8a/libbacktrace-native\.so$' "$entries"
+
+          dex_entries=()
+          while IFS= read -r entry; do
+            if [[ "$entry" =~ ^base/dex/classes([0-9]+)?\.dex$ ]]; then
+              dex_entries+=("$entry")
+            fi
+          done < "$entries"
+
+          if (( ${#dex_entries[@]} == 0 )); then
+            echo "Error: App Bundle contains no base/dex/classes*.dex entries." >&2
+            exit 1
+          fi
+
+          dex_dir="$RUNNER_TEMP/backtrace-aab-dex"
+          mkdir -p "$dex_dir"
+
+          handler_class='backtraceio/library/nativeCalls/BacktraceCrashHandler'
+          handler_descriptor="L${handler_class};"
+          handler_found=false
+
+          for dex_index in "${!dex_entries[@]}"; do
+            dex_entry="${dex_entries[$dex_index]}"
+            dex_file="$dex_dir/classes-$dex_index.dex"
+            unzip -p "${app_bundles[0]}" "$dex_entry" > "$dex_file"
+
+            if grep -aFq -- "$handler_descriptor" "$dex_file"; then
+              handler_found=true
+              break
+            fi
+          done
+
+          if [[ "$handler_found" != true ]]; then
+            echo "Error: App Bundle DEX files do not contain ${handler_class}." >&2
+            printf 'Searched DEX entries:\n' >&2
+            printf '  %s\n' "${dex_entries[@]}" >&2
+            exit 1
+          fi

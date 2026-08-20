@@ -4,9 +4,9 @@ using System;
 namespace Backtrace.Unity.Runtime.Native.Android
 {
     /// <summary>
-    /// Coordinates native-backend activation and the managed setup that follows it.
-    /// The activation callback is invoked before JNI cleanup,
-    /// a cleanup failure after a successful native initialization still rolls the backend back.
+    /// Coordinates native-bridge completion and the managed setup that follows it.
+    /// The completion callback is invoked before JNI cleanup so a false result or any later
+    /// cleanup or setup failure can roll back possible native side effects.
     /// </summary>
     internal static class AndroidNativeInitialization
     {
@@ -29,45 +29,59 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 throw new ArgumentNullException("rollback");
             }
 
-            bool backendActive = false;
+            bool nativeBridgeCompleted = false;
             try
             {
-                bool initialized = initialize(() => backendActive = true);
+                bool initialized = initialize(() => nativeBridgeCompleted = true);
                 if (!initialized)
                 {
+                    if (nativeBridgeCompleted)
+                    {
+                        TryRollback(rollback, reportRollbackFailure);
+                    }
+
                     return false;
                 }
 
-                // Keep the transaction safe even if an initializer forgets to invoke the early activation callback after returning true.
-                backendActive = true;
+                // Keep the transaction safe even if an initializer returns true without invoking the native-bridge completion callback.
+                nativeBridgeCompleted = true;
                 completeSetup();
                 return true;
             }
             catch
             {
-                if (backendActive)
+                if (nativeBridgeCompleted)
                 {
-                    try
-                    {
-                        rollback();
-                    }
-                    catch (Exception rollbackFailure)
-                    {
-                        // Rollback is best-effort. Preserve the setup exception, which is the actionable failure, while still allowing a contained diagnostic.
-                        if (reportRollbackFailure != null)
-                        {
-                            try
-                            {
-                                reportRollbackFailure(rollbackFailure);
-                            }
-                            catch (Exception)
-                            {
-                                // Diagnostics must never replace the setup failure.
-                            }
-                        }
-                    }
+                    TryRollback(rollback, reportRollbackFailure);
                 }
                 throw;
+            }
+        }
+
+        private static void TryRollback(
+            Action rollback,
+            Action<Exception> reportRollbackFailure)
+        {
+            try
+            {
+                rollback();
+            }
+            catch (Exception rollbackFailure)
+            {
+                // Rollback is best-effort. Preserve the initialization outcome while still allowing a contained diagnostic.
+                if (reportRollbackFailure == null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    reportRollbackFailure(rollbackFailure);
+                }
+                catch (Exception)
+                {
+                    // Diagnostics must never replace or escape the original initialization outcome.
+                }
             }
         }
 
