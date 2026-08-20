@@ -1,4 +1,4 @@
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_EDITOR
 using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
@@ -31,6 +31,8 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// grabbed from android specific directories
         /// </summary>
         private readonly Dictionary<string, string> _attributeMapping = new Dictionary<string, string>();
+
+        private readonly Action<string, string> _nativeAttributeWriter;
 
         private void SetDefaultAttributeMaps()
         {
@@ -113,6 +115,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public string GameObjectName { get; internal set; }
         public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments, string gameObjectName) : base(configuration, breadcrumbs)
         {
+            _nativeAttributeWriter = SetNativeAttribute;
             GameObjectName = gameObjectName;
             SetDefaultAttributeMaps();
             if (!_enabled)
@@ -130,6 +133,23 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 HandleUnhandledExceptions();
             }
+        }
+
+        /// <summary>
+        /// Creates an enabled client around an instance-scoped attribute writer.
+        /// This keeps Editor tests on the concrete OOM path without invoking JNI.
+        /// </summary>
+        internal NativeClient(
+            BacktraceConfiguration configuration,
+            Action<string, string> nativeAttributeWriter) : base(configuration, null)
+        {
+            if (nativeAttributeWriter == null)
+            {
+                throw new ArgumentNullException("nativeAttributeWriter");
+            }
+
+            _nativeAttributeWriter = nativeAttributeWriter;
+            CaptureNativeCrashes = true;
         }
 
         /// <summary>
@@ -316,7 +336,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             string[] attributeValues,
             string[] attachments,
             string[] environmentVariables,
-            Action markNativeBackendActive)
+            Action markNativeBridgeCallCompleted)
         {
             IntPtr urlRef = IntPtr.Zero;
             IntPtr databaseRef = IntPtr.Zero;
@@ -342,12 +362,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     valuesRef,
                     attachmentsRef,
                     environmentRef);
-                if (initialized)
-                {
-                    // Record activation before local-reference cleanup.
-                    // If that cleanup throws, the caller must still disable the already-active backend.
-                    markNativeBackendActive();
-                }
+                // Record native bridge completion before local-reference cleanup.
+                // Even a false result can leave native state that the transaction must roll back.
+                markNativeBridgeCallCompleted();
                 return initialized;
             }
             finally
@@ -440,7 +457,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
             // The authoritative linker answer is queried FIRST:
             // it must remain usable even when process-ABI detection or application metadata is unavailable,
             // and both of those lookups are fully fail-safe (they return null/empty instead of throwing).
+#if UNITY_ANDROID
             var loadedLibraryPath = AndroidLoadedLibraryPath.TryGet();
+#else
+            string loadedLibraryPath = null;
+#endif
 
             // The ABI of THIS PROCESS (not the device-preferred ABI: a 32-bit process on a 64-bit device differs).
             // It is required only for the x86 policy and the split/base-APK path fallback,
@@ -454,7 +475,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return false;
             }
 
+#if UNITY_ANDROID
             var applicationInfo = AndroidApplicationInfoSnapshot.Capture();
+#else
+            var applicationInfo = new AndroidApplicationInfoSnapshot();
+#endif
             if (string.IsNullOrEmpty(applicationInfo.NativeLibraryDir))
             {
                 // Legacy discovery for hosts without a Unity activity.
@@ -479,7 +504,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 BuildLibrarySearchPaths(applicationInfo.NativeLibraryDir));
 
             var initialized = AndroidNativeInitialization.Execute(
-                markNativeBackendActive => InvokeInitialize(
+                markNativeBridgeCallCompleted => InvokeInitialize(
                     minidumpUrl,
                     databasePath,
                     _crashHandlerPath,
@@ -487,7 +512,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
                     new string[0],
                     attachments == null ? new string[0] : attachments.ToArray(),
                     environmentVariables,
-                    markNativeBackendActive),
+                    markNativeBridgeCallCompleted),
                 () =>
                 {
                     foreach (var attribute in backtraceAttributes)
@@ -513,6 +538,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
 
         private static string TryGetProcessAbi()
         {
+#if UNITY_ANDROID
             try
             {
                 return AndroidProcessAbi.Capture();
@@ -521,6 +547,9 @@ namespace Backtrace.Unity.Runtime.Native.Android
             {
                 return null;
             }
+#else
+            return null;
+#endif
         }
 
         private List<string> BuildLibrarySearchPaths(string nativeLibraryDir)
@@ -690,7 +719,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             // avoid null reference in crashpad source code
             NativeAttributeLifecycle.TrySetAttribute(
-                () => SetNativeAttribute(key, value ?? string.Empty),
+                () => _nativeAttributeWriter(key, value ?? string.Empty),
                 NativeAttributeFailureCode,
                 warning => Debug.LogWarning(warning));
         }
