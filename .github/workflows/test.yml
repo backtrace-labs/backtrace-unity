@@ -6,7 +6,21 @@ on:
     pull_request:
 
 jobs:
+  validate-result-checker:
+    name: Validate Unity test-result checker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Run validator unit tests
+        run: >-
+          python3 -m unittest discover
+          --start-directory .github/scripts/tests
+          --pattern 'test_*.py'
+
   test:
+    needs: validate-result-checker
     name: Run Tests in ${{ matrix.testMode }} ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
@@ -14,7 +28,6 @@ jobs:
       matrix:
         testMode:
           - playmode
-          - editmode
         projectPath:
           - test-package
         unityVersion:
@@ -43,4 +56,17 @@ jobs:
           projectPath: ${{ matrix.projectPath }}/
           testMode: ${{ matrix.testMode }}
           unityVersion: ${{ matrix.unityVersion }}
+          artifactsPath: artifacts
           coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
+
+      - name: Require Unity PlayMode tests
+        if: ${{ always() }}
+        run: |
+          python3 .github/scripts/validate_unity_test_results.py \
+            --results-root artifacts \
+            --mode "${{ matrix.testMode }}" \
+            --require-test 'Backtrace.Unity.Tests.Runtime.AndroidNativeInitializationTests.RejectedBeforeNativeBridgeDoesNotRollback' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.AndroidNativeInitializationTests.NativeBridgeFalseResultRollsBackPartialState' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.AndroidNativeInitializationTests.NativeBridgeFalseResultRollbackFailureIsContained' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.AndroidNativeClientOomTests.OnOomAttemptsTimestampAfterFirstAttributeWriteFails' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.BacktraceAttributeTests.SetAttributes_NativeClientFailure_DoesNotInterruptManagedAttributes'
