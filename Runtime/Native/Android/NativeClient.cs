@@ -1,4 +1,4 @@
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_EDITOR
 using Backtrace.Unity.Common;
 using Backtrace.Unity.Extensions;
 using Backtrace.Unity.Model;
@@ -22,24 +22,17 @@ namespace Backtrace.Unity.Runtime.Native.Android
     internal sealed class NativeClient : NativeClientBase, INativeClient
     {
         private const string CallbackMethodName = "OnAnrDetected";
+        private const string NativeAttributeFailureCode = "BT_UNITY_ANDROID_NATIVE_ATTRIBUTE_FAILURE";
 
-        [DllImport("backtrace-native")]
-        private static extern bool InitializeJavaCrashHandler(IntPtr submissionUrl, IntPtr databasePath, IntPtr classPath, IntPtr keys, IntPtr values, IntPtr attachments, IntPtr environmentVariables);
-
-        [DllImport("backtrace-native")]
-        private static extern bool AddAttribute(IntPtr key, IntPtr value);
-
-        [DllImport("backtrace-native", EntryPoint = "DumpWithoutCrash")]
-        private static extern bool NativeReport(IntPtr message, bool setMainThreadAsFaultingThread);
-
-        [DllImport("backtrace-native", EntryPoint = "Disable")]
-        private static extern bool DisableNativeIntegration();
+        // The P/Invoke declarations live in AndroidNativeInterop, which also compiles in the Editor and the EditMode signature tests can pin the corrected return types.
 
         /// <summary>
         /// Attribute maps - list of attribute maps that allows Backtrace-Unity to rename attributes 
         /// grabbed from android specific directories
         /// </summary>
         private readonly Dictionary<string, string> _attributeMapping = new Dictionary<string, string>();
+
+        private readonly Action<string, string> _nativeAttributeWriter;
 
         private void SetDefaultAttributeMaps()
         {
@@ -100,11 +93,6 @@ namespace Backtrace.Unity.Runtime.Native.Android
         private readonly string _crashHandlerPath = string.Format("{0}.library.nativeCalls.BacktraceCrashHandler", _baseNamespace);
 
         /// <summary>
-        /// Backtrace-Android native library name
-        /// </summary>
-        private readonly string _nativeLibraryName = "libbacktrace-native.so";
-
-        /// <summary>
         /// Determine if android integration should be enabled
         /// </summary>
         private bool _enabled =
@@ -127,6 +115,7 @@ namespace Backtrace.Unity.Runtime.Native.Android
         public string GameObjectName { get; internal set; }
         public NativeClient(BacktraceConfiguration configuration, BacktraceBreadcrumbs breadcrumbs, IDictionary<string, string> clientAttributes, IEnumerable<string> attachments, string gameObjectName) : base(configuration, breadcrumbs)
         {
+            _nativeAttributeWriter = SetNativeAttribute;
             GameObjectName = gameObjectName;
             SetDefaultAttributeMaps();
             if (!_enabled)
@@ -147,6 +136,23 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
 
         /// <summary>
+        /// Creates an enabled client around an instance-scoped attribute writer.
+        /// This keeps Editor tests on the concrete OOM path without invoking JNI.
+        /// </summary>
+        internal NativeClient(
+            BacktraceConfiguration configuration,
+            Action<string, string> nativeAttributeWriter) : base(configuration, null)
+        {
+            if (nativeAttributeWriter == null)
+            {
+                throw new ArgumentNullException("nativeAttributeWriter");
+            }
+
+            _nativeAttributeWriter = nativeAttributeWriter;
+            CaptureNativeCrashes = true;
+        }
+
+        /// <summary>
         /// Setup communication between Unity and Android to receive information about unhandled thread exceptions
         /// </summary>
         /// <param name="callbackName">Game object callback method name</param>
@@ -164,57 +170,27 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
 
         /// <summary>
-        /// Get path to the native libraries directory
-        /// </summary>
-        /// <returns>Path to the native libraries directory</returns>
-        private string GetNativeDirectoryPath()
-        {
-            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-            {
-                // handle specific case when unity player is not available or available under different name
-                // this case might happen for example in flutter.
-                if (unityPlayer == null)
-                {
-                    return string.Empty;
-                }
-                using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
-                {
-                    // handle specific case when current activity is not available
-                    // this case might happen for example in flutter.
-                    if (activity == null)
-                    {
-                        return string.Empty;
-                    }
-                    using (var context = activity.Call<AndroidJavaObject>("getApplicationContext"))
-                    using (var applicationInfo = context.Call<AndroidJavaObject>("getApplicationInfo"))
-                    {
-                        return applicationInfo.Get<string>("nativeLibraryDir");
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Guess native directory path based on the data path directory. 
-        /// GetNativeDirectoryPath method might return empty value when activity is not available
-        /// this might happen in flutter apps.
+        /// Guess native directory path based on the data path directory.
+        /// The application-info snapshot can miss nativeLibraryDir when the activity is not available.
+        /// Filesystem enumeration order is not a valid ABI-selection policy,
+        /// the process ABI picks the directory;
+        /// an ambiguous layout returns no guess and resolution continues with split/base-APK metadata.
         /// </summary>
         /// <returns>Guessed path to lib directory</returns>
-        private string GuessNativeDirectoryPath()
+        private string GuessNativeDirectoryPath(string processAbi)
         {
-            var sourceDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "lib");
-            if (!Directory.Exists(sourceDirectory))
+            try
             {
-                return string.Empty;
+                return AndroidNativeLibraryPathResolver.TryGuessNativeLibraryDirectory(
+                    Application.dataPath,
+                    processAbi,
+                    Directory.Exists,
+                    Directory.GetDirectories) ?? string.Empty;
             }
-            var libDirectory = Directory.GetDirectories(sourceDirectory);
-            if (libDirectory.Length == 0)
+            catch (Exception)
             {
+                // This legacy directory hint is optional. It must never prevent the authoritative linker path or installed-package metadata from resolving.
                 return string.Empty;
-            }
-            else
-            {
-                return libDirectory[0];
             }
         }
 
@@ -285,7 +261,11 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
             catch (Exception e)
             {
-                Debug.LogWarning(String.Format("Backtrace native crash handler: failed to resolve APK path, " + "falling back to Application.dataPath. Reason: {0}", e.Message));
+                // Failure class only: messages can carry package and filesystem details.
+                Debug.LogWarning(String.Format(
+                    "Backtrace native crash handler: failed to resolve the APK path, falling back to"
+                        + " Application.dataPath. Failure type: {0}",
+                    FailureType(e)));
             }
 
             return applicationDataPath;
@@ -296,12 +276,135 @@ namespace Backtrace.Unity.Runtime.Native.Android
         }
 
         /// <summary>
+        /// Diagnostics carry the failure class only, never exception messages.
+        /// messages can contain submission URLs, tokens, attachment paths, or resolved library paths.
+        /// </summary>
+        private static string FailureType(Exception exception)
+        {
+            return exception == null ? "unknown" : exception.GetType().FullName;
+        }
+
+        /// <summary>
+        /// Sets one native crash attribute with deterministic JNI local-reference cleanup.
+        /// native attribute write goes through this helper:
+        /// initial population, SetAttribute, ANR error.type changes, and OOM attributes.
+        /// </summary>
+        private static void SetNativeAttribute(string key, string value)
+        {
+            IntPtr keyReference = IntPtr.Zero;
+            IntPtr valueReference = IntPtr.Zero;
+            try
+            {
+                keyReference = AndroidJNI.NewStringUTF(key);
+                valueReference = AndroidJNI.NewStringUTF(value ?? string.Empty);
+                AndroidNativeInterop.AddAttribute(keyReference, valueReference);
+            }
+            finally
+            {
+                AndroidNativeInitialization.DeleteLocalReferences(
+                    AndroidJNI.DeleteLocalRef,
+                    valueReference,
+                    keyReference);
+            }
+        }
+
+        /// <summary>
+        /// Requests a native dump with deterministic JNI local-reference cleanup.
+        /// The native export is a safe no-op when the backend is unavailable or disabled.
+        /// </summary>
+        private static void SendNativeDump(string message, bool setMainThreadAsFaultingThread)
+        {
+            IntPtr messageReference = IntPtr.Zero;
+            try
+            {
+                messageReference = AndroidJNI.NewStringUTF(message ?? string.Empty);
+                AndroidNativeInterop.DumpWithoutCrash(messageReference, setMainThreadAsFaultingThread);
+            }
+            finally
+            {
+                AndroidNativeInitialization.DeleteLocalReferences(
+                    AndroidJNI.DeleteLocalRef,
+                    messageReference);
+            }
+        }
+
+        private static bool InvokeInitialize(
+            string minidumpUrl,
+            string databasePath,
+            string classPath,
+            string[] attributeKeys,
+            string[] attributeValues,
+            string[] attachments,
+            string[] environmentVariables,
+            Action markNativeBridgeCallCompleted)
+        {
+            IntPtr urlRef = IntPtr.Zero;
+            IntPtr databaseRef = IntPtr.Zero;
+            IntPtr classRef = IntPtr.Zero;
+            IntPtr keysRef = IntPtr.Zero;
+            IntPtr valuesRef = IntPtr.Zero;
+            IntPtr attachmentsRef = IntPtr.Zero;
+            IntPtr environmentRef = IntPtr.Zero;
+            try
+            {
+                urlRef = AndroidJNI.NewStringUTF(minidumpUrl);
+                databaseRef = AndroidJNI.NewStringUTF(databasePath);
+                classRef = AndroidJNI.NewStringUTF(classPath);
+                keysRef = AndroidJNIHelper.ConvertToJNIArray(attributeKeys ?? new string[0]);
+                valuesRef = AndroidJNIHelper.ConvertToJNIArray(attributeValues ?? new string[0]);
+                attachmentsRef = AndroidJNIHelper.ConvertToJNIArray(attachments ?? new string[0]);
+                environmentRef = AndroidJNIHelper.ConvertToJNIArray(environmentVariables ?? new string[0]);
+                bool initialized = AndroidNativeInterop.InitializeJavaCrashHandler(
+                    urlRef,
+                    databaseRef,
+                    classRef,
+                    keysRef,
+                    valuesRef,
+                    attachmentsRef,
+                    environmentRef);
+                // Record native bridge completion before local-reference cleanup.
+                // Even a false result can leave native state that the transaction must roll back.
+                markNativeBridgeCallCompleted();
+                return initialized;
+            }
+            finally
+            {
+                AndroidNativeInitialization.DeleteLocalReferences(
+                    AndroidJNI.DeleteLocalRef,
+                    environmentRef,
+                    attachmentsRef,
+                    valuesRef,
+                    keysRef,
+                    classRef,
+                    databaseRef,
+                    urlRef);
+            }
+        }
+
+        /// <summary>
         /// Start crashpad process to handle native Android crashes
         /// </summary>
 
         private void HandleNativeCrashes(IDictionary<string, string> backtraceAttributes, IEnumerable<string> attachments)
         {
-            // make sure database is enabled 
+            // Native integration is optional: any failure disables native crash capture only and managed Unity reporting continues.
+            // No exception escapes the component constructor.
+            try
+            {
+                CaptureNativeCrashes = TryInitializeNativeCrashes(backtraceAttributes, attachments);
+            }
+            catch (Exception exception)
+            {
+                CaptureNativeCrashes = false;
+                Debug.LogWarning(
+                    "BT_UNITY_ANDROID_NATIVE_PREPARE_FAILURE: Native crash capture is unavailable. "
+                        + "Failure type: " + FailureType(exception));
+            }
+        }
+
+        private bool TryInitializeNativeCrashes(IDictionary<string, string> backtraceAttributes, IEnumerable<string> attachments)
+        {
+            // make sure database is enabled
             var integrationDisabled =
 #if UNITY_ANDROID
                 !_configuration.CaptureNativeCrashes || !_configuration.Enabled;
@@ -311,21 +414,21 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (integrationDisabled)
             {
                 Debug.LogWarning("Backtrace native integration status: Disabled NDK integration");
-                return;
+                return false;
             }
-            
+
             var databasePath = _configuration.CrashpadDatabasePath;
             var fullDatabasePath = _configuration.GetFullDatabasePath();
 
             if (string.IsNullOrEmpty(databasePath) || string.IsNullOrEmpty(fullDatabasePath))
             {
                 Debug.LogWarning("Backtrace native integration status: database path undefined");
-                return;
+                return false;
             }
             if (!Directory.Exists(fullDatabasePath))
             {
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
-                return;
+                return false;
             }
             if (!Directory.Exists(databasePath))
             {
@@ -337,100 +440,128 @@ namespace Backtrace.Unity.Runtime.Native.Android
             if (apiLevelString == null || !int.TryParse(apiLevelString, out apiLevel))
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot determine Android API level");
-                return;
+                return false;
             }
 
-            // crashpad is available only for API level 21+ 
-            // make sure we don't want ot start crashpad handler 
+            // crashpad is available only for API level 21+
+            // make sure we don't want ot start crashpad handler
             // on the unsupported API
             if (apiLevel < 21)
             {
                 Debug.LogWarning("Backtrace native integration status: Unsupported Android API level");
-                return;
+                return false;
             }
 
             var minidumpUrl = new BacktraceCredentials(_configuration.GetValidServerUrl()).GetMinidumpSubmissionUrl().ToString();
-            
-            // Resolve native library directory
-            var libDirectory = GetNativeDirectoryPath();
-            if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
+
+            // The authoritative linker answer is queried FIRST:
+            // it must remain usable even when process-ABI detection or application metadata is unavailable,
+            // and both of those lookups are fully fail-safe (they return null/empty instead of throwing).
+#if UNITY_ANDROID
+            var loadedLibraryPath = AndroidLoadedLibraryPath.TryGet();
+#else
+            string loadedLibraryPath = null;
+#endif
+
+            // The ABI of THIS PROCESS (not the device-preferred ABI: a 32-bit process on a 64-bit device differs).
+            // It is required only for the x86 policy and the split/base-APK path fallback,
+            // an undetermined ABI must not disable capture when the linker path or an extracted library resolves, so the resolver receives null and decides.
+            string processAbi = TryGetProcessAbi();
+            if (!AndroidProcessAbi.SupportsNativeCrashCapture(processAbi) && processAbi != null)
             {
-                libDirectory = GuessNativeDirectoryPath();
+                Debug.LogWarning(
+                    "Backtrace native integration status: native crash capture is unsupported on "
+                        + processAbi + "; managed reporting stays enabled");
+                return false;
             }
 
-            if (string.IsNullOrEmpty(libDirectory) || !Directory.Exists(libDirectory))
+#if UNITY_ANDROID
+            var applicationInfo = AndroidApplicationInfoSnapshot.Capture();
+#else
+            var applicationInfo = new AndroidApplicationInfoSnapshot();
+#endif
+            if (string.IsNullOrEmpty(applicationInfo.NativeLibraryDir))
             {
-                Debug.LogWarning("Backtrace native integration status: Cannot resolve native library directory");
-                return;
+                // Legacy discovery for hosts without a Unity activity.
+                // An empty native-library directory no longer disables capture:
+                // the linker-reported path or split metadata can still resolve the handler.
+                applicationInfo.NativeLibraryDir = GuessNativeDirectoryPath(processAbi);
             }
 
-            // Resolve the APK path
+            // Resolution order: linker-reported path, extracted library, installed ABI split, base APK without opening an APK archive.
+            var handlerPath = AndroidNativeLibraryPathResolver.Resolve(
+                applicationInfo,
+                loadedLibraryPath,
+                processAbi,
+                Application.dataPath);
+
+            // CLASSPATH stays the base APK containing the Java classes; the handler path may point at an ABI split.
             var apkPath = GetApkPathForCrashHandler();
+            var environmentVariables = AndroidCrashHandlerEnvironment.BuildEnvironment(
+                Environment.GetEnvironmentVariables(),
+                apkPath,
+                handlerPath,
+                BuildLibrarySearchPaths(applicationInfo.NativeLibraryDir));
 
-            CaptureNativeCrashes = InitializeJavaCrashHandler(minidumpUrl, databasePath, backtraceAttributes["device.abi"], libDirectory, apkPath, attachments);
-            
-            if (!CaptureNativeCrashes)
+            var initialized = AndroidNativeInitialization.Execute(
+                markNativeBridgeCallCompleted => InvokeInitialize(
+                    minidumpUrl,
+                    databasePath,
+                    _crashHandlerPath,
+                    new string[0],
+                    new string[0],
+                    attachments == null ? new string[0] : attachments.ToArray(),
+                    environmentVariables,
+                    markNativeBridgeCallCompleted),
+                () =>
+                {
+                    foreach (var attribute in backtraceAttributes)
+                    {
+                        SetNativeAttribute(attribute.Key, attribute.Value);
+                    }
+
+                    // Add exception type to crashes handled by crashpad.
+                    // ANR and OOM reporting override this value temporarily at runtime.
+                    SetNativeAttribute(ErrorTypeAttribute, CrashType);
+                },
+                AndroidNativeInterop.Disable,
+                rollbackFailure => Debug.LogWarning(
+                    "BT_UNITY_ANDROID_NATIVE_ROLLBACK_FAILURE: Native initialization rollback failed. "
+                        + "Failure type: " + FailureType(rollbackFailure)));
+            if (!initialized)
             {
                 Debug.LogWarning("Backtrace native integration status: Cannot initialize Java crash handler");
-                return;
+                return false;
             }
-
-            foreach (var attribute in backtraceAttributes)
-            {   
-                AddAttribute(AndroidJNI.NewStringUTF(attribute.Key), AndroidJNI.NewStringUTF(attribute.Value));
-            }
-
-            // add exception type to crashes handled by crashpad - all exception handled by crashpad 
-            // by default we setting this option here, to set error.type when unexpected crash happen (so attribute will present)
-            // otherwise in other methods - ANR detection, OOM handler, we're overriding it and setting it back to "crash"
-
-            // warning 
-            // don't add attributes that can change over the time to initialization method attributes. Crashpad will prevent from 
-            // overriding them on game runtime. ANRs/OOMs methods can override error.type attribute, so we shouldn't pass error.type 
-            // attribute via attributes parameters.
-            AddAttribute(AndroidJNI.NewStringUTF(ErrorTypeAttribute), AndroidJNI.NewStringUTF(CrashType));
+            return true;
         }
 
-        private bool InitializeJavaCrashHandler(String minidumpUrl, String databasePath, String deviceAbi, String nativeDirectory, String apkPath, IEnumerable<String> attachments) {
-            if (String.IsNullOrEmpty(deviceAbi)) {
-                Debug.LogWarning("Cannot determine device ABI");
-                return false;
+        private static string TryGetProcessAbi()
+        {
+#if UNITY_ANDROID
+            try
+            {
+                return AndroidProcessAbi.Capture();
             }
-
-            var envVariableDictionary =  Environment.GetEnvironmentVariables();
-            if (envVariableDictionary == null) {
-                Debug.LogWarning("Environment variables are not defined.");
-                return false;
+            catch (Exception)
+            {
+                return null;
             }
+#else
+            return null;
+#endif
+        }
 
-            // verify if the library is already extracted
-            var backtraceNativeLibraryPath = Path.Combine(nativeDirectory, _nativeLibraryName);
-            if (!File.Exists(backtraceNativeLibraryPath)) {
-                backtraceNativeLibraryPath = string.Format("{0}!/lib/{1}/{2}", apkPath, deviceAbi, _nativeLibraryName);
-            }
-
-            // prepare native crash handler environment variables
-            List<String> environmentVariables = new List<string> () {
-                string.Format("CLASSPATH={0}", apkPath),
-                string.Format("BACKTRACE_UNITY_CRASH_HANDLER={0}", backtraceNativeLibraryPath),
-                string.Format("LD_LIBRARY_PATH={0}", string.Join(":", nativeDirectory, Directory.GetParent(nativeDirectory), GetLibrarySystemPath(), "/data/local")),
-                "ANDROID_DATA=/data"
-            };
-
-            foreach (DictionaryEntry kvp in envVariableDictionary) {
-                environmentVariables.Add(string.Format("{0}={1}", kvp.Key, kvp.Value == null ? "NULL" : kvp.Value));
-            }
-            
-
-            return InitializeJavaCrashHandler(
-                AndroidJNI.NewStringUTF(minidumpUrl),
-                AndroidJNI.NewStringUTF(databasePath),
-                AndroidJNI.NewStringUTF(_crashHandlerPath),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(new string[0]),
-                AndroidJNIHelper.ConvertToJNIArray(attachments.ToArray()),
-                AndroidJNIHelper.ConvertToJNIArray(environmentVariables.ToArray())
-            );
+        private List<string> BuildLibrarySearchPaths(string nativeLibraryDir)
+        {
+            return AndroidCrashHandlerEnvironment.BuildLibrarySearchPaths(
+                nativeLibraryDir,
+                path =>
+                {
+                    var parent = Directory.GetParent(path);
+                    return parent == null ? null : parent.ToString();
+                },
+                GetLibrarySystemPath).ToList();
         }
 
         private string GetLibrarySystemPath() {
@@ -515,54 +646,61 @@ namespace Backtrace.Unity.Runtime.Native.Android
             }
 
             bool reported = false;
-            var mainThreadId = Thread.CurrentThread.ManagedThreadId;
             AnrThread = new Thread(() =>
             {
-                float lastUpdatedCache = 0;
-                while (AnrThread.IsAlive && StopAnr == false)
-                {
-                    if (!PreventAnr)
+                AndroidAnrThreadLifecycle.Run(
+                    AndroidJNI.AttachCurrentThread,
+                    tryAttach =>
                     {
-                        if (lastUpdatedCache == 0)
+                        // Attach the Unity-created watchdog thread to the JVM exactly once and detach it when the loop ends;
+                        // attaching per report leaked the attachment for the thread's lifetime.
+                        // The Unity main thread is never detached here, this is the watchdog thread only.
+                        float lastUpdatedCache = 0;
+                        while (AnrThread.IsAlive && StopAnr == false)
                         {
-                            lastUpdatedCache = LastUpdateTime;
-                        }
-                        else if (lastUpdatedCache == LastUpdateTime)
-                        {
-                            if (!reported)
+                            if (!PreventAnr)
                             {
-                                OnAnrDetection();
-                                reported = true;
-                                if (AndroidJNI.AttachCurrentThread() == 0)
+                                if (lastUpdatedCache == 0)
                                 {
-                                    // set temporary attribute to "Hang"
-                                    AddAttribute(
-                                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
-                                        AndroidJNI.NewStringUTF(HangType));
-
-                                    NativeReport(AndroidJNI.NewStringUTF(AnrMessage), true);
-                                    // update error.type attribute in case when crash happen 
-                                    AddAttribute(
-                                        AndroidJNI.NewStringUTF(ErrorTypeAttribute),
-                                        AndroidJNI.NewStringUTF(CrashType));
+                                    lastUpdatedCache = LastUpdateTime;
                                 }
-                            }
-                        }
-                        else
-                        {
-                            reported = false;
-                        }
+                                else if (lastUpdatedCache == LastUpdateTime)
+                                {
+                                    if (!reported)
+                                    {
+                                        OnAnrDetection();
+                                        // A transient early attach failure (JVM resource pressure) must not permanently disable hang dumps;
+                                        // reported stays false so the next iteration retries this hang.
+                                        if (tryAttach())
+                                        {
+                                            reported = true;
+                                            // The temporary Hang classification must be restored to Crash even when the dump fails,
+                                            // or a later native crash would be misclassified as a hang.
+                                            AndroidAnrThreadLifecycle.CaptureNativeDump(
+                                                () => SetNativeAttribute(ErrorTypeAttribute, HangType),
+                                                () => SendNativeDump(AnrMessage, true),
+                                                () => SetNativeAttribute(ErrorTypeAttribute, CrashType),
+                                                warning => Debug.LogWarning(warning));
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    reported = false;
+                                }
 
-                        lastUpdatedCache = LastUpdateTime;
-                    }
-                    else if (lastUpdatedCache != 0)
-                    {
-                        // make sure when ANR happened just after going to foreground
-                        // we won't false positive ANR report
-                        lastUpdatedCache = 0;
-                    }
-                    Thread.Sleep(AnrWatchdogTimeout);
-                }
+                                lastUpdatedCache = LastUpdateTime;
+                            }
+                            else if (lastUpdatedCache != 0)
+                            {
+                                // make sure when ANR happened just after going to foreground we won't false positive ANR report
+                                lastUpdatedCache = 0;
+                            }
+                            Thread.Sleep(AnrWatchdogTimeout);
+                        }
+                    },
+                    () => { AndroidJNI.DetachCurrentThread(); },
+                    warning => Debug.LogWarning(warning));
             });
             AnrThread.IsBackground = true;
             AnrThread.Start();
@@ -580,14 +718,10 @@ namespace Backtrace.Unity.Runtime.Native.Android
                 return;
             }
             // avoid null reference in crashpad source code
-            if (value == null)
-            {
-                value = string.Empty;
-            }
-
-            AddAttribute(
-                AndroidJNI.NewStringUTF(key),
-                AndroidJNI.NewStringUTF(value));
+            NativeAttributeLifecycle.TrySetAttribute(
+                () => _nativeAttributeWriter(key, value ?? string.Empty),
+                NativeAttributeFailureCode,
+                warning => Debug.LogWarning(warning));
         }
 
         /// <summary>
@@ -606,24 +740,26 @@ namespace Backtrace.Unity.Runtime.Native.Android
         /// </summary>
         public override void Disable()
         {
-            if (CaptureNativeCrashes)
-            {
-                CaptureNativeCrashes = false;
-                DisableNativeIntegration();
-            }
-            if (_anrWatcher != null)
-            {
-                _anrWatcher.Call("stopMonitoring");
-                _anrWatcher.Dispose();
-                _anrWatcher = null;
-            }
-            if (_unhandledExceptionWatcher != null)
-            {
-                _unhandledExceptionWatcher.Call("stopMonitoring");
-                _unhandledExceptionWatcher.Dispose();
-                _unhandledExceptionWatcher = null;
-            }
-            base.Disable();
+            bool disableNativeIntegration = CaptureNativeCrashes;
+            CaptureNativeCrashes = false;
+
+            // Clear the shared references before any JNI cleanup.
+            // Even when a stop or dispose call fails, later Disable calls cannot reuse a partially disposed watcher.
+            var anrWatcher = _anrWatcher;
+            _anrWatcher = null;
+            var unhandledExceptionWatcher = _unhandledExceptionWatcher;
+            _unhandledExceptionWatcher = null;
+
+            AndroidNativeDisableLifecycle.Run(
+                () => base.Disable(),
+                disableNativeIntegration ? new Action(AndroidNativeInterop.Disable) : null,
+                anrWatcher == null ? null : new Action(() => anrWatcher.Call("stopMonitoring")),
+                anrWatcher == null ? null : new Action(anrWatcher.Dispose),
+                unhandledExceptionWatcher == null
+                    ? null
+                    : new Action(() => unhandledExceptionWatcher.Call("stopMonitoring")),
+                unhandledExceptionWatcher == null ? null : new Action(unhandledExceptionWatcher.Dispose),
+                warning => Debug.LogWarning(warning));
         }
     }
 }

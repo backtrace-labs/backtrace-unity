@@ -76,7 +76,7 @@ jobs:
 
   test:
     needs: validate-macos-framework-layout
-    name: Run Build for ${{ matrix.unityVersion }} ${{ matrix.unityVersion }}
+    name: Run Build for ${{ matrix.targetPlatform }} on Unity ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -93,6 +93,17 @@ jobs:
           - iOS
           - Android
           - WebGL
+        # The Android bridge touches native plugin loading, P/Invoke marshalling, and App Bundle packaging, Android players also build on modern Unity versions.
+        # Other platforms are unaffected and stay on the single baseline version.
+        include:
+          - projectPath: test-package
+            unityVersion: 2022.3.56f1
+            targetPlatform: Android
+          - projectPath: test-package
+            unityVersion: 6000.3.7f1
+            targetPlatform: Android
+            androidExportType: androidAppBundle
+            configureIl2Cpp: true
 
     steps:
       - name: Checkout Repo
@@ -104,6 +115,69 @@ jobs:
         run: |
           mkdir ${{ matrix.projectPath }}
           mv Editor Runtime Tests Android iOS Mac Windows package.json ${{ matrix.projectPath }}/
+
+      # Install only the SDK sources and plugins required by Android so the player build
+      # compiles the SDK with UNITY_ANDROID and packages its native libraries.
+      - name: Install SDK in Android project
+        if: matrix.targetPlatform == 'Android'
+        run: |
+          mkdir -p ${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity
+          mv \
+            ${{ matrix.projectPath }}/Editor \
+            ${{ matrix.projectPath }}/Runtime \
+            ${{ matrix.projectPath }}/Android \
+            ${{ matrix.projectPath }}/Assets/Plugins/backtrace-unity/
+
+      # The synthetic project has no saved scene, and game-ci then builds the untitled scene.
+      # Unity 2019.4 tolerates that but 2022.3+ fails with "Cannot build untitled scene", this gives the build a registered empty scene.
+      - name: Create CI build scene
+        run: |
+          mkdir -p ${{ matrix.projectPath }}/Assets/Scenes ${{ matrix.projectPath }}/ProjectSettings
+          printf '%%YAML 1.1\n%%TAG !u! tag:unity3d.com,2011:\n' > ${{ matrix.projectPath }}/Assets/Scenes/Empty.unity
+          cat > ${{ matrix.projectPath }}/Assets/Scenes/Empty.unity.meta <<'EOF'
+          fileFormatVersion: 2
+          guid: 9fc0d4010bbf28b4594072e72b8655ab
+          DefaultImporter:
+            externalObjects: {}
+            userData:
+            assetBundleName:
+            assetBundleVariant:
+          EOF
+          cat > ${{ matrix.projectPath }}/ProjectSettings/EditorBuildSettings.asset <<'EOF'
+          %YAML 1.1
+          %TAG !u! tag:unity3d.com,2011:
+          --- !u!1045 &1
+          EditorBuildSettings:
+            m_ObjectHideFlags: 0
+            serializedVersion: 2
+            m_Scenes:
+            - enabled: 1
+              path: Assets/Scenes/Empty.unity
+              guid: 9fc0d4010bbf28b4594072e72b8655ab
+            m_configObjects: {}
+          EOF
+
+      # Exercise the Android bridge in the modern packaging configuration without
+      # requiring a release keystore or a device-side deployment.
+      - name: Configure Android IL2CPP App Bundle build
+        if: matrix.configureIl2Cpp == true
+        run: |
+          mkdir -p ${{ matrix.projectPath }}/Assets/Editor
+          cat > ${{ matrix.projectPath }}/Assets/Editor/BacktraceCiAndroidSettings.cs <<'EOF'
+          using UnityEditor;
+
+          [InitializeOnLoad]
+          internal static class BacktraceCiAndroidSettings
+          {
+              static BacktraceCiAndroidSettings()
+              {
+                  PlayerSettings.SetScriptingBackend(
+                      BuildTargetGroup.Android,
+                      ScriptingImplementation.IL2CPP);
+                  PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+              }
+          }
+          EOF
 
       - if: matrix.targetPlatform == 'Android'
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -118,5 +192,56 @@ jobs:
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: ${{ matrix.projectPath }}/
+          androidExportType: ${{ matrix.androidExportType || 'androidPackage' }}
           allowDirtyBuild: true
-          
+
+      - name: Validate Android IL2CPP App Bundle contents
+        if: matrix.configureIl2Cpp == true
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -d '' app_bundles < <(find build -type f -name '*.aab' -print0)
+          test "${#app_bundles[@]}" -eq 1
+
+          entries="$RUNNER_TEMP/backtrace-aab-entries.txt"
+          unzip -Z1 "${app_bundles[0]}" > "$entries"
+          grep -Eq '(^|/)lib/arm64-v8a/libil2cpp\.so$' "$entries"
+          grep -Eq '(^|/)lib/arm64-v8a/libbacktrace-native\.so$' "$entries"
+
+          dex_entries=()
+          while IFS= read -r entry; do
+            if [[ "$entry" =~ ^base/dex/classes([0-9]+)?\.dex$ ]]; then
+              dex_entries+=("$entry")
+            fi
+          done < "$entries"
+
+          if (( ${#dex_entries[@]} == 0 )); then
+            echo "Error: App Bundle contains no base/dex/classes*.dex entries." >&2
+            exit 1
+          fi
+
+          dex_dir="$RUNNER_TEMP/backtrace-aab-dex"
+          mkdir -p "$dex_dir"
+
+          handler_class='backtraceio/library/nativeCalls/BacktraceCrashHandler'
+          handler_descriptor="L${handler_class};"
+          handler_found=false
+
+          for dex_index in "${!dex_entries[@]}"; do
+            dex_entry="${dex_entries[$dex_index]}"
+            dex_file="$dex_dir/classes-$dex_index.dex"
+            unzip -p "${app_bundles[0]}" "$dex_entry" > "$dex_file"
+
+            if grep -aFq -- "$handler_descriptor" "$dex_file"; then
+              handler_found=true
+              break
+            fi
+          done
+
+          if [[ "$handler_found" != true ]]; then
+            echo "Error: App Bundle DEX files do not contain ${handler_class}." >&2
+            printf 'Searched DEX entries:\n' >&2
+            printf '  %s\n' "${dex_entries[@]}" >&2
+            exit 1
+          fi

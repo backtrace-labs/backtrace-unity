@@ -194,7 +194,10 @@ namespace Backtrace.Unity
             AttributeProvider[key] = value;
             if (_nativeClient != null)
             {
-                _nativeClient.SetAttribute(key, value);
+                NativeAttributeLifecycle.TrySetAttribute(
+                    () => _nativeClient.SetAttribute(key, value),
+                    NativeAttributeLifecycle.NativeAttributeFailureCode,
+                    warning => Debug.LogWarning(warning));
             }
             return true;
         }
@@ -367,6 +370,10 @@ namespace Backtrace.Unity
             get
             {
                 return _nativeClient;
+            }
+            set
+            {
+                _nativeClient = value;
             }
         }
 
