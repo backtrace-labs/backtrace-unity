@@ -75,6 +75,10 @@ namespace Backtrace.Unity.Runtime.Native.OSX
                 HandleNativeCrashes(clientAttributes, attachments);
                 INITIALIZED = true;
             }
+            else
+            {
+                PendingCrashReportQuarantine.SetCaptureActive(false);
+            }
             if (_configuration.HandleANR)
             {
                 HandleAnr();
@@ -93,6 +97,7 @@ namespace Backtrace.Unity.Runtime.Native.OSX
             if (string.IsNullOrEmpty(databasePath) || !Directory.Exists(databasePath))
             {
                 Debug.LogWarning("Backtrace native integration status: database path doesn't exist");
+                PendingCrashReportQuarantine.SetCaptureActive(false);
                 return;
             }
 
@@ -105,7 +110,11 @@ namespace Backtrace.Unity.Runtime.Native.OSX
             var attributeKeys = attributes.Keys.ToArray();
             var attributeValues = attributes.Values.ToArray();
 
+            // hand the previous session's quarantined report back to PLCrashReporter right before it starts, so the report is submitted and purged as usual
+            // see PendingCrashReportQuarantine for the Unity built-in crash reporter conflict
+            PendingCrashReportQuarantine.RestoreLiveReport(PendingCrashReportQuarantine.GetApplicationReportDirectory());
             Start(plcrashreporterUrl.ToString(), attributeKeys, attributeValues, attributeValues.Length, _configuration.OomReports, attachments.ToArray(), attachments.Count(), _configuration.ClientSideUnwinding);
+            PendingCrashReportQuarantine.SetCaptureActive(true);
             CaptureNativeCrashes = true;
         }
 
@@ -270,6 +279,7 @@ namespace Backtrace.Unity.Runtime.Native.OSX
             if (CaptureNativeCrashes)
             {
                 CaptureNativeCrashes = false;
+                PendingCrashReportQuarantine.SetCaptureActive(false);
                 DisableNativeIntegration();
             }
             base.Disable();
