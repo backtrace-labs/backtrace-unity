@@ -33,6 +33,10 @@ jobs:
     needs: validate-apple-native-artifacts
     name: Run Build for ${{ matrix.targetPlatform }} on Unity ${{ matrix.unityVersion }} ${{ matrix.macBackend }}
     runs-on: ${{ matrix.runner || 'ubuntu-latest' }}
+    concurrency:
+      group: unity-serial-license
+      cancel-in-progress: false
+      queue: max
     strategy:
       fail-fast: false
       matrix:
@@ -71,11 +75,13 @@ jobs:
             targetPlatform: iOS
             runner: macos-15-intel
             iosSdk: Device
+            iosTestFramework: 1.4.6
           - projectPath: test-package
             unityVersion: 6000.3.7f1
             targetPlatform: iOS
             runner: macos-15-intel
             iosSdk: Simulator
+            iosTestFramework: 1.6.0
           - projectPath: test-package
             unityVersion: 2022.3.56f1
             targetPlatform: Android
@@ -144,7 +150,7 @@ jobs:
           cat > ${{ matrix.projectPath }}/Packages/manifest.json <<'EOF'
           {
             "dependencies": {
-              "com.unity.test-framework": "1.1.33",
+              "com.unity.test-framework": "${{ matrix.iosTestFramework }}",
               "com.unity.modules.androidjni": "1.0.0",
               "com.unity.modules.imageconversion": "1.0.0",
               "com.unity.modules.jsonserialize": "1.0.0",
