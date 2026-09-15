@@ -33,8 +33,7 @@ jobs:
     needs: validate-apple-native-artifacts
     name: Run Build for ${{ matrix.targetPlatform }} on Unity ${{ matrix.unityVersion }} ${{ matrix.macBackend }}
     runs-on: ${{ matrix.runner || 'ubuntu-latest' }}
-    # TODO: Fix the CI lanes and remove allowFailure.
-    continue-on-error: ${{ matrix.allowFailure == true }}
+    # TODO: Fix the five modern Apple CI lanes and remove allowFailure.
     strategy:
       fail-fast: false
       matrix:
@@ -225,7 +224,9 @@ jobs:
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - uses: game-ci/unity-builder@v4
+        id: unity-build
         name: Build game for platform ${{ matrix.targetPlatform }}
+        continue-on-error: ${{ matrix.allowFailure == true }}
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
@@ -240,7 +241,9 @@ jobs:
           allowDirtyBuild: true
 
       - name: Require all five iOS Editor integration tests
-        if: ${{ always() && matrix.iosSdk != '' }}
+        id: ios-editor-tests
+        if: ${{ always() && matrix.iosSdk != '' && steps.unity-build.outcome == 'success' }}
+        continue-on-error: ${{ matrix.allowFailure == true }}
         run: |
           python3 .github/scripts/validate_unity_test_results.py \
             --results-root artifacts/ios-editor \
@@ -252,12 +255,14 @@ jobs:
             --require-test 'Backtrace.Unity.Tests.Editor.BacktraceXcodePostBuildTests.BridgeImporterEnablesARCAndDisablesHeaderAutolinkingOnlyForBridge'
 
       - name: Retain iOS Editor test results and logs
+        id: ios-editor-artifacts
         if: ${{ always() && matrix.iosSdk != '' }}
+        continue-on-error: ${{ matrix.allowFailure == true }}
         uses: actions/upload-artifact@v4
         with:
           name: ios-editor-${{ matrix.unityVersion }}-${{ matrix.iosSdk }}
           path: artifacts/ios-editor/
-          if-no-files-found: error
+          if-no-files-found: ${{ matrix.allowFailure == true && steps.unity-build.outcome != 'success' && 'ignore' || 'error' }}
 
       - name: Validate Android IL2CPP App Bundle contents
         if: matrix.configureIl2Cpp == true
@@ -311,7 +316,9 @@ jobs:
           fi
 
       - name: Require a flat plugin in built macOS player
-        if: matrix.targetPlatform == 'StandaloneOSX'
+        id: mac-plugin-layout
+        if: matrix.targetPlatform == 'StandaloneOSX' && steps.unity-build.outcome == 'success'
+        continue-on-error: ${{ matrix.allowFailure == true }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -325,7 +332,9 @@ jobs:
           PY
 
       - name: Validate built macOS native ABI and signature
-        if: matrix.macBackend != ''
+        id: mac-plugin-abi
+        if: matrix.macBackend != '' && steps.unity-build.outcome == 'success'
+        continue-on-error: ${{ matrix.allowFailure == true }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -336,7 +345,9 @@ jobs:
           PY
 
       - name: Compile exported iOS application
-        if: matrix.iosSdk != ''
+        id: ios-compile
+        if: matrix.iosSdk != '' && steps.unity-build.outcome == 'success'
+        continue-on-error: ${{ matrix.allowFailure == true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -351,3 +362,9 @@ jobs:
           xcodebuild -project "$project" -scheme Unity-iPhone -configuration Release \
             -sdk "$sdk" -destination "$destination" -derivedDataPath "$RUNNER_TEMP/backtrace-ios-build" \
             ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
+
+      - name: Note temporarily ignored Apple CI failure
+        if: ${{ always() && matrix.allowFailure == true && contains(steps.*.outcome, 'failure') }}
+        run: |
+          echo '::warning::Apple build/test failure temporarily ignored for this release. This lane is not validated.'
+          echo 'Apple build/test failure temporarily ignored for this release. This lane is not validated; see the failed steps above.' >> "$GITHUB_STEP_SUMMARY"
