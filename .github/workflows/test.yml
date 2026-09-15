@@ -23,11 +23,6 @@ jobs:
     needs: validate-result-checker
     name: Run Tests in ${{ matrix.testMode }} ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
-    # Use the same repository-wide license queue as the build matrix.
-    concurrency:
-      group: unity-serial-license
-      cancel-in-progress: false
-      queue: max
     strategy:
       fail-fast: false
       matrix:
