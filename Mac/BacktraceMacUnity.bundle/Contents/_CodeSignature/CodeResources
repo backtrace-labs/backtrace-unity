@@ -3,23 +3,85 @@
 <plist version="1.0">
 <dict>
 	<key>files</key>
-	<dict/>
+	<dict>
+		<key>Resources/Model.momd/Model.mom</key>
+		<data>
+		rhWkbmsK4EpBvjLwHdDgpWF/U8s=
+		</data>
+		<key>Resources/Model.momd/ModelV2.mom</key>
+		<data>
+		aATc3u2AGeqo5hB/SwE63fOCKs0=
+		</data>
+		<key>Resources/Model.momd/ModelV2.omo</key>
+		<data>
+		n+JRoPIhEhSbbhP6iyiZunrcdsk=
+		</data>
+		<key>Resources/Model.momd/VersionInfo.plist</key>
+		<data>
+		6SU82tApGjpqo8wVxLSd5GHLZpA=
+		</data>
+		<key>Resources/PrivacyInfo.xcprivacy</key>
+		<data>
+		QmKIySep56Px7g5IYo2dRH968E8=
+		</data>
+		<key>Resources/ThirdPartyNotices/PLCrashReporter-LICENSE.txt</key>
+		<data>
+		Juktu5JmuvdTwx+P7fel0ZuKyW0=
+		</data>
+		<key>Resources/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt</key>
+		<data>
+		C7EwwSoqlFBFdb/lzliAarrTpLQ=
+		</data>
+	</dict>
 	<key>files2</key>
 	<dict>
-		<key>Frameworks/Backtrace.framework</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			yMCry3XTb5n6CC0N3Zd2jG667k8=
-			</data>
-			<key>requirement</key>
-			<string>cdhash H"c8c0abcb75d36f99fa082d0ddd97768c6ebaee4f"</string>
-		</dict>
-		<key>Headers/Backtrace.h</key>
+		<key>Resources/Model.momd/Model.mom</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			aq1s3HuKYwmeqAi0cF/VRVHCehWGpaZEQphQaywOzGo=
+			sFbUOeDyXK21IBBf9FJQCzVndAlsSzg5PUOONgsatys=
+			</data>
+		</dict>
+		<key>Resources/Model.momd/ModelV2.mom</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			uc+SYCtx6TVJFFNmX2gcJ8KaXeJJz33Q2KYYxpuHpVk=
+			</data>
+		</dict>
+		<key>Resources/Model.momd/ModelV2.omo</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			PmZzd1CAl6zAhxqsHsMeeJTbFLtlqOb9D7g/Pp3DYsk=
+			</data>
+		</dict>
+		<key>Resources/Model.momd/VersionInfo.plist</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			TMBQH3JDMDoSOKogxHHBc7G+8BgGNrw4+iNlMxedc1A=
+			</data>
+		</dict>
+		<key>Resources/PrivacyInfo.xcprivacy</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			sFmpGJJWxXRLWqD88SwbpSk+EjzJJLDNyMv8EvzL9DM=
+			</data>
+		</dict>
+		<key>Resources/ThirdPartyNotices/PLCrashReporter-LICENSE.txt</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			RfVzCKX5UDmmR4zx5HRJqhHihCd3fYFJe9ZUwfQe9a8=
+			</data>
+		</dict>
+		<key>Resources/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			gPes5tcA176VJVidVXaY0R2FhStp7QluEqk3EWfDnLg=
 			</data>
 		</dict>
 	</dict>
