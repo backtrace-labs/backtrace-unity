@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Build;
@@ -17,6 +18,13 @@ internal static class BacktraceCiMacBuild
         else throw new BuildFailedException("CI must select the Mono or IL2CPP macOS backend explicitly.");
 
         string output = Argument("-customBuildPath");
+        if (!output.EndsWith(".app", StringComparison.OrdinalIgnoreCase))
+        {
+            // GameCI includes the build name in this path, but omits the .app suffix.
+            string buildName = Argument("-customBuildName");
+            if (!string.IsNullOrEmpty(buildName) && Path.GetFileName(output) == buildName)
+                output += ".app";
+        }
         if (!output.EndsWith(".app", StringComparison.OrdinalIgnoreCase))
             throw new BuildFailedException("The macOS CI fixture requires direct .app output.");
 
