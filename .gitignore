@@ -67,3 +67,9 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
+
+# Local binary backups and retained dSYMs.
+.artifacts/
+
+# Local Python tooling caches.
+__pycache__/

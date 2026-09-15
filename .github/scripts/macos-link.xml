@@ -1,0 +1,4 @@
+<linker>
+  <!-- Ensure the synthetic IL2CPP build emits the SDK's otherwise-unused P/Invokes. -->
+  <assembly fullname="Backtrace.Unity" preserve="all" />
+</linker>
