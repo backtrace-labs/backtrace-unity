@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Run validator unit tests
+      - name: Run result-checker unit tests
         run: >-
           python3 -m unittest discover
           --start-directory .github/scripts/tests
@@ -69,4 +69,12 @@ jobs:
             --require-test 'Backtrace.Unity.Tests.Runtime.AndroidNativeInitializationTests.NativeBridgeFalseResultRollsBackPartialState' \
             --require-test 'Backtrace.Unity.Tests.Runtime.AndroidNativeInitializationTests.NativeBridgeFalseResultRollbackFailureIsContained' \
             --require-test 'Backtrace.Unity.Tests.Runtime.AndroidNativeClientOomTests.OnOomAttemptsTimestampAfterFirstAttributeWriteFails' \
-            --require-test 'Backtrace.Unity.Tests.Runtime.BacktraceAttributeTests.SetAttributes_NativeClientFailure_DoesNotInterruptManagedAttributes'
+            --require-test 'Backtrace.Unity.Tests.Runtime.BacktraceAttributeTests.SetAttributes_NativeClientFailure_DoesNotInterruptManagedAttributes' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.MacNativeSessionTests.UnicodeRoundTripsAndNativeArrayFreed' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.MacNativeSessionTests.StopDuringStartDisablesExactlyOnce' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.MacNativeSessionTests.DuplicateClientCannotStopOwner' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.MacNativeClientTests.ManagedDatabaseDisabledDoesNotBlockInjectedNativeStart' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.MacNativeClientTests.InterfaceUpdateDispatchesToMacHeartbeatAndBaseBehavior' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.MacNativeClientTests.DisableDoesNotWaitForBlockedAnrReport' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.AppleNativeInteropTests.IOSPreservesDefaultStoreAndPassesUnlimitedRate' \
+            --require-test 'Backtrace.Unity.Tests.Runtime.AppleNativeInteropTests.IOSWrapperUsesSharedOwnershipWithoutManagedDatabase'

@@ -23,3 +23,12 @@
 *.PDF	 diff=astextplain
 *.rtf	 diff=astextplain
 *.RTF	 diff=astextplain
+
+# Preserve code-signed native bytes, including upstream license whitespace.
+Mac/BacktraceMacUnity.bundle/** -text -whitespace
+iOS/Backtrace.xcframework/** -text -whitespace
+iOS/CrashReporter.xcframework/** -text -whitespace
+iOS/ThirdPartyNotices/** -text -whitespace
+
+# Keep the existing CRLF ignore file's diff limited to added rules.
+.gitignore -text whitespace=cr-at-eol

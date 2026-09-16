@@ -1,9 +1,44 @@
 {
   "ABIRoot": {
     "kind": "Root",
-    "name": "TopLevel",
-    "printedName": "TopLevel",
+    "name": "Backtrace",
+    "printedName": "Backtrace",
     "children": [
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "Backtrace"
+      },
+      {
+        "kind": "Import",
+        "name": "CryptoKit",
+        "printedName": "CryptoKit",
+        "declKind": "Import",
+        "moduleName": "Backtrace"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "Backtrace"
+      },
+      {
+        "kind": "Import",
+        "name": "CrashReporter",
+        "printedName": "CrashReporter",
+        "declKind": "Import",
+        "moduleName": "Backtrace"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "Backtrace"
+      },
       {
         "kind": "Import",
         "name": "Foundation",
@@ -218,6 +253,22 @@
           "AccessControl",
           "ObjC",
           "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
         ]
       },
       {
@@ -528,6 +579,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -570,6 +635,44 @@
         "printedName": "BacktraceLogger",
         "children": [
           {
+            "kind": "Function",
+            "name": "setDestinations",
+            "printedName": "setDestinations(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Set",
+                "printedName": "Swift.Set<Backtrace.BacktraceBaseDestination>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BacktraceBaseDestination",
+                    "printedName": "Backtrace.BacktraceBaseDestination",
+                    "usr": "c:@M@Backtrace@objc(cs)BacktraceBaseDestination"
+                  }
+                ],
+                "usr": "s:Sh"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "c:@M@Backtrace@objc(cs)BacktraceLogger(cm)setDestinations:",
+            "mangledName": "$s9Backtrace0A6LoggerC15setDestinationsyyShyAA0A15BaseDestinationCGFZ",
+            "moduleName": "Backtrace",
+            "static": true,
+            "objc_name": "setDestinations:",
+            "declAttributes": [
+              "AccessControl",
+              "ObjC",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
             "kind": "Constructor",
             "name": "init",
             "printedName": "init()",
@@ -611,6 +714,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -795,6 +912,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -1010,6 +1141,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -1172,6 +1317,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -1937,6 +2096,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -2161,6 +2334,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -2370,6 +2557,20 @@
         ],
         "enumRawTypeName": "Int",
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -2990,6 +3191,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -3415,6 +3630,20 @@
         ],
         "enumRawTypeName": "Int",
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -3889,6 +4118,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -5469,38 +5712,17 @@
         "conformances": [
           {
             "kind": "Conformance",
-            "name": "BacktraceClientCustomizing",
-            "printedName": "BacktraceClientCustomizing",
-            "usr": "c:@M@Backtrace@objc(pl)BacktraceClientCustomizing",
-            "mangledName": "$s9Backtrace0A17ClientCustomizingP"
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
           },
           {
             "kind": "Conformance",
-            "name": "BacktraceReporting",
-            "printedName": "BacktraceReporting",
-            "usr": "c:@M@Backtrace@objc(pl)BacktraceReporting",
-            "mangledName": "$s9Backtrace0A9ReportingP"
-          },
-          {
-            "kind": "Conformance",
-            "name": "BacktraceLogging",
-            "printedName": "BacktraceLogging",
-            "usr": "c:@M@Backtrace@objc(pl)BacktraceLogging",
-            "mangledName": "$s9Backtrace0A7LoggingP"
-          },
-          {
-            "kind": "Conformance",
-            "name": "BacktraceMetricsProtocol",
-            "printedName": "BacktraceMetricsProtocol",
-            "usr": "c:@M@Backtrace@objc(pl)BacktraceMetricsProtocol",
-            "mangledName": "$s9Backtrace0A15MetricsProtocolP"
-          },
-          {
-            "kind": "Conformance",
-            "name": "BacktraceBreadcrumbProtocol",
-            "printedName": "BacktraceBreadcrumbProtocol",
-            "usr": "c:@M@Backtrace@objc(pl)BacktraceBreadcrumbProtocol",
-            "mangledName": "$s9Backtrace0A18BreadcrumbProtocolP"
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
           },
           {
             "kind": "Conformance",
@@ -5550,6 +5772,41 @@
             "printedName": "CustomDebugStringConvertible",
             "usr": "s:s28CustomDebugStringConvertibleP",
             "mangledName": "$ss28CustomDebugStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "BacktraceClientCustomizing",
+            "printedName": "BacktraceClientCustomizing",
+            "usr": "c:@M@Backtrace@objc(pl)BacktraceClientCustomizing",
+            "mangledName": "$s9Backtrace0A17ClientCustomizingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "BacktraceReporting",
+            "printedName": "BacktraceReporting",
+            "usr": "c:@M@Backtrace@objc(pl)BacktraceReporting",
+            "mangledName": "$s9Backtrace0A9ReportingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "BacktraceLogging",
+            "printedName": "BacktraceLogging",
+            "usr": "c:@M@Backtrace@objc(pl)BacktraceLogging",
+            "mangledName": "$s9Backtrace0A7LoggingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "BacktraceMetricsProtocol",
+            "printedName": "BacktraceMetricsProtocol",
+            "usr": "c:@M@Backtrace@objc(pl)BacktraceMetricsProtocol",
+            "mangledName": "$s9Backtrace0A15MetricsProtocolP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "BacktraceBreadcrumbProtocol",
+            "printedName": "BacktraceBreadcrumbProtocol",
+            "usr": "c:@M@Backtrace@objc(pl)BacktraceBreadcrumbProtocol",
+            "mangledName": "$s9Backtrace0A18BreadcrumbProtocolP"
           }
         ]
       },
@@ -5728,6 +5985,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -6042,6 +6313,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -6145,6 +6430,51 @@
         "name": "BacktraceCrashReporter",
         "printedName": "BacktraceCrashReporter",
         "children": [
+          {
+            "kind": "Var",
+            "name": "handlerInstallationAttempted",
+            "printedName": "handlerInstallationAttempted",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@Backtrace@objc(cs)BacktraceCrashReporter(py)handlerInstallationAttempted",
+            "mangledName": "$s9Backtrace0A13CrashReporterC28handlerInstallationAttemptedSbvp",
+            "moduleName": "Backtrace",
+            "declAttributes": [
+              "AccessControl",
+              "ObjC",
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@Backtrace@objc(cs)BacktraceCrashReporter(im)handlerInstallationAttempted",
+                "mangledName": "$s9Backtrace0A13CrashReporterC28handlerInstallationAttemptedSbvg",
+                "moduleName": "Backtrace",
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              }
+            ]
+          },
           {
             "kind": "Constructor",
             "name": "init",
@@ -6250,6 +6580,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -6331,6 +6675,13 @@
         "kind": "Import",
         "name": "CoreData",
         "printedName": "CoreData",
+        "declKind": "Import",
+        "moduleName": "Backtrace"
+      },
+      {
+        "kind": "Import",
+        "name": "Darwin",
+        "printedName": "Darwin",
         "declKind": "Import",
         "moduleName": "Backtrace"
       },
@@ -6731,6 +7082,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -6874,6 +7239,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -7511,6 +7890,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -8154,6 +8547,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -8525,6 +8932,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -8803,6 +9224,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -8913,6 +9348,7 @@
             "declAttributes": [
               "Dynamic",
               "ObjC",
+              "Nonisolated",
               "Override"
             ],
             "init_kind": "Designated"
@@ -8984,6 +9420,7 @@
             "objc_name": "attachmentPaths",
             "declAttributes": [
               "Dynamic",
+              "Nonisolated",
               "AccessControl",
               "NSManaged",
               "ObjC"
@@ -9104,6 +9541,7 @@
             "objc_name": "dateAdded",
             "declAttributes": [
               "Dynamic",
+              "Nonisolated",
               "AccessControl",
               "NSManaged",
               "ObjC"
@@ -9183,6 +9621,216 @@
           },
           {
             "kind": "Var",
+            "name": "deliveryOwner",
+            "printedName": "deliveryOwner",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@CM@Backtrace@objc(cs)Crash(py)deliveryOwner",
+            "mangledName": "$s9Backtrace5CrashC13deliveryOwnerSSSgvp",
+            "moduleName": "Backtrace",
+            "objc_name": "deliveryOwner",
+            "declAttributes": [
+              "Dynamic",
+              "Nonisolated",
+              "AccessControl",
+              "NSManaged",
+              "ObjC"
+            ],
+            "isFromExtension": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@CM@Backtrace@objc(cs)Crash(im)deliveryOwner",
+                "mangledName": "$s9Backtrace5CrashC13deliveryOwnerSSSgvg",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "Dynamic",
+                  "ObjC"
+                ],
+                "isFromExtension": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@CM@Backtrace@objc(cs)Crash(im)setDeliveryOwner:",
+                "mangledName": "$s9Backtrace5CrashC13deliveryOwnerSSSgvs",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "Dynamic",
+                  "ObjC"
+                ],
+                "isFromExtension": true,
+                "accessorKind": "set"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "deliveryStateRaw",
+            "printedName": "deliveryStateRaw",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Foundation.NSNumber?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "NSNumber",
+                    "printedName": "Foundation.NSNumber",
+                    "usr": "c:objc(cs)NSNumber"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@CM@Backtrace@objc(cs)Crash(py)deliveryStateRaw",
+            "mangledName": "$s9Backtrace5CrashC16deliveryStateRawSo8NSNumberCSgvp",
+            "moduleName": "Backtrace",
+            "objc_name": "deliveryStateRaw",
+            "declAttributes": [
+              "Dynamic",
+              "Nonisolated",
+              "AccessControl",
+              "NSManaged",
+              "ObjC"
+            ],
+            "isFromExtension": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Foundation.NSNumber?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "NSNumber",
+                        "printedName": "Foundation.NSNumber",
+                        "usr": "c:objc(cs)NSNumber"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@CM@Backtrace@objc(cs)Crash(im)deliveryStateRaw",
+                "mangledName": "$s9Backtrace5CrashC16deliveryStateRawSo8NSNumberCSgvg",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "Dynamic",
+                  "ObjC"
+                ],
+                "isFromExtension": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Foundation.NSNumber?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "NSNumber",
+                        "printedName": "Foundation.NSNumber",
+                        "usr": "c:objc(cs)NSNumber"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@CM@Backtrace@objc(cs)Crash(im)setDeliveryStateRaw:",
+                "mangledName": "$s9Backtrace5CrashC16deliveryStateRawSo8NSNumberCSgvs",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "Dynamic",
+                  "ObjC"
+                ],
+                "isFromExtension": true,
+                "accessorKind": "set"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
             "name": "hashProperty",
             "printedName": "hashProperty",
             "children": [
@@ -9208,6 +9856,7 @@
             "objc_name": "hashProperty",
             "declAttributes": [
               "Dynamic",
+              "Nonisolated",
               "AccessControl",
               "NSManaged",
               "ObjC"
@@ -9312,6 +9961,7 @@
             "objc_name": "reportData",
             "declAttributes": [
               "Dynamic",
+              "Nonisolated",
               "AccessControl",
               "NSManaged",
               "ObjC"
@@ -9408,6 +10058,7 @@
             "objc_name": "retryCount",
             "declAttributes": [
               "Dynamic",
+              "Nonisolated",
               "AccessControl",
               "NSManaged",
               "ObjC"
@@ -9476,6 +10127,7 @@
         "moduleName": "Backtrace",
         "objc_name": "Crash",
         "declAttributes": [
+          "Nonisolated",
           "AccessControl",
           "ObjC"
         ],
@@ -9486,6 +10138,20 @@
           "ObjectiveC.NSObject"
         ],
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -9556,6 +10222,20 @@
             ],
             "usr": "s:7Combine16ObservableObjectP",
             "mangledName": "$s7Combine16ObservableObjectP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
           }
         ]
       },
@@ -9833,6 +10513,20 @@
         ],
         "enumRawTypeName": "Int",
         "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
           {
             "kind": "Conformance",
             "name": "Equatable",
@@ -10297,6 +10991,259 @@
                 "declKind": "Accessor",
                 "usr": "s:9Backtrace0A19ClientConfigurationC13reportsPerMinSivM",
                 "mangledName": "$s9Backtrace0A19ClientConfigurationC13reportsPerMinSivM",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "loggingDestinations",
+            "printedName": "loggingDestinations",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Set<Backtrace.BacktraceBaseDestination>?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Set",
+                    "printedName": "Swift.Set<Backtrace.BacktraceBaseDestination>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BacktraceBaseDestination",
+                        "printedName": "Backtrace.BacktraceBaseDestination",
+                        "usr": "c:@M@Backtrace@objc(cs)BacktraceBaseDestination"
+                      }
+                    ],
+                    "usr": "s:Sh"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@Backtrace@objc(cs)BacktraceClientConfiguration(py)loggingDestinations",
+            "mangledName": "$s9Backtrace0A19ClientConfigurationC19loggingDestinationsShyAA0A15BaseDestinationCGSgvp",
+            "moduleName": "Backtrace",
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "AccessControl",
+              "ObjC",
+              "RawDocComment"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Set<Backtrace.BacktraceBaseDestination>?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Set",
+                        "printedName": "Swift.Set<Backtrace.BacktraceBaseDestination>",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "BacktraceBaseDestination",
+                            "printedName": "Backtrace.BacktraceBaseDestination",
+                            "usr": "c:@M@Backtrace@objc(cs)BacktraceBaseDestination"
+                          }
+                        ],
+                        "usr": "s:Sh"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@Backtrace@objc(cs)BacktraceClientConfiguration(im)loggingDestinations",
+                "mangledName": "$s9Backtrace0A19ClientConfigurationC19loggingDestinationsShyAA0A15BaseDestinationCGSgvg",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Set<Backtrace.BacktraceBaseDestination>?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Set",
+                        "printedName": "Swift.Set<Backtrace.BacktraceBaseDestination>",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "BacktraceBaseDestination",
+                            "printedName": "Backtrace.BacktraceBaseDestination",
+                            "usr": "c:@M@Backtrace@objc(cs)BacktraceBaseDestination"
+                          }
+                        ],
+                        "usr": "s:Sh"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@Backtrace@objc(cs)BacktraceClientConfiguration(im)setLoggingDestinations:",
+                "mangledName": "$s9Backtrace0A19ClientConfigurationC19loggingDestinationsShyAA0A15BaseDestinationCGSgvs",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:9Backtrace0A19ClientConfigurationC19loggingDestinationsShyAA0A15BaseDestinationCGSgvM",
+                "mangledName": "$s9Backtrace0A19ClientConfigurationC19loggingDestinationsShyAA0A15BaseDestinationCGSgvM",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "delegate",
+            "printedName": "delegate",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "WeakStorage",
+                "printedName": "(any Backtrace.BacktraceClientDelegate)?"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@Backtrace@objc(cs)BacktraceClientConfiguration(py)delegate",
+            "mangledName": "$s9Backtrace0A19ClientConfigurationC8delegateAA0aB8Delegate_pSgvp",
+            "moduleName": "Backtrace",
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "ReferenceOwnership",
+              "AccessControl",
+              "ObjC",
+              "RawDocComment"
+            ],
+            "ownership": 1,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "(any Backtrace.BacktraceClientDelegate)?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BacktraceClientDelegate",
+                        "printedName": "any Backtrace.BacktraceClientDelegate",
+                        "usr": "c:@M@Backtrace@objc(pl)BacktraceClientDelegate"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@Backtrace@objc(cs)BacktraceClientConfiguration(im)delegate",
+                "mangledName": "$s9Backtrace0A19ClientConfigurationC8delegateAA0aB8Delegate_pSgvg",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "(any Backtrace.BacktraceClientDelegate)?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BacktraceClientDelegate",
+                        "printedName": "any Backtrace.BacktraceClientDelegate",
+                        "usr": "c:@M@Backtrace@objc(pl)BacktraceClientDelegate"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@Backtrace@objc(cs)BacktraceClientConfiguration(im)setDelegate:",
+                "mangledName": "$s9Backtrace0A19ClientConfigurationC8delegateAA0aB8Delegate_pSgvs",
+                "moduleName": "Backtrace",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:9Backtrace0A19ClientConfigurationC8delegateAA0aB8Delegate_pSgvM",
+                "mangledName": "$s9Backtrace0A19ClientConfigurationC8delegateAA0aB8Delegate_pSgvM",
                 "moduleName": "Backtrace",
                 "implicit": true,
                 "accessorKind": "_modify"
@@ -10778,6 +11725,20 @@
         "conformances": [
           {
             "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Equatable",
             "printedName": "Equatable",
             "usr": "s:SQ",
@@ -11230,6 +12191,22 @@
           "AccessControl",
           "ObjC",
           "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
         ]
       },
       {
@@ -11506,6 +12483,22 @@
           "AccessControl",
           "ObjC",
           "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
         ]
       },
       {
@@ -11628,6 +12621,22 @@
           "AccessControl",
           "ObjC",
           "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
         ]
       },
       {
@@ -11694,6 +12703,22 @@
           "AccessControl",
           "ObjC",
           "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
         ]
       },
       {
@@ -12338,6 +13363,22 @@
           "AccessControl",
           "ObjC",
           "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
         ]
       },
       {
@@ -12351,6 +13392,34 @@
     "json_format_version": 8
   },
   "ConstValues": [
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceSubmissionCoordinator.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1668,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceSubmissionCoordinator.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1717,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceSubmissionCoordinator.swift",
+      "kind": "Array",
+      "offset": 1777,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/RepositoryAttachmentStore.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2155,
+      "length": 5,
+      "value": "false"
+    },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/Payload.swift",
       "kind": "IntegerLiteral",
@@ -12366,13 +13435,6 @@
       "value": "\"dropped_events\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/Payload.swift",
-      "kind": "StringLiteral",
-      "offset": 160,
-      "length": 16,
-      "value": "\"dropped_events\""
-    },
-    {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/UniqueEventsPayload.swift",
       "kind": "StringLiteral",
       "offset": 556,
@@ -12392,55 +13454,6 @@
       "offset": 627,
       "length": 12,
       "value": "\"appversion\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/UniqueEventsPayload.swift",
-      "kind": "StringLiteral",
-      "offset": 556,
-      "length": 15,
-      "value": "\"unique_events\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/UniqueEventsPayload.swift",
-      "kind": "StringLiteral",
-      "offset": 591,
-      "length": 13,
-      "value": "\"application\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/UniqueEventsPayload.swift",
-      "kind": "StringLiteral",
-      "offset": 627,
-      "length": 12,
-      "value": "\"appversion\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceLogger.swift",
-      "kind": "IntegerLiteral",
-      "offset": 211,
-      "length": 7,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceLogger.swift",
-      "kind": "IntegerLiteral",
-      "offset": 279,
-      "length": 4,
-      "value": "2"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceLogger.swift",
-      "kind": "IntegerLiteral",
-      "offset": 340,
-      "length": 5,
-      "value": "3"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceLogger.swift",
-      "kind": "IntegerLiteral",
-      "offset": 398,
-      "length": 4,
-      "value": "4"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceLogger.swift",
@@ -12473,16 +13486,16 @@
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceLogger.swift",
       "kind": "Array",
-      "offset": 889,
+      "offset": 917,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceLogger.swift",
       "kind": "StringLiteral",
-      "offset": 2632,
+      "offset": 4465,
       "length": 24,
-      "value": "\"Backtrace.BacktraceBaseDestination\""
+      "value": "\"yyyy-MM-dd hh:mm:ssSSS\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
@@ -12494,63 +13507,49 @@
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
       "kind": "IntegerLiteral",
-      "offset": 387,
+      "offset": 761,
       "length": 1,
       "value": "0"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
       "kind": "IntegerLiteral",
-      "offset": 509,
+      "offset": 883,
       "length": 1,
       "value": "5"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
       "kind": "IntegerLiteral",
-      "offset": 599,
+      "offset": 973,
       "length": 1,
       "value": "3"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
       "kind": "BooleanLiteral",
-      "offset": 991,
+      "offset": 1365,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
       "kind": "IntegerLiteral",
-      "offset": 1129,
+      "offset": 1503,
       "length": 1,
       "value": "0"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
       "kind": "IntegerLiteral",
-      "offset": 1433,
+      "offset": 1807,
       "length": 8,
       "value": "1"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
       "kind": "IntegerLiteral",
-      "offset": 1433,
-      "length": 8,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
-      "kind": "IntegerLiteral",
-      "offset": 1699,
-      "length": 5,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceDatabaseSettings.swift",
-      "kind": "IntegerLiteral",
-      "offset": 1699,
+      "offset": 2073,
       "length": 5,
       "value": "1"
     },
@@ -12563,8 +13562,15 @@
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Dispatching\/Dispatcher.swift",
+      "kind": "BooleanLiteral",
+      "offset": 274,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Dispatching\/Dispatcher.swift",
       "kind": "IntegerLiteral",
-      "offset": 479,
+      "offset": 562,
       "length": 2,
       "value": "10"
     },
@@ -12632,41 +13638,6 @@
       "value": "\"unique\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/UniqueEvent.swift",
-      "kind": "StringLiteral",
-      "offset": 454,
-      "length": 8,
-      "value": "\"unique\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceReportStatus.swift",
-      "kind": "IntegerLiteral",
-      "offset": 223,
-      "length": 2,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceReportStatus.swift",
-      "kind": "IntegerLiteral",
-      "offset": 265,
-      "length": 16,
-      "value": "2"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceReportStatus.swift",
-      "kind": "IntegerLiteral",
-      "offset": 323,
-      "length": 12,
-      "value": "3"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceReportStatus.swift",
-      "kind": "IntegerLiteral",
-      "offset": 375,
-      "length": 12,
-      "value": "4"
-    },
-    {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceReportStatus.swift",
       "kind": "IntegerLiteral",
       "offset": 223,
@@ -12709,44 +13680,16 @@
       "value": "\"token\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceResult.swift",
-      "kind": "StringLiteral",
-      "offset": 92,
-      "length": 15,
-      "value": "\"Backtrace.BacktraceResult\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceNotificationObserver.swift",
-      "kind": "StringLiteral",
-      "offset": 373,
-      "length": 29,
-      "value": "\"Backtrace.BacktraceNotificationObserver\""
-    },
-    {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceNotificationObserver.swift",
       "kind": "BooleanLiteral",
-      "offset": 4755,
+      "offset": 5457,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceNotificationObserver.swift",
       "kind": "IntegerLiteral",
-      "offset": 12670,
-      "length": 18,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceNotificationObserver.swift",
-      "kind": "IntegerLiteral",
-      "offset": 12670,
-      "length": 18,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceNotificationObserver.swift",
-      "kind": "IntegerLiteral",
-      "offset": 12670,
+      "offset": 15256,
       "length": 18,
       "value": "1"
     },
@@ -12779,86 +13722,65 @@
       "value": "\"DELETE\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/HttpMethod.swift",
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClient.swift",
       "kind": "StringLiteral",
-      "offset": 61,
-      "length": 6,
-      "value": "\"POST\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/HttpMethod.swift",
-      "kind": "StringLiteral",
-      "offset": 83,
-      "length": 5,
-      "value": "\"GET\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/HttpMethod.swift",
-      "kind": "StringLiteral",
-      "offset": 104,
-      "length": 5,
-      "value": "\"PUT\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/HttpMethod.swift",
-      "kind": "StringLiteral",
-      "offset": 128,
-      "length": 8,
-      "value": "\"DELETE\""
+      "offset": 1568,
+      "length": 51,
+      "value": "\"io.backtrace.client.shutdown.\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClient.swift",
       "kind": "StringLiteral",
-      "offset": 115,
-      "length": 15,
-      "value": "\"Backtrace.BacktraceClient\""
+      "offset": 1618,
+      "length": 1,
+      "value": "\"\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClient.swift",
       "kind": "Array",
-      "offset": 5864,
+      "offset": 8534,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClient.swift",
       "kind": "Array",
-      "offset": 6174,
+      "offset": 8844,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClient.swift",
       "kind": "Array",
-      "offset": 6473,
+      "offset": 9143,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClient.swift",
       "kind": "Array",
-      "offset": 6812,
+      "offset": 9482,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClient.swift",
       "kind": "Array",
-      "offset": 7108,
+      "offset": 9778,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/Model\/AttachmentsStorage.swift",
       "kind": "StringLiteral",
-      "offset": 824,
+      "offset": 1192,
       "length": 16,
       "value": "\"BacktraceCache\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/AttributesStorage.swift",
       "kind": "StringLiteral",
-      "offset": 717,
+      "offset": 1073,
       "length": 16,
       "value": "\"BacktraceCache\""
     },
@@ -12879,14 +13801,14 @@
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/BacktraceMetricsContainer.swift",
       "kind": "StringLiteral",
-      "offset": 195,
+      "offset": 227,
       "length": 22,
       "value": "\"Application Launches\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/BacktraceMetricsContainer.swift",
       "kind": "StringLiteral",
-      "offset": 258,
+      "offset": 290,
       "length": 6,
       "value": "\"guid\""
     },
@@ -12912,18 +13834,32 @@
       "value": "1024"
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCredentials.swift",
-      "kind": "StringLiteral",
-      "offset": 76,
-      "length": 20,
-      "value": "\"Backtrace.BacktraceCredentials\""
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/BacktraceMetrics.swift",
+      "kind": "BooleanLiteral",
+      "offset": 357,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/BacktraceMetrics.swift",
+      "kind": "IntegerLiteral",
+      "offset": 515,
+      "length": 1,
+      "value": "0"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/BacktraceMetrics.swift",
       "kind": "StringLiteral",
-      "offset": 36,
-      "length": 16,
-      "value": "\"Backtrace.BacktraceMetrics\""
+      "offset": 627,
+      "length": 48,
+      "value": "\"Count method called but metrics is not enabled\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/BacktraceMetrics.swift",
+      "kind": "IntegerLiteral",
+      "offset": 696,
+      "length": 1,
+      "value": "0"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/SummedEventsPayload.swift",
@@ -12947,116 +13883,298 @@
       "value": "\"appversion\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/SummedEventsPayload.swift",
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceReporter.swift",
       "kind": "StringLiteral",
-      "offset": 556,
-      "length": 15,
-      "value": "\"summed_events\""
+      "offset": 432,
+      "length": 53,
+      "value": "\"io.backtrace.reporter.shutdown.\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/SummedEventsPayload.swift",
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceReporter.swift",
       "kind": "StringLiteral",
-      "offset": 591,
-      "length": 13,
-      "value": "\"application\""
+      "offset": 484,
+      "length": 1,
+      "value": "\"\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/SummedEventsPayload.swift",
-      "kind": "StringLiteral",
-      "offset": 627,
-      "length": 12,
-      "value": "\"appversion\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbsLogManager.swift",
-      "kind": "StringLiteral",
-      "offset": 31,
-      "length": 30,
-      "value": "\"Backtrace.BacktraceBreadcrumbsLogManager\""
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceReporter.swift",
+      "kind": "BooleanLiteral",
+      "offset": 522,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceReporter.swift",
       "kind": "Array",
-      "offset": 3831,
+      "offset": 7159,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceReporter.swift",
       "kind": "Array",
-      "offset": 4393,
+      "offset": 7721,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
       "kind": "StringLiteral",
-      "offset": 226,
+      "offset": 512,
+      "length": 36,
+      "value": "\"backtrace.pending.attributes.error\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
+      "kind": "StringLiteral",
+      "offset": 592,
+      "length": 45,
+      "value": "\"backtrace.pending.attributes.invalid_values\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
+      "kind": "StringLiteral",
+      "offset": 675,
+      "length": 49,
+      "value": "\"backtrace.pending.attachments.invalid_bookmarks\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
+      "kind": "StringLiteral",
+      "offset": 764,
+      "length": 45,
+      "value": "\"backtrace.pending.attachments.missing_files\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
+      "kind": "StringLiteral",
+      "offset": 855,
+      "length": 47,
+      "value": "\"backtrace.pending.sidecars.preservation_error\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
+      "kind": "StringLiteral",
+      "offset": 949,
+      "length": 48,
+      "value": "\"backtrace.pending.dead_letter.sidecars.missing\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
+      "kind": "StringLiteral",
+      "offset": 1048,
+      "length": 54,
+      "value": "\"backtrace.pending.dead_letter.sidecars.copy_failures\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
+      "kind": "StringLiteral",
+      "offset": 4298,
       "length": 13,
       "value": "\"live_report\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
-      "kind": "StringLiteral",
-      "offset": 114,
-      "length": 22,
-      "value": "\"Backtrace.BacktraceCrashReporter\""
+      "kind": "BooleanLiteral",
+      "offset": 4472,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
       "kind": "Array",
-      "offset": 2396,
+      "offset": 7337,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceCrashReporter.swift",
       "kind": "Array",
-      "offset": 2936,
+      "offset": 7877,
       "length": 2,
       "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceOomWatcher.swift",
       "kind": "IntegerLiteral",
-      "offset": 634,
+      "offset": 721,
       "length": 6,
       "value": "60000"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceOomWatcher.swift",
       "kind": "StringLiteral",
-      "offset": 716,
+      "offset": 803,
       "length": 25,
       "value": "\"BacktraceOomState.plist\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceOomWatcher.swift",
       "kind": "BooleanLiteral",
-      "offset": 1810,
+      "offset": 1651,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Client\/BacktraceOomWatcher.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2127,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
       "kind": "IntegerLiteral",
-      "offset": 9018,
+      "offset": 354,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1078,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "BooleanLiteral",
+      "offset": 7279,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "BooleanLiteral",
+      "offset": 8419,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 11553,
+      "length": 2,
+      "value": "-1"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 11587,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 11626,
       "length": 1,
       "value": "1"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
       "kind": "IntegerLiteral",
-      "offset": 9603,
+      "offset": 11653,
+      "length": 1,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 11692,
+      "length": 1,
+      "value": "3"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 11719,
+      "length": 1,
+      "value": "4"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 11757,
+      "length": 1,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "BooleanLiteral",
+      "offset": 14242,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "StringLiteral",
+      "offset": 14304,
+      "length": 34,
+      "value": "\"backtrace.repository.maintenance\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "BooleanLiteral",
+      "offset": 14453,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "BooleanLiteral",
+      "offset": 14509,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 16162,
       "length": 1,
       "value": "1"
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/Model\/BacktraceReport.swift",
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
       "kind": "StringLiteral",
-      "offset": 147,
-      "length": 15,
-      "value": "\"Backtrace.BacktraceReport\""
+      "offset": 27299,
+      "length": 7,
+      "value": "\"Model\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 52801,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 53779,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "Array",
+      "offset": 73837,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "IntegerLiteral",
+      "offset": 75472,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Repository\/PersistentRepository.swift",
+      "kind": "Array",
+      "offset": 75518,
+      "length": 2,
+      "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/Queue.swift",
@@ -13108,13 +14226,6 @@
       "value": "\"bt-breadcrumbs-0\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbSettings.swift",
-      "kind": "StringLiteral",
-      "offset": 83,
-      "length": 27,
-      "value": "\"Backtrace.BacktraceBreadcrumbSettings\""
-    },
-    {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/System.swift",
       "kind": "IntegerLiteral",
       "offset": 13517,
@@ -13141,6 +14252,20 @@
       "offset": 13567,
       "length": 1,
       "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceNetworkClient.swift",
+      "kind": "Dictionary",
+      "offset": 231,
+      "length": 3,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceNetworkClient.swift",
+      "kind": "BooleanLiteral",
+      "offset": 271,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
@@ -13201,90 +14326,6 @@
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
       "kind": "IntegerLiteral",
-      "offset": 87,
-      "length": 1,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 104,
-      "length": 1,
-      "value": "2"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 128,
-      "length": 1,
-      "value": "3"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 146,
-      "length": 1,
-      "value": "4"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 166,
-      "length": 1,
-      "value": "5"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 184,
-      "length": 1,
-      "value": "6"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 211,
-      "length": 1,
-      "value": "7"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 902,
-      "length": 1,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 920,
-      "length": 1,
-      "value": "2"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 941,
-      "length": 1,
-      "value": "3"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 960,
-      "length": 1,
-      "value": "4"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
-      "offset": 979,
-      "length": 1,
-      "value": "5"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
-      "kind": "IntegerLiteral",
       "offset": 902,
       "length": 1,
       "value": "1"
@@ -13325,67 +14366,18 @@
       "value": "false"
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbs.swift",
       "kind": "BooleanLiteral",
-      "offset": 505,
+      "offset": 1765,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 4849,
-      "length": 15,
-      "value": "\"screens.count\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 4955,
-      "length": 14,
-      "value": "\"screen.scale\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 4991,
-      "length": 14,
-      "value": "\"screen.width\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 5028,
-      "length": 15,
-      "value": "\"screen.height\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 5071,
-      "length": 21,
-      "value": "\"screen.scale.native\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 5120,
-      "length": 21,
-      "value": "\"screen.width.native\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 5170,
-      "length": 22,
-      "value": "\"screen.height.native\""
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
-      "kind": "StringLiteral",
-      "offset": 5219,
-      "length": 19,
-      "value": "\"screen.brightness\""
+      "kind": "BooleanLiteral",
+      "offset": 505,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Attributes\/DefaultAttributes.swift",
@@ -13462,7 +14454,14 @@
       "kind": "StringLiteral",
       "offset": 7951,
       "length": 7,
-      "value": "\"2.1.0\""
+      "value": "\"2.2.0\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceApi.swift",
+      "kind": "BooleanLiteral",
+      "offset": 673,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
@@ -13488,79 +14487,51 @@
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
       "kind": "IntegerLiteral",
-      "offset": 222,
-      "length": 1,
-      "value": "0"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
-      "kind": "IntegerLiteral",
-      "offset": 304,
-      "length": 1,
-      "value": "1"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
-      "kind": "IntegerLiteral",
-      "offset": 396,
-      "length": 1,
-      "value": "2"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
-      "kind": "IntegerLiteral",
-      "offset": 1320,
+      "offset": 1374,
       "length": 2,
       "value": "30"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
       "kind": "BooleanLiteral",
-      "offset": 1495,
+      "offset": 2117,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
       "kind": "IntegerLiteral",
-      "offset": 2944,
+      "offset": 3584,
       "length": 2,
       "value": "30"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
       "kind": "BooleanLiteral",
-      "offset": 3002,
+      "offset": 3642,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
       "kind": "IntegerLiteral",
-      "offset": 4245,
+      "offset": 4903,
       "length": 2,
       "value": "30"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
       "kind": "BooleanLiteral",
-      "offset": 4315,
+      "offset": 4973,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
       "kind": "BooleanLiteral",
-      "offset": 4374,
+      "offset": 5032,
       "length": 5,
       "value": "false"
-    },
-    {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientConfiguration.swift",
-      "kind": "StringLiteral",
-      "offset": 465,
-      "length": 28,
-      "value": "\"Backtrace.BacktraceClientConfiguration\""
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbFile.swift",
@@ -13584,25 +14555,46 @@
       "value": "\"\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Breadcrumb\/BacktraceBreadcrumbFile.swift",
-      "kind": "StringLiteral",
-      "offset": 100,
-      "length": 23,
-      "value": "\"Backtrace.BacktraceBreadcrumbFile\""
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Watcher\/BacktraceWatcher.swift",
+      "kind": "BooleanLiteral",
+      "offset": 859,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Watcher\/BacktraceWatcher.swift",
       "kind": "StringLiteral",
-      "offset": 617,
+      "offset": 1160,
       "length": 17,
       "value": "\"backtrace.timer\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/SummedEvent.swift",
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Watcher\/BacktraceWatcher.swift",
       "kind": "StringLiteral",
-      "offset": 379,
-      "length": 14,
-      "value": "\"metric_group\""
+      "offset": 2189,
+      "length": 17,
+      "value": "\"backtrace.timer\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Watcher\/BacktraceWatcher.swift",
+      "kind": "BooleanLiteral",
+      "offset": 4511,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Watcher\/BacktraceWatcher.swift",
+      "kind": "BooleanLiteral",
+      "offset": 5047,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Watcher\/BacktraceWatcher.swift",
+      "kind": "BooleanLiteral",
+      "offset": 6911,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/SummedEvent.swift",
@@ -13612,18 +14604,25 @@
       "value": "\"metric_group\""
     },
     {
-      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceRateLimiter.swift",
-      "kind": "Array",
-      "offset": 99,
-      "length": 2,
-      "value": "[]"
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Metrics\/Model\/BacktraceMetricsSender.swift",
+      "kind": "BooleanLiteral",
+      "offset": 410,
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceRateLimiter.swift",
       "kind": "FloatLiteral",
-      "offset": 161,
+      "offset": 153,
       "length": 4,
       "value": "60.0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Features\/Network\/BacktraceRateLimiter.swift",
+      "kind": "Array",
+      "offset": 277,
+      "length": 2,
+      "value": "[]"
     },
     {
       "filePath": "\/Users\/runner\/work\/backtrace-cocoa\/backtrace-cocoa\/Sources\/Public\/BacktraceClientCustomizing.swift",

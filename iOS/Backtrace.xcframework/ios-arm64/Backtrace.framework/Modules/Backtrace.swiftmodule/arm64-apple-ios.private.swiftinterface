@@ -1,10 +1,12 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.10 (swiftlang-5.10.0.13 clang-1500.3.9.4)
-// swift-module-flags: -target arm64-apple-ios13.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-bare-slash-regex -module-name Backtrace
+// swift-compiler-version: Apple Swift version 6.2.4 effective-5.10 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)
+// swift-module-flags: -target arm64-apple-ios15.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name Backtrace
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -formal-cxx-interoperability-mode=off -interface-compiler-version 6.2.4
 @_exported import Backtrace
 import CallKit
 import CoreData
 import CrashReporter
+import CryptoKit
 import Darwin
 import Foundation
 import MachO
@@ -29,13 +31,16 @@ import _SwiftConcurrencyShims
   case info
   case error
   case none
+  #if compiler(>=5.3) && $NonescapableTypes
   public init?(rawValue: Swift.Int)
+  #endif
   public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
   }
 }
 @_inheritsConvenienceInitializers @objc public class BacktraceLogger : ObjectiveC.NSObject {
+  @objc(setDestinations:) public class func setDestinations(_ destinations: Swift.Set<Backtrace.BacktraceBaseDestination>)
   @objc override dynamic public init()
   @objc deinit
 }
@@ -71,7 +76,9 @@ import _SwiftConcurrencyShims
 @objc public enum RetryBehaviour : Swift.Int {
   case none
   case interval
+  #if compiler(>=5.3) && $NonescapableTypes
   public init?(rawValue: Swift.Int)
+  #endif
   public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
@@ -80,7 +87,9 @@ import _SwiftConcurrencyShims
 @objc public enum RetryOrder : Swift.Int {
   case queue
   case stack
+  #if compiler(>=5.3) && $NonescapableTypes
   public init?(rawValue: Swift.Int)
+  #endif
   public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
@@ -101,7 +110,9 @@ import _SwiftConcurrencyShims
   case debuggerAttached
   case unknownError
   case limitReached
+  #if compiler(>=5.3) && $NonescapableTypes
   public init?(rawValue: Swift.Int)
+  #endif
   public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
@@ -133,10 +144,12 @@ extension Backtrace.BacktraceResult {
   @objc deinit
 }
 extension Backtrace.BacktraceClient : Backtrace.BacktraceClientCustomizing {
+  #if compiler(>=5.3) && $NonescapableTypes
   @objc dynamic public var delegate: (any Backtrace.BacktraceClientDelegate)? {
     @objc get
     @objc set
   }
+  #endif
   @objc dynamic public var attributes: Backtrace.Attributes {
     @objc get
     @objc set
@@ -147,10 +160,12 @@ extension Backtrace.BacktraceClient : Backtrace.BacktraceClientCustomizing {
   }
 }
 extension Backtrace.BacktraceClient : Backtrace.BacktraceReporting {
-  @objc dynamic public func send(error: any Swift.Error, attachmentPaths: [Swift.String] = [], completion: @escaping ((Backtrace.BacktraceResult) -> Swift.Void))
-  @objc dynamic public func send(message: Swift.String, attachmentPaths: [Swift.String] = [], completion: @escaping ((Backtrace.BacktraceResult) -> Swift.Void))
-  @objc dynamic public func send(exception: Foundation.NSException?, attachmentPaths: [Swift.String] = [], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
-  @objc dynamic public func send(attachmentPaths: [Swift.String] = [], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+  @objc dynamic public func send(error: any Swift.Error, attachmentPaths: [Swift.String] = [], completion: @escaping (Backtrace.BacktraceResult) -> Swift.Void)
+  @objc dynamic public func send(message: Swift.String, attachmentPaths: [Swift.String] = [], completion: @escaping (Backtrace.BacktraceResult) -> Swift.Void)
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc dynamic public func send(exception: Foundation.NSException?, attachmentPaths: [Swift.String] = [], completion: @escaping (_ result: Backtrace.BacktraceResult) -> Swift.Void)
+  #endif
+  @objc dynamic public func send(attachmentPaths: [Swift.String] = [], completion: @escaping (_ result: Backtrace.BacktraceResult) -> Swift.Void)
 }
 extension Backtrace.BacktraceClient : Backtrace.BacktraceLogging {
   @objc dynamic public var loggingDestinations: Swift.Set<Backtrace.BacktraceBaseDestination> {
@@ -195,6 +210,9 @@ extension Backtrace.BacktraceClient : Backtrace.BacktraceBreadcrumbProtocol {
   @objc deinit
 }
 @objc public class BacktraceCrashReporter : ObjectiveC.NSObject {
+  @objc public var handlerInstallationAttempted: Swift.Bool {
+    @objc get
+  }
   @objc convenience public init(config: CrashReporter.PLCrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all))
   @objc public init(reporter: CrashReporter.PLCrashReporter)
   @objc deinit
@@ -234,7 +252,9 @@ extension Backtrace.BacktraceClient : Backtrace.BacktraceBreadcrumbProtocol {
   }
   public static let all: [Backtrace.BacktraceBreadcrumbType]
   public static let none: [Backtrace.BacktraceBreadcrumbType]
+  #if compiler(>=5.3) && $NonescapableTypes
   public init?(rawValue: Swift.Int)
+  #endif
   public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
@@ -249,7 +269,9 @@ extension Backtrace.BacktraceClient : Backtrace.BacktraceBreadcrumbProtocol {
   public var description: Swift.String {
     get
   }
+  #if compiler(>=5.3) && $NonescapableTypes
   public init?(rawValue: Swift.Int)
+  #endif
   public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
@@ -258,37 +280,63 @@ extension Backtrace.BacktraceClient : Backtrace.BacktraceBreadcrumbProtocol {
 @_inheritsConvenienceInitializers @objc public class BacktraceBreadcrumbs : ObjectiveC.NSObject {
   public func enableBreadcrumbs(_ breadcrumbSettings: Backtrace.BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings())
   public func disableBreadcrumbs()
+  #if compiler(>=5.3) && $NonescapableTypes
   public func addBreadcrumb(_ message: Swift.String, attributes: [Swift.String : Swift.String]? = nil, type: Backtrace.BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual, level: Backtrace.BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Swift.Bool
+  #endif
   public func clear() -> Swift.Bool
+  #if compiler(>=5.3) && $NonescapableTypes
   public var getCurrentBreadcrumbId: Swift.Int? {
     get
   }
+  #endif
   @objc override dynamic public init()
   @objc deinit
 }
-@_inheritsConvenienceInitializers @objc(Crash) public class Crash : CoreData.NSManagedObject {
-  @objc override dynamic public init(entity: CoreData.NSEntityDescription, insertInto context: CoreData.NSManagedObjectContext?)
+@_inheritsConvenienceInitializers @objc(Crash) nonisolated public class Crash : CoreData.NSManagedObject {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc override nonisolated dynamic public init(entity: CoreData.NSEntityDescription, insertInto context: CoreData.NSManagedObjectContext?)
+  #endif
   @objc deinit
 }
 extension Backtrace.Crash {
   @nonobjc public class func fetchRequest() -> CoreData.NSFetchRequest<Backtrace.Crash>
-  @objc(attachmentPaths) @NSManaged dynamic public var attachmentPaths: [Swift.String]? {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc(attachmentPaths) @NSManaged nonisolated dynamic public var attachmentPaths: [Swift.String]? {
     @objc get
     @objc set
   }
-  @objc(dateAdded) @NSManaged dynamic public var dateAdded: Foundation.Date? {
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc(dateAdded) @NSManaged nonisolated dynamic public var dateAdded: Foundation.Date? {
     @objc get
     @objc set
   }
-  @objc(hashProperty) @NSManaged dynamic public var hashProperty: Swift.String? {
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc(deliveryOwner) @NSManaged nonisolated dynamic public var deliveryOwner: Swift.String? {
     @objc get
     @objc set
   }
-  @objc(reportData) @NSManaged dynamic public var reportData: Foundation.Data? {
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc(deliveryStateRaw) @NSManaged nonisolated dynamic public var deliveryStateRaw: Foundation.NSNumber? {
     @objc get
     @objc set
   }
-  @objc(retryCount) @NSManaged dynamic public var retryCount: Swift.Int64 {
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc(hashProperty) @NSManaged nonisolated dynamic public var hashProperty: Swift.String? {
+    @objc get
+    @objc set
+  }
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc(reportData) @NSManaged nonisolated dynamic public var reportData: Foundation.Data? {
+    @objc get
+    @objc set
+  }
+  #endif
+  @objc(retryCount) @NSManaged nonisolated dynamic public var retryCount: Swift.Int64 {
     @objc get
     @objc set
   }
@@ -297,7 +345,9 @@ extension Backtrace.Crash {
   case none = 0
   case light = 1
   case full = 2
+  #if compiler(>=5.3) && $NonescapableTypes
   public init?(rawValue: Swift.Int)
+  #endif
   public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
@@ -309,6 +359,8 @@ extension Backtrace.Crash {
   @objc public var metricsSettings: Backtrace.BacktraceMetricsSettings
   @objc public var breadcrumbSettings: Backtrace.BacktraceBreadcrumbSettings
   @objc public var reportsPerMin: Swift.Int
+  @objc public var loggingDestinations: Swift.Set<Backtrace.BacktraceBaseDestination>?
+  @objc weak public var delegate: (any Backtrace.BacktraceClientDelegate)?
   @objc public var allowsAttachingDebugger: Swift.Bool
   @objc public var oomMode: Backtrace.BacktraceOomMode
   @available(*, deprecated, renamed: "oomMode")
@@ -330,13 +382,17 @@ public typealias Bookmarks = [Swift.String : Foundation.Data]
 @objc public protocol BacktraceClientCustomizing {
   @objc var attributes: Backtrace.Attributes { get set }
   @objc var attachments: Backtrace.Attachments { get set }
+  #if compiler(>=5.3) && $NonescapableTypes
   @objc var delegate: (any Backtrace.BacktraceClientDelegate)? { get set }
+  #endif
 }
 @objc public protocol BacktraceReporting {
-  @objc func send(error: any Swift.Error, attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
-  @objc func send(message: Swift.String, attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
-  @objc func send(attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
-  @objc func send(exception: Foundation.NSException?, attachmentPaths: [Swift.String], completion: @escaping ((_ result: Backtrace.BacktraceResult) -> Swift.Void))
+  @objc func send(error: any Swift.Error, attachmentPaths: [Swift.String], completion: @escaping (_ result: Backtrace.BacktraceResult) -> Swift.Void)
+  @objc func send(message: Swift.String, attachmentPaths: [Swift.String], completion: @escaping (_ result: Backtrace.BacktraceResult) -> Swift.Void)
+  @objc func send(attachmentPaths: [Swift.String], completion: @escaping (_ result: Backtrace.BacktraceResult) -> Swift.Void)
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc func send(exception: Foundation.NSException?, attachmentPaths: [Swift.String], completion: @escaping (_ result: Backtrace.BacktraceResult) -> Swift.Void)
+  #endif
 }
 @objc public protocol BacktraceLogging {
   @available(*, renamed: "destinations")
