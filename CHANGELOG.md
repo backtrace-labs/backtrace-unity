@@ -1,5 +1,114 @@
 # Backtrace Unity Release Notes
 
+## Version 3.17.0
+
+This release delivers a major upgrade to Apple-platforms native crash reporting, updates the macOS and iOS integrations to backtrace-cocoa 2.2.0, and improves native-client lifecycle management, Xcode exports, and Android native crash handling. Review the platform requirements and upgrade notes below before upgrading.
+
+### Apple-Platforms
+
+#### Shared integration improvements
+
+- Makes native initialization result-aware and preserves potentially installed crash-handler state until process exit, including partial initialization failures.
+- Improves recovery and delivery of pending native crash reports after restarting a Unity player.
+- Initializes native capture independently of the managed offline database. Starting with native capture disabled no longer prevents its first initialization when enabled later through `Refresh()`.
+- Preserves the native owner across repeated `Refresh()` calls and prevents a duplicate client from stopping another client's active native session.
+- Uses explicit UTF-8 interop for native strings and releases returned attribute allocations through the matching native deallocator, including decoding and destination-write failures.
+- Coordinates native operations with shutdown so attribute reads finish before native cleanup, and disabling the client does not block the Unity thread waiting for a stalled native ANR report.
+- Preserves the native `error.type=Crash` classification after ANR report attempts, including failures.
+- Uses a shared V3 Apple native bridge with explicit initialization results, ABI compatibility checks, validated UTF-8 arguments, and deterministic native allocation cleanup.
+- Passes Unity's `ReportPerMin` setting to Cocoa on macOS and iOS, including zero for unlimited native admission, instead of using a fixed native limit.
+- Shares native-session ownership and the ANR watchdog across the Apple integrations while retaining each platform's storage behaviour. The watchdog uses a monotonic heartbeat, avoids duplicate reports for the same stall, and preserves the base client's update behaviour.
+- Adds stage-specific Apple diagnostics without logging submission URLs, credentials, or native exception details. Native initialization failures do not prevent managed reporting.
+- Expands regression checks for native ownership, initialization results, Unicode interop, refresh behaviour, shutdown, and repeated iOS project postprocessing. Adds packaged-artifact checks for architectures, ABI exports, runtime linkage, database models, privacy resources, signatures, and package archive round trips.
+
+#### macOS
+
+- Isolates new native crash reports and their metadata from Unity's default PLCrashReporter storage. This addresses missing uploads and relaunch crashes caused by Unity processing Backtrace's pending report before the SDK initializes.
+- Replaces the nested, versioned framework with a self-contained universal plugin, removing the framework-symlink dependency that could prevent initialization after Unity package import or player builds.
+- Integrates the Backtrace Cocoa 2.2.0 plugin for Apple silicon and Intel, with a private, symbol-prefixed PLCrashReporter 1.12.0 runtime to avoid runtime-name collisions with Unity's copy.
+- Uses a sandbox-aware, application-specific cache location and a cooperative process lock so simultaneous instances do not write to the same pending-crash slot. The lock remains held after handler installation for the rest of the process lifetime.
+- Includes the database models, privacy manifest, and third-party notices directly in the flat bundle, without a nested Backtrace framework.
+
+#### iOS
+
+- Normalizes framework linking and embedding during repeated Xcode postprocessing without introducing duplicate build entries or a second static PLCrashReporter runtime.
+- Preserves application runpaths, including quoted paths and application-only build configurations, when embedding Backtrace.
+- Integrates the dedicated Backtrace Cocoa 2.2.0 Unity iOS XCFrameworks, with ARM64 device and ARM64/x86_64 Simulator slices and matching Backtrace dSYMs.
+- Preserves the existing pending-report location so an SDK upgrade does not strand previously captured iOS crashes. OOM reporting continues to use Cocoa's Light mode when enabled.
+- Links Backtrace to Unity's code target and embeds it in the application. The bridge uses the matching CrashReporter headers while reusing the runtime already incorporated into Backtrace, rather than linking or embedding the static runtime again.
+- Scopes ARC, Objective-C exception handling, and disabled header autolinking to the native bridge source instead of changing compiler settings across the project.
+- Packages PLCrashReporter privacy declarations and third-party notices in a separate resource bundle, resolving notices from either Assets or Unity Package Manager installations without overwriting the application's privacy manifest.
+
+#### Compatibility and upgrade notes
+
+##### macOS
+
+- Native reporting requires macOS 12.0 or newer.
+- Payloads left in the old shared PLCrashReporter cache require controlled recovery before launching the upgraded player. This release does not automatically migrate them or use a runtime rename-and-restore workaround, preserve payloads and accompanying metadata for support.
+
+##### iOS
+
+- Native reporting requires iOS 15.0 or newer. The postprocessor rejects an unsupported target minimum rather than changing it.
+- The existing pending-report location and OOM Light behaviour remain unchanged.
+
+##### Shared across macOS and iOS
+
+- Native disablement is process-lifetime after handler installation. Restart the application before enabling capture again, or after an initialization failure that may have partially installed a handler, repeated `Refresh()` is not an automatic retry mechanism.
+- The managed Apple integration requires matching V3 native artifacts, do not combine the new managed sources with an older macOS bundle or iOS bridge.
+- Native retry and storage-capacity behaviour remains separate from Unity's managed database configuration. This release does not add native ANR main-thread attribution or guarantee coexistence with arbitrary third-party crash SDKs.
+
+### Android
+
+#### Fixes and improvements
+
+- Resolves the loaded `libbacktrace-native.so` from the path selected by Android's linker, with existing extracted-library, installed ABI-split, and base-APK compatibility fallbacks. This supports traditional APK, Android App Bundle, and split-APK installations, including libraries loaded directly from an APK or ABI split, without opening or parsing APK contents or requiring forced native-library extraction.
+- Rejects ambiguous ABI-split candidates instead of selecting one according to package-metadata or filesystem ordering. Candidates are deduplicated and ranked globally, and `x86` is not confused with `x86_64`. Optional linker, application-metadata, and filesystem-provider failures now fall through to the next resolver stage.
+- Uses the ABI of the running Unity process for native-library fallback resolution, ABI-split selection, native-capture support checks, and the `device.abi` report attribute. This prevents a 32-bit process on a 64-bit-capable device from selecting an incompatible native library.
+- Rolls back partial native initialization when the native bridge returns `false`, JNI cleanup fails after activation, or managed completion fails. Initialization and rollback failures remain nonfatal, and managed Unity exception and message reporting continue.
+- Corrects Android native interop so `InitializeJavaCrashHandler` returns a one-byte Boolean while `AddAttribute`, `DumpWithoutCrash`, and `Disable` use their native `void` return types. The declarations use the C calling convention. JNI local references are released deterministically, with every cleanup attempted even when an earlier cleanup operation fails.
+- Contains optional native attribute propagation failures so managed attributes remain available, native capture is not disabled solely by an attribute failure, and later `SetAttributes(...)` entries continue to be processed. Low-memory annotation updates also continue to the timestamp when the first native attribute write fails.
+- Restores `error.type=Crash` after native ANR dump attempts, including failure paths, and contains JVM attach, detach, attribute, dump, and ANR worker failures.
+- Isolates native disablement, ANR shutdown, and Java watcher stop and dispose stages so one failed cleanup operation does not prevent the remaining cleanup.
+- Contains crash-handler child environment, native-library loading, and native dispatch failures. The child exits with a failure result when it cannot process a crash.
+- Replaces SDK-reserved crash-handler environment entries instead of adding duplicate `CLASSPATH`, `BACKTRACE_UNITY_CRASH_HANDLER`, `LD_LIBRARY_PATH`, or `ANDROID_DATA` variables.
+- Updates the bundled native crash-reporting libraries and expands resolver and lifecycle policy coverage for APK-backed paths, installed split metadata, process ABI selection, initialization rollback, native attributes, JNI cleanup, ANR, shutdown, and crash-handler behaviour.
+- Verifies that ARM64 IL2CPP App Bundles contain the required IL2CPP and Backtrace native libraries and the Java crash-handler entry class. PlayMode CI requires the Android regression tests to be present and not skipped.
+
+#### Diagnostics
+
+- Adds stable, stage-specific Android native integration log identifiers:
+  - setup and runtime: `BT_UNITY_ANDROID_NATIVE_PREPARE_FAILURE`, `BT_UNITY_ANDROID_NATIVE_ROLLBACK_FAILURE`, `BT_UNITY_ANDROID_NATIVE_ATTRIBUTE_FAILURE`, and `BT_UNITY_ANDROID_NATIVE_DUMP_FAILURE`.
+  - ANR, JNI, and shutdown: `BT_UNITY_ANDROID_ANR_THREAD_FAILURE`, `BT_UNITY_ANDROID_JNI_DETACH_FAILURE`, `BT_UNITY_ANDROID_ANR_STOP_FAILURE`, `BT_UNITY_ANDROID_NATIVE_DISABLE_FAILURE`, `BT_UNITY_ANDROID_ANR_WATCHER_STOP_FAILURE`, `BT_UNITY_ANDROID_ANR_WATCHER_DISPOSE_FAILURE`, `BT_UNITY_ANDROID_UNHANDLED_WATCHER_STOP_FAILURE`, and `BT_UNITY_ANDROID_UNHANDLED_WATCHER_DISPOSE_FAILURE`.
+  - crash-handler child: `BT_HANDLER_ENV_UNAVAILABLE`, `BT_HANDLER_PATH_UNAVAILABLE`, `BT_HANDLER_LOAD_FAILURE`, `BT_HANDLER_DISPATCH_FAILURE`, and `BT_HANDLER_RETURNED_FAILURE`.
+- Sanitizes native diagnostics so they identify the failed stage and, where useful, the failure type without exposing exception messages or stack traces, submission URLs, application attribute keys or values, attachment paths, handler arguments, or resolved native-library paths. These codes are log identifiers, not report attributes: expected unsupported or disabled preflight conditions can instead use `Backtrace native integration status`.
+
+#### Compatibility and upgrade notes
+
+- Native crash capture continues to require API level 21 or newer. Supported native ABIs are `arm64-v8a`, `armeabi-v7a`, and `x86_64`. 32-bit `x86` remains unsupported for native capture while managed reporting remains available.
+- Fatal native reports are persisted locally and uploaded after the application starts again.
+- Restart the Android application process after correcting a native setup, configuration, or packaging problem before testing native capture again.
+
+### Unity — all platforms
+
+- Adds `BT_UNITY_NATIVE_ATTRIBUTE_FAILURE` as a platform-neutral final containment diagnostic for optional native attribute propagation. Contained Android failures use `BT_UNITY_ANDROID_NATIVE_ATTRIBUTE_FAILURE` without emitting a duplicate generic warning.
+- Makes Unity PlayMode CI fail if result XML is missing or malformed, no tests execute, or tests fail.
+
+#### Compatibility
+
+- These changes introduce no public API removals, serialized-configuration migrations, or required consumer-code changes.
+
+### Documentation
+
+#### Apple-Platforms
+
+- Documents Apple native reporting requirements, Cocoa 2.2.0 integration, process-lifetime lifecycle behaviour, platform minimums, macOS legacy-payload recovery, and iOS upgrade-validation boundaries.
+
+#### Android
+
+- Adds a dedicated Unity Android native crash integration guide covering requirements, APK and Android App Bundle layouts, process-aware ABI selection, initialization and failure behavior, all Android native diagnostic codes, ProGuard configuration, symbol uploads, report attributes, and troubleshooting.
+- Documents `device.abi`, `device.sdk`, `memory.warning`, and `memory.warning.date`: clarifies that a low-memory callback annotates native state but does not immediately create or submit a report, and clarifies that attachment paths for native reports must be configured before native initialization. Attachments added later at runtime affect managed reports only.
+- Clarifies that matching debug symbols are required for symbolication rather than native report capture, and that the client-side unwinding setting does not change Android native crash-capture behaviour.
+
 ## Version 3.16.2
 
 Improvements
