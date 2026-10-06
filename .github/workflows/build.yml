@@ -5,10 +5,6 @@ on:
     branches: [master]
   pull_request:
 
-env:
-  # Keep legacy JavaScript actions such as unity-builder@v4 on the supported runtime.
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 jobs:
   validate-apple-native-artifacts:
     name: Validate Apple native artifacts
@@ -227,7 +223,7 @@ jobs:
       - if: matrix.targetPlatform == 'Android'
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
 
-      - uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4.8.2
+      - uses: game-ci/unity-builder@eb1b9fba120c6e62c9fb7a7a81d6c107ce004c45 # v6.0.0
         id: unity-build
         name: Build game for platform ${{ matrix.targetPlatform }}
         continue-on-error: ${{ matrix.allowFailure == true }}
