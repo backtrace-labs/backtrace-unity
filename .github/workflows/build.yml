@@ -5,6 +5,10 @@ on:
     branches: [master]
   pull_request:
 
+env:
+  # Keep legacy JavaScript actions such as unity-builder@v4 on the supported runtime.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   validate-apple-native-artifacts:
     name: Validate Apple native artifacts
@@ -13,7 +17,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           lfs: true
       - run: bash .github/scripts/validate-apple-artifacts.sh . all
@@ -95,7 +99,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           lfs: true
 
@@ -221,9 +225,9 @@ jobs:
           EOF
 
       - if: matrix.targetPlatform == 'Android'
-        uses: jlumbroso/free-disk-space@v1.3.1
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
 
-      - uses: game-ci/unity-builder@v4
+      - uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4.8.2
         id: unity-build
         name: Build game for platform ${{ matrix.targetPlatform }}
         continue-on-error: ${{ matrix.allowFailure == true }}
@@ -258,7 +262,8 @@ jobs:
         id: ios-editor-artifacts
         if: ${{ always() && matrix.iosSdk != '' }}
         continue-on-error: ${{ matrix.allowFailure == true }}
-        uses: actions/upload-artifact@v4
+        # v7.0.0 uses Node 24; pin the immutable release commit.
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ios-editor-${{ matrix.unityVersion }}-${{ matrix.iosSdk }}
           path: artifacts/ios-editor/
