@@ -258,7 +258,6 @@ jobs:
         id: ios-editor-artifacts
         if: ${{ always() && matrix.iosSdk != '' }}
         continue-on-error: ${{ matrix.allowFailure == true }}
-        # v7.0.0 uses Node 24; pin the immutable release commit.
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ios-editor-${{ matrix.unityVersion }}-${{ matrix.iosSdk }}
