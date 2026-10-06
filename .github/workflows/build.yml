@@ -223,7 +223,7 @@ jobs:
       - if: matrix.targetPlatform == 'Android'
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
 
-      - uses: game-ci/unity-builder@eb1b9fba120c6e62c9fb7a7a81d6c107ce004c45 # v6.0.0
+      - uses: game-ci/unity-builder@adaf7cd8f42fd48fbbf2d4f5f67ca30d87f819f1 # v5.0.1
         id: unity-build
         name: Build game for platform ${{ matrix.targetPlatform }}
         continue-on-error: ${{ matrix.allowFailure == true }}
