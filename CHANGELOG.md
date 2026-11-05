@@ -1,5 +1,15 @@
 # Backtrace Unity Release Notes
 
+## Version 3.17.1
+
+Improvements
+- Windows: Updated the Crashpad handler to v0.3.0. The handler and the native wrapper now ship with published debug symbols.
+- Android: Updated the bundled native libraries to backtrace-android 3.15.0.
+
+Bugfixes
+- Android/Windows: Fixed native crashes that follow an ANR report naming the main thread as the faulting thread.
+
+
 ## Version 3.17.0
 
 This release delivers a major upgrade to Apple-platforms native crash reporting, updates the macOS and iOS integrations to backtrace-cocoa 2.2.0, and improves native-client lifecycle management, Xcode exports, and Android native crash handling. Review the platform requirements and upgrade notes below before upgrading.
