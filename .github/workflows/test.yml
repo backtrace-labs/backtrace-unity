@@ -23,6 +23,11 @@ jobs:
     needs: validate-result-checker
     name: Run Tests in ${{ matrix.testMode }} ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
+    # CI shares one Unity Industry seat: run one Unity job at a time across both workflows.
+    concurrency:
+      group: unity-serial-license
+      cancel-in-progress: false
+      queue: max
     strategy:
       fail-fast: false
       matrix:
