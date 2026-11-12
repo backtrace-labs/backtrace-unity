@@ -8,7 +8,7 @@ on:
 jobs:
   validate-apple-native-artifacts:
     name: Validate Apple native artifacts
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 15
     permissions:
       contents: read
