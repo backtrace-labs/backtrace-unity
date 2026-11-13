@@ -8,7 +8,7 @@ on:
 jobs:
   validate-apple-native-artifacts:
     name: Validate Apple native artifacts
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 15
     permissions:
       contents: read
@@ -33,6 +33,11 @@ jobs:
     needs: validate-apple-native-artifacts
     name: Run Build for ${{ matrix.targetPlatform }} on Unity ${{ matrix.unityVersion }} ${{ matrix.macBackend }}
     runs-on: ${{ matrix.runner || 'ubuntu-latest' }}
+    # CI shares one Unity Industry seat: run one Unity job at a time across both workflows.
+    concurrency:
+      group: unity-serial-license
+      cancel-in-progress: false
+      queue: max
     # TODO: Fix the five modern Apple CI lanes and remove allowFailure.
     strategy:
       fail-fast: false
